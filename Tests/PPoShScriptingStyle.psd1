@@ -1,87 +1,83 @@
 @{
     Severity = @('Error', 'Warning', 'Information')
-    ExcludeRules = @(
-        'PSProvideCommentHelp',
-        'PSAvoidUsingWriteHost',
-        'PSAvoidGlobalVars',
-        'PSUseCmdletCorrectly',
-        'PSUseConsistentWhitespace',
-        'PSUseApprovedVerbs',
-        'PSAvoidUsingCmdletAliases',
-        'PSUseDeclaredVarsMoreThanAssignments'
-    )
     IncludeRules = @(   
-        'PSAvoidDefaultValueForMandatoryParameter',
-        'PSAvoidDefaultValueSwitchParameter',
-        'PSAvoidGlobalAliases',
-        'PSAvoidGlobalFunctions',
-        'PSAvoidUsingPlainTextForPassword',
-        'PSAvoidTrapStatement',
-        'PSAvoidUninitializedVariable',
-        'PSAvoidUsingComputerNameHardcoded',
-        'PSAvoidUsingConvertToSecureStringWithPlainText',
-        'PSAvoidUsingEmptyCatchBlock',
-        'PSAvoidUsingFilePath',
-        'PSAvoidUsingInvokeExpression',
-        'PSAvoidUsingPlainTextForPassword',
-        'PSAvoidUsingPositionalParameters',
-        'PSAvoidUsingUserNameAndPasswordParams',
-        'PSAvoidUsingWMICmdlet',
-        'PSDSC*',
-        'PSMisleadingBacktick',
-        'PSMissingModuleManifestField',
-        'PSPlaceOpenBrace',
-        'PSPossibleIncorrectComparisonWithNull',
-        'PSReservedCmdletChar',
-        'PSReservedParams',
-        'PSReturnCorrectTypesForDSCFunctions',
-        'PSShouldProcess',
-        'PSStandardDSCFunctionsInResource',
-        'PsUseBOMForUnicodeEncodedFile',
-        'PSUseConsistentIndentation',
-        'PSUseIdenticalMandatoryParametersForDSC',
-        'PSUseIdenticalParametersForDSC',
-        'PSUseLiteralInitializerForHashtable',
-        'PSUseOutputTypeCorrectly',
-        'PSUsePSCredentialType',
-        'PSUseShouldProcessForStateChangingFunctions',
-        'PSUseSingularNouns',
-        'PSUseSupportsShouldProcess',
-        'PSUseVerboseMessageInDSCResource',
-        'PSPlaceCloseBrace',
-        'PSPlaceOpenBrace',
-        'PSUseConsistentWhitespace'
+                   'PSAvoidDefaultValueForMandatoryParameter',
+                   'PSAvoidDefaultValueSwitchParameter',
+                   'PSAvoidGlobalAliases',
+                   'PSAvoidGlobalFunctions',
+                   'PSAvoidGlobalVars',
+                   'PSAvoidUsingPlainTextForPassword',
+                   'PSAvoidTrapStatement',
+                   'PSAvoidUninitializedVariable',
+                   'PSAvoidUsingCmdletAliases',
+                   'PSAvoidUsingComputerNameHardcoded',
+                   'PSAvoidUsingConvertToSecureStringWithPlainText',
+                   'PSAvoidUsingEmptyCatchBlock',
+                   'PSAvoidUsingFilePath',
+                   'PSAvoidUsingInvokeExpression',
+                   'PSAvoidUsingPlainTextForPassword',
+                   'PSAvoidUsingPositionalParameters',
+                   'PSAvoidUsingUserNameAndPasswordParams',
+                   'PSAvoidUsingWMICmdlet',
+                   'PSAvoidUsingWriteHost',
+                   'PSDSC*',
+                   'PSMisleadingBacktick',
+                   'PSMissingModuleManifestField',
+                   'PSPlaceCloseBrace',
+                   'PSPlaceOpenBrace',
+                   'PSPossibleIncorrectComparisonWithNull',
+                   'PSProvideCommentHelp'
+                   'PSReservedCmdletChar',
+                   'PSReservedParams',
+                   'PSReturnCorrectTypesForDSCFunctions',
+                   'PSShouldProcess',
+                   'PSStandardDSCFunctionsInResource',
+                   'PSUseApprovedVerbs',
+                   'PsUseBOMForUnicodeEncodedFile',
+                   'PSUseCmdletCorrectly',
+                   'PSUseConsistentIndentation',
+                   'PSUseConsistentWhitespace',
+                   'PSUseIdenticalMandatoryParametersForDSC',
+                   'PSUseIdenticalParametersForDSC',
+                   'PSUseDeclaredVarsMoreThanAssignments',
+                   'PSUseLiteralInitializerForHashtable',
+                   'PSUseOutputTypeCorrectly',
+                   'PSUsePSCredentialType',
+                   'PSUseShouldProcessForStateChangingFunctions',
+                   'PSUseSingularNouns',
+                   'PSUseSupportsShouldProcess',
+                   'PSUseVerboseMessageInDSCResource'
                    )
 
     Rules = @{
         PSPlaceCloseBrace = @{
             Enable = $true
-            NoEmptyLineBefore = $false
+            NoEmptyLineBefore = $true
             IgnoreOneLineBlock = $true
-            NewLineAfter = $false
+            NewLineAfter = $true
         }
 
         PSPlaceOpenBrace = @{
             Enable = $true
             OnSameLine = $true
-            NewLineAfter = $false
+            NewLineAfter = $true
             IgnoreOneLineBlock = $true
         }
 
         PSUseConsistentWhitespace = @{
             Enable = $true
-            CheckOpenBrace = $false
-            CheckOpenParen = $false
-            CheckOperator = $false
-            CheckSeparator = $false
+            CheckOpenBrace = $true
+            CheckOpenParen = $true
+            CheckOperator = $true
+            CheckSeparator = $true
         }
     }
 }
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUQqa1N9aXTDYq7UHg6IyFTSlp
-# LEigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUI/LaBpjwkXImH6tV34qXhz9q
+# Pm6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -96,9 +92,9 @@
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT+6l5j
-# Lp2PlpdZuQyMgPleivpfLjANBgkqhkiG9w0BAQEFAASBgCJ8p4mZeOXRJRzAuWCi
-# YABvtl861V1fT2RqgXyB+4e1z6v4CEvmvymXjgyu1MrY7KCPkiwvocdIUAT2XmKz
-# GHYZ/KG+rEsPtYp6rpDe70TGc91C//9KJksvHd1OqLqSM3b8tGh11eqPdtNpPo8E
-# FbSnUSM1sq9BTNkNvVPl/zYF
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSYh+9G
+# /2D3YDifCOCqKe6baQQ2izANBgkqhkiG9w0BAQEFAASBgLMzY5QLlrsU1d5XTOJZ
+# wsC7/YYtobwtZhGytR05x59h0GloLPEGqqFJyfoqyreknAtFhGwiveHJ44ldWw/H
+# 3bFv21TAS5Z/ybQFe1RhvQ+P5D3H8Ss5gjoILlR7vLzpe3SM6FVLWh9DROta8M8o
+# Foh7VPTHRRlN3Ffi/4ZLST0n
 # SIG # End signature block
