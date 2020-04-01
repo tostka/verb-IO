@@ -15,6 +15,7 @@ Copyright   : (c) 2020 Todd Kadrie
 Github      : https://github.com/tostka
 Tags        : Powershell,Pester,Testing,Development
 REVISIONS
+* 9:23 AM 4/1/2020 updated to include workaround for Test-ModuleManifest failure to reload updated psd1s (uses a force loaded copy of current file), now storing the output of the import-module -force passthrugh ; also added Pester tests for: Author, CompanyName, LicenseURI, PowerShellVersion,CopyRight, !RequiredModule,!ExportedFormatFiles,Prefix,comparre missing Exported functions (to determine which unexported), more detailed checking of Exports, and check CBH for Synopsis,Description & 1+ Example (several are remmed by default)
 * 7:49 AM 3/4/2020 version debugged to work with Psv5.1/ISE/VSC
 .DESCRIPTION
 verb-dev.ps1 - verb-dev Pester Tests
@@ -82,6 +83,8 @@ if ($PSScriptRoot -eq "") {
 
 $ModuleName = Split-Path (Resolve-Path "$ScriptDir\..\" ) -Leaf ; 
 $ModuleManifest = (Resolve-Path "$ScriptDir\..\$ModuleName\$ModuleName.psd1").path ; 
+# work around 'never-reloads' bug in Test-ModuleManifest, by force-loading a fresh hash of *curr* manifest, for use in all but *initial* TMM tests
+$Script:ManifestHash = Invoke-Expression (Get-Content $ModuleManifest -Raw)
 $ProjectRoot = (Resolve-path "$ScriptDir\..\").path ; 
 if(!(test-path $ProjectRoot\README.md)){
     throw "Unable to resolve ProjectRoot!" ;
@@ -117,8 +120,10 @@ $smsg=@"
 "@ ;
 write-verbose -verbose:$verbose $smsg ;
 
+# Force Import the module and store the information about the module
 Get-Module $ModuleName | Remove-Module
-Import-Module $ModuleManifest -Force
+$ModuleInformation = Import-Module $ModuleManifest -Force -PassThru ; 
+
 
 Describe 'Module Information' -Tags 'Command'{
     Context 'Manifest Testing' {
@@ -127,21 +132,62 @@ Describe 'Module Information' -Tags 'Command'{
                 $Script:Manifest = Test-ModuleManifest -Path $ModuleManifest -ErrorAction Stop -WarningAction SilentlyContinue
             } | Should Not Throw
         }
+        # Name & Version are not values in psd1 - they're *asserted* by TMM, don't use the hash for these tests
         It 'Valid Manifest Name' {
             $Script:Manifest.Name | Should -Be $ModuleName
         }
         It 'Generic Version Check' {
             $Script:Manifest.Version -as [Version] | Should -Not -BeNullOrEmpty
         }
-        It 'Valid Manifest Description' {
-            $Script:Manifest.Description | Should -Not -BeNullOrEmpty
+        <#
+        It 'Valid PowerShellVersion value' {
+            $Script:ManifestHash.PowerShellVersion | Should Not BeNullOrEmpty
         }
+        #>
+        It "Valid Author"{
+            $Script:ManifestHash.Author | Should not BeNullOrEmpty
+        }
+        It "Valid Company Name"{
+            $Script:ManifestHash.CompanyName | Should not BeNullOrEmpty
+        }
+        It "Valid License"{
+            $ModuleInformation.LicenseURI | Should not BeNullOrEmpty
+        }
+        <#
+        It "has a valid copyright" {
+          $Script:ManifestHash.CopyRight | Should Not BeNullOrEmpty
+        }
+        #>
+        It 'Valid Manifest Description' {
+            $Script:ManifestHash.Description | Should -Not -BeNullOrEmpty
+        }
+        <# via New-ModuleManifest -Tags 
+        It "Valid Tags"{
+            @($Script:ManifestHash.PrivateData.PSData.Tags).Count -gt 0 | Should Be $true
+        }
+        #>
         It 'Valid Manifest Root Module' {
-            $Script:Manifest.RootModule | Should -Be "$ModuleName.psm1"
+            $Script:ManifestHash.RootModule | Should -Be "$ModuleName.psm1"
         }
         It 'Valid Manifest GUID' {
-            $Script:Manifest.Guid | Should -Be "b9637e55-12be-4916-8000-a949f9426fa3"
+            $Script:ManifestHash.Guid | Should -Be "12cb1eb4-ac9c-405e-8711-e80c914a9b32"
         }
+        <#
+        It 'No Format File' {
+            $Script:ManifestHash.ExportedFormatFiles | Should BeNullOrEmpty
+        }
+        #>
+        # added from https://powershell.getchell.org/2016/05/16/generic-pester-tests/
+        It 'Required Modules' {
+            $Script:ManifestHash.RequiredModules | Should BeNullOrEmpty
+        }
+        
+        <# extra mani tests:
+        # prefix is the prop if fed from TMM, DefaultPrefix is the raw hash key, both are defaulted commandprefixes
+        It "has a valid prefix" {
+          $Script:ManifestHash.DefaultCommandPrefix | Should Not BeNullOrEmpty
+        }
+        #>
     }
 
     Context 'Exported Functions' {
@@ -163,12 +209,53 @@ Describe 'Module Information' -Tags 'Command'{
 
 "@ ;
             write-verbose -verbose:$verbose $smsg ;
+            
 
             $ExportedCount | Should be $FileCount
         }
+        
+        # another approach
+        It "Exports All Public Functions" {
+            $ExFunctions = $Script:ManifestHash.FunctionsToExport
+            $FunctionFiles = Get-ChildItem -Path "$ProjectRoot\Public" -Filter *.ps1 -Recurse |
+                Select-Object -ExpandProperty BaseName
+            $FunctionNames = $FunctionFiles
+            foreach ($FunctionName in $FunctionNames){
+                $ExFunctions -contains $FunctionName | Should Be $true
+            }
+        }
+        # https://lazywinadmin.com/2016/05/using-pester-to-test-your-manifest-file.html
+        It "Compare Missing Functions"{
+            if (-not ($ExportedCount -eq $FileCount))
+            {
+                $Compare = Compare-Object -ReferenceObject $ExFunctions -DifferenceObject $FunctionFiles
+                $Compare.inputobject -join ',' | Should BeNullOrEmpty
+            }
+        }
+        
     }
 
 
+}
+
+<# Help Tests, functions should have Synopsis,Description & an Example
+https://powershell.getchell.org/2016/05/16/generic-pester-tests/
+#>
+Get-Command -Module $ModuleName | ForEach-Object {
+    Describe 'Help' -Tags 'Help' {
+        Context "Function - $_" { 
+            It 'Synopsis' {
+                Get-Help $_ | Select-Object -ExpandProperty synopsis | should not benullorempty
+            }
+            It 'Description' {
+                Get-Help $_ | Select-Object -ExpandProperty Description | should not benullorempty
+            }
+            It 'Examples' {
+                $Examples = Get-Help $_ | Select-Object -ExpandProperty Examples | Measure-Object 
+                $Examples.Count -gt 0 | Should be $true
+            }
+        }
+    }
 }
 
 Describe 'General - Testing all scripts and modules against the Script Analyzer Rules' {
@@ -299,7 +386,7 @@ Describe 'General - Testing all scripts and modules against the Script Analyzer 
 
 
 $ofile = join-path -path (split-path $scriptStylePath) -child "ScriptAnalyzer-Results-$(get-date -format 'yyyyMMdd-HHmmtt').xml" ;
-$Report | export-clixml -path $ofile
+$AnalyzerIssues  | export-clixml -path $ofile
 write-verbose -verbose:$verbose  "ScriptAnalyzer Report written to:`n$($ofile)" ;
 
 #endregion
@@ -307,8 +394,8 @@ write-verbose -verbose:$verbose  "ScriptAnalyzer Report written to:`n$($ofile)" 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUgStNYAMokFGNw/nCffrWs9SJ
-# xmSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU305jJ/FGgpcCONy6G5TJbBiv
+# ixmgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -323,9 +410,9 @@ write-verbose -verbose:$verbose  "ScriptAnalyzer Report written to:`n$($ofile)" 
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQVAzdE
-# Y3jE91TcdhXy3Lk2Z2aRsDANBgkqhkiG9w0BAQEFAASBgBGuLaUszuENWnOh1MNG
-# nGoLEXmg+Ef3D4jSL91tTROl3cCqNEEpWpCcniPqw/xgQjMoBr9SsRYdpVXnw7xc
-# wa2x1XJC/O9BdutgM2L4OuGUdKuZT4CvrOOdT4w0O+vAruL5rOmREp0piGyx2mR+
-# 9X6x/IXdjL1ciE7HSP/SBhrl
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBReHSDN
+# ZO8j7eKzKdyPraAGi8lkMDANBgkqhkiG9w0BAQEFAASBgF6uCxY1SLP/UJihyM60
+# hLd1fscbR1ihR1SUuKkSIqPUgwmKC7rDlMzJ1f4i4V0QfioI3n+v7KqPvLnCnvz4
+# lffibHHGYm3uKaCJ0EwGDh8CPX/PSJcQUMSBDwf4xTEQCSfpS7mztuxzoONIdcI5
+# iG9kYi2l0b9ZsiHMzm+C8/mZ
 # SIG # End signature block

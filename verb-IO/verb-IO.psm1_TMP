@@ -1,10 +1,11 @@
 # verb-IO.psm1
 
+
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.0.0
+Version     : 1.0.10.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -34,8 +35,10 @@ https://github.com/tostka/verb-IO
 #>
 
 
-$script:ModuleRoot = $PSScriptRoot ; 
-$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ; 
+$script:ModuleRoot = $PSScriptRoot ;
+$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ;
+
+#*======v FUNCTIONS v======
 
 
 

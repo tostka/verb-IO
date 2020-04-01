@@ -1,11 +1,10 @@
 ﻿# verb-IO.psm1
 
-
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.11.0.0
+Version     : 1.0.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -35,10 +34,8 @@ https://github.com/tostka/verb-IO
 #>
 
 
-$script:ModuleRoot = $PSScriptRoot ;
-$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ;
-
-#*======v FUNCTIONS v======
+$script:ModuleRoot = $PSScriptRoot ; 
+$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ; 
 
 
 
@@ -315,7 +312,7 @@ function convertTo-Base64String {
     .SYNOPSIS
     convertTo-Base64String - Convert specified file to Base64 encoded string and return to pipeline
     .NOTES
-    Version     : 1.0.0
+    Version     : 1.0.1.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
@@ -1070,7 +1067,7 @@ function remove-ItemRetry {
     .SYNOPSIS
     remove-ItemRetry - Write output string to specified File
     .NOTES
-    Version     : 1.0.0
+    Version     : 1.0.1.0
     Author      : Todd Kadrie
     Website     : https://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
@@ -1212,7 +1209,7 @@ function revert-File {
     .SYNOPSIS
     revert-File.ps1 - Restore file from prior backup
     .NOTES
-    Version     : 1.0.0
+    Version     : 1.0.1.0
     Author      : Todd Kadrie
     Website     :	https://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
@@ -1309,7 +1306,7 @@ function Set-FileContent {
     .SYNOPSIS
     Set-FileContent - Write output string to specified File
     .NOTES
-    Version     : 1.0.0
+    Version     : 1.0.1.0
     Author      : Todd Kadrie
     Website     : https://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
@@ -1454,7 +1451,7 @@ function trim-FileList {
     .SYNOPSIS
     trim-FileList.ps1 - Sort and unique a file containing a list of items
     .NOTES
-    Version     : 1.0.0
+    Version     : 1.0.1.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
@@ -1556,8 +1553,8 @@ Export-ModuleMember -Function Add-PSTitleBar,backup-File,ColorMatch,Convert-File
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUNU5jH8ggDnd23ZTojcBVnrUf
-# XWugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUNntWLnmoK9IETc253YrehCwY
+# COmgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -1572,9 +1569,9 @@ Export-ModuleMember -Function Add-PSTitleBar,backup-File,ColorMatch,Convert-File
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSJyOI6
-# XBoCq7D2oTx0cYL6ZmZqgTANBgkqhkiG9w0BAQEFAASBgBxumsyapCzCDDKXIlH1
-# YF7csWlJXRaRDAeMo0pcPWc05NCFUJXWFLTSL8o3pKuLoJD9nDk927SRRpqAEHSC
-# B2I8lXfI+z37w6kfnleu7hmMks0ZnoxHg3cwjLJ2w1ASFlKRg35B5HNozEgtLa5R
-# HtA/FqXKiMXLAbS0Uv9Z1FBq
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQPd/Zu
+# +dpJUZc5vuzH131Md6jstjANBgkqhkiG9w0BAQEFAASBgEVVBOaZVq45WH2omNcj
+# Ple819ESBvEd73Jb3l+mzANS/RGJyzcYyBiqKyaHBYO7ez0pAgVEgx/JFPPZmkMk
+# 3GV8DD6vvasHV3+DKKJMUi1yzQuULuXw2pKX1rJ79/mR0Q7VhPJxg59M7o+De1L0
+# dYLWflPRfGw2SDtfv8KnMKfv
 # SIG # End signature block

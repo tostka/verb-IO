@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.11.0.0
+Version     : 1.0.6.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -48,7 +48,7 @@ Function Add-PSTitleBar {
     .SYNOPSIS
     Add-PSTitleBar.ps1 - Append specified identifying Tag string to the end of the powershell console Titlebar
     .NOTES
-    Version     : 1.0.1
+    Version     : 1.0.6
     Author      : dsolodow
     Website     :	https://github.com/dsolodow/IndyPoSH/blob/master/Profile.ps1
     Twitter     :	
@@ -736,7 +736,7 @@ function Get-FileEncoding {
     .SYNOPSIS
     Get-FileEncoding.ps1 - Gets Simple subset file encoding (compatible with Set-Content -encoding param)
     .NOTES
-    Version     : 1.0.1
+    Version     : 1.0.6
     Author:     : Andy Arismendi
     Website     : https://stackoverflow.com/questions/9121579/powershell-out-file-prevent-encoding-changes
     CreatedDate : 2012-2-2
@@ -822,7 +822,7 @@ function Get-FileEncodingExtended {
     .SYNOPSIS
     Get-FileEncodingExtended.ps1 - Gets file encoding..
     .NOTES
-    Version     : 1.0.1
+    Version     : 1.0.6
     Author: jpoehls
     Website:	https://gist.github.com/jpoehls/2406504
     CreatedDate : 2012-
@@ -1165,7 +1165,7 @@ Function Remove-PSTitleBar {
     .SYNOPSIS
     Remove-PSTitleBar.ps1 - Remove specified string from the Powershell console Titlebar
     .NOTES
-    Version     : 1.0.1
+    Version     : 1.0.6
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
@@ -1556,8 +1556,8 @@ Export-ModuleMember -Function Add-PSTitleBar,backup-File,ColorMatch,Convert-File
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUNU5jH8ggDnd23ZTojcBVnrUf
-# XWugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUvx5z4C6EDZU2iu/RGOltDe1W
+# EkagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -1572,9 +1572,9 @@ Export-ModuleMember -Function Add-PSTitleBar,backup-File,ColorMatch,Convert-File
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSJyOI6
-# XBoCq7D2oTx0cYL6ZmZqgTANBgkqhkiG9w0BAQEFAASBgBxumsyapCzCDDKXIlH1
-# YF7csWlJXRaRDAeMo0pcPWc05NCFUJXWFLTSL8o3pKuLoJD9nDk927SRRpqAEHSC
-# B2I8lXfI+z37w6kfnleu7hmMks0ZnoxHg3cwjLJ2w1ASFlKRg35B5HNozEgtLa5R
-# HtA/FqXKiMXLAbS0Uv9Z1FBq
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRUWd8g
+# kZknCg3jVF6za3CAN5nM2jANBgkqhkiG9w0BAQEFAASBgF9+vDmpNYJoKya7ixfJ
+# lJG2GkWvjfpt7dhwxa7EvyjKMdGCmRe27lQS0h9KrOeHCXmcHiGXJlEOECDOJxHh
+# aJTMLj1reeA7YAq1+soghxX5yqLfkH5V/Xn1Q8Htac5ZhAwTPO0kT+/HV+0sCz84
+# hRcVMpHyo57z0KQSAi0hV4aU
 # SIG # End signature block
