@@ -1,4 +1,5 @@
-﻿Function Get-FsoShortName {
+﻿#*------v Function Get-FsoShortName v------
+Function Get-FsoShortName {
     <#
     .SYNOPSIS
     Get-FsoShortName - Return ShortName (8.3) for specified Filesystem object
@@ -44,3 +45,4 @@
         } else { write-error "$($fo) is not a filesystem object" } ;
     }  ;
 }
+#*------^ END Function Get-FsoShortName ^------ ;

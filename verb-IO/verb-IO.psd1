@@ -12,7 +12,7 @@
 RootModule = 'verb-IO.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.11'
+ModuleVersion = '1.0.13'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Powershell Input/Output generic functions module'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Add-PSTitleBar','backup-File','ColorMatch','Convert-FileEncoding','convertTo-Base64String','dump-Shortcuts','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','Get-FileEncoding','Get-FileEncodingExtended','Get-FsoShortName','Get-FsoTypeObj','Get-Shortcut','remove-ItemRetry','Remove-PSTitleBar','revert-File','Set-FileContent','Set-Shortcut','trim-FileList')
+FunctionsToExport = @('Add-PSTitleBar','Authenticate-File','backup-File','ColorMatch','Convert-FileEncoding','convertTo-Base64String','dump-Shortcuts','Echo-Finish','Echo-ScriptEnd','Echo-Start','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','get-colorcombo','Get-FileEncoding','Get-FileEncodingExtended','Get-FolderSize','Convert-FileSize','Get-FsoShortName','Get-FsoShortPath','Get-FsoTypeObj','Get-Shortcut','Invoke-Flasher','Invoke-Pause','Invoke-Pause2','Move-LockedFile','play-beep','prompt-Continue','Read-Host2','remove-ItemRetry','Remove-PSTitleBar','revert-File','Set-FileContent','Set-Shortcut','Shorten-Path','Show-MsgBox','Sign-File','trim-FileList','unless')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUNqQNPJ2ulHsMCY7DfH2ahLX/
-# 3sSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUH0xb3mb4hVjPPNUb4sZaQY8t
+# 0i+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTb6N6x
-# sEUuOlbLLQIZTkzXmmCSijANBgkqhkiG9w0BAQEFAASBgEkvVrnj2pbmXlS4kzP+
-# p+qQ5TFMu8fZFSXPwi4gfLV2td4gYOXyL34q8+3rzw0wEKNYoZs7yIWT5Jt8gYfW
-# /ddVCB8ZwXNGY7vCPSrT3F9VXQf5tcEywB9o4wVIcIx6aGVMzr5lspQAe2qPnRjX
-# CUmpY8GRDMNJNqaXJve6pUG5
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSYlWtd
+# w9uj/YWfw7fU+sbXlD9RqDANBgkqhkiG9w0BAQEFAASBgAwhx1mOdirOffhJtcBG
+# NUerYp76QCoCKUap/BMGZbWxTDoYpu8FWRifQxWtDg2IIgA55zsOFt16KSNaNmit
+# mlwXJ4sxQ1RKe8DXmsXHJTr3+5p9IM5OElF9AlrOddYQTjpqbF482UPUDNv58uhb
+# ccmoakrV659GT9ZQ/iAfPkhJ
 # SIG # End signature block
