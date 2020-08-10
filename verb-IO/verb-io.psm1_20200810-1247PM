@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.17.0.0
+Version     : 1.0.16.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -913,14 +913,15 @@ function convert-ObjectToIndexedHash {
         # Get parameters this function was invoked with
         $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
         $Verbose = ($VerbosePreference -eq 'Continue') ;
-        $smsg = "Indexing $(($Object|measure).count) items in passed object on key:$($key)" ; 
+        $smsg = "Indexing $(($Object|measure).count) items in passed object" ; 
         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
-        else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        else{ write-verbose -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
     } ;
     PROCESS {
         $Hashtable = @{} ; 
         Foreach ($Item in $Object){
             $Hashtable[$Item.$Key.ToString()] = $Item ; 
+            $Procd++ ;
         } ; 
     } ; 
     END{
@@ -3472,8 +3473,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Color
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUK1km4TQshsfRCbDyx8blK1Zd
-# VSqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUhkx3nltRGjn9lxmbthvUQ72d
+# iEWgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -3488,9 +3489,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Color
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQ0YNi5
-# 4HCFBBTQTyQTH/CJ52lXcjANBgkqhkiG9w0BAQEFAASBgDwCXcwi64P7iYcT46j2
-# B/tq2y8QbWIVqRAnDwDXREcn8GOMk0lnD3z1rVos8DxcK+UgzS/B9+iVS88IT2LR
-# 7v0l5jeqQVlN3UpfLfg1gxiAchbq1CQlF8gwMu/glTcD0KwM4F6usXTndROikqdt
-# McZldKhT9NUPTHdrw2F9IO78
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRDgpOP
+# /vbCDJ2pkEaWgOgGi3ClFTANBgkqhkiG9w0BAQEFAASBgAkypAkG6AjaOg4VDxXB
+# cqwwTKBqY0avkv3VhNO/72IGFBCdccOBR34zuqKwwKTmlfXo3Fop6ExVQXvPZ4Qy
+# yaZV9P/dUEK4lomiTfkkvd7MFhYklL/dZduHc2e6YO/OB74TJiDTdzxfg2KLyCv0
+# e/W3jcPH1efspykzWpiKN9cM
 # SIG # End signature block

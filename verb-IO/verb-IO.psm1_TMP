@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.13.0.0
+Version     : 1.0.16.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -867,6 +867,68 @@ $Message
 }
 
 #*------^ ConvertFrom-SourceTable.ps1 ^------
+
+#*------v convert-ObjectToIndexedHash.ps1 v------
+function convert-ObjectToIndexedHash {
+    <#
+    .SYNOPSIS
+    convert-ObjectToIndexedHash - Convert passed in System Object into an indexed hash (faster lookup via $vari['value'] on the indexed value)
+    .NOTES
+    Version     : 1.0.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-08-10
+    FileName    : convert-ObjectToIndexedHash
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/
+    REVISIONS
+    * 12:14 PM 8/10/2020 init
+    .DESCRIPTION
+    convert-ObjectToIndexedHash - Convert passed in System Object into an indexed hash (faster lookup via $vari['value'] on the indexed value)
+    .PARAMETER Object
+    System Object to be converted into an indexed-hash[-LicensedUsers alias]
+    .PARAMETER Key
+    Property to be used to 'index' the object[-Key 'PropName']
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Object indexed hashtable of updated Object
+    .EXAMPLE
+    $object = convert-ObjectToIndexedHash -object $object -Key 'property'
+    .LINK
+    https://github.com/tostka
+    #>
+    [CmdletBinding()]
+    
+    PARAM(
+        [Parameter(Mandatory=$True,HelpMessage="System Object to be converted into an indexed-hash[-LicensedUsers alias]")]
+        $Object,
+        [Parameter(Mandatory=$True,HelpMessage="Property to be used to 'index' the object[-Key 'PropName']")]
+        $Key
+    ) ;
+    BEGIN {
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        # Get parameters this function was invoked with
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;
+        $smsg = "Indexing $(($Object|measure).count) items in passed object on key:$($key)" ; 
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+        else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    } ;
+    PROCESS {
+        $Hashtable = @{} ; 
+        Foreach ($Item in $Object){
+            $Hashtable[$Item.$Key.ToString()] = $Item ; 
+        } ; 
+    } ; 
+    END{
+        $Hashtable | write-output ; 
+    } ;
+}
+
+#*------^ convert-ObjectToIndexedHash.ps1 ^------
 
 #*------v convertTo-Base64String.ps1 v------
 function convertTo-Base64String {
@@ -3404,5 +3466,5 @@ function update-RegistryProperty {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,get-colorcombo,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-RegistryProperty,Get-Shortcut,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,remove-ItemRetry,Remove-PSTitleBar,revert-File,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,trim-FileList,unless,update-RegistryProperty -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,get-colorcombo,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-RegistryProperty,Get-Shortcut,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,remove-ItemRetry,Remove-PSTitleBar,revert-File,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,trim-FileList,unless,update-RegistryProperty -Alias *
 
