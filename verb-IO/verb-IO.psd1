@@ -12,7 +12,7 @@
 RootModule = 'verb-IO.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.17'
+ModuleVersion = '1.0.18'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Powershell Input/Output generic functions module'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Add-PSTitleBar','Authenticate-File','backup-File','ColorMatch','Convert-FileEncoding','ConvertFrom-SourceTable','Null','True','False','Debug-Column','Mask','Slice','TypeName','ErrorRecord','convert-ObjectToIndexedHash','convertTo-Base64String','dump-Shortcuts','Echo-Finish','Echo-ScriptEnd','Echo-Start','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','get-colorcombo','Get-FileEncoding','Get-FileEncodingExtended','Get-FolderSize','Convert-FileSize','Get-FsoShortName','Get-FsoShortPath','Get-FsoTypeObj','get-RegistryProperty','Get-Shortcut','Invoke-Flasher','Invoke-Pause','Invoke-Pause2','Move-LockedFile','play-beep','prompt-Continue','Read-Host2','remove-ItemRetry','Remove-PSTitleBar','revert-File','Set-FileContent','Set-Shortcut','Shorten-Path','Show-MsgBox','Sign-File','trim-FileList','unless','update-RegistryProperty')
+FunctionsToExport = @('Add-PSTitleBar','Authenticate-File','backup-File','ColorMatch','Convert-FileEncoding','ConvertFrom-SourceTable','Null','True','False','Debug-Column','Mask','Slice','TypeName','ErrorRecord','convert-ObjectToIndexedHash','convertTo-Base64String','dump-Shortcuts','Echo-Finish','Echo-ScriptEnd','Echo-Start','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','get-colorcombo','Get-FileEncoding','Get-FileEncodingExtended','Get-FolderSize','Convert-FileSize','Get-FsoShortName','Get-FsoShortPath','Get-FsoTypeObj','get-RegistryProperty','Get-Shortcut','Invoke-Flasher','Invoke-Pause','Invoke-Pause2','Move-LockedFile','play-beep','prompt-Continue','Read-Host2','remove-ItemRetry','Remove-PSTitleBar','revert-File','Set-FileContent','Set-Shortcut','Shorten-Path','Show-MsgBox','Sign-File','trim-FileList','unless','update-RegistryProperty','Write-ProgressHelper')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUyM7bA67EFjIkJmQ1OdbyldH8
-# 61OgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUTQjrbGSJOvu0IklX5aEp9lIY
+# zGKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT3Hav5
-# IXDtlIIIoXBgXCU36kOsWzANBgkqhkiG9w0BAQEFAASBgBfFfNTVm9+Fq/5T1Nz+
-# 3CaiOHhvrQWNGhwskOiUYjUhLbA6Fg17gdGti3m3jKp5SkDDDIf+uq8joR415xPt
-# R5Q7NabHZ6gWEVnsIhmTNkMzm1SOaGtSMYpf7rQFTiOv3aPgC0uW36OMGL2A4PyK
-# 2MArY5M4rENuhrE4qNIGH2xg
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRcy9Es
+# WamocfUConDIpRa9nuCRWTANBgkqhkiG9w0BAQEFAASBgJ3qyIXYPvCcLMInnx/9
+# Nv0wzWoEx5Rt4acRqBVU4GAgeQh1iHCmEsA4oGAGXslUV/jYRtK3CGc4BbmdDA7Z
+# MRhI4uIhdSa7C8XYqh0S8RyZCjikRGHKVESCPdEohxhXeCn9Vr6VF81aoQu6yhsp
+# xe0qP+YPheyoZN3CbqFPwHba
 # SIG # End signature block

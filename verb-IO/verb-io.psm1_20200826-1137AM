@@ -1,4 +1,4 @@
-# verb-io.psm1
+﻿# verb-io.psm1
 
 
 <#
@@ -3464,81 +3464,33 @@ function update-RegistryProperty {
 
 #*------^ update-RegistryProperty.ps1 ^------
 
-#*------v Write-ProgressHelper.ps1 v------
-function Write-ProgressHelper {
-    <#
-    .SYNOPSIS
-    Write-ProgressHelper - Dynamically scaling static Write-Progress function. 
-    .NOTES
-    Version     : 1.0.0.0
-    Author      : Adam Bertram
-    Website     :	https://adamtheautomator.com/building-progress-bar-powershell-scripts/
-    Twitter     :	
-    CreatedDate : 2020-08-10
-    FileName    : Write-ProgressHelper
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-IO
-    AddedCredit : Todd Kadrie
-    AddedWebsite: http://www.toddomation.com
-    AddedTwitter: @tostka / http://twitter.com/tostka
-    REVISIONS
-    * 11:17 AM 8/26/2020 added CBH, added supp for balance of write-progress params, ren'd orig $Message -> underlying $Status param. Example demo'ing more-flexible splat use
-    * 18 June 2019 posted vers
-    .DESCRIPTION
-    Write-ProgressHelper - Dynamically scaling static Write-Progress function. 
-    Leverages the parser to count the number of write-progress's in the current script, and uses each execucution to calculate completion percentage. Replaces hard-coded percentages per write-progress. 
-    .PARAMETER StepNumber
-    Number of current step, (1,2,3...)[-StepNumber 1]
-    .PARAMETER Message
-    String to be displayed as the write-progress '-Status' [-Message 'StepDescriptiOn']
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    None. 
-    .EXAMPLE
-    # dyn tally # of write-prog instances in curr $MyInvocation
-    $script:steps = ([System.Management.Automation.PsParser]::Tokenize((gc "$PSScriptRoot\$($MyInvocation.MyCommand.Name)"), [ref]$null) | where { $_.Type -eq 'Command' -and $_.Content -eq 'Write-ProgressHelper' }).Count ; 
-    # splat to hold the static write-progress params
-    $pltWPH=@{
-        Activity = "BROAD ACTIVITY" ;
-        CurrentOperation = "Querying..." ;
-    };
-    $iStep = 0 ; # counter to be incremented ea write-progress exec
-    Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING' -StepNumber ($iStep++) ;
-    ## SOME PROCESS HERE
-    Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING2' -StepNumber ($iStep++) ;
-    Above displays a two-step Write-Progress bar, dynamically scaling the progress & total around the number of 'write-progress' cmdlets present in the $MyInvocation
-    .LINK
-    https://adamtheautomator.com/building-progress-bar-powershell-scripts/
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    PARAM(
-        [Parameter(Mandatory=$True,HelpMessage="Number of current step, (1,2,3...)[-StepNumber 1]")]
-        [int]$StepNumber,
-        [Parameter(Mandatory=$True,HelpMessage="String to be displayed as the write-progress '-Activity' [-Message 'StepDescriptiOn']")]
-        [string]$Activity,
-        [Parameter(Mandatory=$True,HelpMessage="String to be displayed as the write-progress '-CurrentOperation' [-Message 'StepDescriptiOn']")]
-        [string]$CurrentOperation,
-        [Parameter(Mandatory=$True,HelpMessage="String to be displayed as the write-progress '-Status' [-Message 'StepDescriptiOn']")]
-        [string]$Status
-    ) ;
-    BEGIN {
-        #${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        # Get parameters this function was invoked with
-        #$PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-    } ;
-    PROCESS {
-        Write-Progress -Activity:$($Activity) -Status:$($Status) -CurrentOperation:$($CurrentOperation) -PercentComplete (($StepNumber / $steps) * 100) ; 
-    } ; 
-    END{} ;
-}
-
-#*------^ Write-ProgressHelper.ps1 ^------
-
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,get-colorcombo,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-RegistryProperty,Get-Shortcut,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,remove-ItemRetry,Remove-PSTitleBar,revert-File,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,get-colorcombo,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-RegistryProperty,Get-Shortcut,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,remove-ItemRetry,Remove-PSTitleBar,revert-File,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,trim-FileList,unless,update-RegistryProperty -Alias *
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUK1km4TQshsfRCbDyx8blK1Zd
+# VSqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQ0YNi5
+# 4HCFBBTQTyQTH/CJ52lXcjANBgkqhkiG9w0BAQEFAASBgDwCXcwi64P7iYcT46j2
+# B/tq2y8QbWIVqRAnDwDXREcn8GOMk0lnD3z1rVos8DxcK+UgzS/B9+iVS88IT2LR
+# 7v0l5jeqQVlN3UpfLfg1gxiAchbq1CQlF8gwMu/glTcD0KwM4F6usXTndROikqdt
+# McZldKhT9NUPTHdrw2F9IO78
+# SIG # End signature block
