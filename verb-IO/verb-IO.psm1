@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.18.0.0
+Version     : 1.0.19.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2651,6 +2651,53 @@ Function Read-Host2 {
 
 #*------^ read-Host2.ps1 ^------
 
+#*------v Remove-InvalidFileNameChars.ps1 v------
+Function Remove-InvalidFileNameChars {
+  <#
+    .SYNOPSIS
+    Remove-InvalidFileNameChars - Remove OS-specific illegal filename characters from the passed string
+    .NOTES
+    Author: Ansgar Wiechers
+    Website:	https://stackoverflow.com/questions/23066783/how-to-strip-illegal-characters-before-trying-to-save-filenames
+    Twitter     :	
+    AddedCredit : 
+    AddedWebsite:	
+    Version     : 1.0.0
+    CreatedDate : 2020-09-01
+    FileName    : Remove-InvalidFileNameChars.ps1
+    License     : 
+    Copyright   : 
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell,Filesystem
+    REVISIONS   :
+    * 3:32 PM 9/1/2020 added to verb-IO
+    * 4/14/14 posted version
+    .DESCRIPTION
+    Remove-InvalidFileNameChars - Remove OS-specific illegal filename characters from the passed string
+    .PARAMETER Name
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    $Name = Remove-InvalidFileNameChars -name $ofile ; 
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    ##[Alias('rx10')]
+    Param(
+        [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
+        [String]$Name
+    )
+    $verbose = ($VerbosePreference -eq "Continue") ; 
+    $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join ''
+    $re = "[{0}]" -f [RegEx]::Escape($invalidChars)
+    ($Name -replace $re) | write-output ; 
+}
+
+#*------^ Remove-InvalidFileNameChars.ps1 ^------
+
 #*------v remove-ItemRetry.ps1 v------
 function remove-ItemRetry {
     <#
@@ -3540,14 +3587,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,get-colorcombo,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-RegistryProperty,Get-Shortcut,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,remove-ItemRetry,Remove-PSTitleBar,revert-File,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,get-colorcombo,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-RegistryProperty,Get-Shortcut,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUH5QWPromKUcoePmmklHXpHMm
-# mwigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU8+IqezlQg/bb3VcQreEeSAW+
+# KrOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -3562,9 +3609,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Color
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSUWEXY
-# 8iFnVhDvyX3M73Cs2K9goTANBgkqhkiG9w0BAQEFAASBgChkh6eo/J/zeHypWj/a
-# Wt3JNyPVHmBYpWf1A1kPUNg/u9nUm7fEYUtOfJqCb7z3sbBCNcOkqvfnApeEotWi
-# qlkJhwwxRDIQCCiSKNEO244Dd+XqHCRqArExmZAc9tJ3ZB1TmIP05daQ5hi2pBcC
-# uEkPc8HdCFHXgiEK2SP/+R0d
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQMWYaA
+# tjiOuEiKlJGor4mdub2IhjANBgkqhkiG9w0BAQEFAASBgIBpTbFYUFQdtDzwzywR
+# RPYpIBLkmEUrNymtEX4hhtM3mVzVlgy+YCeVBS/Qf+Ixb8BLz2Mn4Vk/aYeRr/i+
+# Na+igzwPGLBbLwvYrK8fVyyHnh7hh1a9VmfpPu1OoJK6T4qQe6F4y6oYtAOy5/Xr
+# u+ZU+ewixcna9DWwqU6Kp9wj
 # SIG # End signature block
