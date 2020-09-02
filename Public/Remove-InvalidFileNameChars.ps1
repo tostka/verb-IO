@@ -17,6 +17,7 @@ Function Remove-InvalidFileNameChars {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Filesystem
     REVISIONS   :
+    * 7:21 AM 9/2/2020 added alias:'Remove-IllegalFileNameChars'
     * 3:32 PM 9/1/2020 added to verb-IO
     * 4/14/14 posted version
     .DESCRIPTION
@@ -32,7 +33,7 @@ Function Remove-InvalidFileNameChars {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    ##[Alias('rx10')]
+    [Alias('Remove-IllegalFileNameChars')]
     Param(
         [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
         [String]$Name

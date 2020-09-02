@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.20.0.0
+Version     : 1.0.19.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2670,7 +2670,6 @@ Function Remove-InvalidFileNameChars {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Filesystem
     REVISIONS   :
-    * 7:21 AM 9/2/2020 added alias:'Remove-IllegalFileNameChars'
     * 3:32 PM 9/1/2020 added to verb-IO
     * 4/14/14 posted version
     .DESCRIPTION
@@ -2686,7 +2685,7 @@ Function Remove-InvalidFileNameChars {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [Alias('Remove-IllegalFileNameChars')]
+    ##[Alias('rx10')]
     Param(
         [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
         [String]$Name
@@ -3594,8 +3593,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Color
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUc6xR6tIHZ2yKo/NH+D0GYe91
-# n6CgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU8+IqezlQg/bb3VcQreEeSAW+
+# KrOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -3610,9 +3609,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Color
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQJkE2P
-# xeJzyS+wGDW6RXloVbONAzANBgkqhkiG9w0BAQEFAASBgJ5BTUrFiMOR46hakJnk
-# H8aknghGGrvZwoNtRH+1BIRG1Z77qai3qUumzKsixypZIzUQpKIOILfgTboeOGdK
-# cgpREKIlvD8E0KTqckAf+2nCUTEcVPBKYwNjxyDtjJ/qPBcS4KvFA5pnskGX6GEV
-# IETE1qCOw2zTtOFuhdCuoE9d
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQMWYaA
+# tjiOuEiKlJGor4mdub2IhjANBgkqhkiG9w0BAQEFAASBgIBpTbFYUFQdtDzwzywR
+# RPYpIBLkmEUrNymtEX4hhtM3mVzVlgy+YCeVBS/Qf+Ixb8BLz2Mn4Vk/aYeRr/i+
+# Na+igzwPGLBbLwvYrK8fVyyHnh7hh1a9VmfpPu1OoJK6T4qQe6F4y6oYtAOy5/Xr
+# u+ZU+ewixcna9DWwqU6Kp9wj
 # SIG # End signature block
