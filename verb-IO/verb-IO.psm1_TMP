@@ -1,11 +1,11 @@
-# verb-io.psm1
+# verb-IO.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.20.0.0
+Version     : 1.0.21.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -979,9 +979,11 @@ function copy-Profile {
     Website:	http://www.toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
-    * 9:47 AM 9/24/2020 updated CBH, copied to verb-IO mod; added -MinProfile to drive admin/svcacct copying
+    * 9:47 AM 9/24/2020 updated CBH, copied to verb-IO mod; added -MinProfile to drive admin/svcacct copying 
     * 10:41 AM 3/26/2020 rewrote, added verbose support, condensed 
     8:07 AM 6/12/2015 - functionalize copy code from the EMS block
+    .DESCRIPTION
+    copy-Profile() - Copies $SourceProfileMachine WindowsPowershell profile dir to the specified machine(s)
     .PARAMETER  ComputerName
     Name or IP address of the target computer
     .PARAMETER SourceProfileMachine
@@ -1621,6 +1623,42 @@ function Find-LockedFileProcess {
 
 #*------^ Find-LockedFileProcess.ps1 ^------
 
+#*------v Get-AverageItems.ps1 v------
+function Get-AverageItems {
+    <#
+    .SYNOPSIS
+    Get-AverageItems.ps1 - Avg input items
+    .NOTES
+    Version     : 1.0.0
+    Author      : Raoul Supercopter
+    Website     :	https://stackoverflow.com/users/57123/raoul-supercopter
+    CreatedDate : 2020-01-03
+    FileName    : 
+    License     : (none specified)
+    Copyright   : (none specified)
+    Github      : 
+    Tags        : Powershell,Math
+    REVISIONS
+    12:29 PM 5/15/2013 revised
+    17:10 1/3/2010 posted rev
+    .DESCRIPTION
+    Get-AverageItems.ps1 - Avg input items
+    .INPUTS
+    stdin
+    .OUTPUTS
+    System.Int32
+    .EXAMPLE
+    PS C:\> gci c:\*.* | get-AverageItems
+    .LINK
+    http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
+    #>
+    BEGIN { $max = 0; $curr = 0 }
+    PROCESS { $max += $_; $curr += 1 }
+    END { $max / $curr }
+}
+
+#*------^ Get-AverageItems.ps1 ^------
+
 #*------v get-colorcombo.ps1 v------
 function get-colorcombo {
     <#
@@ -1690,6 +1728,40 @@ function get-colorcombo {
 }
 
 #*------^ get-colorcombo.ps1 ^------
+
+#*------v Get-CountItems.ps1 v------
+function Get-CountItems {
+    <#
+    .SYNOPSIS
+    Get-CountItems.ps1 - Count input items
+    .NOTES
+    Version     : 1.0.0
+    Author      : Raoul Supercopter
+    Website     :	https://stackoverflow.com/users/57123/raoul-supercopter
+    CreatedDate : 2020-01-03
+    FileName    : 
+    License     : (none specified)
+    Copyright   : (none specified)
+    Github      : 
+    Tags        : Powershell,Math
+    REVISIONS
+    17:10 1/3/2010 posted rev
+    .DESCRIPTION
+    Get-CountItems.ps1 - Count input items
+    .OUTPUTS
+    System.Int32
+    .EXAMPLE
+    PS C:\> gci c:\*.* | get-CountItems
+    .LINK
+    http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
+    #>
+    BEGIN { $x = 0 }
+    PROCESS { $x += 1 }
+    END { $x }
+
+}
+
+#*------^ Get-CountItems.ps1 ^------
 
 #*------v Get-FileEncoding.ps1 v------
 function Get-FileEncoding {
@@ -2016,6 +2088,44 @@ function Get-FolderSize {
 
 #*------^ Get-FolderSize.ps1 ^------
 
+#*------v Get-FolderSize2.ps1 v------
+Function Get-FolderSize2 {
+    <#
+    .SYNOPSIS
+    Get-FolderSize2.ps1 - Aggregate size of specified folder
+    .NOTES
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-
+    FileName    : 
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell
+    REVISIONS
+    1:39 PM 6/18/2020 updated CBH
+    .DESCRIPTION
+    Get-FolderSize2.ps1 - Aggregate size of specified folder
+    .PARAMETER Path
+    Folder path to be aggregated
+    .EXAMPLE
+    PS C:\> gci c:\*.* | Get-FolderSize2
+    .LINK
+    http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
+    #>
+    Param ($Path) ;
+    $Sizes = 0 ;
+    ForEach ($Item in (Get-ChildItem $Path)) {
+        If ($Item.PSIsContainer) { Get-FolderSize2 $Item.FullName }
+        Else { $Sizes += $Item.Length } ;
+    } ;
+    [PSCustomObject]@{'Name' = $path; 'Size' = "{0:N2}" -f ($sizes / 1gb) };
+
+}
+
+#*------^ Get-FolderSize2.ps1 ^------
+
 #*------v Get-FsoShortName.ps1 v------
 Function Get-FsoShortName {
     <#
@@ -2171,6 +2281,39 @@ Function Get-FsoTypeObj {
 
 #*------^ Get-FsoTypeObj.ps1 ^------
 
+#*------v Get-ProductItems.ps1 v------
+function Get-ProductItems {
+    <#
+    .SYNOPSIS
+    get-ProductItems.ps1 - Calculate Product of input items
+    .NOTES
+    Version     : 1.0.0
+    Author      : Raoul Supercopter
+    Website     :	https://stackoverflow.com/users/57123/raoul-supercopter
+    CreatedDate : 2020-01-03
+    FileName    : 
+    License     : (none specified)
+    Copyright   : (none specified)
+    Github      : 
+    Tags        : Powershell,Math
+    REVISIONS
+    17:10 1/3/2010 posted rev
+    .DESCRIPTION
+    get-ProductItems.ps1 - Calculate Product of input items
+    .OUTPUTS
+    System.Int32
+    .EXAMPLE
+    PS C:\> gci c:\*.* | get-ProductItems
+    .LINK
+    http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
+    #>
+    BEGIN { $x = 1 }
+    PROCESS { $x *= $_ }
+    END { $x }
+}
+
+#*------^ Get-ProductItems.ps1 ^------
+
 #*------v get-RegistryProperty.ps1 v------
 function get-RegistryProperty {
     <#
@@ -2291,6 +2434,177 @@ function Get-Shortcut {
 }
 
 #*------^ Get-Shortcut.ps1 ^------
+
+#*------v Get-SumItems.ps1 v------
+function Get-SumItems {
+    <#
+    .SYNOPSIS
+    Get-SumItems.ps1 - Sum input items
+    .NOTES
+    Version     : 1.0.0
+    Author      : Raoul Supercopter
+    Website     :	https://stackoverflow.com/users/57123/raoul-supercopter
+    CreatedDate : 2020-01-03
+    FileName    : 
+    License     : (none specified)
+    Copyright   : (none specified)
+    Github      : 
+    Tags        : Powershell,Math
+    REVISIONS
+    12:29 PM 5/15/2013 revised
+    17:10 1/3/2010 posted rev
+    .DESCRIPTION
+    Get-SumItems.ps1 - Sum input items
+    .INPUTS
+    stdin
+    .OUTPUTS
+    console/stdout System.Int32
+    .EXAMPLE
+    gci c:\*.* | get-SumItems
+    .LINK
+    http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
+    #>
+    #requires -version 2
+    BEGIN { $x = 0 }
+    PROCESS { $x += $_ }
+    END { $x }
+}
+
+#*------^ Get-SumItems.ps1 ^------
+
+#*------v Get-Time.ps1 v------
+function Get-Time {
+    <#
+    .SYNOPSIS
+    Ouptuts current MM/DD/YYYY HH:MM:SS [AM/PM] time
+    .EXAMPLE
+    PS C:\> get-time
+    .OUTPUTS
+    System.String
+    #>
+    return $(get-date | foreach { $_.ToLongTimeString() } )
+}
+
+#*------^ Get-Time.ps1 ^------
+
+#*------v Get-TimeStamp.ps1 v------
+function Get-TimeStamp {
+    # vers: 8:43 AM 10/31/2014 - simple timestamp echo
+    # stock version
+    #Get-DateTime -Format 'yyyy-MM-dd HH:mm:ss'
+    # my version
+    #(get-date).ToString("HH:mm:ss")
+    #Get-DateTime -Format "HH:mm:ss"
+    # 2:11 PM 12/3/2014 no such cmd as get-datetime
+    Get-Date -Format "HH:mm:ss"
+}
+
+#*------^ Get-TimeStamp.ps1 ^------
+
+#*------v get-TimeStampNow.ps1 v------
+Function get-TimeStampNow () {
+    # 	# ren'd TimeStampNow to get-TimeStampNow
+    # vers: 20091002
+    $TimeStampNow = get-date -uformat "%Y%m%d-%H%M"
+    return $TimeStampNow
+}
+
+#*------^ get-TimeStampNow.ps1 ^------
+
+#*------v get-Uptime.ps1 v------
+function get-Uptime {
+    <#
+    .SYNOPSIS
+    get-Uptime() - retrieves time since last bootup, on the specified/local machine(s)
+    .NOTES
+    Author: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    vers: 12:15 PM 2/3/2015 functional
+    Vers: 7:26 AM 2/3/2015 port to function
+    Vers: 8:35 AM 9/16/2013 added timestamp to console for ref
+    vers: 11:02 AM 8/19/2013 - works, with pipeline support, but I removed the computerlist param - pipe in a list if you want one
+    vers: 9:19 AM 8/19/2013 - initial version
+    .DESCRIPTION
+    get-Uptime - retrieves time since last bootup, on the specified/local machine
+    Works for single system, and a list on cmdline, but try to pipline Exchservers into it, and it throws up
+    .PARAMETER  ComputerName
+    Name or IP address of the target computer
+    .PARAMETER Credential
+    Credential object for use in accessing the computers.
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    Returns an object with uptime data to the pipeline.
+    .EXAMPLE
+    get-Uptime USEA-MAILEXP | select Computername,Uptime
+    .EXAMPLE
+    (get-uptime "LYN-3V6KSY1","localhost").uptimestr
+    .EXAMPLE
+    get-exchangeserver usea-nahubcas1 | get-Uptime
+    .EXAMPLE
+    get-exchangeserver  | get-Uptime
+    .EXAMPLE
+    "usea-nahubcas1","usea-fdhubcas1" | foreach {get-uptime $_}
+    .EXAMPLE
+    get-exchangeserver | sort Site,AdminDisplayVersion.major,Role,Name | foreach {get-uptime $_}
+    .EXAMPLE
+    Get-ADComputer -filter * | Select @{label='computername';expression={$_.name}} | Get-Uptime
+    .LINK
+     #>
+
+    # 9:03 AM 2/3/2015 added aliases, permits piping the output of WMI query etc, using Get-WMIObject into a function and it would grab the __Server property of the object and use it in the pipeline of the function.
+
+    [CmdletBinding()]
+    param (
+        [parameter(
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
+            Position = 0)]
+        [Alias('__ServerName', 'Server', 'Computer', 'Name', 'IPAddress', 'CN')]
+        [string[]]$ComputerName = $env:COMPUTERNAME
+        ,
+        [parameter(Position = 1)]
+        [System.Management.Automation.PSCredential]$Credential
+    ) ;
+    BEGIN {
+        $Info = @()
+        $iProcd = 0;
+    }  # BEG-E
+    PROCESS {
+        foreach ($Computer in $Computername) {
+            $iProcd++
+            $continue = $true
+            try {
+                $ErrorActionPreference = "Stop" ;
+                $OS = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $Computer #-ErrorAction stop
+                $oRet = (Get-Date) - $OS.ConvertToDateTime($OS.LastBootUpTime) #-ErrorAction stop
+            }
+            catch {
+                Write "$((get-date).ToString('HH:mm:ss')): Error Details: $($_)"
+                Continue
+            } # try/cat-E
+            if ($continue) {
+                # hashtable of the single system's properties
+                # asserted property sort order is on property name
+                $property = @{
+                    'Computername' = $Computer;
+                    'Days'         = $oRet.Days;
+                    'Hours'        = $oRet.Hours;
+                    'Minutes'      = $oRet.Minutes;
+                    'Seconds'      = $oRet.Seconds;
+                    'Uptime'       = $oRet -f $oRet.Hours, $oRet.Minutes, $oRet.Seconds;
+                    'UptimeStr'    = ("$($Computer):$($oRet.Days)d:$($oRet.Hours)h:$($oRet.Minutes)m:$($oRet.Seconds)s")
+                } ;
+                $obj = New-Object -Type PSObject -Property $property
+                Write-Output $obj
+            } # if-E
+        } 
+    }  # PROC-E
+}
+
+#*------^ get-Uptime.ps1 ^------
 
 #*------v Invoke-Flasher.ps1 v------
 Function Invoke-Flasher {
@@ -3082,6 +3396,67 @@ function revert-File {
 
 #*------^ revert-File.ps1 ^------
 
+#*------v Save-ConsoleOutputToClipBoard.ps1 v------
+function Save-ConsoleOutputToClipBoard {
+    <#
+    .SYNOPSIS
+    Save-ConsoleOutputToClipBoard.ps1 - 1LINEDESC
+    .NOTES
+    Author: Adam Bertrand
+    Website:	http://www.toddomation.com
+    Twitter:	@tostka, http://twitter.com/tostka
+    Additional Credits: REFERENCE
+    Website:	http://www.adamtheautomator.com/
+    Twitter:	@adbertram
+    REVISIONS   :
+    * 5/14/2019 posted version
+    .DESCRIPTION
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    None. Returns no objects or output.
+    .EXAMPLE
+    .EXAMPLE
+    .LINK
+    https://gist.github.com/adbertram/4e4bf0ba5f876ed474f90534520cf2e2
+    #>
+
+    [OutputType('string')]
+    [CmdletBinding()]
+    param () ;
+
+    <#if ($host.Name -ne -ConsoleHost-) {
+        write-host -ForegroundColor Red "This script runs only in the console host. You cannot run this script in $($host.Name)." ;
+    } ;#>
+
+    # Initialize string builder.
+    $textBuilder = new-object system.text.stringbuilder ;
+
+    # Grab the console screen buffer contents using the Host console API.
+    $bufferWidth = $host.ui.rawui.BufferSize.Width
+    $bufferHeight = $host.ui.rawui.CursorPosition.Y
+
+    $rec = new-object System.Management.Automation.Host.Rectangle 0, 0, ($bufferWidth - 1), $bufferHeight ;
+    $buffer = $host.ui.rawui.GetBufferContents($rec) ;
+
+    # Iterate through the lines in the console buffer.
+    for ($i = 0; $i -lt $bufferHeight; $i++) {
+        for ($j = 0; $j -lt $bufferWidth; $j++) {
+            $cell = $buffer[$i, $j] ;
+            $null = $textBuilder.Append($cell.Character) ;
+        } ;
+        $null = $textBuilder.Append("`r`n") ;
+    } ;
+
+    ## Ensure the PS prompt is always just PS>
+    $out = $textBuilder.ToString() -replace 'PS .*\>', 'PS>' ;
+
+    ## Remove the line that actually invoked this function
+    $out -replace "PS> $($MyInvocation.MyCommand.Name)" | Set-Clipboard ;
+}
+
+#*------^ Save-ConsoleOutputToClipBoard.ps1 ^------
+
 #*------v Set-FileContent.ps1 v------
 function Set-FileContent {
     <#
@@ -3432,6 +3807,38 @@ function Sign-File {
 
 #*------^ Sign-File.ps1 ^------
 
+#*------v Touch-File.ps1 v------
+Function Touch-File {
+    <#
+    .SYNOPSIS
+    Touch-File.ps1 - Approx *nix 'touch', create empty file if non-prexisting| update timestemp if exists.
+    .NOTES
+    Author: LittleBoyLost
+    Website:	https://superuser.com/users/210235/littleboylost
+    REVISIONS   :
+    * 3/25/13 - posted version
+    .DESCRIPTION
+    .PARAMETER  File
+    File [-file c:\path-to\file.ext]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    None. Returns no objects or output.
+    .EXAMPLE
+    touch-file -file c:\tmp.txt ;
+    Create a new file, or update timestamp of exising file
+    .EXAMPLE
+    .LINK
+    https://superuser.com/questions/502374/equivalent-of-linux-touch-to-create-an-empty-file-with-powershell#
+    #>
+    [Alias('touch')]
+    Param([Parameter(Position = 0, Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "File [-file c:\path-to\file.ext]")]$File) ;
+    if ($file -eq $null) { throw "No filename supplied" } ;
+    if (Test-Path $file) { (Get-ChildItem $file).LastWriteTime = Get-Date } else { echo $null > $file } ;
+}
+
+#*------^ Touch-File.ps1 ^------
+
 #*------v trim-FileList.ps1 v------
 function trim-FileList {
     <#
@@ -3732,5 +4139,5 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,copy-Profile,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,get-colorcombo,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-RegistryProperty,Get-Shortcut,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,copy-Profile,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-Shortcut,Get-SumItems,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
