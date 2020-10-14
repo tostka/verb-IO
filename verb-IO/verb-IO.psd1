@@ -12,7 +12,7 @@
 RootModule = 'verb-IO.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.24'
+ModuleVersion = '1.0.31'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Powershell Input/Output generic functions module'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Add-PSTitleBar','Authenticate-File','backup-File','ColorMatch','Convert-FileEncoding','ConvertFrom-SourceTable','Null','True','False','Debug-Column','Mask','Slice','TypeName','ErrorRecord','convert-ObjectToIndexedHash','convertTo-Base64String','copy-Profile','dump-Shortcuts','Echo-Finish','Echo-ScriptEnd','Echo-Start','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','Get-AverageItems','get-colorcombo','Get-CountItems','Get-FileEncoding','Get-FileEncodingExtended','Get-FolderSize','Convert-FileSize','Get-FolderSize2','Get-FsoShortName','Get-FsoShortPath','Get-FsoTypeObj','Get-ProductItems','get-RegistryProperty','Get-Shortcut','Get-SumItems','Get-Time','Get-TimeStamp','get-TimeStampNow','get-Uptime','Invoke-Flasher','Invoke-Pause','Invoke-Pause2','Move-LockedFile','play-beep','prompt-Continue','Read-Host2','Remove-InvalidFileNameChars','remove-ItemRetry','Remove-PSTitleBar','revert-File','Save-ConsoleOutputToClipBoard','Set-FileContent','Set-Shortcut','Shorten-Path','Show-MsgBox','Sign-File','stop-driveburn','Touch-File','trim-FileList','unless','update-RegistryProperty','Write-ProgressHelper')
+FunctionsToExport = @('Add-PSTitleBar','Authenticate-File','backup-File','ColorMatch','Convert-FileEncoding','ConvertFrom-SourceTable','Null','True','False','Debug-Column','Mask','Slice','TypeName','ErrorRecord','convert-ObjectToIndexedHash','convertTo-Base64String','copy-Profile','dump-Shortcuts','Echo-Finish','Echo-ScriptEnd','Echo-Start','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','Get-AverageItems','get-colorcombo','Get-CountItems','Get-FileEncoding','Get-FileEncodingExtended','Get-FolderSize','Convert-FileSize','Get-FolderSize2','Get-FsoShortName','Get-FsoShortPath','Get-FsoTypeObj','Get-ProductItems','get-RegistryProperty','Get-Shortcut','Get-SumItems','get-TaskReport','Get-Time','Get-TimeStamp','get-TimeStampNow','get-Uptime','Invoke-Flasher','Invoke-Pause','Invoke-Pause2','Move-LockedFile','play-beep','prompt-Continue','Read-Host2','Remove-InvalidFileNameChars','remove-ItemRetry','Remove-PSTitleBar','revert-File','Save-ConsoleOutputToClipBoard','Set-FileContent','Set-Shortcut','Shorten-Path','Show-MsgBox','Sign-File','stop-driveburn','Touch-File','trim-FileList','unless','update-RegistryProperty','Write-ProgressHelper')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5aqa/l9uD1FDozFoTFLgiigG
-# NfOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUeyzIKY9etvmxM1ofQ0NobLCr
+# f6+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR8x/k7
-# 9PLXgbSZMWIuWnZdiuNHCjANBgkqhkiG9w0BAQEFAASBgDH1mFSMS3ehW/BwZdMi
-# 4xykSQCoELHy+V1IOdattQbqoed2i/CZlChNDffStQcvXlpoDup86++DYTAXMlrH
-# GCJashynkmKbdmFfb4y2E4VqQCYqr25273ALjbDBwIbN7Hkd58eTWpB5Kiziynnk
-# YRu6y4OSzaQ0+9zty/IccGDz
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRBxqV0
+# MPjAvTumTMZgyJAIjUXe0jANBgkqhkiG9w0BAQEFAASBgGPw8mmdyGkmWkceh1we
+# MoA8aAaYwLDkA7RcKcxtB8kOhWRE3GEtzDiQrytYz23PsrawnOvwBADCGd6cLc0z
+# vf+4lHL6ny1pvLg14CqF2M9JMZ/8gfbUlW+puTcdnkUyOeiThnbVRxy+TjcJlW+8
+# D2zI1JySUTaqWcdep+hLWZcz
 # SIG # End signature block

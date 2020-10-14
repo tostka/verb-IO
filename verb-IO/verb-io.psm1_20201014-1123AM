@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.31.0.0
+Version     : 1.0.29.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2489,7 +2489,7 @@ function get-TaskReport {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell
     REVISIONS
-    * 1:59 PM 10/14/2020 switched Exit to Break ; init
+    * 8:27 AM 10/14/2020 init
     .DESCRIPTION
     get-TaskReport.ps1 - Collect and report on specified Scheduled Tasks
     .PARAMETER  TaskName
@@ -2514,7 +2514,7 @@ function get-TaskReport {
     BEGIN {
         If(!$TaskName){
             write-warning "No -TaskName specified`navailable tasks on $($env:computername) include the following:`n$((get-scheduledtask | fl taskname|out-string).trim())"
-            Break ; 
+            Exit ; 
         } ; 
     } ;# PROC-E
     PROCESS {
@@ -3858,7 +3858,7 @@ function Sign-File {
     BEGIN {
         $error.clear() ;
         TRY {
-            if($cert = @(get-childitem cert:\currentuser\my -codesigning -ea 0 )[0]){
+            if($cert = @(get-childitem cert:\currentuser\my -codesigning -ea 0 )[0])}
             
             } elseif($cert = @(get-childitem cert:\LocalMachine\my -codesigning -ea 0 )[0]){
             
@@ -3892,8 +3892,7 @@ function Sign-File {
                 Write-Output $oRet
             } 
         } # loop-E
-    } # Proc-E
-}
+    }
 
 #*------^ Sign-File.ps1 ^------
 
@@ -4304,8 +4303,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Color
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUivOjVk1iIlZ0yd6mVJH5pVmK
-# WR+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5ykKzNohLSNLXJHn0v5h8Jbn
+# nmKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -4320,9 +4319,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Color
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSbRsn0
-# /Kllia4/ZQj7+vK2XAO33DANBgkqhkiG9w0BAQEFAASBgClk/y0YnGvIQhJK5Vz9
-# Gk/eVnpHLMGOHcVv81knp59bFICydaxnfLALc6LlD1CfGGuEILoyjoR136bZXXYF
-# 9AHk1igqB88DT4BvE7otFInENzDOrMiI4nB6/f2K7SySZwjJ3EO7F7+g2PagyHxu
-# 6+yeitySgwO9uetiLbegyqfd
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQxTNI0
+# /7ZdNiEX3IvywofdhBghyDANBgkqhkiG9w0BAQEFAASBgHkeIqM9jyWp3DB+8E9U
+# Wg+A4R43M9N9QmTUYePSfKfkQ6gZZNbfVIH1zJjXmafnOXeyXuXcZ2WBsDnT71I2
+# VWT+XZsSRQ+2Q7oefEubJXKesli5jHdRNvg9VoKRj+mHb4IAG/HAjxT1IxI3l2vi
+# vOIbdhRNxJyZ77wglixInD+c
 # SIG # End signature block

@@ -15,6 +15,7 @@ function Sign-File {
     Github      : https://github.com/tostka
     Tags        : Powershell,Certificate,Developoment
     REVISIONS   :
+    10:45 AM 10/14/2020 added cert hunting into cert:\LocalMachine\my -codesigning as well as currentuser
     7:56 AM 6/19/2018 added -whatif & -showdebug params
     10:46 AM 1/16/2015 corrected $oReg|$oRet typo that broke status attrib
     10:20 AM 1/15/2015 rewrote into pipeline format
@@ -59,7 +60,19 @@ function Sign-File {
     # alt: the simplest option:
     # $cert = @(get-childitem cert:\currentuser\my -codesigning)[0] ; Set-AuthenticodeSignature -filepath c:\usr\work\ps\scripts\authenticate-profile.ps1 -Certificate $cert
     BEGIN {
-        $cert = @(get-childitem cert:\currentuser\my -codesigning)[0]
+        $error.clear() ;
+        TRY {
+            if($cert = @(get-childitem cert:\currentuser\my -codesigning -ea 0 )[0]){
+            
+            } elseif($cert = @(get-childitem cert:\LocalMachine\my -codesigning -ea 0 )[0]){
+            
+            } else { 
+                throw "Unable to locate a Signing Cert in either`ncert:\currentuser\my -codesigning`nor cert:\LocalMachine\my -codesigning. ABORTING!" ; 
+            } 
+        } CATCH {
+            Write-Warning "$(get-date -format 'HH:mm:ss'): Failed processing $($_.Exception.ItemName). `nError Message: $($_.Exception.Message)`nError Details: $($_)" ;
+            Exit #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
+        } ; 
     }  # BEG-E
     PROCESS {
         foreach ($f in $file) {
