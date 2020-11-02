@@ -1,11 +1,11 @@
-# verb-io.psm1
+﻿# verb-io.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.32.0.0
+Version     : 1.0.31.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -235,67 +235,6 @@ function backup-File {
 }
 
 #*------^ backup-File.ps1 ^------
-
-#*------v Close-IfAlreadyRunning.ps1 v------
-Function Close-IfAlreadyRunning {
-    <#
-    .SYNOPSIS
-    Close-IfAlreadyRunning.ps1 - Kills CURRENT instance of specified powershell script, if another instance already running.
-    .NOTES
-    Version     : 0.0.
-    Author      : Todd Kadrie
-    Website     : http://www.toddomation.com
-    Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2020-
-    FileName    : 
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-XXX
-    Tags        : Powershell
-    AddedCredit : Mr. Annoyed
-    AddedWebsite: https://stackoverflow.com/users/4995131/mr-annoyed
-    REVISIONS
-    * 7:25 AM 10/27/2020 revised cbh, tightened up ; ren Test-IfAlreadyRunning->close-IfAlreadyRunning
-    * 11/6/15 Mr Annoyed posted vers
-    .DESCRIPTION
-    Close-IfAlreadyRunning.ps1 - Kills CURRENT instance of specified powershell script, if another instance already running.
-    (orig code Mr. Annoyed)
-    .PARAMETER  ScriptName
-    ScriptName to be checked[-ScriptName script.ps1]
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    None. Returns no objects or output
-    .EXAMPLE
-    if($MyInvocation.MyCommand.Name){Close-IfAlreadyRunning -ScriptName $MyInvocation.MyCommand.Name }; 
-    Close running powershell instance, if another instance is running the same script. 
-    .LINK
-    https://stackoverflow.com/questions/15969662/assure-only-1-instance-of-powershell-script-is-running-at-any-given-time
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    Param (
-        [Parameter(Mandatory=$true,HelpMessage="ScriptName to be checked[-ScriptName script.ps1]")]
-        [ValidateNotNullorEmpty()][String]$ScriptName 
-    ) ; 
-    $verbose = ($VerbosePreference -eq "Continue") ; 
-    #note: Can't self-discover calling script: $MyInvocation.MyCommand.Name gets name of *this function*
-    Foreach ($PsCmdLine in (get-wmiobject win32_process | where{$_.processname -eq 'powershell.exe'} | select-object commandline,ProcessId )){
-        [Int32]$OtherPID = $PsCmdLine.ProcessId ; 
-        # $PID is a Autovariable for the current script''s Process ID number ; 
-        write-verbose "checking PID:$($PsCmdLine.ProcessId):CmdLine:$($PsCmdLine.commandline)" ; 
-        If ( ([String]$PsCmdLine.commandline -match $ScriptName) -And ($OtherPID -ne $PID) ){
-            Write-host "PID [$OtherPID] is already running this script [$ScriptName]" ; 
-            Write-host "Exiting this instance. (PID=[$PID])..." ; 
-            Start-Sleep -Second 7 ; 
-            Stop-Process -id $PID -Force ; # kill ps hosting this instance
-            Exit ; # exit if the kill didn't work
-        } ; 
-    } ; 
-}
-
-#*------^ Close-IfAlreadyRunning.ps1 ^------
 
 #*------v ColorMatch.ps1 v------
 function ColorMatch {
@@ -4359,5 +4298,31 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,copy-Profile,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,copy-Profile,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUivOjVk1iIlZ0yd6mVJH5pVmK
+# WR+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSbRsn0
+# /Kllia4/ZQj7+vK2XAO33DANBgkqhkiG9w0BAQEFAASBgClk/y0YnGvIQhJK5Vz9
+# Gk/eVnpHLMGOHcVv81knp59bFICydaxnfLALc6LlD1CfGGuEILoyjoR136bZXXYF
+# 9AHk1igqB88DT4BvE7otFInENzDOrMiI4nB6/f2K7SySZwjJ3EO7F7+g2PagyHxu
+# 6+yeitySgwO9uetiLbegyqfd
+# SIG # End signature block
