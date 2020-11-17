@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.33.0.0
+Version     : 1.0.34.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -929,68 +929,6 @@ $Message
 
 #*------^ ConvertFrom-SourceTable.ps1 ^------
 
-#*------v convert-ObjectToIndexedHash.ps1 v------
-function convert-ObjectToIndexedHash {
-    <#
-    .SYNOPSIS
-    convert-ObjectToIndexedHash - Convert passed in System Object into an indexed hash (faster lookup via $vari['value'] on the indexed value)
-    .NOTES
-    Version     : 1.0.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-08-10
-    FileName    : convert-ObjectToIndexedHash
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/
-    REVISIONS
-    * 12:14 PM 8/10/2020 init
-    .DESCRIPTION
-    convert-ObjectToIndexedHash - Convert passed in System Object into an indexed hash (faster lookup via $vari['value'] on the indexed value)
-    .PARAMETER Object
-    System Object to be converted into an indexed-hash[-LicensedUsers alias]
-    .PARAMETER Key
-    Property to be used to 'index' the object[-Key 'PropName']
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    System.Object indexed hashtable of updated Object
-    .EXAMPLE
-    $object = convert-ObjectToIndexedHash -object $object -Key 'property'
-    .LINK
-    https://github.com/tostka
-    #>
-    [CmdletBinding()]
-    
-    PARAM(
-        [Parameter(Mandatory=$True,HelpMessage="System Object to be converted into an indexed-hash[-LicensedUsers alias]")]
-        $Object,
-        [Parameter(Mandatory=$True,HelpMessage="Property to be used to 'index' the object[-Key 'PropName']")]
-        $Key
-    ) ;
-    BEGIN {
-        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        # Get parameters this function was invoked with
-        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-        $Verbose = ($VerbosePreference -eq 'Continue') ;
-        $smsg = "Indexing $(($Object|measure).count) items in passed object on key:$($key)" ; 
-        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
-        else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-    } ;
-    PROCESS {
-        $Hashtable = @{} ; 
-        Foreach ($Item in $Object){
-            $Hashtable[$Item.$Key.ToString()] = $Item ; 
-        } ; 
-    } ; 
-    END{
-        $Hashtable | write-output ; 
-    } ;
-}
-
-#*------^ convert-ObjectToIndexedHash.ps1 ^------
-
 #*------v convertTo-Base64String.ps1 v------
 function convertTo-Base64String {
     <#
@@ -1029,6 +967,97 @@ function convertTo-Base64String {
 }
 
 #*------^ convertTo-Base64String.ps1 ^------
+
+#*------v ConvertTo-HashIndexed.ps1 v------
+Function ConvertTo-HashIndexed {
+    <#
+    .SYNOPSIS
+    ConvertTo-HashIndexed.ps1 - Converts the inbound object/array/table into an indexed-hash on the specified key/property.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2020-
+    FileName    : 
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell
+    REVISIONS
+    * 12:49 PM 11/17/2020 init using this alot, so port it to a func()
+    .DESCRIPTION
+    ConvertTo-HashIndexed.ps1 - Converts the inbound object/array/table into an indexed-hash on the specified key/property.
+    .PARAMETER  Object
+    Object to be converted[-Object `$object]
+    .PARAMETER  Key
+    Key/property to be indexed upon[-Key 'propertyName]
+    .PARAMETER  ShowProgress
+    Switch, when ShowProgress in use, as to how many items should process between 'dots' in the crawl[-Every 50]
+    .PARAMETER  Every
+    ShowProgress dot crawl interval (# of processed objects each dot should represent)[-Every 50]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    None. Returns no objects or output
+    .EXAMPLE
+    ray/CSV/etc...
+    $Key = 'PrimarySmtpAddress' ; 
+    $Object = $AllEXOMbxs ; 
+    $Output  = ConvertTo-HashIndexed -Key $key -Object $Object -showprogress ;
+    $smsg = "ConvertTo-HashIndexed object type Changes:`n" ; 
+    $smsg += "original `$Object.type:$( $Object.GetType().FullName )`n" ; 
+    $smsg += "converted `$Output .type:$( $Output.GetType().FullName )`n" ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    #How to lookup objects in the Object
+    $searchvalue = 'email@domain.com' ; 
+    $output[$searchvalue] ;
+    #Or by property name
+    $output.'email@domain.com' ;
+    #Demo orig object props are still inteact in converted indexed-hashtable
+    $output[$lookupVal] | Get-Member ;
+    $output.Values | Get-Member ;
+    Convert specified $Object into an indexed hash and demo access, output object types, and converted properties
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true,HelpMessage="Object to be converted[-Object `$object]")]
+        [ValidateNotNullorEmpty()]$Object,
+        [Parameter(Mandatory=$true,HelpMessage="Key/property to be indexed upon[-Key 'propertyName]")]
+        [ValidateNotNullorEmpty()]$Key,
+        [Parameter(Mandatory=$false,HelpMessage="Switch to display dot-crawl progress[-ShowProgress 'propertyName]")]
+        [switch]$ShowProgress,
+        [Parameter(Mandatory=$false,HelpMessage="ShowProgress dot crawl interval (# of processed objects each dot should represent)[-Every 50]")]
+        [int]$Every = 100  
+    ) ; 
+    $verbose = ($VerbosePreference -eq "Continue") ; 
+    $ttl = ($Object|measure).count ; 
+    $smsg = "(converting $($ttl) items into indexed hash)..." ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    $sw = [Diagnostics.Stopwatch]::StartNew();
+    $Hashtable = @{}
+    $Procd = 0 ; 
+    if($ShowProgress){write-host -NoNewline "`n[" ; $Procd = 0 } ; 
+    Foreach ($Item in $Object){
+        $Procd++ ; 
+        $Hashtable[$Item.$Key.ToString()] = $Item ; 
+        if($ShowProgress -AND ($Procd -eq $Every)){
+            write-host -NoNewline '.' ; $Procd = 0 
+        } ; 
+    } ; 
+    if($ShowProgress){write-host "]`n" ; $Procd = 0 } ; 
+    $sw.Stop() ;
+    $smsg = "($($ttl) items converted in $($sw.Elapsed.ToString()))" ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    $Hashtable | write-output ; 
+}
+
+#*------^ ConvertTo-HashIndexed.ps1 ^------
 
 #*------v copy-Profile.ps1 v------
 function copy-Profile {
@@ -4359,14 +4388,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-ObjectToIndexedHash,convertTo-Base64String,copy-Profile,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,copy-Profile,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUUTjhC+0YGDy1xHTym2XsFVx1
-# swWgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUf3LirV++wIpPXBl6mQopC/Zg
+# nASgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -4381,9 +4410,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Close
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQFDVlq
-# 1vHAkv6edJdq377i7kJITzANBgkqhkiG9w0BAQEFAASBgGqe6yxAgC+JmdEfjdcG
-# /nY7misZZF+Z/5z0OfLTGZMC35YHx9ZalkA1UX+TFh9UIJTw0GteT9gTLeBUnFhJ
-# 8OBv3zrmfmOwZYx4YrcqLc9j03UzJh3BGmdqEmGeyS5LzzStd0Jewh6UpKbQlOE8
-# rpSUvdAnClVIuwkFzpkM+7Bu
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSimrtl
+# V+i6ZpL4h2HKzTOQB9+1uTANBgkqhkiG9w0BAQEFAASBgAFNrvCo+v6/FpXMTXzd
+# dFjx8WWl63RbjINLmx81JUt+b8fgbbXCc9/oD+W9zALehldGmRuktJ3uBI/EzxwN
+# FR/jv+yQMW22Xb337SqVwEdssSQwpQWsLmQcMP/imeAXTeFtdmxOp+X72BW2HyBt
+# UxuvZQo92yKn9wFGl7kKC6+4
 # SIG # End signature block
