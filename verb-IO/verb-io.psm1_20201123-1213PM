@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.38.0.0
+Version     : 1.0.34.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -235,65 +235,6 @@ function backup-File {
 }
 
 #*------^ backup-File.ps1 ^------
-
-#*------v check-FileLock.ps1 v------
-function check-FileLock {
-    <#
-    .SYNOPSIS
-    check-FileLock - Check for lock status on a file
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     : http://www.toddomation.com
-    Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2020-11-23
-    FileName    : check-FileLock.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-XXX
-    Tags        : Powershell
-    AddedCredit : Henri Benoit (StreamReader error on lock)
-    AddedWebsite: https://benohead.com/blog/2014/12/08/powershell-check-whether-file-locked/
-    REVISIONS
-    * 11:30 AM 11/23/2020 minor updates, reformated into fuunc
-    * 12/8/14 posted version
-    .DESCRIPTION
-    .PARAMETER  Path
-    Path to file[-path 'c:\pathto\file.txt'
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    System.Boolean
-    .EXAMPLE
-    .\check-FileLock.ps1 -path 'c:\pathto\file.txt' 
-    Check lock status on specified file
-    .LINK
-    https://github.com/tostka/verb-io
-    #>
-    [CmdletBinding()]
-    PARAM(
-        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Path to file[-path 'c:\pathto\file.txt']")]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({Test-Path $_})]
-        $Path
-    ) ;
-    BEGIN { $Verbose = ($VerbosePreference -eq 'Continue') } ;
-    PROCESS {
-        $Error.Clear() ; 
-        Write-verbose "(Checking lock on file: $path)" ;
-        $LockedFile = $false ; 
-        $file = get-item (Resolve-Path $path) -Force ;
-        if ($file.exists){
-            TRY{
-              $stream = New-Object system.IO.StreamReader $file ;
-              if ($stream) {$stream.Close()} ; 
-            } catch {$LockedFile = $true } ; 
-        } ;
-    } ;  # PROC-E
-    END { $LockedFile | write-output } ; 
-}
-
-#*------^ check-FileLock.ps1 ^------
 
 #*------v Close-IfAlreadyRunning.ps1 v------
 Function Close-IfAlreadyRunning {
@@ -3010,71 +2951,87 @@ Function Invoke-Pause2() {
 
 #*------^ Invoke-Pause2.ps1 ^------
 
-#*------v move-FileOnReboot.ps1 v------
-function move-FileOnReboot {
+#*------v Move-LockedFile.ps1 v------
+function Move-LockedFile {
     <#
     .SYNOPSIS
-    move-FileOnReboot.ps1 - Move Locked file (dir) on next reboot
+    Move-LockedFile.ps1 - Move Locked file on next reboot
     .NOTES
     Version     : 1.0.0
-    Author      : psytechnic
-    Website     : https://psytechnic.blogspot.com/2017/12/powershell-golden-egg-delete.html
-    CreatedDate : 2020-11-23
-    FileName    : move-FileOnReboot.ps1
-    License     : (none specified)
-    Copyright   : (none specified)
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : Powershell,FileSystem,File,Move,Reboot
+    Author      : Lee Holmes
+    Website: http://www.leeholmes.com/blog/2009/02/17/moving-and-deleting-really-locked-files-in-powershell/
+    Twitter: https://twitter.com/Lee_Holmes
+    CreatedDate : 2020-
+    FileName    : 
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,FileSystem,File,Move
     AddedCredit : REFERENCE
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
-    * 12:10 PM 11/23/2020 replaced Lee Holmes old code ; this is a more up to date well-rounded option ; also renamed to move-FileOnReboot (from move-FileLocked)
-    * 12/1/2017 - posted version
+    # 11:52 AM 9/2/2015 unscrambled from gmail-mangled unwrapped version
+    # 10:13 PM 9/1/2015 updated, added pshelp, and validated params, fixed examples to use FullName
+    * 20090217 - Web version
     .DESCRIPTION
-    Move Locked file on next reboot.Win32 API that enables this is MoveFileEx. Calling this API with the MOVEFILE_DELAY_UNTIL_REBOOT flag tells Windows to move (or delete) your file at the next boot. Specify a destination, and it moves on reboot. Omit destination and it deletes the file on reboot. Note: directory contents (or permission restrictions) must be removed & queued for reboot removal *before* doing any parent directory object deletion. 
+    Move Locked file on next reboot.Win32 API that enables this is MoveFileEx. Calling this API with the MOVEFILE_DELAY_UNTIL_REBOOT flag tells Windows to move (or delete) your file at the next boot.
     .PARAMETER path
     Source file path [c:\path-to\file.txt]
     .PARAMETER destination
     Destination path [c:\path-to\destination\]
+    .PARAMETER Whatif
+    Parameter to run a Test no-change pass[-Whatif switch]
     .EXAMPLE
-    gci "W:\archs\pix\20150820-reload-eq\Thumbs.db" -force | % { move-FileOnReboot -path $_.FullName -destination (Join-Path c:\tmp ($_.Name + ".Bak")) -whatif }  ;
+    gci "W:\archs\pix\20150820-reload-eq\Thumbs.db" -force | % { Move-LockedFile -path $_.FullName -destination (Join-Path c:\tmp ($_.Name + ".Bak")) -whatif }  ;
     .EXAMPLE
     dir C:\Users\leeholm -Filter "NTUser.DAT { 
-        * " -force | % { move-FileOnReboot $_.FullName (Join-Path c:\temp\ ($_.Name + ".Bak")) }  ;
+        * " -force | % { Move-LockedFile $_.FullName (Join-Path c:\temp\txr ($_.Name + ".Bak")) }  ;
     .LINK
-    https://github.com/tostka/verb-IO
-    .LINK
-    https://psytechnic.blogspot.com/2017/12/powershell-golden-egg-delete.html
+    http://www.leeholmes.com/blog/2009/02/17/moving-and-deleting-really-locked-files-in-powershell/
     #>
     Param(
         [Parameter(Position = 0, Mandatory = $True, ValueFromPipeline = $true, HelpMessage = "Source file path [c:\path-to\file.txt]")]
         [ValidateNotNull()] [string]$path,
         [Parameter(Position = 1, Mandatory = $True, HelpMessage = "Destination path [c:\path-to\destination\]")]
-        [ValidateNotNull()] [string]$destination
-    ) ;
-    BEGIN{
-        TRY{ [Microsoft.PowerShell.Commands.AddType.AutoGeneratedTypes.MoveFileUtils]|Out-Null }
-        CATCH{
-            $memberDefinition = @' 
-[DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Auto)]
-public static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName, int dwFlags);
+        [ValidateNotNull()] [string]$destination,
+        [Parameter(HelpMessage = 'Debug Output Flag [$switch]')]
+        [switch] $ShowDebug,
+        [Parameter(HelpMessage = 'Whatif Flag [$switch]')]
+        [switch] $whatIf
+    ) # PARAM BLOCK END
+    if ($showDebug) {
+        $bDebug = $true
+        "`$path:$path";
+        "`$destination:$destination";
+    } ;
+    if ( (test-path $path) ) {
+        $path = (Resolve-Path $path).Path ;
+        if ( (!(Test-Path $destination -pathType container)) ) {
+            $destination = $executionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($destination) ;
+            $MOVEFILE_DELAY_UNTIL_REBOOT = 0x00000004 ;
+            $memberDefinition = @'
+[DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Auto)] public static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName, int dwFlags);
 '@ ;
-            Add-Type -Name MoveFileUtils -MemberDefinition $memberDefinition ;
-        } ;
-    } ;
-    PROCESS{
-        $Path="$((Resolve-Path $Path).Path)" ;
-        if ($Destination){
-            $Destination = $executionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Destination) ;
-        }else{ $Destination = [Management.Automation.Language.NullString]::Value } ;
-        $MOVEFILE_DELAY_UNTIL_REBOOT = 0x00000004 ;
-        [Microsoft.PowerShell.Commands.AddType.AutoGeneratedTypes.MoveFileUtils]::MoveFileEx($Path, $Destination, $MOVEFILE_DELAY_UNTIL_REBOOT) ;
-    } ;
-    END{} ;
+            if ($whatif) {
+                write-host "Whatif`nMoveFileEx($($path), $($destination), `$MOVEFILE_DELAY_UNTIL_REBOOT)"
+            }
+            else {
+                $type = Add-Type -Name MoveFileUtils -MemberDefinition $memberDefinition -PassThru ;
+                $bRet = $type::MoveFileEx($path, $destination, $MOVEFILE_DELAY_UNTIL_REBOOT) ;
+                "results:`$bRet:$bRet";
+            } # if-block end ;
+        }
+        else {
+            write-error "Invalid `$destination:$destination";
+        } # if-E ;
+    }
+    else {
+        write-error "Invalid `$path:$path";
+    }  # if-E;
 }
 
-#*------^ move-FileOnReboot.ps1 ^------
+#*------^ Move-LockedFile.ps1 ^------
 
 #*------v play-beep.ps1 v------
 function play-beep {
@@ -4431,14 +4388,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,copy-Profile,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,copy-Profile,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Move-LockedFile,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUM1zpz5ifeMZZWHl/t2tPVzWq
-# ofegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUf3LirV++wIpPXBl6mQopC/Zg
+# nASgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -4453,9 +4410,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQv1aTb
-# wbXp1TPu68RiEc74RR7sqTANBgkqhkiG9w0BAQEFAASBgIGOzpCvFRiP3DfxNB0f
-# dn4K8auQaVrOiRDSUZV6GiUWejAVlgFMj8a60msavvVM3/Cj1Z/R8/nZQuiUcz7t
-# dOKWiqYFwYKrfl3ZN5p+6US7zCoaZ9yNZIaTEWbhD6l1REh1ndXI8qkxwu/+3qIC
-# LAoUmyN0FkC7aGghjsOzESpO
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSimrtl
+# V+i6ZpL4h2HKzTOQB9+1uTANBgkqhkiG9w0BAQEFAASBgAFNrvCo+v6/FpXMTXzd
+# dFjx8WWl63RbjINLmx81JUt+b8fgbbXCc9/oD+W9zALehldGmRuktJ3uBI/EzxwN
+# FR/jv+yQMW22Xb337SqVwEdssSQwpQWsLmQcMP/imeAXTeFtdmxOp+X72BW2HyBt
+# UxuvZQo92yKn9wFGl7kKC6+4
 # SIG # End signature block
