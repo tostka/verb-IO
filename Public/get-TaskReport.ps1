@@ -15,6 +15,7 @@ function get-TaskReport {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell
     REVISIONS
+    * 7:24 AM 11/24/2020 expanded no -Task echo to include get-scheduledtasks syntax, added it to CBH example
     * 1:59 PM 10/14/2020 switched Exit to Break ; init
     .DESCRIPTION
     get-TaskReport.ps1 - Collect and report on specified Scheduled Tasks
@@ -26,8 +27,10 @@ function get-TaskReport {
     get-TaskReport -TaskName 'monitor-ADAccountLock'
     Report on a single Scheduled Task
     .EXAMPLE
+    # review task names
+    get-scheduledtask | fl taskname ; 
+    # report on an array of tasks
     get-taskreport -TaskName 'monitor-ADAccountLock',"choco-cleaner","maintain-ExoUsrMbxFreeBusyDetails.ps1"
-    Report on an array of tasks
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -39,7 +42,11 @@ function get-TaskReport {
     ) ;
     BEGIN {
         If(!$TaskName){
-            write-warning "No -TaskName specified`navailable tasks on $($env:computername) include the following:`n$((get-scheduledtask | fl taskname|out-string).trim())"
+            $smsg = "No -TaskName specified`navailable tasks on $($env:computername) include the following:"
+            $smsg += "`nsyntax:`n# root tasks`nget-scheduledtask|?{$_.taskpath -eq '\'} | ft -a "
+            $smsg += "`n# all tasks:`nget-scheduledtask | fl taskname" ; 
+            $smsg += "`n$((get-scheduledtask|?{$_.taskpath -eq '\'} | ft -auto |out-string).trim())" ; 
+            write-warning $smsg ; 
             Break ; 
         } ; 
     } ;# PROC-E

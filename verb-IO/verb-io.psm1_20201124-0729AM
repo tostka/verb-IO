@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.40.0.0
+Version     : 1.0.38.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2638,7 +2638,6 @@ function get-TaskReport {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell
     REVISIONS
-    * 7:24 AM 11/24/2020 expanded no -Task echo to include get-scheduledtasks syntax, added it to CBH example
     * 1:59 PM 10/14/2020 switched Exit to Break ; init
     .DESCRIPTION
     get-TaskReport.ps1 - Collect and report on specified Scheduled Tasks
@@ -2650,10 +2649,8 @@ function get-TaskReport {
     get-TaskReport -TaskName 'monitor-ADAccountLock'
     Report on a single Scheduled Task
     .EXAMPLE
-    # review task names
-    get-scheduledtask | fl taskname ; 
-    # report on an array of tasks
     get-taskreport -TaskName 'monitor-ADAccountLock',"choco-cleaner","maintain-ExoUsrMbxFreeBusyDetails.ps1"
+    Report on an array of tasks
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -2665,11 +2662,7 @@ function get-TaskReport {
     ) ;
     BEGIN {
         If(!$TaskName){
-            $smsg = "No -TaskName specified`navailable tasks on $($env:computername) include the following:"
-            $smsg += "`nsyntax:`n# root tasks`nget-scheduledtask|?{$_.taskpath -eq '\'} | ft -a "
-            $smsg += "`n# all tasks:`nget-scheduledtask | fl taskname" ; 
-            $smsg += "`n$((get-scheduledtask|?{$_.taskpath -eq '\'} | ft -auto |out-string).trim())" ; 
-            write-warning $smsg ; 
+            write-warning "No -TaskName specified`navailable tasks on $($env:computername) include the following:`n$((get-scheduledtask | fl taskname|out-string).trim())"
             Break ; 
         } ; 
     } ;# PROC-E
@@ -4444,8 +4437,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU57Wy+tlX6E4d2foKwy0P4AA8
-# dUCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUM1zpz5ifeMZZWHl/t2tPVzWq
+# ofegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -4460,9 +4453,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQ0JCe9
-# loZR7Xi11pjULpMBPvb+AzANBgkqhkiG9w0BAQEFAASBgG5rPsdx35kM6sXLJ2KH
-# rjs1zTBTg6BYvO07eVxQQnZ5bRmyyQKcslzTuTzY0zkRUdgyX6SYh8HDPfrbVpMN
-# +HQllUHzTp0Vfo6UfYOaOYRI2RSJTUWJy58ljg5gfIHOXEUvydN5tuN3YFWBlFGw
-# quAp56N3c7LmHPsSGcfCdRGJ
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQv1aTb
+# wbXp1TPu68RiEc74RR7sqTANBgkqhkiG9w0BAQEFAASBgIGOzpCvFRiP3DfxNB0f
+# dn4K8auQaVrOiRDSUZV6GiUWejAVlgFMj8a60msavvVM3/Cj1Z/R8/nZQuiUcz7t
+# dOKWiqYFwYKrfl3ZN5p+6US7zCoaZ9yNZIaTEWbhD6l1REh1ndXI8qkxwu/+3qIC
+# LAoUmyN0FkC7aGghjsOzESpO
 # SIG # End signature block

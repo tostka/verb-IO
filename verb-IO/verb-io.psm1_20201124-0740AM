@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.40.0.0
+Version     : 1.0.39.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2666,9 +2666,9 @@ function get-TaskReport {
     BEGIN {
         If(!$TaskName){
             $smsg = "No -TaskName specified`navailable tasks on $($env:computername) include the following:"
-            $smsg += "`nsyntax:`n# root tasks`nget-scheduledtask|?{$_.taskpath -eq '\'} | ft -a "
+            $smsg += "`nsyntax:`n# root tasks`nget-scheduledtask|?{$_.taskpath -eq '\'} | fl taskname"
             $smsg += "`n# all tasks:`nget-scheduledtask | fl taskname" ; 
-            $smsg += "`n$((get-scheduledtask|?{$_.taskpath -eq '\'} | ft -auto |out-string).trim())" ; 
+            $smsg += "`n$((get-scheduledtask | fl taskname|out-string).trim())" ; 
             write-warning $smsg ; 
             Break ; 
         } ; 
@@ -4444,8 +4444,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU57Wy+tlX6E4d2foKwy0P4AA8
-# dUCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUtflTZkZF+mfVh8dNz2eTErLX
+# t9CgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -4460,9 +4460,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQ0JCe9
-# loZR7Xi11pjULpMBPvb+AzANBgkqhkiG9w0BAQEFAASBgG5rPsdx35kM6sXLJ2KH
-# rjs1zTBTg6BYvO07eVxQQnZ5bRmyyQKcslzTuTzY0zkRUdgyX6SYh8HDPfrbVpMN
-# +HQllUHzTp0Vfo6UfYOaOYRI2RSJTUWJy58ljg5gfIHOXEUvydN5tuN3YFWBlFGw
-# quAp56N3c7LmHPsSGcfCdRGJ
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSv/DPp
+# cMJTnfBaHg4xLlh659C/wDANBgkqhkiG9w0BAQEFAASBgLZDxEL+1cbZnYANG62L
+# whzWivrW1KOtiZ4pswQ4EAfSoXNBBB+RinsVgXUrLGiaLMfNJ7T4XOdFcu3kVl5k
+# Jl4iCi5f/ycqgItlOI/Nx3Usr6Bv0sDleXMcUSull3e3T1QJuvqgSsZa+sKNE8Dy
+# 3TkozD4/Gpepr+yHmYnYopZ3
 # SIG # End signature block
