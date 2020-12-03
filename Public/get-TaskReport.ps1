@@ -15,6 +15,7 @@ function get-TaskReport {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell
     REVISIONS
+    * 8:08 AM 12/2/2020 added function alias: get-ScheduledTaskReport (couldn't remember this vers didn't use 'sched', had to hunt it up in the module, by name)
     * 7:24 AM 11/24/2020 expanded no -Task echo to include get-scheduledtasks syntax, added it to CBH example
     * 1:59 PM 10/14/2020 switched Exit to Break ; init
     .DESCRIPTION
@@ -35,6 +36,7 @@ function get-TaskReport {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
+    [Alias('get-ScheduledTaskReport')]
     PARAM(
         [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Array of Tasknames to be reported upon[-TaskName get-taskreport -TaskName 'monitor-ADAccountLock','choco-cleaner']")]
         $TaskName,

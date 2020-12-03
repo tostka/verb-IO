@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.39.0.0
+Version     : 1.0.40.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -481,6 +481,53 @@ function Convert-FileEncoding {
 }
 
 #*------^ Convert-FileEncoding.ps1 ^------
+
+#*------v ConvertFrom-CmdList.ps1 v------
+filter ConvertFrom-CmdList {
+    <#
+    .SYNOPSIS
+    ConvertFrom-CmdList - a filter that converts the returned data to objects (from comment on the main post)
+    .NOTES
+    Author: Axel Andersen
+    Website:	http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    Tweaked By: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    * 8:14 AM 11/24/2020 fixed CBH ref's to proper function
+    * 8:35 AM 4/18/2017 getting null object Add-Member errors, so add a null test mid-foreach loop
+    * 7:42 AM 4/18/2017 tweaked, added pshelp, comments etc, put into OTB
+    * December 8, 2010 at 1:24 pmposted version
+    .DESCRIPTION
+    .INPUTS
+    Pipeline
+    .OUTPUTS
+    Returns object for the matched task(s)
+    .EXAMPLE
+    schtasks.exe /query /s $ComputerName /FO List | ConvertFrom-CmdList
+    .LINK
+    http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    #>
+    # 8:35 AM 4/18/2017 getting null object Add-Member errors, so add a null test mid-foreach loop
+    $_ | foreach {
+        if ($_ -match '^$') {
+            $newobj = New-Object Object
+            $obj | foreach {
+                if ($_ -eq $null) {
+                    # drop null properties
+                }
+                else {
+                    $newobj | Add-Member NoteProperty $($_ -split ':')[0] "$($_ -replace '^.*:[ ]+')"
+                } ;
+            }
+            $newobj
+            $obj = @()
+        }
+        if ($_ -notmatch '^$') { $obj += $_ } ;
+    }
+}
+
+#*------^ ConvertFrom-CmdList.ps1 ^------
 
 #*------v ConvertFrom-SourceTable.ps1 v------
 Function ConvertFrom-SourceTable {
@@ -1263,6 +1310,81 @@ function copy-Profile {
 }
 
 #*------^ copy-Profile.ps1 ^------
+
+#*------v Create-ScheduledTaskLegacy.ps1 v------
+Function Create-ScheduledTaskLegacy {
+    <#
+    .SYNOPSIS
+    Remove-ScheduledTaskLegacy - schtasks-wrapped into a ps verb-noun function
+    .NOTES
+    Author: Hugo @ peeetersonline
+    Website:	http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    Tweaked By: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    * 7:27 AM 12/2/2020 re-rename '*-ScheduledTaskCmd' -> '*-ScheduledTaskLegacy', L13 copy still had it, it's more descriptive as well.
+    * 8:13 AM 11/24/2020 renamed to '*-ScheduledTaskCmd', to remove overlap with ScheduledTasks module
+    * 8:06 AM 4/18/2017 comment: Invoke-Expression is unnecessary. You can simply state: schtasks.exe /query /s $ComputerName
+    * 7:42 AM 4/18/2017 tweaked, added pshelp, comments etc, put into OTB
+    * June 4, 2009 posted version
+    .DESCRIPTION
+    Get-ScheduledTaskLegacy - schtasks-wrapped into a ps verb-noun function
+    Allows you to manage queryingscheduled tasks on one or more computers remotely.
+    The functions use schtasks.exe, which is included in Windows. Unlike the Win32_ScheduledJob WMI class, the schtasks.exe commandline tool will show manually created tasks, as well as script-created ones. The examples show some, but not all parameters in action. I think the parameter names are descriptive enough to figure it out, really. If not, take a look at schtasks.exe /?. One tip: try piping a list of computer names to foreach-object and into this function.
+    .PARAMETER  ComputerName
+    Computer Name (defaults to localhost)[-ComputerName server]
+    .PARAMETER TaskName
+    Name of Task being targeted [-TaskName "Mytask"]
+    .PARAMETER RunAsUser
+    Account to be used to run the task [-RunAsUser "Toro\ExchangeAdmin"]
+    .PARAMETER TaskRun
+    Action Target for the Task [-TaskRun "c:\scripts\script.cmd"]
+    .PARAMETER Schedule
+    Recurrring Time specification [-Schedule Monthly]
+    .PARAMETER Modifier
+    Recurring schedule ordinal spec [-Modifier "second"]
+    .PARAMETER Days
+    Recurring schedule DOW spec [-Days "SUN"]
+    .PARAMETER Months
+    Recurring schedule Months spec [-Modifier "MAR,JUN,SEP,DEC"]
+    .PARAMETER StartTime = "13:00",
+    Recurring schedule StartTime spec [-StartTime "13:00"]
+    .PARAMETER EndTime = "17:00",
+     Recurring schedule EndTime spec [-EndTime "17:00"]
+    .PARAMETER Interval = "60"
+    Recurring schedule repeat interval spec [-Interval "60"]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    Returns object summary of matched task(s)
+    .EXAMPLE
+    Create-ScheduledTaskLegacy -ComputerName MyServer -TaskName MyTask02 -TaskRun "D:\scripts\script2.vbs"
+    .LINK
+    http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    #>
+    param(
+        [string]$ComputerName = "localhost",
+        [string]$RunAsUser = "System",
+        [string]$TaskName = "MyTask",
+        [string]$TaskRun = '"C:\Program Files\Scripts\Script.vbs"',
+        [string]$Schedule = "Monthly",
+        [string]$Modifier = "second",
+        [string]$Days = "SUN",
+        [string]$Months = '"MAR,JUN,SEP,DEC"',
+        [string]$StartTime = "13:00",
+        [string]$EndTime = "17:00",
+        [string]$Interval = "60"
+    ) ;
+    Write-Host "Computer: $ComputerName"
+    #$Command = "schtasks.exe /create /s $ComputerName /ru $RunAsUser /tn $TaskName /tr $TaskRun /sc $Schedule /mo $Modifier /d $Days /m $Months /st $StartTime /et $EndTime /ri $Interval /F"
+    #Invoke-Expression $Command
+    #Clear-Variable Command -ErrorAction SilentlyContinue
+    schtasks.exe /create /s $ComputerName /ru $RunAsUser /tn $TaskName /tr $TaskRun /sc $Schedule /mo $Modifier /d $Days /m $Months /st $StartTime /et $EndTime /ri $Interval /F
+    Write-Host "`n"
+}
+
+#*------^ Create-ScheduledTaskLegacy.ps1 ^------
 
 #*------v dump-Shortcuts.ps1 v------
 function dump-Shortcuts {
@@ -2536,6 +2658,55 @@ function get-RegistryProperty {
 
 #*------^ get-RegistryProperty.ps1 ^------
 
+#*------v Get-ScheduledTaskLegacy.ps1 v------
+Function Get-ScheduledTaskLegacy {
+    <#
+    .SYNOPSIS
+    Get-ScheduledTaskLegacy - schtasks-wrapped into a ps verb-noun function
+    .NOTES
+    Author: Hugo @ peeetersonline
+    Website:	http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    Tweaked By: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    * 7:27 AM 12/2/2020 re-rename '*-ScheduledTaskCmd' -> '*-ScheduledTaskLegacy', L13 copy still had it, it's more descriptive as well.
+    * 8:13 AM 11/24/2020 renamed to '*-ScheduledTaskCmd', to remove overlap with ScheduledTasks module
+    * 8:06 AM 4/18/2017 comment: Invoke-Expression is unnecessary. You can simply state: schtasks.exe /query /s $ComputerName
+    * 7:42 AM 4/18/2017 tweaked, added pshelp, comments etc
+    * June 4, 2009 posted version
+    .DESCRIPTION
+    Get-ScheduledTaskLegacy - schtasks-wrapped into a ps verb-noun function
+    Allows you to manage queryingscheduled tasks on one or more computers remotely.
+    The functions use schtasks.exe, which is included in Windows. Unlike the Win32_ScheduledJob WMI class, the schtasks.exe commandline tool will show manually created tasks, as well as script-created ones. The examples show some, but not all parameters in action. I think the parameter names are descriptive enough to figure it out, really. If not, take a look at schtasks.exe /?. One tip: try piping a list of computer names to foreach-object and into this function.
+    .PARAMETER  ComputerName
+    Computer Name [-ComputerName server]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    Returns object summary of matched task(s)
+    .EXAMPLE
+    Get-ScheduledTaskLegacy -ComputerName Server01
+    Get all tasks on server01
+    .EXAMPLE
+    Get-ScheduledTaskLegacy -ComputerName bccms641 |?{$_.taskname -like '*drive*'} ;
+    Post-filter tasks for name substring.
+    .LINK
+    http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    #>
+    param([string]$ComputerName = "localhost") ;
+    Write-Host "Computer: $ComputerName" ;
+    # 8:05 AM 4/18/2017 add Axel's object-output filter (otherwise it just returns text)
+    #$Command = "schtasks.exe /query /s $ComputerName" ;
+    #$Command = schtasks.exe /query /s $ComputerName /FO List | ConvertFrom-CmdList ;
+    #Invoke-Expression $Command ;
+    schtasks.exe /query /s $ComputerName /FO List | ConvertFrom-CmdList
+    #Clear-Variable Command -ErrorAction SilentlyContinue ;
+    Write-Host "`n" ;
+}
+
+#*------^ Get-ScheduledTaskLegacy.ps1 ^------
+
 #*------v Get-Shortcut.ps1 v------
 function Get-Shortcut {
     <#
@@ -2638,6 +2809,7 @@ function get-TaskReport {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell
     REVISIONS
+    * 8:08 AM 12/2/2020 added function alias: get-ScheduledTaskReport (couldn't remember this vers didn't use 'sched', had to hunt it up in the module, by name)
     * 7:24 AM 11/24/2020 expanded no -Task echo to include get-scheduledtasks syntax, added it to CBH example
     * 1:59 PM 10/14/2020 switched Exit to Break ; init
     .DESCRIPTION
@@ -2658,6 +2830,7 @@ function get-TaskReport {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
+    [Alias('get-ScheduledTaskReport')]
     PARAM(
         [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Array of Tasknames to be reported upon[-TaskName get-taskreport -TaskName 'monitor-ADAccountLock','choco-cleaner']")]
         $TaskName,
@@ -3516,6 +3689,59 @@ Function Remove-PSTitleBar {
 
 #*------^ Remove-PSTitleBar.ps1 ^------
 
+#*------v Remove-ScheduledTaskLegacy.ps1 v------
+Function Remove-ScheduledTaskLegacy {
+    <#
+    .SYNOPSIS
+    Remove-ScheduledTaskLegacy - schtasks-wrapped into a ps verb-noun function
+    .NOTES
+    Author: Hugo @ peeetersonline
+    Website:	http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    Tweaked By: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    * 7:27 AM 12/2/2020 re-rename '*-ScheduledTaskCmd' -> '*-ScheduledTaskLegacy', L13 copy still had it, it's more descriptive as well.
+    * 8:13 AM 11/24/2020 renamed to '*-ScheduledTaskCmd', to remove overlap with ScheduledTasks module
+    * 8:06 AM 4/18/2017 comment: Invoke-Expression is unnecessary. You can simply state: schtasks.exe /query /s $ComputerName
+    * 7:42 AM 4/18/2017 tweaked, added pshelp, comments etc, put into OTB
+    * June 4, 2009 posted version
+    .DESCRIPTION
+    Get-ScheduledTaskLegacy - schtasks-wrapped into a ps verb-noun function
+    Allows you to manage queryingscheduled tasks on one or more computers remotely.
+    The functions use schtasks.exe, which is included in Windows. Unlike the Win32_ScheduledJob WMI class, the schtasks.exe commandline tool will show manually created tasks, as well as script-created ones. The examples show some, but not all parameters in action. I think the parameter names are descriptive enough to figure it out, really. If not, take a look at schtasks.exe /?. One tip: try piping a list of computer names to foreach-object and into this function.
+    .PARAMETER  ComputerName
+    Computer Name [-ComputerName server]
+    .PARAMETER TaskName
+    Name of Task being targeted
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    Returns object summary of matched task(s)
+    .EXAMPLE
+    Remove-ScheduledTaskLegacy -ComputerName Server01 -TaskName MyTask
+    .LINK
+    http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    #>
+    param(
+        [string]$ComputerName = "localhost",
+        [string]$TaskName = "blank"
+    ) ;
+    If ((Get-ScheduledTaskLegacy -ComputerName $ComputerName) -match $TaskName) {
+        If ((Read-Host "Are you sure you want to remove task $TaskName from $ComputerName(y/n)") -eq "y") {
+            #$Command = "schtasks.exe /delete /s $ComputerName /tn $TaskName /F" ;
+            #Invoke-Expression $Command ;
+            #Clear-Variable Command -ErrorAction SilentlyContinue ;
+            schtasks.exe /delete /s $ComputerName /tn $TaskName /F
+        } ;
+    }
+    else {
+        Write-Warning "Task $TaskName not found on $ComputerName" ;
+    } ;
+}
+
+#*------^ Remove-ScheduledTaskLegacy.ps1 ^------
+
 #*------v revert-File.ps1 v------
 function revert-File {
     <#
@@ -3612,6 +3838,59 @@ function revert-File {
 }
 
 #*------^ revert-File.ps1 ^------
+
+#*------v Run-ScheduledTaskLegacy.ps1 v------
+Function Run-ScheduledTaskLegacy {
+    <#
+    .SYNOPSIS
+    Run-ScheduledTaskLegacy - schtasks-wrapped into a ps verb-noun function
+    .NOTES
+    Author: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    Based-on code by: Hugo @ peeetersonline
+    Website:	http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    REVISIONS   :
+    * 7:27 AM 12/2/2020 re-rename '*-ScheduledTaskCmd' -> '*-ScheduledTaskLegacy', L13 copy still had it, it's more descriptive as well.
+    * 8:13 AM 11/24/2020 renamed to '*-ScheduledTaskCmd', to remove overlap with ScheduledTasks module
+    * 8:15 AM 4/18/2017 write my own run- variant
+    * 8:06 AM 4/18/2017 comment: Invoke-Expression is unnecessary. You can simply state: schtasks.exe /query /s $ComputerName
+    * 7:42 AM 4/18/2017 tweaked, added pshelp, comments etc
+    * June 4, 2009 posted version
+    .DESCRIPTION
+    Run-ScheduledTaskLegacy - schtasks-wrapped into a ps verb-noun function
+    .PARAMETER  ComputerName
+    Computer Name [-ComputerName server]
+    .PARAMETER TaskName
+    Name of Task being targeted
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    Returns object summary of matched task(s)
+    .EXAMPLE
+    Run-ScheduledTaskLegacy -ComputerName Server01 -TaskName MyTask
+    .LINK
+    http://www.peetersonline.nl/2009/06/managing-scheduled-tasks-remotely-using-powershell/
+    #>
+    param(
+        [string]$ComputerName = "localhost",
+        [string]$TaskName = "blank"
+    ) ;
+    If ((Get-ScheduledTaskLegacy -ComputerName $ComputerName) -match $TaskName) {
+        #If ((Read-Host "Are you sure you want to remove task $TaskName from $ComputerName(y/n)") -eq "y") {
+        #$Command = "schtasks.exe /delete /s $ComputerName /tn $TaskName /F" ;
+        #Invoke-Expression $Command ;
+        #Clear-Variable Command -ErrorAction SilentlyContinue ;
+        # SCHTASKS /Run /S system /U user /P password /I /TN "Backup and Restore"
+        schtasks.exe /Run /s $ComputerName /tn $TaskName ;
+        #} ;
+    }
+    else {
+        Write-Warning "Task $TaskName not found on $ComputerName" ;
+    } ;
+}
+
+#*------^ Run-ScheduledTaskLegacy.ps1 ^------
 
 #*------v Save-ConsoleOutputToClipBoard.ps1 v------
 function Save-ConsoleOutputToClipBoard {
@@ -4438,5 +4717,5 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,copy-Profile,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,revert-File,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CmdList,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
