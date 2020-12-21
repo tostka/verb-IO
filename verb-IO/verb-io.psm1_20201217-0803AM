@@ -1,4 +1,4 @@
-# verb-io.psm1
+﻿# verb-io.psm1
 
 
 <#
@@ -482,110 +482,6 @@ function Convert-FileEncoding {
 
 #*------^ Convert-FileEncoding.ps1 ^------
 
-#*------v ConvertFrom-CanonicalOU.ps1 v------
-function ConvertFrom-CanonicalOU {
-    <#
-    .SYNOPSIS
-    ConvertFrom-CanonicalOU.ps1 - This function takes a canonical OU path and converts it to a distinguished name.
-    .NOTES
-    Version     : 1.0.0
-    Author      : joegasper
-    Website     :	https://gist.github.com/joegasper/3fafa5750261d96d5e6edf112414ae18
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-12-15
-    FileName    : 
-    License     : (not specified)
-    Copyright   : (not specified)
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : Powershell,ActiveDirectory,DistinguishedName,CanonicalName,Conversion
-    AddedCredit : Todd Kadrie
-    AddedWebsite:	http://www.toddomation.com
-    AddedTwitter:	@tostka / http://twitter.com/tostka
-    AddedCredit : McMichael
-    AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
-    REVISIONS
-    * 4:30 PM 12/15/2020 TSK: expanded CBH, 
-    .DESCRIPTION
-    ConvertFrom-CanonicalOU.ps1 - This function takes a canonical OU path and converts it to a distinguished name.
-    .PARAMETER  CanonicalName
-    CanonicalName Name
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    DistinguishedName Name
-    .EXAMPLE
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [cmdletbinding()]
-    param(
-    [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)] 
-    [ValidateNotNullOrEmpty()] 
-    [string]$CanonicalName
-    )
-    process {
-        $obj = $CanonicalName.Replace(',','\,').Split('/')
-        [string]$DN = "OU=" + $obj[$obj.count - 1]
-        for ($i = $obj.count - 2;$i -ge 1;$i--){$DN += ",OU=" + $obj[$i]}
-        $obj[0].split(".") | ForEach-Object { $DN += ",DC=" + $_}
-        return $DN
-    }
-}
-
-#*------^ ConvertFrom-CanonicalOU.ps1 ^------
-
-#*------v ConvertFrom-CanonicalUser.ps1 v------
-function ConvertFrom-CanonicalUser {
-    <#
-    .SYNOPSIS
-    ConvertFrom-CanonicalUser.ps1 - This function takes a canonical name and converts it to a distinguished name.
-    .NOTES
-    Version     : 1.0.0
-    Author      : joegasper
-    Website     :	https://gist.github.com/joegasper/3fafa5750261d96d5e6edf112414ae18
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-12-15
-    FileName    : 
-    License     : (not specified)
-    Copyright   : (not specified)
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : Powershell,ActiveDirectory,DistinguishedName,CanonicalName,Conversion
-    AddedCredit : Todd Kadrie
-    AddedWebsite:	http://www.toddomation.com
-    AddedTwitter:	@tostka / http://twitter.com/tostka
-    AddedCredit : McMichael
-    AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
-    REVISIONS
-    * 4:30 PM 12/15/2020 TSK: expanded CBH, 
-    .DESCRIPTION
-    ConvertFrom-CanonicalUser.ps1 - This function takes a canonical name and converts it to a distinguished name.
-    .PARAMETER  DistinguishedName
-    CanonicalName Name
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    DistinguishedName Name
-    .EXAMPLE
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [cmdletbinding()]
-    param(
-    [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)] 
-    [ValidateNotNullOrEmpty()] 
-    [string]$CanonicalName
-    )
-    process {
-        $obj = $CanonicalName.Replace(',','\,').Split('/')
-        [string]$DN = "CN=" + $obj[$obj.count - 1]
-        for ($i = $obj.count - 2;$i -ge 1;$i--){$DN += ",OU=" + $obj[$i]}
-        $obj[0].split(".") | ForEach-Object { $DN += ",DC=" + $_}
-        return $DN
-    }
-}
-
-#*------^ ConvertFrom-CanonicalUser.ps1 ^------
-
 #*------v ConvertFrom-CmdList.ps1 v------
 filter ConvertFrom-CmdList {
     <#
@@ -632,82 +528,6 @@ filter ConvertFrom-CmdList {
 }
 
 #*------^ ConvertFrom-CmdList.ps1 ^------
-
-#*------v ConvertFrom-DN.ps1 v------
-function ConvertFrom-DN {
-    <#
-    .SYNOPSIS
-    ConvertFrom-DN.ps1 - This function takes a distinguished name and converts it to a cononical name.
-    .NOTES
-    Version     : 1.0.0
-    Author      : joegasper
-    Website     :	https://gist.github.com/joegasper/3fafa5750261d96d5e6edf112414ae18
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-12-15
-    FileName    : 
-    License     : (not specified)
-    Copyright   : (not specified)
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : Powershell,ActiveDirectory,DistinguishedName,CanonicalName,Conversion
-    AddedCredit : Todd Kadrie
-    AddedWebsite:	http://www.toddomation.com
-    AddedTwitter:	@tostka / http://twitter.com/tostka
-    AddedCredit : McMichael
-    AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
-    REVISIONS
-    * 4:30 PM 12/15/2020 TSK: expanded CBH, 
-    .DESCRIPTION
-    .PARAMETER  DistinguishedName
-    Distinguished Name
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    Canonical Name
-    .EXAMPLE
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [cmdletbinding()]
-    param(
-      [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
-      [ValidateNotNullOrEmpty()]
-      [string[]]$DistinguishedName
-    )
-
-    process 
-    {
-        foreach ($DN in $DistinguishedName) 
-        {
-            foreach ( $item in ($DN.replace('\,','~').split(","))) 
-            {
-                switch ($item.TrimStart().Substring(0,2)) 
-                {
-                    'CN' {$CN = '/' + $item.Replace("CN=","")}
-
-                    'OU' {$OU += ,$item.Replace("OU=","");$OU += '/'}
-
-                    'DC' {$DC += $item.Replace("DC=","");$DC += '.'}
-
-                }
-            } 
-
-            $CanonicalName = $DC.Substring(0,$DC.length - 1)
-
-            for ($i = $OU.count;$i -ge 0;$i -- )
-            {
-                $CanonicalName += $OU[$i]
-            }
-
-            if ( $DN.Substring(0,2) -eq 'CN' ) 
-            {
-                $CanonicalName += $CN.Replace('~','\,')
-			}
-            Write-Output $CanonicalName
-        }
-    }
-}
-
-#*------^ ConvertFrom-DN.ps1 ^------
 
 #*------v ConvertFrom-SourceTable.ps1 v------
 Function ConvertFrom-SourceTable {
@@ -1344,103 +1164,6 @@ Function ConvertTo-HashIndexed {
 }
 
 #*------^ ConvertTo-HashIndexed.ps1 ^------
-
-#*------v ConvertTo-SRT.ps1 v------
-function ConvertTo-SRT {
-    <#
-    .SYNOPSIS
-    ConvertTo-SRT.ps1 - Fast conversion of Microsoft Stream VTT subtitle file to SRT format.
-    .NOTES
-    Version     : 1.0.0
-    Author      : joegasper
-    Website     :	https://gist.github.com/joegasper/3fafa5750261d96d5e6edf112414ae18
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-12-15
-    FileName    : 
-    License     : (not specified)
-    Copyright   : (not specified)
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : Powershell,ActiveDirectory,DistinguishedName,CanonicalName,Conversion
-    AddedCredit : Todd Kadrie
-    AddedWebsite:	http://www.toddomation.com
-    AddedTwitter:	@tostka / http://twitter.com/tostka
-    Inspiration from: https://gist.github.com/brianonn/455bce106bd86c9587d223acfbbe9751/
-Takes a 3.5 minute process for 17K row VTT to 3.5 seconds
-
-https://github.com/joegasper
-https://gist.github.com/joegasper/e862f71b5a2658fae21fd36f7231b33c
-    REVISIONS
-    * 4:30 PM 12/15/2020 TSK: expanded CBH, 
-    .DESCRIPTION
-    Uses select-string instead of get-content to improve speed 2 magnitudes.
-    .PARAMETER Path
-    Specifies the path to the VTT text file (mandatory).
-    .PARAMETER OutFile
-    Specifies the path to the output SRT text file (defaults to input file with .srt).
-    .EXAMPLE
-    ConvertTo-SRT -Path .\caption.vtt
-    .EXAMPLE
-    ConvertTo-SRT -Path .\caption.vtt -OutFile .\SRT\caption.srt
-    .EXAMPLE
-    Get-Item caption*.vtt | ConvertTo-SRT
-    .EXAMPLE
-    ConvertTo-SRT -Path ('.\caption.vtt','.\caption.vtt','.\caption3.vtt')
-    .EXAMPLE
-    ('.\caption.vtt','.\caption2.vtt','.\caption3.vtt') | ConvertTo-SRT
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true,
-            Position = 0,
-            ValueFromPipeline,
-            ValueFromPipelineByPropertyName = $true,
-            HelpMessage = "Path to VTT file.")]
-        [Alias("PSPath")]
-        [ValidateNotNullOrEmpty()]
-        [Object[]]$Path,
-
-        [Parameter(Mandatory = $false,
-            Position = 1,
-            ValueFromPipelineByPropertyName = $true,
-            HelpMessage = "Path to output SRT file.")]
-        [string]$OutFile
-    )
-
-    process {
-        foreach ($File in $Path) {
-            $Lines = @()
-            if ( $File.FullName ) {
-                $VTTFile = $File.FullName
-            }
-            else {
-                $VTTFile = $File
-            }
-
-            if ( -not($PSBoundParameters.ContainsKey('OutFile')) ) {
-                $OutFile = $VTTFile -replace '(\.vtt$|\.txt$)', '.srt'
-                if ( $OutFile.split('.')[-1] -ne 'srt' ) {
-                    $OutFile = $OutFile + '.srt'
-                }
-            }
-
-            New-Item -Path $OutFile -ItemType File -Force | Out-Null
-            $Subtitles = Select-String -Path $VTTFile -Pattern '(^|\s)(\d\d):(\d\d):(\d\d)\.(\d{1,3})' -Context 0, 2
-
-            for ($i = 0; $i -lt $Subtitles.count; $i++) {
-                $Lines += $i + 1
-                $Lines += $Subtitles[$i].line -replace '\.', ','
-                $Lines += $Subtitles[$i].Context.DisplayPostContext
-                $Lines += ''
-            }
-
-            $Lines | Out-File -FilePath $OutFile -Append -Force
-        }
-    }
-}
-
-#*------^ ConvertTo-SRT.ps1 ^------
 
 #*------v copy-Profile.ps1 v------
 function copy-Profile {
@@ -2828,114 +2551,6 @@ Function Get-FsoTypeObj {
 }
 
 #*------^ Get-FsoTypeObj.ps1 ^------
-
-#*------v get-LoremName.ps1 v------
-function get-LoremName {
-    <#
-    .SYNOPSIS
-    get-LoremName.ps1 - Return a name based on Lorem Ipsum.
-    .NOTES
-    Version     : 1.0.0
-    Author      : JoeGasper@hotmail.com
-    Website     :	https://gist.github.com/joegasper/3fafa5750261d96d5e6edf112414ae18
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-12-15
-    FileName    : 
-    License     : (not specified)
-    Copyright   : (not specified)
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : Powershell,ActiveDirectory,DistinguishedName,CanonicalName,Conversion
-    AddedCredit : Todd Kadrie
-    AddedWebsite:	http://www.toddomation.com
-    AddedTwitter:	@tostka / http://twitter.com/tostka
-    Inspired to create by: https://twitter.com/MichaelBender/status/1101921078350413825?s=20
-    REVISIONS
-    * 4:30 PM 12/15/2020 TSK: expanded CBH, 
-    * 2019-03-03 
-    .DESCRIPTION
-    Calls public Loren Ipsum API and returns name and account name if requested.
-    .INPUTS
-    Count: Number of names to return
-    WithAccount: Return an account name.
-    .PARAMETER Path
-    Specifies the path to the VTT text file (mandatory).
-    .PARAMETER OutFile
-    Specifies the path to the output SRT text file (defaults to input file with .srt).
-    .EXAMPLE
-    Get-LoremName
-    FirstName LastName
-    --------- --------
-    Plane     Gloriosam
-    Return a name.
-    .EXAMPLE
-    Get-LoremName -Quantity 4
-    FirstName LastName
-    --------- --------
-    Obrutum   Peccata
-    Inermis   Uti
-    Epicuro   Quoddam
-    Quodam    Congruens
-    Return 4 names.
-    .EXAMPLE
-    Get-LoremName -Quantity 2 -WithAccount
-    FirstName  LastName UserName
-    ---------  -------- --------
-    Vitam      Saluto   Vitam.Saluto56
-    Intellegit Hoc      Intellegit.Hoc18
-    Return 2 names with account name.
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding(PositionalBinding = $false)]
-    [Alias()]
-    [OutputType([String])]
-    Param
-    (
-        # Number of Names to return
-        [Parameter(
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true,
-            ValueFromRemainingArguments = $false,
-            Position = 0)]
-        [Alias("Quantity")]
-        [int]
-        $Count = 1,
-
-        # Include account name
-        [Parameter()]
-        [Switch]
-        $WithAccount
-    )
-    Begin {
-        $loremApi = 'https://loripsum.net/api/5/verylong/plaintext'
-        $FirstText = 'FirstName'
-        $LastText = 'LastName'
-        $AccountText = 'UserName'
-        $li = (Invoke-RestMethod -Uri $loremApi) -replace "\?|,|-|\.|;|:|\n", '' -split ' ' | ForEach-Object { if ($_.Length -ge 3) {(Get-Culture).TextInfo.ToTitleCase($_)}}  | Sort-Object -Unique
-        $MaxNames = $li.Count - 1
-    }
-    Process {
-        if ($WithAccount) {
-            for ($i = 0; $i -lt $Count; $i++) {
-                $First = $li[(Get-Random -Maximum $MaxNames)]
-                $Last = $li[(Get-Random -Maximum $MaxNames)]
-                $Account = "$First.$Last$(Get-Random -Maximum 99)"
-                [pscustomobject](ConvertFrom-StringData "$($AccountText) = $Account `n $($LastText) = $Last `n $($FirstText) = $First" ) | Select-Object $($FirstText), $($LastText), $($AccountText)
-            }
-        }
-        else {
-            for ($i = 0; $i -lt $Count; $i++) {
-                $First = $li[(Get-Random -Maximum $MaxNames)]
-                $Last = $li[(Get-Random -Maximum $MaxNames)]
-                [pscustomobject](ConvertFrom-StringData "$($LastText) = $Last `n $($FirstText) = $First" ) | Select-Object $($FirstText), $($LastText), $($AccountText)
-            }
-        }
-    }
-    End {
-    }
-}
-
-#*------^ get-LoremName.ps1 ^------
 
 #*------v Get-ProductItems.ps1 v------
 function Get-ProductItems {
@@ -5102,5 +4717,31 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CmdList,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU9o+UC9BVycQhZz3L+7oTaIEi
+# Db2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBThmihe
+# P25++vXSOFutkwP6QdloLDANBgkqhkiG9w0BAQEFAASBgBDTXt84/ITMB5X7t9ll
+# 2WCaoQ9/WFpEh2MfI2iBb27R2irJTG5TYXK6fnxBXkWp9R5K1CKQPDW3qEg9D8L5
+# n+X3jXlb/XBcCzs9P2ZR/WEFSsoz0IEqBRaYDALhmAa2USnn+JOzVBhIZNrGnVTb
+# ww6qQCIfb2YwtBbSaNnXHaDF
+# SIG # End signature block
