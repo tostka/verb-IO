@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.42.0.0
+Version     : 1.0.44.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2217,6 +2217,7 @@ function get-colorcombo {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     REVISIONS   :
+    * 3:15 PM 12/29/2020 fixed typo in scheme parse (quotes broke the hashing), pulled 4 low-contrast schemes out
     * 1:22 PM 5/10/2019 init version
     .DESCRIPTION
     .PARAMETER  Combo
@@ -2241,21 +2242,22 @@ function get-colorcombo {
     Run a demo
     .LINK
     #>
+    # ParameterSetName='EXCLUSIVENAME'
     Param(
-        [Parameter(Position = 0, HelpMessage = "Combo Number (0-73)[-Combo 65]")][int]$Combo,
-        [Parameter(HelpMessage = "Returns a random Combo [-Random]")][switch]$Random,
-        [Parameter(HelpMessage = "Dumps a table of all combos for review[-Demo]")][switch]$Demo
+        [Parameter(ParameterSetName='Combo',Position = 0, HelpMessage = "Combo Number (0-73)[-Combo 65]")][int]$Combo,
+        [Parameter(ParameterSetName='Random',HelpMessage = "Returns a random Combo [-Random]")][switch]$Random,
+        [Parameter(ParameterSetName='Demo',HelpMessage = "Dumps a table of all combos for review[-Demo]")][switch]$Demo
     )
     if (-not($Demo) -AND -not($Combo) -AND -not($Random)) {
-        throw "No -Combo integer specified, no -Random, and no -Demo param. One of these must be specified"
-        Exit ;
+        $Random=$true ; 
     } ;
-    # psv2 doesn't support ordered
+    # rem'd, low-contrast removals: "DarkYellow;Green", "DarkYellow;Cyan","DarkYellow;Yellow", "DarkYellow;White", 
+    $schemes = "Black;DarkYellow", "Black;Gray", "Black;Green", "Black;Cyan", "Black;Red", "Black;Yellow", "Black;White", "DarkGreen;Gray", "DarkGreen;Green", "DarkGreen;Cyan", "DarkGreen;Magenta", "DarkGreen;Yellow", "DarkGreen;White", "White;DarkGray", "DarkRed;Gray", "White;Blue", "White;DarkRed", "DarkRed;Green", "DarkRed;Cyan", "DarkRed;Magenta", "DarkRed;Yellow", "DarkRed;White", "DarkYellow;Black", "White;DarkGreen", "DarkYellow;Blue",  "Gray;Black", "Gray;DarkGreen", "Gray;DarkMagenta", "Gray;Blue", "Gray;White", "DarkGray;Black", "DarkGray;DarkBlue", "DarkGray;Gray", "DarkGray;Blue", "Yellow;DarkGreen", "DarkGray;Green", "DarkGray;Cyan", "DarkGray;Yellow", "DarkGray;White", "Blue;Gray", "Blue;Green", "Blue;Cyan", "Blue;Red", "Blue;Magenta", "Blue;Yellow", "Blue;White", "Green;Black", "Green;DarkBlue", "White;Black", "Green;Blue", "Green;DarkGray", "Yellow;DarkGray", "Yellow;Black", "Cyan;Black", "Yellow;Blue", "Cyan;Blue", "Cyan;Red", "Red;Black", "Red;DarkGreen", "Red;Blue", "Red;Yellow", "Red;White", "Magenta;Black", "Magenta;DarkGreen", "Magenta;Blue", "Magenta;DarkMagenta", "Magenta;Blue", "Magenta;Yellow", "Magenta;White" ;
     $colorcombo = @{ } ;
-    $schemes = "Black;DarkYellow", "Black;Gray", "Black;Green", "Black;Cyan", "Black;Red", "Black;Yellow", "Black;White", "DarkGreen;Gray", "DarkGreen;Green", "DarkGreen;Cyan", "DarkGreen;Magenta", "DarkGreen;Yellow", "DarkGreen;White", "White;DarkGray", "DarkRed;Gray", "White;Blue", "White;DarkRed", "DarkRed;Green", "DarkRed;Cyan", "DarkRed;Magenta", "DarkRed;Yellow", "DarkRed;White", "DarkYellow;Black", "White;DarkGreen", "DarkYellow;Blue", "DarkYellow;Green", "DarkYellow;Cyan", "DarkYellow;Yellow", "DarkYellow;White", "Gray;Black", "Gray;DarkGreen", "Gray;DarkMagenta", "Gray;Blue", "Gray;White", "DarkGray;Black", "DarkGray;DarkBlue", "DarkGray;Gray", "DarkGray;Blue", "Yellow;DarkGreen", "DarkGray;Green", "DarkGray;Cyan", "DarkGray;Yellow", "DarkGray;White", "Blue;Gray", "Blue;Green", "Blue;Cyan", "Blue;Red", "Blue;Magenta", "Blue;Yellow", "Blue;White", "Green;Black", "Green;DarkBlue", "White;Black", "Green;Blue", "Green;DarkGray", "Yellow;DarkGray", "Yellow;Black", "Cyan;Black", "Yellow;Blue", "Cyan;Blue", "Cyan;Red", "Red;Black", "Red;DarkGreen", "Red;Blue", "Red;Yellow", "Red;White", "Magenta;Black", "Magenta;DarkGreen", "Magenta;Blue", "Magenta;DarkMagenta", "Magenta;Blue", "Magenta;Yellow", "Magenta;White" ;
     $i = 0 ;
     foreach ($scheme in $schemes) {
-        $colorcombo["$($i)"] = @{BackgroundColor = $scheme.split(";")[0] ; foregroundcolor = $scheme.split(";")[1] ; } ;
+        #$colorcombo["$($i)"] = @{BackgroundColor = $scheme.split(";")[0] ; foregroundcolor = $scheme.split(";")[1] ; } ;
+        $colorcombo[$i] = @{BackgroundColor = $scheme.split(";")[0] ; foregroundcolor = $scheme.split(";")[1] ; } ;
         $i++ ;
     } ;
     if ($Demo) {
@@ -5108,8 +5110,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUlR6St26bAOHp2Nerub+wc0Uv
-# 8vagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUp436uxY47JzBwtIU4yynbnir
+# W1mgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -5124,9 +5126,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT6VkkP
-# lKBcJK2toCIt7msCS+SCOTANBgkqhkiG9w0BAQEFAASBgDv3Tuzr0ShE/7fIId3o
-# FG3qm/v5+lCWz/JXrJFW9DNrSqDHVG7JcB1tWK0mdooONeidV/04jkYECJQTWxNQ
-# xvCdI7hmWsZmWvy3nCXzRt3noeBG6+MVoQ67BZqWdfrhgZnb7axjMuLuXsyhwYqA
-# 7A3pRrW6T7RmDrZcGwZ3+rXH
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSOOEBx
+# 7YGg/tt4QsQU15Ue/lEAvzANBgkqhkiG9w0BAQEFAASBgJU+RZpjprB05Jj98fmI
+# 1qSzVXSsw1VS+nsaHEPbYUHBVER/HuejdB2mnba0GPod2RMFs4QwohNiOOsJOJxT
+# RUWrMWAcgFXucUAyCQoiVdSU0hC8pDk2A+FGxQ8tY1xNLQWTw8pi4YEMutThe+u/
+# B6HDg+ClgxqgZhTTcwacn5mv
 # SIG # End signature block
