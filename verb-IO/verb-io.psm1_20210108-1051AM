@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.48.0.0
+Version     : 1.0.47.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -3196,7 +3196,7 @@ function get-TaskReport {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell
     REVISIONS
-    * 10:49 AM 1/8/2021 added extended get-scheduledtask examples to CBH ; repl wh's with a herestring at top ; fixed typo in initial !$Taskname output (extraneous `) 
+    * 10:14 AM 1/8/2021 repl wh's with a herestring at top ; fixed typo in initial !$Taskname output (extraneous `)
     * 8:08 AM 12/2/2020 added function alias: get-ScheduledTaskReport (couldn't remember this vers didn't use 'sched', had to hunt it up in the module, by name)
     * 7:24 AM 11/24/2020 expanded no -Task echo to include get-scheduledtasks syntax, added it to CBH example
     * 1:59 PM 10/14/2020 switched Exit to Break ; init
@@ -3242,7 +3242,8 @@ function get-TaskReport {
     .EXAMPLE
     # return Summary Name, Execute and Arguments of each root Task:
     get-scheduledtask|?{$_.taskpath -eq '\'} | 
-    %{"`nTASK:`t$($_.taskname)`nEXEC:`t$($_.actions.execute)`nARGS: `t$($_.actions.Arguments)`n" } ; 
+    %{"`nTASK:`t$($_.taskname)`nEXEC:`t$($_.action
+s.execute)`nARGS: `t$($_.actions.Arguments)`n" } ; 
     # output:
     TASK:   choco-cleaner
     EXEC:   cmd
@@ -5170,8 +5171,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUAS3JwzzDqHZa+1neihn1eigE
-# zQegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU3Ez6bWzUaoVXKF412okMejqM
+# gSegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -5186,9 +5187,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQ91tbE
-# 6BJSyySMOzKFyA7gC4ATPTANBgkqhkiG9w0BAQEFAASBgByJF5II+ltfEhfnAjmg
-# NVrrkK4T7yvWTMhEzYeFVZWsGVrGJdzCf8ixr7HDzOpjiWeYIIW4ZT8onDMN6qo/
-# INGcsjtDnZp093dK2YMt93bpabwJlHvbyEzbBQOzOHvna6Ks6WLcr8MzLGGwWvE/
-# 5gX1mTEK01xWKF24JTbR3eek
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTudbJ5
+# iJi51LNZy/rUmGlcdxkeCTANBgkqhkiG9w0BAQEFAASBgG/X0wBTpXpqOXf3t59F
+# xJWXBNlNQiQxMXDczVSYfxWzfY4aHetfJwYsPAak9xKJ1HzTF4XtGu6Hz9z+01tz
+# tdlyh9NiVBQ9J7tDP3nkFJC4n6bMSZCx2BxFR6iJGXHtiKwCgmmBtyXKEA6OUJV8
+# Mlu2t420aorppjrdkhYqjkY4
 # SIG # End signature block
