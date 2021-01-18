@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.52.0.0
+Version     : 1.0.49.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -4882,57 +4882,21 @@ function Test-PendingReboot {
 
         $VerbosePreference = $using:VerbosePreference
         
-        <# try to pull in local modules into the scriptblock (rather than expliciting a copy in the block) - didn't work, module load threw 
-        Error Message: A Using variable cannot be retrieved. A Using variable can be used only with Invoke-Command, Start-Job, or InlineScript in the script workflow. When it is used with Invoke-Command, the Using variable is valid only if the script block is invoked on a remote computer
+        <# Functions - Import into a Remote Session:
+        #Importing this Invoke-HelloWorld() into a RemotPS
+        function Invoke-HelloWorld {
+            Write-Warning "Hello World" ;
+        } ;
+        # use a scriptblock & Start-Job to suck it into the remote Pss:
+        $ScriptBlock = {
+            Invoke-Expression ${Using:Function:Invoke-HelloWorld}.Ast.Extent.Text
+            Invoke-HelloWorld ;
+        } ;
         #>
-        function Test-RegistryKey {
-            [OutputType('bool')]
-            [CmdletBinding()]
-            param
-            (
-                [Parameter(Mandatory)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key
-            )
-            $ErrorActionPreference = 'Stop'
-            if (Get-Item -Path $Key -ErrorAction Ignore) {
-                $true
-            }
-        }
-        function Test-RegistryValue {
-            [OutputType('bool')]
-            [CmdletBinding()]
-            param
-            (
-                [Parameter(Mandatory)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key,
-                [Parameter(Mandatory)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Value
-            )
-            $ErrorActionPreference = 'Stop'
-            if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
-                $true
-            }
-        }
-        function Test-RegistryValueNotNull {
-            [OutputType('bool')]
-            [CmdletBinding()]
-            param
-            (
-                [Parameter(Mandatory)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key,
-                [Parameter(Mandatory)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Value
-            )
-            $ErrorActionPreference = 'Stop'
-            if (($regVal = Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) -and $regVal.($Value)) {
-                $true
-            }
-        }
+        # try to pull in local modules into the scriptblock (rather than expliciting a copy in the block)
+        Invoke-Expression ${Using:Function:Test-RegistryKey}.Ast.Extent.Text
+        Invoke-Expression ${Using:Function:Test-RegistryValue}.Ast.Extent.Text
+        Invoke-Expression ${Using:Function:Test-RegistryValueNotNull}.Ast.Extent.Text
 
         # Added "test-path" to each test that did not leverage a custom function from above since
         # an exception is thrown when Get-ItemProperty or Get-ChildItem are passed a nonexistant key path
@@ -5096,7 +5060,7 @@ function Test-RegistryValue {
     [CmdletBinding()]
     #[Alias('get-ScheduledTaskReport')]
     PARAM(
-        [Parameter(Mandatory)][ValidateNotNullOrEmpty()]
+        [[Parameter(Mandatory)][ValidateNotNullOrEmpty()]
         [string]$Key,
         [Parameter(Mandatory)][ValidateNotNullOrEmpty()]
         [string]$Value
@@ -5104,8 +5068,7 @@ function Test-RegistryValue {
     $ErrorActionPreference = 'Stop' ;
     if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
         $true | write-output ; 
-    } ;
-}
+    }
 
 #*------^ Test-RegistryValue.ps1 ^------
 
@@ -5492,14 +5455,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUgsMdwFLQRgvC4yAqLyDrqz8j
-# B8WgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUU3lU7y8oY/REznk4e/6QIPKE
+# OrCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -5514,9 +5477,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQYdDWk
-# nFRGVqgIqgLG+S6xTIfBDzANBgkqhkiG9w0BAQEFAASBgADHL1+uusFbkfO8iYeL
-# Mm9Ezap042o/WvGTzOrUNM9DVcT50FjtXDgJ/fbQQMUUA7fk1R44o5J+FHD/iyqv
-# WS34ygz+QqBzZdvff1U7G872zqxf2Tcc2Y9n0J+LOQ0+ky084ii6k3mo3/WlmoYK
-# BtZASNeEAVsSZb2xn5vNSL49
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRRDNgu
+# GYkKWQTG0lENQo1tlXt22TANBgkqhkiG9w0BAQEFAASBgAXXzQd68z/++p68Jv1T
+# XS9aU/ZwxkricGO9Vb4SG7NtdCTQB4KW3ua6fy+WGbl6hcPC/UsVPLzFh8P0NWNd
+# xXdKJ5G3Gc2D4Kr8fPeCc4dUEmzwYEqfwQJWffxtRl0GDtMk9ZwuBec3t9Vs6oVj
+# rJaiiSGKE4wOWWQq78g+UrK3
 # SIG # End signature block
