@@ -71,13 +71,13 @@ Function convertTo-MarkdownTable {
    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*'
    Demo use of -title, -precontent & -postcontent params:
    .EXAMPLE
-   $pltcMT=@{
+   $pltcMT=[ordered]@{
         Title='This is Title' ;
         PreContent='A little something *before*' ;
         PostContent='A little something *after*'
    } ;
    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
-   Same as prior example, but with more readable splatting
+   Same as prior example, but leveraging more readable splatting
     .LINK
     https://github.com/tostka/verb-IO
     #>
