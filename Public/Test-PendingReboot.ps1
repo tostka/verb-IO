@@ -2,7 +2,7 @@
 function Test-PendingReboot {
     <#
     .SYNOPSIS
-    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys
+    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -18,17 +18,20 @@ function Test-PendingReboot {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
+    * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
     * 5:03 PM 1/14/2021 init, minor CBH mods
     * 7/29/19 AB's posted version
     .DESCRIPTION
-    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys
+    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
     .PARAMETER  ComputerName
     Array of computernames to be tested for pending reboot
     .PARAMETER  Credential
     windows Credential [-credential (get-credential)]
+    .OUTPUT 
+    System.Collections.Hashtable
     .EXAMPLE
-    Test-PendingReboot -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'JoinDomain'
-    Tests value of the specified key -eq 'JoinDomain'
+    if((Test-PendingReboot -ComputerName $env:Computername).IsPendingReboot){write-warning "$env:computername is PENDING REBOOT!"} ;
+    Test for pending reboot.
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -171,5 +174,3 @@ function Test-PendingReboot {
     } ; 
 } ; 
 #*------^ END Function Test-PendingReboot ^------
-
-Test-PendingReboot -ComputerName $env:Computername

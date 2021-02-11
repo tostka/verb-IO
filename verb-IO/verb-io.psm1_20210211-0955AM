@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.54.0.0
+Version     : 1.0.53.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -1419,13 +1419,13 @@ Function convertTo-MarkdownTable {
    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*'
    Demo use of -title, -precontent & -postcontent params:
    .EXAMPLE
-   $pltcMT=[ordered]@{
+   $pltcMT=@{
         Title='This is Title' ;
         PreContent='A little something *before*' ;
         PostContent='A little something *after*'
    } ;
    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
-   Same as prior example, but leveraging more readable splatting
+   Same as prior example, but with more readable splatting
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -5033,7 +5033,7 @@ Function stop-driveburn {
 function Test-PendingReboot {
     <#
     .SYNOPSIS
-    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
+    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -5049,20 +5049,17 @@ function Test-PendingReboot {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
-    * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
     * 5:03 PM 1/14/2021 init, minor CBH mods
     * 7/29/19 AB's posted version
     .DESCRIPTION
-    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
+    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys
     .PARAMETER  ComputerName
     Array of computernames to be tested for pending reboot
     .PARAMETER  Credential
     windows Credential [-credential (get-credential)]
-    .OUTPUT 
-    System.Collections.Hashtable
     .EXAMPLE
-    if((Test-PendingReboot -ComputerName $env:Computername).IsPendingReboot){write-warning "$env:computername is PENDING REBOOT!"} ;
-    Test for pending reboot.
+    Test-PendingReboot -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'JoinDomain'
+    Tests value of the specified key -eq 'JoinDomain'
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -5203,7 +5200,10 @@ function Test-PendingReboot {
             }
         } # TRY-E
     } ; 
-}
+} ; 
+#*------^ END Function Test-PendingReboot ^------
+
+Test-PendingReboot -ComputerName $env:Computername
 
 #*------^ Test-PendingReboot.ps1 ^------
 
@@ -5695,8 +5695,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU4u8vRzCOfZAGyX4CdSN3F1Xi
-# Q9GgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUHO8DkeYlX6vf1shpciHnR1Ex
+# EPigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -5711,9 +5711,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSY2uR0
-# 4ECIQ/qKlboH9szL5iOTbDANBgkqhkiG9w0BAQEFAASBgHMJ/KKPWdxzjqVLDEam
-# yY1vdUWCqmFX5WtyOE+n4uyj1l3FGMLxc+B7/76oFunx0zxix6rU2PjDaLDaZ+ps
-# TyuLN0uEsDPOrSGePby+BvtHCzaS+MX4f1pW3RiQsuki4OSU1X0MMX4o7welYigN
-# lnzYWM7xdVL47iTvERHOPhtQ
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR10+WN
+# AnVZya9s/VY1nSb8Lg9eATANBgkqhkiG9w0BAQEFAASBgBQw3DSXPS/PUXK4EjT5
+# U+37NR4wUojsJCT6v2Sw9iHseaWNBiQPw1Mhx8ZLXQQAqYR8H5Wg8WkiNAWF9/w+
+# 3+PZAqkqcSZuXMAHTfEXcxv5NkQ9ywH0ilWGDWp4dyLl7ce2Ps+qphmRU1Ckpo6O
+# I5/TarC3KVHB1k+1WvbHCx18
 # SIG # End signature block
