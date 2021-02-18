@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.53.0.0
+Version     : 1.0.54.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -1370,7 +1370,9 @@ Function convertTo-MarkdownTable {
     AddedCredit : GuruAnt
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
-    REVISION8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
+    REVISION
+    * 10:49 AM 2/18/2021 added default alias: out-markdowntable & out-mdt
+8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
     unknown - alexandrm's revision (undated)
     unknown - Guruant's source version (undated account deleted on github)
     .DESCRIPTION
@@ -1429,7 +1431,7 @@ Function convertTo-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    ## [Alias('ALIAS1', 'ALIAS2')]
+    [Alias('out-markdowntable','out-mdt')]
     [OutputType([string])]
     Param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
