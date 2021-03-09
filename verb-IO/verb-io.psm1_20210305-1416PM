@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.57.0.0
+Version     : 1.0.55.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2415,7 +2415,6 @@ function get-colorcombo {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     REVISIONS   :
-    * 1:46 PM 3/5/2021 set DefaultParameterSetName='Random' to actually make 'no-params' default that way, also added $defaultPSCombo (DarkYellow:DarkMagenta), and added it as the 'last' combo in the combo array 
     * 3:15 PM 12/29/2020 fixed typo in scheme parse (quotes broke the hashing), pulled 4 low-contrast schemes out
     * 1:22 PM 5/10/2019 init version
     .DESCRIPTION
@@ -2436,47 +2435,31 @@ function get-colorcombo {
     .EXAMPLE
     get-colorcombo -demo ;
     .EXAMPLE
-    write-host -foregroundcolor green "Pull & write-host a Random get-colorcombo" ;
+    write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):Pull Random get-colorcombo" ;
     $plt=get-colorcombo -Rand ; write-host  @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
     Run a demo
-    .EXAMPLE
-    $plt=get-colorcombo -Rand ; 
-    $Host.UI.RawUI.BackgroundColor = $plt.BackgroundColor ; 
-    $Host.UI.RawUI.ForegroundColor = $plt.ForegroundColor ; 
-    Set Console/$Host to a Random get-colorcombo
-    .EXAMPLE
-    $plt=get-colorcombo -combo 69 ; 
-    set-consolecolors @plt ; 
-    Use verb-IO:set-consolecolors() function to set colorcombo 69.
     .LINK
-    https://github.com/tostka/verb-IO
     #>
-    [CmdletBinding(DefaultParameterSetName='Random')]
     # ParameterSetName='EXCLUSIVENAME'
     Param(
         [Parameter(ParameterSetName='Combo',Position = 0, HelpMessage = "Combo Number (0-73)[-Combo 65]")][int]$Combo,
         [Parameter(ParameterSetName='Random',HelpMessage = "Returns a random Combo [-Random]")][switch]$Random,
         [Parameter(ParameterSetName='Demo',HelpMessage = "Dumps a table of all combos for review[-Demo]")][switch]$Demo
     )
-    $Verbose = ($VerbosePreference -eq 'Continue') ; 
     if (-not($Demo) -AND -not($Combo) -AND -not($Random)) {
-        write-host "(No -combo or -demo specified: Asserting a 'Random' scheme)" ;
         $Random=$true ; 
     } ;
     # rem'd, low-contrast removals: "DarkYellow;Green", "DarkYellow;Cyan","DarkYellow;Yellow", "DarkYellow;White", 
     $schemes = "Black;DarkYellow", "Black;Gray", "Black;Green", "Black;Cyan", "Black;Red", "Black;Yellow", "Black;White", "DarkGreen;Gray", "DarkGreen;Green", "DarkGreen;Cyan", "DarkGreen;Magenta", "DarkGreen;Yellow", "DarkGreen;White", "White;DarkGray", "DarkRed;Gray", "White;Blue", "White;DarkRed", "DarkRed;Green", "DarkRed;Cyan", "DarkRed;Magenta", "DarkRed;Yellow", "DarkRed;White", "DarkYellow;Black", "White;DarkGreen", "DarkYellow;Blue",  "Gray;Black", "Gray;DarkGreen", "Gray;DarkMagenta", "Gray;Blue", "Gray;White", "DarkGray;Black", "DarkGray;DarkBlue", "DarkGray;Gray", "DarkGray;Blue", "Yellow;DarkGreen", "DarkGray;Green", "DarkGray;Cyan", "DarkGray;Yellow", "DarkGray;White", "Blue;Gray", "Blue;Green", "Blue;Cyan", "Blue;Red", "Blue;Magenta", "Blue;Yellow", "Blue;White", "Green;Black", "Green;DarkBlue", "White;Black", "Green;Blue", "Green;DarkGray", "Yellow;DarkGray", "Yellow;Black", "Cyan;Black", "Yellow;Blue", "Cyan;Blue", "Cyan;Red", "Red;Black", "Red;DarkGreen", "Red;Blue", "Red;Yellow", "Red;White", "Magenta;Black", "Magenta;DarkGreen", "Magenta;Blue", "Magenta;DarkMagenta", "Magenta;Blue", "Magenta;Yellow", "Magenta;White" ;
-    $defaultPSCombo = @{BackgroundColor = 'DarkMagenta' ; ForegroundColor = 'DarkYellow'} ;
     $colorcombo = @{ } ;
     $i = 0 ;
-    # stock the colorschemes indexed-hashtable (supports fast lookups)
     foreach ($scheme in $schemes) {
-        $colorcombo[$i] = @{BackgroundColor = $scheme.split(";")[0] ; ForegroundColor = $scheme.split(";")[1] ; } ;
+        #$colorcombo["$($i)"] = @{BackgroundColor = $scheme.split(";")[0] ; foregroundcolor = $scheme.split(";")[1] ; } ;
+        $colorcombo[$i] = @{BackgroundColor = $scheme.split(";")[0] ; foregroundcolor = $scheme.split(";")[1] ; } ;
         $i++ ;
     } ;
-    $colorcombo[$i] = $defaultPSCombo ; 
-    write-verbose "(colorcombo[$($i)] reflects PSDefault scheme)" ; 
     if ($Demo) {
-        write-host "(-Demo specified: Dumping a table of range from Combo 0 to $($colorcombo.count-1))" ;
+        write-verbose -verbose:$true  "-Demo specified: Dumping a table of range from Combo 0 to $($colorcombo.count)" ;
         $a = 00 ;
         Do {
             $plt = $colorcombo[$a].clone() ;
@@ -2488,7 +2471,6 @@ function get-colorcombo {
         $colorcombo[(get-random -minimum 0 -maximum $colorcombo.count)] | write-output ;
     }
     else {
-        write-verbose "-Combo:$($combo) specified:`n$(($colorcombo[$Combo]|out-string).trim())" ; 
         $colorcombo[$Combo] | write-output ;
     } ;
 }
@@ -4405,74 +4387,6 @@ Function Remove-ScheduledTaskLegacy {
 
 #*------^ Remove-ScheduledTaskLegacy.ps1 ^------
 
-#*------v reset-ConsoleColors.ps1 v------
-Function reset-ConsoleColors {
-    <#
-    .SYNOPSIS
-    reset-ConsoleColors - reset $Host.UI.RawUI.BackgroundColor & ForegroundColor to default values
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-03-03
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Copyright   : 
-    Github      : https://github.com/tostka
-    Tags        : Powershell,ExchangeOnline,Exchange,RemotePowershell,Connection,MFA
-    REVISIONS   :
-    * 1:25 PM 3/5/2021 init ; added support for both ISE & powershell console
-    .DESCRIPTION
-    reset-ConsoleColors - reset $Host.UI.RawUI.BackgroundColor & ForegroundColor to default values
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    None. Returns no objects or output.
-    .EXAMPLE
-    reset-ConsoleColors;
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    #[Alias('dxo')]
-    Param() 
-    $verbose = ($VerbosePreference -eq "Continue") ; 
-    write-verbose "(Issuing `$Host color reset...)" ; 
-    # add detection for psReadLine - and version differences (v1 & v2 have fundemental param support syntax - breaaking change)
-    if ($psrMod = Get-Module -name PSReadline) {
-            switch -regex ($psrMod.version.major){
-                "[1]" {
-                    Set-PSReadlineOption -ResetTokenColors ; 
-                }
-                "[2-9]" {
-                    # two *lost* the above ResetTokenColors param! doesn't seem to have *any* reset now
-                    # you'd literally have to cache & re-assign *every*value!
-                    # braindead!
-                    write-host "PsReadline v2 *LOST* THE ResetTokenColors cmd. Doesn't seem to have *any* reset to default support anymore!" ; 
-                }
-               default {
-                    throw "Unrecognized PSReadline revision:$($psrMod.version.major)" ; 
-               } 
-            } ;  # switch-E 
-
-    } else { 
-        switch($host.name){
-            "Windows PowerShell ISE Host" {
-                $psISE.Options.RestoreDefaultTokenColors()
-            } 
-            "ConsoleHost" {
-                [console]::ResetColor()  # reset console colorscheme to default
-            }
-            default {
-                write-warning "Unrecognized `$Host.name:$($Host.name), skipping set-ConsoleColor" ; 
-            } ; 
-        } ; 
-    } ; 
-}
-
-#*------^ reset-ConsoleColors.ps1 ^------
-
 #*------v revert-File.ps1 v------
 function revert-File {
     <#
@@ -4683,288 +4597,6 @@ function Save-ConsoleOutputToClipBoard {
 }
 
 #*------^ Save-ConsoleOutputToClipBoard.ps1 ^------
-
-#*------v set-ConsoleColors.ps1 v------
-Function set-ConsoleColors {
-    <#
-    .SYNOPSIS
-    set-ConsoleColors.ps1 - Converts a PowerShell object to a Markdown table.
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     : http://www.toddomation.com
-    Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2021-01-20
-    FileName    : set-ConsoleColors.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-io
-    Tags        : Powershell,Markdown,Output
-    REVISION
-    * 1:25 PM 3/5/2021 init ; added support for both ISE & powershell console
-    .DESCRIPTION
-    set-ConsoleColors.ps1 - Converts a PowerShell object to a Markdown table.
-    Use reset-ConsoleColors to reset colors to the configured $host/Console defaults
-    Use 
-    .PARAMETER BackgroundColor
-    Powershell Host colorname to be set as BackgroundColor
-    .PARAMETER ForegroundColor
-    Powershell Host colorname to be set as ForegroundColor
-    .INPUTS
-    Accepts piped input.
-    .OUTPUTS
-    String
-    .EXAMPLE
-    set-ConsoleColors -BackgroundColor DarkMagenta -ForegroundColor DarkYellow
-    Set console/host color scheme to match the default Powershell colors
-    .EXAMPLE
-    $colors = get-colorcombo -Combo 69 ; 
-    set-ConsoleColors @colors -verbose ; 
-    Leverage the verb-IO:get-colorcombo() to pull & set the default scheme
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    [Alias('set-ConsColor')]
-    Param (
-        [Parameter(Mandatory = $true, Position = 0, HelpMessage="Powershell Host colorname to be set as BackgroundColor[-BackgroundColor darkgray]")]
-        [ValidateSet('Black','DarkBlue','DarkGreen','DarkCyan','DarkRed','DarkMagenta','DarkYellow','Gray','DarkGray','Blue','Green','Cyan','Red','Magenta','Yellow','White')]
-        [string]$BackgroundColor,
-        [Parameter(Mandatory = $true, Position = 1, HelpMessage="Powershell Host colorname to be set as ForegroundColor[-ForegroundColor darkgray]")]
-        [ValidateSet('Black','DarkBlue','DarkGreen','DarkCyan','DarkRed','DarkMagenta','DarkYellow','Gray','DarkGray','Blue','Green','Cyan','Red','Magenta','Yellow','White')]
-        [string] $ForegroundColor
-    ) ;
-    BEGIN {
-        $verbose = ($VerbosePreference -eq "Continue") ; 
-    } ;
-    PROCESS {
-        write-verbose "(setting console colors:BackgroundColor:$($BackgroundColor),ForegroundColor:$($ForegroundColor))" ; 
-        if ($psrMod = Get-Module -name PSReadline) {
-            switch -regex ($psrMod.version.major){
-                "[1]" {
-                    <# 
-                        -BackgroundColor <ConsoleColor>     Specifies the background color for the token kind that is specified by the TokenKind parameter.
-                        -ForegroundColor <ConsoleColor>     Specifies the foreground color for the token kind that is specified by the TokenKind parameter.
-                        -ResetTokenColors [<SwitchParameter>] Indicates that this cmdlet restores token colors to default settings.
-                        -ContinuationPrompt <String>     Specifies the string displayed at the start of the second and subsequent lines when multi-line input is being entered. The default value is '>>>'. The empty string is valid.
-                        -ContinuationPromptBackgroundColor <ConsoleColor>     Specifies the background color of the continuation prompt.
-                        -ContinuationPromptForegroundColor
-                        -EmphasisBackgroundColor <ConsoleColor>     Specifies the background color that is used for emphasis, such as to highlight search text.      The acceptable values for this parameter are: the same values as for BackgroundColor .         
-                        -EmphasisForegroundColor <ConsoleColor>
-                        -ErrorBackgroundColor
-                        -ResetTokenColors [<SwitchParameter>]     Indicates that this cmdlet restores token colors to default settings.
-                        -TokenKind Specifies the kind of token when you are setting token coloring options with the ForegroundColor and BackgroundColor parameters. The acceptable values for this parameter are: [None|Comment|Keyword|String|Operator|Variable|Command|Parameter|Type|Number|Member]
-                        # use of BackgroundColor,ForegroundColor w TokenKind
-                        Set-PSReadlineOption -TokenKind Comment -ForegroundColor Green -BackgroundColor Gray
-                        # gonna take a stack of repeated Set-PSReadlineOption, clearly can't hybrid everything in a single hash like v2
-                        get-PSReadLineOption | fl *
-                        EditMode                               : Windows
-                        ContinuationPrompt                     : >>
-                        ContinuationPromptForegroundColor      : DarkYellow
-                        ContinuationPromptBackgroundColor      : DarkMagenta
-                        ExtraPromptLineCount                   : 0
-                        AddToHistoryHandler                    :
-                        CommandValidationHandler               :
-                        CommandsToValidateScriptBlockArguments : {ForEach-Object, %, Invoke-Command, icm...}
-                        HistoryNoDuplicates                    : False
-                        MaximumHistoryCount                    : 4096
-                        MaximumKillRingCount                   : 10
-                        HistorySearchCursorMovesToEnd          : False
-                        ShowToolTips                           : False
-                        DingTone                               : 1221
-                        CompletionQueryItems                   : 100
-                        WordDelimiters                         : ;:,.[]{}()/\|^&*-=+'"–—―
-                        DingDuration                           : 50
-                        BellStyle                              : Audible
-                        HistorySearchCaseSensitive             : False
-                        ViModeIndicator                        : None
-                        HistorySavePath                        : C:\Users\kadriTSS\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
-                        HistorySaveStyle                       : SaveIncrementally
-                        DefaultTokenForegroundColor            : DarkYellow
-                        CommentForegroundColor                 : DarkGreen
-                        KeywordForegroundColor                 : Green
-                        StringForegroundColor                  : DarkCyan
-                        OperatorForegroundColor                : DarkGray
-                        VariableForegroundColor                : Green
-                        CommandForegroundColor                 : Yellow
-                        ParameterForegroundColor               : DarkGray
-                        TypeForegroundColor                    : Gray
-                        NumberForegroundColor                  : White
-                        MemberForegroundColor                  : White
-                        DefaultTokenBackgroundColor            : DarkMagenta
-                        CommentBackgroundColor                 : DarkMagenta
-                        KeywordBackgroundColor                 : DarkMagenta
-                        StringBackgroundColor                  : DarkMagenta
-                        OperatorBackgroundColor                : DarkMagenta
-                        VariableBackgroundColor                : DarkMagenta
-                        CommandBackgroundColor                 : DarkMagenta
-                        ParameterBackgroundColor               : DarkMagenta
-                        TypeBackgroundColor                    : DarkMagenta
-                        NumberBackgroundColor                  : DarkMagenta
-                        MemberBackgroundColor                  : DarkMagenta
-                        EmphasisForegroundColor                : Cyan
-                        EmphasisBackgroundColor                : DarkMagenta
-                        ErrorForegroundColor                   : Red
-                        ErrorBackgroundColor                   : DarkMagenta
-                    #>
-                    # bgs
-                    Set-PSReadlineOption -TokenKind ContinuationPromptBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind DefaultTokenBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind CommentBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind KeywordBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind StringBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind OperatorBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind VariableBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind CommandBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind ParameterBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind TypeBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind NumberBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind MemberBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind EmphasisBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    Set-PSReadlineOption -TokenKind ErrorBackgroundColor -BackgroundColor [ConsoleColor]::$($BackgroundColor)
-                    # fgs
-                    Set-PSReadlineOption -TokenKind ContinuationPromptForegroundColor -ForegroundColor [ConsoleColor]::$($ForegroundColor)
-                    Set-PSReadlineOption -TokenKind DefaultTokenForegroundColor -ForegroundColor [ConsoleColor]::$($ForegroundColor)
-                }
-                "[2-9]" {
-                    # vers2 refactored, got rid of tokenKind and added explicit bgcolor/bgcolor params for every component
-                    <# V2 supports 24bit colors, over orig 16 colors:
-                    Set-PSReadLineOption -Colors @{ "Comment"="$([char]0x1b)[32;47m" } 
-                    https://docs.microsoft.com/en-us/powershell/module/psreadline/set-psreadlineoption?view=powershell-5.1
-                    Colors can be either a value from ConsoleColor, for example [ConsoleColor]::Red, or a valid ANSI escape sequence. Valid escape sequences depend on your terminal. In PowerShell 5.0, an example escape sequence for red text is $([char]0x1b)[91m. In PowerShell 6 and above, the same escape sequence is `e[91m. You can specify other escape sequences including the following types:
-                    256 color
-                    24-bit color
-                    Foreground, background, or both
-                    Inverse, bold
-
-                    #>
-                    $colors = @{
-                      # bgs
-                      "ContinuationPromptBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "DefaultTokenBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "CommentBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "KeywordBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "StringBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "OperatorBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "VariableBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "CommandBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "ParameterBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "TypeBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "NumberBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "MemberBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "EmphasisBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      "ErrorBackgroundColor" = [ConsoleColor]::$($BackgroundColor)
-                      # fgs
-                      "ContinuationPromptForegroundColor" = [ConsoleColor]::$($ForegroundColor)
-                      "DefaultTokenForegroundColor" = [ConsoleColor]::$($ForegroundColor)
-
-                      # ConsoleColor enum has all the old colors
-                      #"Error" = [ConsoleColor]::DarkRed
-
-                      # A mustardy 24 bit color escape sequence
-                      #"String" = "$([char]0x1b)[38;5;100m"
-
-                      # A light slate blue RGB value
-                      #"Command" = "#8470FF"
-                    } ; 
-                    write-verbose "PSReadLineOption detected:Set-PSReadLineOption -Colors`n$(($colors|out-string).trim())" ; 
-                    Set-PSReadLineOption -Colors @colors ; 
-                }
-               default {
-               
-               } 
-           } ;  # switch-E 
-            
-        } else { 
-            switch($host.name){
-                "Windows PowerShell ISE Host" {
-                    #write-verbose "ISE detected:`$psise.Options.ConsolePaneBackgroundColor`n`$psISE.Options.ConsolePaneTextBackgroundColor`n`$psISE.Options.ConsolePaneForegroundColor"
-                    # ise includes an extra TextBackgroundColor variant
-                    <# the colors are abberant, don't match the real console colors
-                    # and now, doesn't like either raw colornames or [consolecolor] converted codes
-                    $psise.Options.ConsolePaneBackgroundColor = [ConsoleColor]::$($BackgroundColor) ;
-                    $psISE.Options.ConsolePaneTextBackgroundColor = [ConsoleColor]::$($BackgroundColor) ;
-                    $psISE.Options.ConsolePaneForegroundColor =  [ConsoleColor]::$($ForegroundColor) ; 
-                    #>
-                } 
-                "ConsoleHost" {
-                    write-verbose "ConsoleHost detected:`$Host.UI.RawUI.BackgroundColor`n`$Host.UI.RawUI.ForegroundColor"
-                    $Host.UI.RawUI.BackgroundColor = [ConsoleColor]::$($BackgroundColor) ;
-                    $Host.UI.RawUI.ForegroundColor =  [ConsoleColor]::$($ForegroundColor) ; 
-                    # legacy admin-color tagging script
-                    $id = [System.Security.Principal.WindowsIdentity]::GetCurrent() ;
-                    $p = New-Object system.security.principal.windowsprincipal($id) ;
-                    # Find out if we're running as admin (IsInRole), If we are, set $Admin = $True. 
-                    if ($p.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)){$Admin = $True } else {    $Admin = $False } ;
-                    if ($Admin) {
-                        $effectivename = "Administrator";
-                        $host.UI.RawUI.Backgroundcolor="DarkRed";
-                        $host.UI.RawUI.Foregroundcolor="White" ;
-                        clear-host ; 
-                    } else {
-                        $effectivename = $id.name ;
-                        $host.UI.RawUI.Backgroundcolor="White" ;
-                        $host.UI.RawUI.Foregroundcolor="DarkBlue" ;
-                        clear-host ;
-                    } ; 
-                }
-                
-                <# early win10: variant
-                $pData = (Get-Host).PrivateData ;
-                $curForeground = [console]::ForegroundColor ;
-                $curBackground = [console]::BackgroundColor ;
-                # PowerShell v5 uses PSReadLineOptions to do syntax highlighting. 
-                # Base the color scheme on the background color 
-                If ( $curBackground -eq "White" ) {
-                    Set-PSReadLineOption -TokenKind None      -ForegroundColor DarkBlue  -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind Comment   -ForegroundColor DarkGray  -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind Keyword   -ForegroundColor DarkGreen -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind String    -ForegroundColor Blue      -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind Operator  -ForegroundColor Black ;
-                    -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind Variable  -ForegroundColor DarkCyan  -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind Command   -ForegroundColor DarkRed   -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind Parameter -ForegroundColor DarkGray  -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind Type      -ForegroundColor DarkGray  -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind Number    -ForegroundColor Red       -BackgroundColor White ;
-                    Set-PSReadLineOption -TokenKind Member    -ForegroundColor DarkBlue  -BackgroundColor White ;
-                    $pData.ErrorForegroundColor   = "Red" ;
-                    $pData.ErrorBackgroundColor   = "Gray" ;
-                    $pData.WarningForegroundColor = "DarkMagenta" ;
-                    $pData.WarningBackgroundColor = "White" ;
-                    $pData.VerboseForegroundColor = "DarkYellow" ;
-                    $pData.VerboseBackgroundColor = "DarkCyan"    
-                } elseif ($curBackground -eq "DarkRed") {
-                    Set-PSReadLineOption -TokenKind None      -ForegroundColor White    -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind Comment   -ForegroundColor Gray     -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind Keyword   -ForegroundColor Yellow   -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind String    -ForegroundColor Cyan     -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind Operator  -ForegroundColor White    -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind Variable  -ForegroundColor Green    -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind Command   -ForegroundColor White    -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind Parameter -ForegroundColor Gray     -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind Type      -ForegroundColor Magenta  -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind Number    -ForegroundColor Yellow   -BackgroundColor DarkRed ;
-                    Set-PSReadLineOption -TokenKind Member    -ForegroundColor White    -BackgroundColor DarkRed ;
-                    $pData.ErrorForegroundColor   = "Yellow" ;
-                    $pData.ErrorBackgroundColor   = "DarkRed" ;
-                    $pData.WarningForegroundColor = "Magenta" ;
-                    $pData.WarningBackgroundColor = "DarkRed" ;
-                    $pData.VerboseForegroundColor = "Cyan" ;
-                    $pData.VerboseBackgroundColor = "DarkRed" ;  
-                } ; 
-                #>
- 
-                default {
-                    write-warning "Unrecognized `$Host.name:$($Host.name), skipping set-ConsoleColor" ; 
-                } 
-            } ; 
-        } ; 
-    } ;  # PROC-E
-    END {} ;
-}
-
-#*------^ set-ConsoleColors.ps1 ^------
 
 #*------v Set-FileContent.ps1 v------
 function Set-FileContent {
@@ -6058,14 +5690,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,set-ConsoleColors,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUg6QiRQELPKapGKjHypZE2Usd
-# GJ2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUqj7lR03fhht0Kz+xYV9wfO1U
+# s6ygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -6080,9 +5712,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSjRrL4
-# bP8gMl/95/E9UkQVliVfUzANBgkqhkiG9w0BAQEFAASBgIqwVbZ8lHhBEtxCfdpm
-# 8r/hn+ZAhA3DiSCMY8SKoF4PNzvHwstbRERzLGvjHz8mznNNM2mWlGz1fNgONsgG
-# rrYtAYZrt2n2VUAIiYKcvwzwhjuLYf83/kdp8RBi8TkISeunGAxvB06WDESB8Cic
-# l6x991zU/FaknFnb8gHw/WUz
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRvuDvE
+# kczIa8YHZ/tLGohSrOYwFTANBgkqhkiG9w0BAQEFAASBgILFtAUnBftX4sFpZv+b
+# Tyr4fK1M1ZK6SmZAVNQ5fIDnX9n9OeukoWLbwO73F/atmY05v+y3gXJzOegv0csr
+# UYVG9awlglQ8D1aoGVbUfqApYZtho662HVzTtBs0QE+bJgok8H0aYnJvGu29USNI
+# //V8TCV4Gu1IEg/9EZP6dtT8
 # SIG # End signature block
