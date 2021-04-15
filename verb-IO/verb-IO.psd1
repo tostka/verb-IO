@@ -12,7 +12,7 @@
 RootModule = 'verb-IO.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.59'
+ModuleVersion = '1.0.60'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Powershell Input/Output generic functions module'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Add-PSTitleBar','Authenticate-File','backup-File','check-FileLock','Close-IfAlreadyRunning','ColorMatch','Convert-FileEncoding','ConvertFrom-CanonicalOU','ConvertFrom-CanonicalUser','ConvertFrom-CmdList','ConvertFrom-DN','ConvertFrom-SourceTable','Null','True','False','Debug-Column','Mask','Slice','TypeName','ErrorRecord','convertTo-Base64String','ConvertTo-HashIndexed','convertTo-MarkdownTable','ConvertTo-SRT','copy-Profile','Create-ScheduledTaskLegacy','dump-Shortcuts','Echo-Finish','Echo-ScriptEnd','Echo-Start','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','Get-AverageItems','get-colorcombo','Get-CountItems','Get-FileEncoding','Get-FileEncodingExtended','Get-FolderSize','Convert-FileSize','Get-FolderSize2','Get-FsoShortName','Get-FsoShortPath','Get-FsoTypeObj','get-LoremName','Get-ProductItems','get-RegistryProperty','Get-ScheduledTaskLegacy','Get-Shortcut','Get-SumItems','get-TaskReport','Get-Time','Get-TimeStamp','get-TimeStampNow','get-Uptime','Invoke-Flasher','Invoke-Pause','Invoke-Pause2','move-FileOnReboot','play-beep','prompt-Continue','Read-Host2','Remove-InvalidFileNameChars','remove-ItemRetry','Remove-PSTitleBar','Remove-ScheduledTaskLegacy','reset-ConsoleColors','revert-File','Run-ScheduledTaskLegacy','Save-ConsoleOutputToClipBoard','set-ConsoleColors','Set-FileContent','Set-Shortcut','Shorten-Path','Show-MsgBox','Sign-File','stop-driveburn','Test-PendingReboot','Test-RegistryKey','Test-RegistryValue','Test-RegistryValueNotNull','Test-RegistryKey','Test-RegistryValue','Test-RegistryValueNotNull','Touch-File','trim-FileList','unless','update-RegistryProperty','Write-ProgressHelper')
+FunctionsToExport = @('Add-PSTitleBar','Authenticate-File','backup-File','check-FileLock','Close-IfAlreadyRunning','ColorMatch','Convert-FileEncoding','ConvertFrom-CanonicalOU','ConvertFrom-CanonicalUser','ConvertFrom-CmdList','ConvertFrom-DN','ConvertFrom-SourceTable','Null','True','False','Debug-Column','Mask','Slice','TypeName','ErrorRecord','convertTo-Base64String','ConvertTo-HashIndexed','convertTo-MarkdownTable','ConvertTo-SRT','copy-Profile','Create-ScheduledTaskLegacy','dump-Shortcuts','Echo-Finish','Echo-ScriptEnd','Echo-Start','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','Get-AverageItems','get-colorcombo','Get-CountItems','Get-FileEncoding','Get-FileEncodingExtended','Get-FolderSize','Convert-FileSize','Get-FolderSize2','Get-FsoShortName','Get-FsoShortPath','Get-FsoTypeObj','get-InstalledApplication','get-LoremName','Get-ProductItems','get-RegistryProperty','Get-ScheduledTaskLegacy','Get-Shortcut','Get-SumItems','get-TaskReport','Get-Time','Get-TimeStamp','get-TimeStampNow','get-Uptime','Invoke-Flasher','Invoke-Pause','Invoke-Pause2','move-FileOnReboot','new-Shortcut','play-beep','prompt-Continue','Read-Host2','Remove-InvalidFileNameChars','remove-ItemRetry','Remove-PSTitleBar','Remove-ScheduledTaskLegacy','reset-ConsoleColors','revert-File','Run-ScheduledTaskLegacy','Save-ConsoleOutputToClipBoard','set-ConsoleColors','Set-FileContent','Set-Shortcut','Shorten-Path','Show-MsgBox','Sign-File','stop-driveburn','Test-PendingReboot','Test-RegistryKey','Test-RegistryValue','Test-RegistryValueNotNull','Test-RegistryKey','Test-RegistryValue','Test-RegistryValueNotNull','Touch-File','trim-FileList','unless','update-RegistryProperty','Write-ProgressHelper')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5aqaG5jRGufFja45K83XcwOa
-# XWWgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU3sTGL3EUWWZEhiK5aBJp+1JY
+# yh2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRNmtxg
-# HZrITWgkaOAOirmFEKvG2TANBgkqhkiG9w0BAQEFAASBgGJdQ3ttHGSEYzRRDi2k
-# wpBYxssOlePdNue/oElD7Eb9Dt13BuSblAjQCTyqTuAAQqQPD5Qy/SkmcgJaQPRI
-# tE1HacfoiA0CLhASDeqFR3ur/nvSbH5smZgNyLKa9PtxtINBzIgH07qaJB0uWAjh
-# 4pE+Snzbvjkin0BcxDEohvHu
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQoMhsl
+# NYGfXkJPpAtwARPKMis06DANBgkqhkiG9w0BAQEFAASBgKKOFZr6lScQCmOTFwLJ
+# hn56LQlFN5+Yw66jtnEq5LwsqEyAYfl5cpYsA3FwIZRGq3UY2lugRzogQ8oir5Es
+# LnIFlpBP0hgJd95zIFbhl79J9XLFRDsPapJ/woYGaEhQPOQ36rfMsfURZB52HBsn
+# sVpyHYCZDkdbkQn1ohq8uSiJ
 # SIG # End signature block
