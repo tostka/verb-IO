@@ -1,11 +1,11 @@
-# verb-io.psm1
+# VERB-io.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.59.0.0
+Version     : 1.0.60.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -59,6 +59,7 @@ Function Add-PSTitleBar {
     Github      : 
     Tags        : Powershell,Console
     REVISIONS
+    * 3:11 PM 4/19/2021 added cmdletbinding/verbose supp & alias add-PSTitle
     * 4:37 PM 2/27/2020 updated CBH
     # 8:44 AM 3/15/2017 ren Update-PSTitleBar => Add-PSTitleBar, so that we can have a Remove-PSTitleBar, to subtract
     # 8:42 AM 3/15/2017 Add-PSTitleBar for addition, before adding
@@ -74,6 +75,8 @@ Function Add-PSTitleBar {
     .LINK
     https://github.com/dsolodow/IndyPoSH/blob/master/Profile.ps1
     #>
+    [CmdletBinding()]
+    [Alias('add-PSTitle')]
     Param ([parameter(Mandatory = $true,Position=0)][String]$Tag)
     #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
     If ($host.name -eq 'ConsoleHost') {
@@ -5304,6 +5307,64 @@ function Set-FileContent {
 
 #*------^ Set-FileContent.ps1 ^------
 
+#*------v set-PSTitleBar.ps1 v------
+Function set-PSTitleBar {
+    <#
+    .SYNOPSIS
+    set-PSTitleBar.ps1 - Set specified powershell console Titlebar
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-04-19
+    FileName    : set-PSTitleBar.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : PowershellConsole
+    AddedCredit : mdjxkln
+    AddedWebsite:	https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
+    REVISIONS
+       * 3:14 PM 4/19/2021 init vers
+    .DESCRIPTION
+    set-PSTitleBar.ps1 - Set specified powershell console Titlebar
+    Added some examples posted by mdjxkln
+    .PARAMETER Title
+    Title string to be set on current powershell console Titlebar
+    .EXAMPLE
+    set-PSTitleBar 'EMS'
+    Set the string 'EMS' as the powershell console Title Bar
+    .EXAMPLE
+    if ((Get-History).Count -gt 0) {
+        set-PsTitleBar ((Get-History)[-1].CommandLine[0..25] -join '')
+    }
+    mdjxkln's example to set the title to the last entered command
+    .EXAMPLE
+    $ExampleArray = @(1..200) ; 
+    $ExampleArray | % {
+        Write-Host "Processing $_" # Doing some stuff...
+        $PercentProcessed = [Math]::Round(($ExampleArray.indexOf($_) + 1) / $ExampleArray.Count * 100,0) ; 
+        $Host.UI.RawUI.WindowTitle = "$PercentProcessed% Completed" ; 
+        Start-Sleep -Milliseconds 50 ; 
+    } ; 
+    mdjxkln's example to display script progress
+    .LINK
+    https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    [Alias('set-PSTitle')]
+    Param ([parameter(Mandatory = $true,Position=0,HelpMessage="Title string to be set on current powershell console Titlebar[-title 'PS Window'")][String]$Title)
+    If ($host.name -eq 'ConsoleHost') {
+        #only use on console host; since ISE shares the WindowTitle across multiple tabs
+        $host.ui.RawUI.WindowTitle = $Title ;
+    } ;
+}
+
+#*------^ set-PSTitleBar.ps1 ^------
+
 #*------v Set-Shortcut.ps1 v------
 function Set-Shortcut {
     <#
@@ -6318,5 +6379,5 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,set-ConsoleColors,Set-FileContent,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
