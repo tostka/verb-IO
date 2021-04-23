@@ -1,11 +1,11 @@
-﻿# VERB-io.psm1
+﻿# verb-io.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.61.0.0
+Version     : 1.0.71.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -4492,6 +4492,7 @@ function remove-ItemRetry {
     AddedWebsite:
     AddedTwitter:
     REVISIONS
+    * 2:23 PM 4/21/2021 added -GracefulFail, to permit process-newmodule to process past failed existing content removals, to get the mod built (better than hard fails)
     * 1:37 PM 12/28/2019 removed spurious mand $Text param
     * 10:59 AM 12/28/2019 INIT
     .DESCRIPTION
@@ -4516,6 +4517,8 @@ function remove-ItemRetry {
         [ValidateNotNullOrEmpty()]$Path,
         [Parameter(HelpMessage = "Recursive removal [-Recurse]")]
         [switch] $Recurse,
+        [Parameter(HelpMessage = "Graceful fail recovery Flag (-ea:'continue', rather than 'Stop' on inability to remove)[-GracefulFail]")]
+        [switch] $GracefulFail,
         [Parameter(HelpMessage = "Debugging Flag [-showDebug]")]
         [switch] $showDebug,
         [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
@@ -4528,6 +4531,12 @@ function remove-ItemRetry {
         ErrorAction="Stop" ;
         whatif=$($whatif);
     } ;
+    if($GracefulFail){
+        $pltRemoveItem.ErrorAction = 'Continue' ; 
+        $smsg= "-GracefulFail specified, using EA:'Continue'" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
+        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    } ; 
     if(test-path -path $pltRemoveItem.Path){
         $smsg= "remove-item w`n$(($pltRemoveItem|out-string).trim())" ;
         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
@@ -6385,8 +6394,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUD7OLMgUy9X3nUHKvHmL4C+Dj
-# 69mgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUZz/A+Nw5dmTxD/uvJlVgbkEN
+# 1aagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -6401,9 +6410,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSde2rP
-# C051+KnGg6lUrihKsRcylTANBgkqhkiG9w0BAQEFAASBgFLUQT6RqRCcP422+MRy
-# BMj9otCbYDSNXfhCP4NlpTaYxQJlzFVjC3+ti6sO92v+5zLm7l06WoqDML5uDi/F
-# vrVnPeqM4cZLvbbotV0hL7+7m5Wm7CoGmGBPwh8FAOsYYVmQceKt8Ea4+fkEfgtr
-# Ev8gxmyNwH7htUgytLwU7FNq
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTXxBu4
+# yR6cBWLGLhYiVfBXrPChXjANBgkqhkiG9w0BAQEFAASBgHPbT9k5Vl8UghCpAMnM
+# dGn2LtqDPfFneDa4i16eYB6W3lQZjSOGD0wzCinFD1dxo/CNtvyzXjfwqEiW40Ic
+# rC551cluBHxhu0brpqqq1r5ocpmsJ+S/tOGm1+XVAQKoAZR2K3A4kVKPd7k+KP9Z
+# 0lvcYZwaQYoj/Zu/tDPKQO+C
 # SIG # End signature block

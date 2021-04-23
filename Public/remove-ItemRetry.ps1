@@ -16,6 +16,7 @@
     AddedWebsite:
     AddedTwitter:
     REVISIONS
+    * 2:23 PM 4/21/2021 added -GracefulFail, to permit process-newmodule to process past failed existing content removals, to get the mod built (better than hard fails)
     * 1:37 PM 12/28/2019 removed spurious mand $Text param
     * 10:59 AM 12/28/2019 INIT
     .DESCRIPTION
@@ -40,6 +41,8 @@
         [ValidateNotNullOrEmpty()]$Path,
         [Parameter(HelpMessage = "Recursive removal [-Recurse]")]
         [switch] $Recurse,
+        [Parameter(HelpMessage = "Graceful fail recovery Flag (-ea:'continue', rather than 'Stop' on inability to remove)[-GracefulFail]")]
+        [switch] $GracefulFail,
         [Parameter(HelpMessage = "Debugging Flag [-showDebug]")]
         [switch] $showDebug,
         [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
@@ -52,6 +55,12 @@
         ErrorAction="Stop" ;
         whatif=$($whatif);
     } ;
+    if($GracefulFail){
+        $pltRemoveItem.ErrorAction = 'Continue' ; 
+        $smsg= "-GracefulFail specified, using EA:'Continue'" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
+        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    } ; 
     if(test-path -path $pltRemoveItem.Path){
         $smsg= "remove-item w`n$(($pltRemoveItem|out-string).trim())" ;
         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
