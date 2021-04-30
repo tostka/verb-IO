@@ -1,4 +1,4 @@
-# verb-io.psm1
+﻿# verb-io.psm1
 
 
 <#
@@ -1217,6 +1217,45 @@ $Message
 }
 
 #*------^ ConvertFrom-SourceTable.ps1 ^------
+
+#*------v convertTo-Base64String.ps1 v------
+function convertTo-Base64String {
+    <#
+    .SYNOPSIS
+    convertTo-Base64String - Convert specified file to Base64 encoded string and return to pipeline
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2019-12-13
+    FileName    : convertTo-Base64String.ps1
+    License     : MIT License
+    Copyright   : (c) 2019 Todd Kadrie
+    Github      : https://github.com/tostka
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 8:26 AM 12/13/2019 convertTo-Base64String:init
+    .DESCRIPTION
+    convertTo-Base64String - Convert specified file to Base64 encoded string and return to pipeline
+    .PARAMETER  path
+    File to be Base64 encoded (image, text, whatever)[-path path-to-file]
+    .EXAMPLE
+    .\convertTo-Base64String.ps1 C:\Path\To\Image.png >> base64.txt ; 
+    .EXAMPLE
+    .\convertTo-Base64String.ps1
+    .LINK
+    #>
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="File to be Base64 encoded (image, text, whatever)[-path path-to-file]")]
+        [ValidateScript({Test-Path $_})][String]$path
+    ) ;
+    [convert]::ToBase64String((get-content $path -encoding byte)) | write-output ; 
+}
+
+#*------^ convertTo-Base64String.ps1 ^------
 
 #*------v ConvertTo-HashIndexed.ps1 v------
 Function ConvertTo-HashIndexed {
@@ -6349,5 +6388,31 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convertTo-Base64String,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUZz/A+Nw5dmTxD/uvJlVgbkEN
+# 1aagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTXxBu4
+# yR6cBWLGLhYiVfBXrPChXjANBgkqhkiG9w0BAQEFAASBgHPbT9k5Vl8UghCpAMnM
+# dGn2LtqDPfFneDa4i16eYB6W3lQZjSOGD0wzCinFD1dxo/CNtvyzXjfwqEiW40Ic
+# rC551cluBHxhu0brpqqq1r5ocpmsJ+S/tOGm1+XVAQKoAZR2K3A4kVKPd7k+KP9Z
+# 0lvcYZwaQYoj/Zu/tDPKQO+C
+# SIG # End signature block
