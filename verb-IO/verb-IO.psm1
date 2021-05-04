@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.72.0.0
+Version     : 1.0.74.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -1749,6 +1749,54 @@ function copy-Profile {
 }
 
 #*------^ copy-Profile.ps1 ^------
+
+#*------v count-object.ps1 v------
+function Count-Object {
+    <#
+    .SYNOPSIS
+    Count-Object.ps1 - functionalized '($Input | Measure-Object).Count' 
+    .NOTES
+    Version     : 1.0.1
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2021-04-13
+    FileName    : Count-Object.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell,FileSystem,Pipeline
+    AddedCredit : tonymcgee
+    AddedWebsite: https://www.tonymcgee.net/2013/11/powershell-profile-snippets/
+    REVISIONS
+    * 8:20 AM 5/4/2021 had in xxx-prof.ps1, wasn't replicated out to other admin profiles, so stick it in verb-io    
+    * 11/2013 tonymcgee's posted vers
+    .DESCRIPTION
+    Count-Object.ps1 - functionalized 'Select-Object -last $n' 
+    .PARAMETER  n
+    count of pipline items to be returned
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    PSCustomObject
+    .EXAMPLE
+    PS > $object | Count-Object ; 
+    Example using default settings (returns last object from pipeline)
+    .EXAMPLE
+    PS > $object | Count-Object -n 5; 
+    Example returning last 5 objects from pipeline
+    .LINK
+    https://github.com/tostka/verb-IO
+    .LINK
+    https://www.tonymcgee.net/2013/11/powershell-profile-snippets/
+    #>
+    # cmdletbinding breaks default pipeline, and causes err:' The input object cannot be bound to any parameters for the command either because the command does not take pipeline input or the input and its properties do not match any of the parameters that take pipeline input'
+    #[CmdletBinding()]
+    PARAM($Input) ;
+    ($Input | Measure-Object).Count ;
+}
+
+#*------^ count-object.ps1 ^------
 
 #*------v Create-ScheduledTaskLegacy.ps1 v------
 Function Create-ScheduledTaskLegacy {
@@ -4917,6 +4965,105 @@ function Save-ConsoleOutputToClipBoard {
 
 #*------^ Save-ConsoleOutputToClipBoard.ps1 ^------
 
+#*------v select-first.ps1 v------
+function select-first {
+    <#
+    .SYNOPSIS
+    select-first.ps1 - functionalized 'Select-Object -first $n' 
+    .NOTES
+    Version     : 1.0.1
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2021-04-13
+    FileName    : select-first.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-XXX
+    Tags        : Powershell,FileSystem,Shortcut,Link
+    AddedCredit : tonymcgee
+    AddedWebsite: https://www.tonymcgee.net/2013/11/powershell-profile-snippets/
+    REVISIONS
+    * 8:20 AM 5/4/2021 had in xxx-prof.ps1, wasn't replicated out to other admin profiles, so stick it in verb-io    
+    * 11/2013 tonymcgee's posted vers
+    .DESCRIPTION
+    select-first.ps1 - functionalized 'Select-Object -first $n' 
+    .PARAMETER  n
+    count of pipline items to be returned
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    PSCustomObject
+    .EXAMPLE
+    PS > $object | select-first ; 
+    Example using default settings (returns first object from pipeline)
+    .EXAMPLE
+    PS > $object | select-first -n 5; 
+    Example returning first 5 objects from pipeline
+    .LINK
+    https://github.com/tostka/verb-IO
+    .LINK
+    https://www.tonymcgee.net/2013/11/powershell-profile-snippets/
+    #>
+    # cmdletbinding is breaking default pipeline, and causing err:' The input object cannot be bound to any parameters for the command either because the command does not take pipeline input or the input and its properties do not match any of the parameters that take pipeline input'
+    #[CmdletBinding()]
+    PARAM(
+        #[Parameter(Mandatory = $false,ValueFromPipeline = $true,ValueFromPipelineByPropertyName = $true,HelpMessage = 'count of pipline items to be returned')][int] $n=1
+        [int] $n=1
+    ) ;
+    $Input | Select-Object -first $n ; 
+}
+
+#*------^ select-first.ps1 ^------
+
+#*------v select-last.ps1 v------
+function Select-last {
+    <#
+    .SYNOPSIS
+    Select-last.ps1 - functionalized 'Select-Object -last $n' 
+    .NOTES
+    Version     : 1.0.1
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2021-04-13
+    FileName    : Select-last.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell,FileSystem,Pipeline
+    AddedCredit : tonymcgee
+    AddedWebsite: https://www.tonymcgee.net/2013/11/powershell-profile-snippets/
+    REVISIONS
+    * 8:20 AM 5/4/2021 had in xxx-prof.ps1, wasn't replicated out to other admin profiles, so stick it in verb-io    
+    * 11/2013 tonymcgee's posted vers
+    .DESCRIPTION
+    Select-last.ps1 - functionalized 'Select-Object -last $n' 
+    .PARAMETER  n
+    count of pipline items to be returned
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    PSCustomObject
+    .EXAMPLE
+    PS > $object | Select-last ; 
+    Example using default settings (returns last object from pipeline)
+    .EXAMPLE
+    PS > $object | Select-last -n 5; 
+    Example returning last 5 objects from pipeline
+    .LINK
+    https://github.com/tostka/verb-IO
+    .LINK
+    https://www.tonymcgee.net/2013/11/powershell-profile-snippets/
+    #>
+    # cmdletbinding breaks default pipeline, and causes err:' The input object cannot be bound to any parameters for the command either because the command does not take pipeline input or the input and its properties do not match any of the parameters that take pipeline input'
+    #[CmdletBinding()]
+    PARAM([int] $n=1) ;
+    $Input | Select-Object -last $n ;
+}
+
+#*------^ select-last.ps1 ^------
+
 #*------v set-ConsoleColors.ps1 v------
 Function set-ConsoleColors {
     <#
@@ -6349,14 +6496,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUuhZSE9Pms0gKVfwMuIhwTqdl
-# G2WgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUpkjWMFZEM3d3m85uGlX+cyry
+# fwKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -6371,9 +6518,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSEvYKe
-# QoRKtUWJ6Som6CIK/NQmDTANBgkqhkiG9w0BAQEFAASBgCSuOPH2k6OpplUDRB0n
-# rPgk+Sp1ztoCSIJf8MoO1mxaFigISLsQ0sxKrnZLg+dxAijtLsOZU04sXGKwi+BW
-# DBbIOfR6y2r/pl0i1z8YrNZ+h6H8jMhUI9DPCImMzvAztmmKRoUmKh4S1FFl10eS
-# YhkzPlUroYKumkLD8PgUENP7
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSDjxKR
+# yzy83iysS2GwoBpv3i3gPjANBgkqhkiG9w0BAQEFAASBgHVMB0BgqkOrU9z1b/n1
+# tV0WIiHVPBbaI9MDPnLu7y0p9/3IIVobikDHS3ioIQnDRn0hCRDwUOdhkGz9po7C
+# hR3xICIUgWCmnITlZmhGXoN2kczOAI30berjSL98oQDVJRU8foD6dFlcW+vvcTRY
+# TCrvXVKMq0DXVyf53/Sopwbq
 # SIG # End signature block
