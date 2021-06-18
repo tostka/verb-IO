@@ -20,6 +20,7 @@ function ConvertFrom-DN {
     AddedCredit : McMichael
     AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
     REVISIONS
+    * 12:26 PM 6/18/2021 added alias:ConvertTo-CanonicalName
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     .DESCRIPTION
     .PARAMETER  DistinguishedName
@@ -32,6 +33,7 @@ function ConvertFrom-DN {
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [Alias('ConvertTo-CanonicalName')]
     [cmdletbinding()]
     param(
       [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]

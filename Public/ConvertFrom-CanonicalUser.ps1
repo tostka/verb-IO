@@ -20,6 +20,7 @@ function ConvertFrom-CanonicalUser {
     AddedCredit : McMichael
     AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
     REVISIONS
+    * 12:26 PM 6/18/2021 added alias:ConvertTo-DNUser
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     .DESCRIPTION
     ConvertFrom-CanonicalUser.ps1 - This function takes a canonical name and converts it to a distinguished name.
@@ -33,11 +34,12 @@ function ConvertFrom-CanonicalUser {
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [Alias('ConvertTo-DNUser')]
     [cmdletbinding()]
     param(
-    [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)] 
-    [ValidateNotNullOrEmpty()] 
-    [string]$CanonicalName
+        [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)] 
+        [ValidateNotNullOrEmpty()] 
+        [string]$CanonicalName
     )
     process {
         $obj = $CanonicalName.Replace(',','\,').Split('/')

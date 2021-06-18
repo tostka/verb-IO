@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.73.0.0
+Version     : 1.0.74.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -422,6 +422,77 @@ function ColorMatch {
 
 #*------^ ColorMatch.ps1 ^------
 
+#*------v convert-ColorHexCodeToWindowsMediaColorsName.ps1 v------
+Function convert-ColorHexCodeToWindowsMediaColorsName {
+    <#
+    .SYNOPSIS
+    convert-ColorHexCodeToWindowsMediaColorsName.ps1 - Convert color hexcodes into equiv [windows.media.colors] name value (if exists)
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-04-19
+    FileName    : convert-ColorHexCodeToWindowsMediaColorsName.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : PowershellConsole
+    AddedCredit : mdjxkln
+    AddedWebsite:	https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
+    REVISIONS
+       * 3:14 PM 4/19/2021 init vers
+    .DESCRIPTION
+    convert-ColorHexCodeToWindowsMediaColorsName.ps1 - Convert color hexcodes into equiv [windows.media.colors] name value (if exists)
+    Issues: 1)Powershell ISE $psise supports a much wider range of colors than the native windows Console
+    2) The ISE colors are accessible as: 
+    $psise.Options.ConsolePaneBackgroundColor 
+    $psISE.Options.ConsolePaneTextBackgroundColor
+    $psISE.Options.ConsolePaneForegroundColor 
+    ... but the values are RGB, or if .tostring() output as hex codes #FF9ACD32
+    Neither of which are compatible with the windows console's color 'names'. 
+    So I want a simple function to build an indexed hash of the [windows.media.colors] colors, and permit quick lookups of the hex value to return the matching [windows.media.colors] name value
+    .PARAMETER ColorCode
+    Colorhex code to be converted to [windows.media.colors] name value [-colorcode '#FF9ACD32'
+    .OUTPUT
+    Returns either a system.string containing the resolved WMC Color, or `$false, where no match was found for the specified ColorCode
+    .EXAMPLE
+    convert-ColorHexCodeToWindowsMediaColorsName 'EMS'
+    Set the string 'EMS' as the powershell console Title Bar
+    .EXAMPLE
+    if ((Get-History).Count -gt 0) {
+        convert-ColorHexCodeToWindowsMediaColorsName ((Get-History)[-1].CommandLine[0..25] -join '')
+    }
+    mdjxkln's example to set the title to the last entered command
+    .EXAMPLE
+    $ColorName = convert-ColorHexCodeToWindowsMediaColorsName -colorcode $psISE.Options.ConsolePaneTextBackgroundColor.tostring() 
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    Param ([parameter(Mandatory = $true,Position=0,HelpMessage="Colorhex code to be converted to [windows.media.colors] name value [-colorcode '#FF9ACD32'")][String]$ColorCode)
+    BEGIN{
+        # build indexed hash of media colors keyed on hexcodes
+        $ISEColors = @{} ;
+        $colors| foreach {
+            $hexcolor = ([windows.media.colors]::$($_.name)).tostring() ; 
+            $ISEColors[$hexcolor] = $_.name  ; 
+        } ;
+    } 
+    PROCESS{
+        # try for a lookup of specified $colorcode against the hash
+        if($Colorname = $isecolors[$colorcode]){
+            $Colorname | write-output ; 
+        } else { 
+            write-verbose "Unable to convert specified -ColorCode ($($ColorCode)) to a matching [windows.media.colors] color." ; 
+            $false | write-output ; 
+        } 
+    } ; 
+    END {} ;
+}
+
+#*------^ convert-ColorHexCodeToWindowsMediaColorsName.ps1 ^------
+
 #*------v Convert-FileEncoding.ps1 v------
 function Convert-FileEncoding {
     <#
@@ -507,6 +578,7 @@ function ConvertFrom-CanonicalOU {
     AddedCredit : McMichael
     AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
     REVISIONS
+    * 12:26 PM 6/18/2021 added alias:ConvertTo-DNOU
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     .DESCRIPTION
     ConvertFrom-CanonicalOU.ps1 - This function takes a canonical OU path and converts it to a distinguished name.
@@ -520,11 +592,12 @@ function ConvertFrom-CanonicalOU {
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [Alias('ConvertTo-DNOU')]
     [cmdletbinding()]
     param(
-    [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)] 
-    [ValidateNotNullOrEmpty()] 
-    [string]$CanonicalName
+        [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)] 
+        [ValidateNotNullOrEmpty()] 
+        [string]$CanonicalName
     )
     process {
         $obj = $CanonicalName.Replace(',','\,').Split('/')
@@ -559,6 +632,7 @@ function ConvertFrom-CanonicalUser {
     AddedCredit : McMichael
     AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
     REVISIONS
+    * 12:26 PM 6/18/2021 added alias:ConvertTo-DNUser
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     .DESCRIPTION
     ConvertFrom-CanonicalUser.ps1 - This function takes a canonical name and converts it to a distinguished name.
@@ -572,11 +646,12 @@ function ConvertFrom-CanonicalUser {
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [Alias('ConvertTo-DNUser')]
     [cmdletbinding()]
     param(
-    [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)] 
-    [ValidateNotNullOrEmpty()] 
-    [string]$CanonicalName
+        [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)] 
+        [ValidateNotNullOrEmpty()] 
+        [string]$CanonicalName
     )
     process {
         $obj = $CanonicalName.Replace(',','\,').Split('/')
@@ -658,6 +733,7 @@ function ConvertFrom-DN {
     AddedCredit : McMichael
     AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
     REVISIONS
+    * 12:26 PM 6/18/2021 added alias:ConvertTo-CanonicalName
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     .DESCRIPTION
     .PARAMETER  DistinguishedName
@@ -670,6 +746,7 @@ function ConvertFrom-DN {
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [Alias('ConvertTo-CanonicalName')]
     [cmdletbinding()]
     param(
       [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
@@ -5005,12 +5082,9 @@ function select-first {
     .LINK
     https://www.tonymcgee.net/2013/11/powershell-profile-snippets/
     #>
-    # cmdletbinding is breaking default pipeline, and causing err:' The input object cannot be bound to any parameters for the command either because the command does not take pipeline input or the input and its properties do not match any of the parameters that take pipeline input'
+    # cmdletbinding breaks default pipeline, and causes err:' The input object cannot be bound to any parameters for the command either because the command does not take pipeline input or the input and its properties do not match any of the parameters that take pipeline input'
     #[CmdletBinding()]
-    PARAM(
-        #[Parameter(Mandatory = $false,ValueFromPipeline = $true,ValueFromPipelineByPropertyName = $true,HelpMessage = 'count of pipline items to be returned')][int] $n=1
-        [int] $n=1
-    ) ;
+    PARAM([int] $n=1) ;
     $Input | Select-Object -first $n ; 
 }
 
@@ -6496,5 +6570,5 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
