@@ -24,6 +24,7 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 4:49 PM 6/21/2021 pretest $thing.value: suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
     * 10:49 AM 2/18/2021 added default alias: out-markdowntable & out-mdt
 8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
     unknown - alexandrm's revision (undated)
@@ -138,14 +139,19 @@ Function convertTo-MarkdownTable {
             $items += $item ;
             # simpler solution for $null values: (I also like explicit foreach over foreach-object)
             foreach($thing in $item.PSObject.Properties){
-                if(-not $columns.ContainsKey($thing.Name) -or $columns[$thing.Name] -lt $thing.Value.ToString().Length) {
+                #write-verbose "$($thing|out-string)" ; 
+                # suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
+                if($thing.Value){$valuLen =  $thing.Value.ToString().Length }
+                else {$valuLen = 0 } ;
+                if(-not $columns.ContainsKey($thing.Name) -or $columns[$thing.Name] -lt $valuLen) {
                     if ($null -ne $thing.Value) {
                         $columns[$thing.Name] = $thing.Value.ToString().Length
                     } else {
                         $columns[$thing.Name] = 0 ; # null's 0-length, so use it. 
                     } ; 
                 } ;
-            } ;  
+
+            } ;  # loop-E
 
         } ;
     } ;  # PROC-E
