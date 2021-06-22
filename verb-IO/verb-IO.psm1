@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.76.0.0
+Version     : 1.0.79.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -789,6 +789,85 @@ function ConvertFrom-DN {
 
 #*------^ ConvertFrom-DN.ps1 ^------
 
+#*------v convertFrom-MarkdownTable.ps1 v------
+Function convertFrom-MarkdownTable {
+    <#
+    .SYNOPSIS
+    convertFrom-MarkdownTable.ps1 - Converts a Markdown table to a PowerShell object.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2021-06-21
+    FileName    : convertFrom-MarkdownTable.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Markdown,Input,Conversion
+    REVISION
+    * 12:42 PM 6/22/2021 bug workaround: empty fields in source md table (|data||data|) cause later (export-csv|convertto-csv) to create a csv with *missing* delimiting comma on the problem field ;  added trim of each field content, and CBH example for creation of a csv from mdtable input; added aliases
+    * 5:40 PM 6/21/2021 init
+    .DESCRIPTION
+    convertFrom-MarkdownTable.ps1 - Converts a Markdown table to a PowerShell object.
+    Also supports convesion of variant 'border' md table syntax (e.g. each line wrapped in outter pipe | chars)
+    Intent is as a simpler alternative to here-stringinputs for csv building. 
+    .PARAMETER markdowntext
+    Markdown-formated table to be converted into an object [-markdowntext 'title text']
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    System.Object[]
+   .EXAMPLE
+   PS> $svcs = Get-Service Bits,Winrm | select status,name,displayname | convertTo-MarkdownTable -border | ConvertFrom-MarkDownTable ;  
+   Convert Service listing to and back from MD table, demo's working around border md table syntax (outter pipe-wrapped lines)
+   .EXAMPLE
+   -EmailAddress david.hiltzman@ditchwitch.com -groups LYN-DL-TorowideSourcing@toro.com -Ticket 999999 -verbose -whatif
+   PS> $mdtable = @"
+|EmailAddress|DisplayName|Groups|Ticket|
+|---|---|---|---|
+|da.pope@vatican.org||CardinalDL@vatican.org|999999|
+|bozo@clown.com|Bozo Clown|SillyDL;SmartDL|000001|
+"@ ; 
+    $of = ".\out-csv-$(get-date -format 'yyyyMMdd-HHmmtt').csv" ; 
+    $mdtable | convertfrom-markdowntable | export-csv -path $of -notype ;
+    cat $of ;
+    output:
+    "EmailAddress","DisplayName","Groups","Ticket"
+"da.pope@vatican.org","","CardinalDL@vatican.org","999999"
+"bozo@clown.com","Bozo Clown","SillyDL;SmartDL","000001"
+    Example simpler method for building csv input files fr mdtable syntax, without PSCustomObjects, hashes, or invoked object creation.
+    .EXAMPLE
+    $mdtable | convertFrom-MarkdownTable | convertTo-MarkdownTable -border
+    Example to expand and dress up a simple md table, leveraging both convertfrom-mtd and convertto-mtd (which performs space padding to align pipe columns)
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    [alias('convertfrom-mdt','in-markdowntable','in-mdt')]    
+    Param (
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Markdown-formated table to be converted into an object [-markdowntext 'title text']")]
+        $markdowntext
+    ) ;
+    PROCESS {
+        $content = @() ; 
+        if(($markdowntext|measure).count -eq 1){$markdowntext  = $markdowntext -split '\n' } ;
+        # # bug, empty fields (||) when exported (export-csv|convertto-csv) -> broken csv (missing delimiting comma between 2 fields). 
+        # workaround : flip empty field => \s. The $object still comes out properly $null on the field, but the change cause export-csv of the resulting obj to no longer output a broken csv.(weird)
+        $markdowntext  = $markdowntext -replace '\|\|','| |' ; 
+        $content = $markdowntext  | ?{$_ -notmatch "--" } ;
+    } ;  
+    END {
+        # trim lead/trail '| from each line (borders) ; remove empty lines; foreach
+        $PsObj = $content.trim('|')| where-object{$_} | ForEach-Object{ 
+            $_.split('|').trim() -join '|' ; # split fields and trim leading/trailing spaces from each , then re-join with '|'
+        } | ConvertFrom-Csv -Delimiter '|'; # convert to object
+        $PsObj | write-output ; 
+    } ; # END-E
+}
+
+#*------^ convertFrom-MarkdownTable.ps1 ^------
+
 #*------v ConvertFrom-SourceTable.ps1 v------
 Function ConvertFrom-SourceTable {
   <#
@@ -1412,6 +1491,8 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 10:51 AM 6/22/2021 added convertfrom-mdt alias
+    * 4:49 PM 6/21/2021 pretest $thing.value: suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
     * 10:49 AM 2/18/2021 added default alias: out-markdowntable & out-mdt
 8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
     unknown - alexandrm's revision (undated)
@@ -1472,7 +1553,7 @@ Function convertTo-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [Alias('out-markdowntable','out-mdt')]
+    [Alias('out-markdowntable','out-mdt','convertfrom-mdt')]
     [OutputType([string])]
     Param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
@@ -1526,14 +1607,19 @@ Function convertTo-MarkdownTable {
             $items += $item ;
             # simpler solution for $null values: (I also like explicit foreach over foreach-object)
             foreach($thing in $item.PSObject.Properties){
-                if(-not $columns.ContainsKey($thing.Name) -or $columns[$thing.Name] -lt $thing.Value.ToString().Length) {
+                #write-verbose "$($thing|out-string)" ; 
+                # suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
+                if($thing.Value){$valuLen =  $thing.Value.ToString().Length }
+                else {$valuLen = 0 } ;
+                if(-not $columns.ContainsKey($thing.Name) -or $columns[$thing.Name] -lt $valuLen) {
                     if ($null -ne $thing.Value) {
                         $columns[$thing.Name] = $thing.Value.ToString().Length
                     } else {
                         $columns[$thing.Name] = 0 ; # null's 0-length, so use it. 
                     } ; 
                 } ;
-            } ;  
+
+            } ;  # loop-E
 
         } ;
     } ;  # PROC-E
@@ -6570,14 +6656,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUjCq2uRjEArTxBIZUFHLo2HZk
-# euagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUKK/f9jppU9cj4x0MbRNmYwzj
+# wNugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -6592,9 +6678,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQficr1
-# wHNTSQ60tsI6//znGUrKdjANBgkqhkiG9w0BAQEFAASBgKJ9BzHf9tSede3s2Bcv
-# zo/l6eZDCLxEz7WDgyB0DokkAHtnE8B5e07m24+YRxClExl4zNov4ObHYPpkhxZr
-# QEAz0BDppkteF4rMkvj864mwonb70NPpjgh3vCRoNtzHSt1P9M9GMOGwQi7gfmkA
-# oJ//F7obw0b9vPMXrNNVLLqA
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRavCMY
+# cQgjokFcOVdcbgyfJDmaYDANBgkqhkiG9w0BAQEFAASBgFk/JZuyS6zWIh6B+Ajw
+# GthH+PArs476rZppUCNJDZrl/mRTyrdi5FlYyHZ7i4gQBiEFAQYLm9kbA8C0B86z
+# l3thu63g78z9EyZLlJf97ejUyou56vQCeQXBL08OA7+zVZGnLTBBsUsarEhRopTQ
+# 3IYauwt9SjoIz40uLODevAHf
 # SIG # End signature block
