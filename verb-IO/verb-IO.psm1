@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.79.0.0
+Version     : 1.0.80.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -788,6 +788,139 @@ function ConvertFrom-DN {
 }
 
 #*------^ ConvertFrom-DN.ps1 ^------
+
+#*------v ConvertFrom-IniFile.ps1 v------
+Function ConvertFrom-IniFile {
+    <#
+    .Synopsis
+    Convert an INI file to an object
+    ConvertFrom-IniFile.ps1 - convert a legacy INI file into a PowerShell custom object. Each INI section will become a property name. Then each section setting will become a nested object. Blank lines and comments starting with ; will be ignored.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2020-
+    FileName    : 
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell
+    AddedCredit : Jeff Hicks
+    AddedWebsite: https://www.petri.com/managing-ini-files-with-powershell
+    AddedTwitter: 
+    Learn more about PowerShell:
+    http://jdhitsolutions.com/blog/essential-powershell-resources/
+    REVISIONS
+    * 12:46 PM 6/29/2021 minor vervisions & syntax tightening; expanded CBH; added delimiting to unexpected line dump
+    * posted rev 1/29/2015 (June 5, 2015)
+    .Description
+    Use this command to convert a legacy INI file into a PowerShell custom object. Each INI section will become a property name. Then each section setting will become a nested object. Blank lines and comments starting with ; will be ignored. 
+    It is assumed that your ini file follows a typical layout like this:
+    ```text
+    ;This is a sample ini
+    [General]
+    Action = Start
+    Directory = c:\work
+    ID = 123ABC
+   ;this is another comment
+    [Application]
+    Name = foo.exe
+    Version = 1.0
+    [User]
+    Name = Jeff
+    Company = Globomantics
+    ```
+    .PARAMETER Path
+    The path to the INI file.
+    .INPUTS
+    [string]
+    .OUTPUTS
+    [pscustomobject]
+    .EXAMPLE
+    PS C:\> $sample = ConvertFrom-IniFile c:\scripts\sample.ini
+    PS C:\> $sample
+    General                           Application                      User                            
+    -------                           -----------                      ----                            
+    @{Directory=c:\work; ID=123ABC... @{Version=1.0; Name=foo.exe}     @{Name=Jeff; Company=Globoman...
+    PS C:\> $sample.general.action
+    Start
+    In this example, a sample ini file is converted to an object with each section a separate property.
+    .EXAMPLE
+    PS C:\> ConvertFrom-IniFile c:\windows\system.ini | export-clixml c:\work\system.ini
+    Convert the System.ini file and export results to an XML format.
+    .LINK
+    Get-Content
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [cmdletbinding()]
+    Param(
+        [Parameter(Position=0,Mandatory,HelpMessage="Enter the path to an INI file",
+        ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Alias("fullname","pspath")]
+        [ValidateScript({
+        if (Test-Path $_) {$True}else {Throw "Cannot validate path $_"}
+        })]     
+        [string]$Path
+    )
+    Begin {
+        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        # Get parameters this function was invoked with
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ; 
+        Write-Verbose "Starting $($MyInvocation.Mycommand)" ; 
+    } 
+    Process {
+        Write-Verbose "Getting content from $(Resolve-Path $path)"
+        #strip out comments that start with ; and blank lines
+        $all = Get-content -Path $path | Where {$_ -notmatch "^(\s+)?;|^\s*$"}
+        $obj = New-Object -TypeName PSObject -Property @{}
+        $hash = [ordered]@{}
+        foreach ($line in $all) {
+            Write-Verbose "Processing $line" ; 
+            if ($line -match "^\[.*\]$" -AND $hash.count -gt 0) {
+                #has a hash count and is the next setting
+                #add the section as a property
+                write-Verbose "Creating section $section" ; 
+                Write-verbose ([pscustomobject]$hash | out-string) ; 
+                $obj | Add-Member -MemberType Noteproperty -Name $Section -Value $([pscustomobject]$Hash) -Force ; 
+                #reset hash
+                Write-Verbose "Resetting hashtable" ; 
+                $hash=[ordered]@{} ; 
+                #define the next section
+                $section = $line -replace "\[|\]","" ; 
+                Write-Verbose "Next section $section" ; 
+            } elseif ($line -match "^\[.*\]$") {
+                #Get section name. This will only run for the first section heading
+                $section = $line -replace "\[|\]","" ; 
+                Write-Verbose "New section $section"
+            } elseif ($line -match "=") {
+                #parse data
+                $data = $line.split("=").trim() ; 
+                $hash.add($data[0],$data[1]) ; 
+            } else {
+                #this should probably never happen
+                Write-Warning "Unexpected line:`n'$($line|out-string)'" ; 
+            } ; 
+        }  ;  # loop-E
+        #get last section
+        If ($hash.count -gt 0) {
+            Write-Verbose "Creating final section $section" ; 
+            Write-Verbose ([pscustomobject]$hash | Out-String) ; 
+            #add the section as a property
+            $obj | Add-Member -MemberType Noteproperty -Name $Section -Value $([pscustomobject]$Hash) -Force ; 
+        }
+        #write the result to the pipeline
+        $obj | write-output ;
+    } ;
+    End {
+        Write-Verbose "Ending $($MyInvocation.Mycommand)" ; 
+    } ;
+}
+
+#*------^ ConvertFrom-IniFile.ps1 ^------
 
 #*------v convertFrom-MarkdownTable.ps1 v------
 Function convertFrom-MarkdownTable {
@@ -6656,14 +6789,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUKK/f9jppU9cj4x0MbRNmYwzj
-# wNugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU9GyE14ZrPfX8B19c0TQkuUvw
+# DFSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -6678,9 +6811,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRavCMY
-# cQgjokFcOVdcbgyfJDmaYDANBgkqhkiG9w0BAQEFAASBgFk/JZuyS6zWIh6B+Ajw
-# GthH+PArs476rZppUCNJDZrl/mRTyrdi5FlYyHZ7i4gQBiEFAQYLm9kbA8C0B86z
-# l3thu63g78z9EyZLlJf97ejUyou56vQCeQXBL08OA7+zVZGnLTBBsUsarEhRopTQ
-# 3IYauwt9SjoIz40uLODevAHf
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTMBPIT
+# QV8i13zD6kz4A9Bbrw00VDANBgkqhkiG9w0BAQEFAASBgDU+/gQ7sfMLU4Ygo0Tu
+# kiWe738R629dyNjS0TI5iJRgXPgMhg6EnyJIvSa0vOzzfMbkktSh6iOEAYry/FPB
+# 8igCd3q3FoBzX1Fnlgre+x0I4y7sjJEuRfvhEscHhtLoBpfkMjsQKdM2SVhhEnEy
+# ac8idmw4Z5Lmbt3TiYyXtTHl
 # SIG # End signature block
