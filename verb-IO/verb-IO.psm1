@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.80.0.0
+Version     : 1.0.81.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -492,6 +492,134 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
 }
 
 #*------^ convert-ColorHexCodeToWindowsMediaColorsName.ps1 ^------
+
+#*------v convert-DehydratedBytesToGB.ps1 v------
+Function convert-DehydratedBytesToGB {
+    <#
+    .SYNOPSIS
+    convert-DehydratedBytesToGB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal gigabytes.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-04-19
+    FileName    : convert-DehydratedBytesToGB.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : PowershellConsole
+    REVISIONS
+    * 5:19 PM 7/20/2021 init vers
+    .DESCRIPTION
+    convert-DehydratedBytesToGB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal gigabytes.
+    .PARAMETER Data
+    Array of Dehydrated byte sizes to be converted
+    .PARAMETER Decimals
+    Number of decimal places to return on results
+    .OUTPUT
+    System.Object[] 
+    .EXAMPLE
+    convert-DehydratedBytesToGB 
+    Set the string 'EMS' as the powershell console Title Bar
+    .EXAMPLE
+     (get-mailbox | get-mailboxstatistics).totalitemsize.value | convert-DehydratedBytesToGB ;
+    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-Data `$array]")]
+        [ValidateNotNullOrEmpty()]
+        [array]$Data,
+        [Parameter(HelpMessage="Number of decimal places to return on results[-Decimals 3]")]
+        [int] $Decimals=3
+    )
+    
+    BEGIN{
+        $FmtCode = "{0:N$($Decimals)}" ; 
+    } 
+    PROCESS{
+        If($Data -match '.*\s\(.*\sbytes\)'){ # test for inbound data in expected text format
+            foreach($item in $Data){
+                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb decimal places 
+                $item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1GB)} | write-output ;
+                # sole difference between GB & MB funcs is the 1GB/1MB above
+            } ; 
+        } else { 
+            throw "unrecoginzed data series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format"
+            Continue ; 
+        } ; 
+    } ; 
+    END {} ;
+}
+
+#*------^ convert-DehydratedBytesToGB.ps1 ^------
+
+#*------v convert-DehydratedBytesToMB.ps1 v------
+Function convert-DehydratedBytesToMB {
+    <#
+    .SYNOPSIS
+    convert-DehydratedBytesToMB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal megabytes.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-04-19
+    FileName    : convert-DehydratedBytesToMB.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : PowershellConsole
+    REVISIONS
+    * 5:19 PM 7/20/2021 init vers
+    .DESCRIPTION
+    convert-DehydratedBytesToMB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal megabytes.
+    .PARAMETER Data
+    Array of Dehydrated byte sizes to be converted
+    .PARAMETER Decimals
+    Number of decimal places to return on results
+    .OUTPUT
+    System.Object[] 
+    .EXAMPLE
+    convert-DehydratedBytesToMB 
+    Set the string 'EMS' as the powershell console Title Bar
+    .EXAMPLE
+     (get-mailbox | get-mailboxstatistics).totalitemsize.value | convert-DehydratedBytesToMB ;
+    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-Data `$array]")]
+        [ValidateNotNullOrEmpty()]
+        [array]$Data,
+        [Parameter(HelpMessage="Number of decimal places to return on results[-Decimals 3]")]
+        [int] $Decimals=3
+    )
+    
+    BEGIN{
+        $FmtCode = "{0:N$($Decimals)}" ; 
+    } 
+    PROCESS{
+        If($Data -match '.*\s\(.*\sbytes\)'){ # test for inbound data in expected text format
+            foreach($item in $Data){
+                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb decimal places 
+                $item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1MB)} | write-output ;
+                # sole difference between GB & MB funcs is the 1GB/1MB above
+            } ; 
+        } else { 
+            throw "unrecoginzed data series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format"
+            Continue ; 
+        } ; 
+    } ; 
+    END {} ;
+}
+
+#*------^ convert-DehydratedBytesToMB.ps1 ^------
 
 #*------v Convert-FileEncoding.ps1 v------
 function Convert-FileEncoding {
@@ -6789,14 +6917,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,play-beep,prompt-Continue,Read-Host2,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU9GyE14ZrPfX8B19c0TQkuUvw
-# DFSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUlX4u1f0h9e3pBmav8b8IdRmq
+# M4CgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -6811,9 +6939,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTMBPIT
-# QV8i13zD6kz4A9Bbrw00VDANBgkqhkiG9w0BAQEFAASBgDU+/gQ7sfMLU4Ygo0Tu
-# kiWe738R629dyNjS0TI5iJRgXPgMhg6EnyJIvSa0vOzzfMbkktSh6iOEAYry/FPB
-# 8igCd3q3FoBzX1Fnlgre+x0I4y7sjJEuRfvhEscHhtLoBpfkMjsQKdM2SVhhEnEy
-# ac8idmw4Z5Lmbt3TiYyXtTHl
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBS0hMPI
+# HUbpu/hSaiyxCwqikQOA2TANBgkqhkiG9w0BAQEFAASBgG7ItWK7LXT82gPWty3f
+# UPMbdHW9PtpwRCFVd4wGjWTRGSCVV9B4fLML/nONMmPd2Zz+3yLCjSc38b/Ar3la
+# jQoy6UyQBsy8tuqpwQnLZzKojahXNUO2tUc1bPLLDLmqwjfBxZLxTAcQVYWWLfnd
+# d4C1zZOlGnkLgpNy6kNo8brk
 # SIG # End signature block
