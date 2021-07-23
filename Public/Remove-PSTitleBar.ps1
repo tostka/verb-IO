@@ -1,4 +1,5 @@
-﻿Function Remove-PSTitleBar {
+﻿#*------v Remove-PSTitleBar.ps1 v------
+Function Remove-PSTitleBar {
     <#
     .SYNOPSIS
     Remove-PSTitleBar.ps1 - Remove specified string from the Powershell console Titlebar
@@ -33,11 +34,31 @@
     https://github.com/dsolodow/IndyPoSH/blob/master/Profile.ps1
     #>
     
-    Param ([parameter(Mandatory = $true,Position=0)][String]$Tag)
+    Param (
+        #[parameter(Mandatory = $true,Position=0)][String]$Tag
+        [parameter(Mandatory = $true,Position=0)]$Tag,
+        [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
+        [switch] $showDebug
+    )
+    $showDebug=$true ; 
     #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
-    If ($host.name -eq 'ConsoleHost') {
-        if($host.ui.RawUI.WindowTitle -like "*$($Tag)*"){
+    #If ($host.name -eq 'ConsoleHost') {
+    If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
+        if($Tag -is [system.array]){ 
+            foreach ($Tg in $Tag){
+                #if($host.ui.RawUI.WindowTitle -like "*$($Tg)*"){
+                if($host.ui.RawUI.WindowTitle  -match "\s$($Tg)\s"){
+                    $host.ui.RawUI.WindowTitle = $host.ui.RawUI.WindowTitle.replace(" $Tg ","") ;
+                }else{} ;
+            }
+        } else { 
+            #if($host.ui.RawUI.WindowTitle -like "*$($Tag)*"){
+            if($host.ui.RawUI.WindowTitle  -match "\s$($Tag)\s"){
                 $host.ui.RawUI.WindowTitle = $host.ui.RawUI.WindowTitle.replace(" $Tag ","") ;
-        }else{} ;
+            }else{} ;
+        } ; 
+        Rebuild-PSTitleBar ;
     } ;
 }
+
+#*------^ Remove-PSTitleBar.ps1 ^------

@@ -1,4 +1,5 @@
-﻿Function Add-PSTitleBar {
+﻿#*------v Add-PSTitleBar.ps1 v------
+Function Add-PSTitleBar {
     <#
     .SYNOPSIS
     Add-PSTitleBar.ps1 - Append specified identifying Tag string to the end of the powershell console Titlebar
@@ -32,11 +33,34 @@
     #>
     [CmdletBinding()]
     [Alias('add-PSTitle')]
-    Param ([parameter(Mandatory = $true,Position=0)][String]$Tag)
+    Param (
+        #[parameter(Mandatory = $true,Position=0)][String]$Tag
+        [parameter(Mandatory = $true,Position=0)]$Tag,
+        [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
+        [switch] $showDebug
+    )
+    $showDebug=$true ; 
     #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
-    If ($host.name -eq 'ConsoleHost') {
-        # don't add if already present
-        if($host.ui.RawUI.WindowTitle -like "*$($Tag)*"){}
-        else{$host.ui.RawUI.WindowTitle = $host.ui.RawUI.WindowTitle+" $Tag "} ;
+    #If ($host.name -eq 'ConsoleHost') {
+    If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
+        #if($host.ui.rawui.windowtitle -match '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)'){
+        #    $conshost = $matches[1] ; $consrole = $matches[2] ; $consdom = $matches[3] ; $consData = ($matches[4] -split '\s\s').trim() ;
+        # alt, take everything after last '-':
+        if($Tag -is [system.array]){ 
+            foreach ($Tg in $Tag){
+                # don't add if already present
+                #if($host.ui.RawUI.WindowTitle -like "*$($Tg)*"){}
+                # search space delimited, mebbe regex, $env:userdomain is overlapping the TenOrg (which is a substring of the domain), plus side always has trailing \s
+                if($host.ui.RawUI.WindowTitle  -match "\s$($Tg)\s"){}
+                else{$host.ui.RawUI.WindowTitle += " $Tg "} ;
+            } ; 
+        } else { 
+            # don't add if already present
+            #if($host.ui.RawUI.WindowTitle -like "*$($Tag)*"){}
+            if($host.ui.RawUI.WindowTitle  -match "\s$($Tag)\s"){}
+            else{$host.ui.RawUI.WindowTitle += " $Tag "} ;
+        } ;
     } ;
+    Rebuild-PSTitleBar ;
 }
+#*------^ Add-PSTitleBar.ps1 ^------

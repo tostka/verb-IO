@@ -1,4 +1,4 @@
-﻿#*------v Function set-PSTitleBar v------
+﻿#*------v set-PSTitleBar.ps1 v------
 Function set-PSTitleBar {
     <#
     .SYNOPSIS
@@ -17,6 +17,7 @@ Function set-PSTitleBar {
     AddedCredit : mdjxkln
     AddedWebsite:	https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
     REVISIONS
+    * 4:26 PM 7/23/2021 added rebuild-pstitlebar to post cleanup
        * 3:14 PM 4/19/2021 init vers
     .DESCRIPTION
     set-PSTitleBar.ps1 - Set specified powershell console Titlebar
@@ -47,10 +48,15 @@ Function set-PSTitleBar {
     #>
     [CmdletBinding()]
     [Alias('set-PSTitle')]
-    Param ([parameter(Mandatory = $true,Position=0,HelpMessage="Title string to be set on current powershell console Titlebar[-title 'PS Window'")][String]$Title)
+    Param (
+        [parameter(Mandatory = $true,Position=0,HelpMessage="Title string to be set on current powershell console Titlebar[-title 'PS Window'")]
+        [String]$Title
+    )
     If ($host.name -eq 'ConsoleHost') {
         #only use on console host; since ISE shares the WindowTitle across multiple tabs
         $host.ui.RawUI.WindowTitle = $Title ;
+        Rebuild-PSTitleBar ;
     } ;
-} ; 
-#*------^ END Function set-PSTitleBar ^------
+}
+
+#*------^ set-PSTitleBar.ps1 ^------
