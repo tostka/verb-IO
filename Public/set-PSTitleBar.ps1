@@ -17,6 +17,7 @@ Function set-PSTitleBar {
     AddedCredit : mdjxkln
     AddedWebsite:	https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
     REVISIONS
+    * 12:12 PM 7/26/2021 rework for verbose & whatif
     * 4:26 PM 7/23/2021 added rebuild-pstitlebar to post cleanup
        * 3:14 PM 4/19/2021 init vers
     .DESCRIPTION
@@ -50,12 +51,22 @@ Function set-PSTitleBar {
     [Alias('set-PSTitle')]
     Param (
         [parameter(Mandatory = $true,Position=0,HelpMessage="Title string to be set on current powershell console Titlebar[-title 'PS Window'")]
-        [String]$Title
+        [String]$Title,
+        [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
+        [switch] $showDebug,
+        [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
+        [switch] $whatIf
     )
-    If ($host.name -eq 'ConsoleHost') {
+    $verbose = ($VerbosePreference -eq "Continue") ; 
+    If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
         #only use on console host; since ISE shares the WindowTitle across multiple tabs
-        $host.ui.RawUI.WindowTitle = $Title ;
-        Rebuild-PSTitleBar ;
+        if(-not($whatif)){
+            write-verbose "update:`$host.ui.RawUI.WindowTitle to`n$($Title|out-string).trim())" ; 
+            $host.ui.RawUI.WindowTitle = $Title ;
+        } else { 
+            write-host "whatif:update:`$host.ui.RawUI.WindowTitle to`n$($Title|out-string).trim())" ; 
+        } 
+        Rebuild-PSTitleBar -verbose:$($VerbosePreference -eq "Continue") -whatif:$($whatif);
     } ;
 }
 

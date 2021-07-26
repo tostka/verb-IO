@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.85.0.0
+Version     : 1.0.82.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -59,7 +59,6 @@ Function Add-PSTitleBar {
     Github      : 
     Tags        : Powershell,Console
     REVISIONS
-    * 10:30 AM 7/26/2021 reworked, added whatif, showdebug, verbose echos, working on array-supp in the inputs
     * 3:11 PM 4/19/2021 added cmdletbinding/verbose supp & alias add-PSTitle
     * 4:37 PM 2/27/2020 updated CBH
     # 8:44 AM 3/15/2017 ren Update-PSTitleBar => Add-PSTitleBar, so that we can have a Remove-PSTitleBar, to subtract
@@ -82,12 +81,9 @@ Function Add-PSTitleBar {
         #[parameter(Mandatory = $true,Position=0)][String]$Tag
         [parameter(Mandatory = $true,Position=0)]$Tag,
         [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
-        [switch] $showDebug,
-        [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
-        [switch] $whatIf
+        [switch] $showDebug
     )
     $showDebug=$true ; 
-    $verbose = ($VerbosePreference -eq "Continue") ; 
     #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
     #If ($host.name -eq 'ConsoleHost') {
     If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
@@ -99,31 +95,17 @@ Function Add-PSTitleBar {
                 # don't add if already present
                 #if($host.ui.RawUI.WindowTitle -like "*$($Tg)*"){}
                 # search space delimited, mebbe regex, $env:userdomain is overlapping the TenOrg (which is a substring of the domain), plus side always has trailing \s
-                if($host.ui.RawUI.WindowTitle  -match "\s$($Tg)\s"){
-                    write-verbose "(not-matched:'\s$($Tg)\s' in `$host.ui.RawUI.WindowTitle`n$($host.ui.RawUI.WindowTitle))" ; 
-                }else{
-                    if(-not($whatif)){
-                        write-verbose "Update `$host.ui.RawUI.WindowTitle to`n '$($host.ui.RawUI.WindowTitle) $($Tg) )'" ; 
-                        $host.ui.RawUI.WindowTitle += " $Tg "
-                    } else { 
-                        write-host "whatif:Update `$host.ui.RawUI.WindowTitle to`n '$($host.ui.RawUI.WindowTitle) $($Tg) )'" ; 
-                    } ;
-                } ;
+                if($host.ui.RawUI.WindowTitle  -match "\s$($Tg)\s"){}
+                else{$host.ui.RawUI.WindowTitle += " $Tg "} ;
             } ; 
         } else { 
-            if($host.ui.RawUI.WindowTitle  -match "\s$($Tag)\s"){
-                write-verbose "(not-matched:'\s$($Tag)\s' in `$host.ui.RawUI.WindowTitle`n$($host.ui.RawUI.WindowTitle))" ; 
-            }else{
-                if(-not($whatif)){
-                    write-verbose "Update `$host.ui.RawUI.WindowTitle to`n '$($host.ui.RawUI.WindowTitle) $($Tag) )'" ; 
-                    $host.ui.RawUI.WindowTitle += " $Tag "
-                } else { 
-                    write-host "whatif:Update `$host.ui.RawUI.WindowTitle to`n '$($host.ui.RawUI.WindowTitle) $($Tag) )'" ; 
-                } ;
-            } ;
+            # don't add if already present
+            #if($host.ui.RawUI.WindowTitle -like "*$($Tag)*"){}
+            if($host.ui.RawUI.WindowTitle  -match "\s$($Tag)\s"){}
+            else{$host.ui.RawUI.WindowTitle += " $Tag "} ;
         } ;
     } ;
-    rebuild-PSTitleBar  -verbose:$($VerbosePreference -eq "Continue") -whatif:$($whatif);
+    Rebuild-PSTitleBar ;
 }
 
 #*------^ Add-PSTitleBar.ps1 ^------
@@ -4676,7 +4658,6 @@ Function parse-PSTitleBar {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Console
     REVISIONS
-    * 11:42 AM 7/26/2021 added verbose echo support
     * 3:15 PM 7/23/2021 init vers
     .DESCRIPTION
     parse-PSTitleBar.ps1 - parse Powershell console Titlebar into components '[consHost] [role] - [domain] - [org] [svcs]' sorted format
@@ -4686,20 +4667,16 @@ Function parse-PSTitleBar {
     .LINK
     https://github.com/dsolodow/IndyPoSH/blob/master/Profile.ps1
     #>
-    [CmdletBinding()]
     Param (
         [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
         [switch] $showDebug
     )
     BEGIN {
         $showDebug=$true ; 
-        $verbose = ($VerbosePreference -eq "Continue") ; 
         # simpler alt, take everything after last '-':
-        [regex]$rgxsvcs = ('^(' + (((Get-Variable  -name "TorMeta").value.OrgSvcs |foreach-object{[regex]::escape($_)}) -join '|') + ')$') ;
-        write-verbose "using `$rgxsvcs:$($rgxsvcs)" ; 
-        $Metas=(get-variable *meta|?{$_.name -match '^\w{3}Meta$'}).name ; 
-        if(!$rgxTenOrgs){ [regex]$rgxTenOrgs = ('^(' + (($metas.substring(0,3) |foreach-object{[regex]::escape($_)}) -join '|') + ')$') } ; 
-        write-verbose "`$rgxTenOrgs:$($rgxTenOrgs)" ; 
+        [regex]$rgxsvcs = ('(' + (((Get-Variable  -name "TorMeta").value.OrgSvcs |foreach-object{[regex]::escape($_)}) -join '|') + ')') ;
+        $Metas=(get-variable *meta|?{$_.name -match '^\w{3}Meta$'}) ; 
+        if(!$rgxTenOrgs){ [regex]$rgxTenOrgs = ('(' + (($metas.name.substring(0,3) |foreach-object{[regex]::escape($_)}) -join '|') + ')') } ; 
     } 
     PROCESS {
         #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
@@ -4713,20 +4690,11 @@ Function parse-PSTitleBar {
                 Services = $null ; 
             } ; 
             # doing it with rgx
-            #$rgxTitleBarTemplate = '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)' ; 
-            #$rgxTitleBarTemplate = '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)' ; 
-            $rgxTitleBarTemplate = '^(PS|PSc)\s(.*)\s-\s(.*)\s-(.*)$' ; 
-            if($host.ui.rawui.windowtitle -match $rgxTitleBarTemplate){
+            if($host.ui.rawui.windowtitle -match '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)'){
                 $hshCons.host,$hshCons.role,$hshCons.domain=$matches[1..3]; 
-                if($hshCons.role.indexof('-')){
-                    $xs = $hshCons.role ; 
-                    $hshCons.role=$xs.tostring().split('-')[0] ; 
-                    $hshCons.add('TermTag',($xs.tostring().split('-'))[1] ) ; 
-                    remove-variable xs
-                } ;
                 $hshCons.Info = $matches[4] ;
-                $hshCons.Orgs = $hshCons.Info -split ' '| ?{$_} | ?{$_ -match $rgxTenOrgs} | sort | select -unique  ; 
-                $hshCons.Services = $hshCons.Info -split ' '| ?{$_} | ?{$_ -match $rgxsvcs} | sort | select -unique  ; 
+                $hshCons.Orgs = $matches[4] -split ' '| ?{$_} | ?{$_ -match $rgxTenOrgs} | sort | select -unique  ; 
+                $hshCons.Services = $matches[4] -split ' '| ?{$_} | ?{$_ -match $rgxsvcs} | sort | select -unique  ; 
             }
             <# simple parser        
             $consPrembl = $host.ui.rawui.windowtitle.substring(0,$host.ui.rawui.windowtitle.LastIndexOf('-')).trim() ;
@@ -4740,7 +4708,6 @@ Function parse-PSTitleBar {
         }
     }
     END {
-        write-verbose "Returning values:`n$(($hshCons|out-string).trim())" ; 
         [pscustomobject]$hshCons | write-output ;  
     } ;
 }
@@ -5011,7 +4978,6 @@ Function rebuild-PSTitleBar {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Console
     REVISIONS
-    * 11:53 AM 7/26/2021 refactor for verbose/begin/proc/whatif etc
     * 10:15 AM 7/22/2021 init vers
     .DESCRIPTION
     rebuild-PSTitleBar.ps1 - reconstruct Powershell console Titlebar in '[consHost] [role] - [domain] - [org] [svcs]' sorted format
@@ -5024,56 +4990,30 @@ Function rebuild-PSTitleBar {
     .LINK
     https://github.com/dsolodow/IndyPoSH/blob/master/Profile.ps1
     #>
-    [CmdletBinding()]
     Param (
         [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
-        [switch] $showDebug,
-        [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
-        [switch] $whatIf
+        [switch] $showDebug
     )
-    BEGIN{
-        $showDebug=$true ; 
-        $verbose = ($VerbosePreference -eq "Continue") ; 
-    } 
-    PROCESS{
-        #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
-        If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
-            # doing it with rgx
-            #if($host.ui.rawui.windowtitle -match '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)'){
-            #     $conshost,$consrole,$consdom=$matches[1..3]; 
-            #     $conssvcs = $matches[4] -split ' '|?{$_}|%{"'$($_)'"}
-            # }
-            # simpler alt, take everything after last '-':
-            #[regex]$rgxsvcs = ('(' + (((Get-Variable  -name "TorMeta").value.OrgSvcs |foreach-object{[regex]::escape($_)}) -join '|') + ')') ;
-            # make it ^$ restrictive, no substring matches
-            [regex]$rgxsvcs = ('^(' + (((Get-Variable  -name "TorMeta").value.OrgSvcs |foreach-object{[regex]::escape($_)}) -join '|') + ')$') ;
-            write-verbose "`$rgxsvcs:$($rgxsvcs)" ; 
-            $Metas=(get-variable *meta|?{$_.name -match '^\w{3}Meta$'}).name ; 
-            if(!$rgxTenOrgs){ [regex]$rgxTenOrgs = ('^(' + (($metas.substring(0,3) |foreach-object{[regex]::escape($_)}) -join '|') + ')$') } ; 
-            write-verbose "`$rgxTenOrgs:$($rgxTenOrgs)" ; 
-            $consPrembl = $host.ui.rawui.windowtitle.substring(0,$host.ui.rawui.windowtitle.LastIndexOf('-')).trim() ;
-            write-verbose "`$consPrembl:$($consPrembl)" ; 
-            #$consData = ($host.ui.rawui.windowtitle.substring(($host.ui.rawui.windowtitle.LastIndexOf('-'))+1) -split '\s\s').trim(); 
-            # split to an array, not space-dcelimtied
-            $consData = ($host.ui.rawui.windowtitle.substring(($host.ui.rawui.windowtitle.LastIndexOf('-'))+1) -split '\s').trim(); 
-            write-verbose "`$consData:`n$(($consData|out-string).trim())" ; 
-            $svcs = $consdata | ?{$_ -match $rgxsvcs} | sort | select -unique  ; 
-            write-verbose "`$svcs:`n$(($svcs|out-string).trim())" ; 
-            $Orgs = $consdata |?{$_ -match $rgxTenOrgs } | sort | select -unique  ; 
-            write-verbose "`$Orgs:`n$(($Orgs|out-string).trim())" ; 
-            [array]$titElems = @($consPrembl) ; 
-            write-verbose "`$titElems:`n$(($titElems|out-string).trim())" ; 
-            $titElems += (([array]$orgs + $svcs) -join ' ') ; 
-            write-verbose "`$titElems:`n$(($titElems|out-string).trim())" ; 
-            if(-not($whatif)){
-                write-verbose "update:`$host.ui.RawUI.WindowTitle to :`n'$($titElems -join ' - ') '" ; 
-                $host.ui.RawUI.WindowTitle = "$($titElems -join ' - ') " ; # manually add trailing space, to keep consistent for parsing.
-            } else { 
-                write-host "update:`$host.ui.RawUI.WindowTitle to :`n'$($titElems -join ' - ') '" ;  
-            } ;
-        } ;
-    }
-    END{} ;
+    $showDebug=$true ; 
+    #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
+    If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
+        # doing it with rgx
+        #if($host.ui.rawui.windowtitle -match '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)'){
+        #     $conshost,$consrole,$consdom=$matches[1..3]; 
+        #     $conssvcs = $matches[4] -split ' '|?{$_}|%{"'$($_)'"}
+        # }
+        # simpler alt, take everything after last '-':
+        [regex]$rgxsvcs = ('(' + (((Get-Variable  -name "TorMeta").value.OrgSvcs |foreach-object{[regex]::escape($_)}) -join '|') + ')') ;
+        $Metas=(get-variable *meta|?{$_.name -match '^\w{3}Meta$'}) ; 
+        if(!$rgxTenOrgs){ [regex]$rgxTenOrgs = ('(' + (($metas.name.substring(0,3) |foreach-object{[regex]::escape($_)}) -join '|') + ')') } ; 
+        $consPrembl = $host.ui.rawui.windowtitle.substring(0,$host.ui.rawui.windowtitle.LastIndexOf('-')).trim() ;
+        $consData = ($host.ui.rawui.windowtitle.substring(($host.ui.rawui.windowtitle.LastIndexOf('-'))+1) -split '\s\s').trim(); 
+        $svcs = $consdata | ?{$_ -match $rgxsvcs} | sort | select -unique  ; 
+        $Orgs = $consdata |?{$_ -match $rgxTenOrgs } | sort | select -unique  ; 
+        [array]$titElems = @($consPrembl) ; 
+        $titElems += (([array]$orgs + $svcs) -join ' ') ; 
+        $host.ui.RawUI.WindowTitle = "$($titElems -join ' - ') " ; # manually add trailing space, to keep consistent for parsing.
+    } ;
 }
 
 #*------^ rebuild-PSTitleBar.ps1 ^------
@@ -5265,45 +5205,31 @@ Function Remove-PSTitleBar {
     .LINK
     https://github.com/dsolodow/IndyPoSH/blob/master/Profile.ps1
     #>
-    [CmdletBinding()]
+    
     Param (
         #[parameter(Mandatory = $true,Position=0)][String]$Tag
         [parameter(Mandatory = $true,Position=0)]$Tag,
         [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
-        [switch] $showDebug,
-        [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
-        [switch] $whatIf
+        [switch] $showDebug
     )
     $showDebug=$true ; 
-    $verbose = ($VerbosePreference -eq "Continue") ; 
     #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
+    #If ($host.name -eq 'ConsoleHost') {
     If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
         if($Tag -is [system.array]){ 
             foreach ($Tg in $Tag){
+                #if($host.ui.RawUI.WindowTitle -like "*$($Tg)*"){
                 if($host.ui.RawUI.WindowTitle  -match "\s$($Tg)\s"){
-                    if(-not($whatif)){
-                        write-verbose "update:`$host.ui.RawUI.WindowTitle to`n$(($host.ui.RawUI.WindowTitle.replace(" $Tg ",'')|out-string).trim())" ; 
-                        $host.ui.RawUI.WindowTitle = $host.ui.RawUI.WindowTitle.replace(" $Tg ","") ;
-                    } else { 
-                        write-host "whatif:update:`$host.ui.RawUI.WindowTitle to`n$(($host.ui.RawUI.WindowTitle.replace(" $Tg ",'')|out-string).trim())" ;  
-                    } ; 
-                }else{
-                    write-verbose "(unable to match '\s$($Tg)\s' to `$host.ui.RawUI.WindowTitle`n`$($host.ui.RawUI.WindowTitle)')" ;
-                } ;
+                    $host.ui.RawUI.WindowTitle = $host.ui.RawUI.WindowTitle.replace(" $Tg ","") ;
+                }else{} ;
             }
         } else { 
+            #if($host.ui.RawUI.WindowTitle -like "*$($Tag)*"){
             if($host.ui.RawUI.WindowTitle  -match "\s$($Tag)\s"){
-                if(-not($whatif)){
-                    write-verbose "update:`$host.ui.RawUI.WindowTitle to`n$(($host.ui.RawUI.WindowTitle.replace(" $Tag ",'')|out-string).trim())" ; 
-                    $host.ui.RawUI.WindowTitle = $host.ui.RawUI.WindowTitle.replace(" $Tag ","") ;
-                }else{
-                    write-host "-whatif:update:`$host.ui.RawUI.WindowTitle to`n$(($host.ui.RawUI.WindowTitle.replace(" $Tag ",'')|out-string).trim())" ; 
-                } ;
-            }else{
-                write-verbose "(unable to match '\s$($Tag)\s' to `$host.ui.RawUI.WindowTitle`n`'$($host.ui.RawUI.WindowTitle)')" ;
-            } ;
+                $host.ui.RawUI.WindowTitle = $host.ui.RawUI.WindowTitle.replace(" $Tag ","") ;
+            }else{} ;
         } ; 
-        rebuild-PSTitleBar  -verbose:$($VerbosePreference -eq "Continue") -whatif:$($whatif);
+        Rebuild-PSTitleBar ;
     } ;
 }
 
@@ -5361,72 +5287,6 @@ Function Remove-ScheduledTaskLegacy {
 }
 
 #*------^ Remove-ScheduledTaskLegacy.ps1 ^------
-
-#*------v replace-PSTitleBarText.ps1 v------
-Function replace-PSTitleBarText {
-    <#
-    .SYNOPSIS
-    replace-PSTitleBarText.ps1 - replaced specified text string in powershell console Titlebar with updated text
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-04-19
-    FileName    : replace-PSTitleBarText.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : PowershellConsole
-    AddedCredit : mdjxkln
-    AddedWebsite:	https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
-    REVISIONS
-   * 7:47 AM 7/26/2021init vers
-    .DESCRIPTION
-    replace-PSTitleBarText.ps1 - replace-PSTitleBarText.ps1 - replaced specified text string in powershell console Titlebar with updated text
-    .PARAMETER Title
-    Title string to be set on current powershell console Titlebar
-    .EXAMPLE
-    replace-PSTitleBarText -text ([Environment]::UserDomainName) -replace "$([Environment]::UserDomainName)-EMS" -whatif
-    Replace title previously set with: ("PS ADMIN - " + [Environment]::UserDomainName), to "Domain-EMS - "
-    .EXAMPLE
-    replace-PSTitleBarText -text 'PS ADMIN' -replace 'PS ADMIN-EMS' -whatif -verbose
-    replace title PS ADMIN string with PS ADMIN-EMS
-    .LINK
-    https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    #[Alias('set-PSTitle')]
-    Param (
-        [parameter(Mandatory = $true,Position=0,HelpMessage="Title substring to be replaced on current powershell console Titlebar[-title 'Domain'")]
-        [String]$Text,
-        [parameter(Mandatory = $true,Position=0,HelpMessage="Title substring replace the -Text string with, on current powershell console Titlebar[-Replacement 'Domain-EMS'")]
-        [String]$Replacement,
-        #[Parameter(HelpMessage="switch to indicate that $Text is a regular expression [-regex]")]
-        #[switch] $regex, # not needed -replace seamlessly supports both string & regex (tho' capture grpneed $1, $2 etc, unsupported in this simple variant
-        [Parameter(HelpMessage="Whatif Flag  [-whatIf]")]
-        [switch] $whatIf,
-        [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
-        [switch] $showDebug
-    )
-    $showDebug=$true ; 
-    $verbose = ($VerbosePreference -eq "Continue") ; 
-    If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
-        #only use on console host; since ISE shares the WindowTitle across multiple tabs
-        #$bPresent = $true ;
-        if(-not($whatif)){
-            write-verbose "update:`$host.ui.RawUI.WindowTitle to`n$(($host.ui.RawUI.WindowTitle -replace $Text,$Replacement|out-string).trim())" ; 
-            $host.ui.RawUI.WindowTitle = $host.ui.RawUI.WindowTitle -replace $Text,$Replacement ;
-        } else { 
-            write-host "update:`$host.ui.RawUI.WindowTitle to`n$(($host.ui.RawUI.WindowTitle -replace $Text,$Replacement|out-string).trim())" ;
-        } 
-        rebuild-PSTitleBar  -verbose:$($VerbosePreference -eq "Continue") -whatif:$($whatif);
-    } ;
-}
-
-#*------^ replace-PSTitleBarText.ps1 ^------
 
 #*------v reset-ConsoleColors.ps1 v------
 Function reset-ConsoleColors {
@@ -6182,7 +6042,6 @@ Function set-PSTitleBar {
     AddedCredit : mdjxkln
     AddedWebsite:	https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
     REVISIONS
-    * 12:12 PM 7/26/2021 rework for verbose & whatif
     * 4:26 PM 7/23/2021 added rebuild-pstitlebar to post cleanup
        * 3:14 PM 4/19/2021 init vers
     .DESCRIPTION
@@ -6216,22 +6075,12 @@ Function set-PSTitleBar {
     [Alias('set-PSTitle')]
     Param (
         [parameter(Mandatory = $true,Position=0,HelpMessage="Title string to be set on current powershell console Titlebar[-title 'PS Window'")]
-        [String]$Title,
-        [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
-        [switch] $showDebug,
-        [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
-        [switch] $whatIf
+        [String]$Title
     )
-    $verbose = ($VerbosePreference -eq "Continue") ; 
-    If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
+    If ($host.name -eq 'ConsoleHost') {
         #only use on console host; since ISE shares the WindowTitle across multiple tabs
-        if(-not($whatif)){
-            write-verbose "update:`$host.ui.RawUI.WindowTitle to`n$($Title|out-string).trim())" ; 
-            $host.ui.RawUI.WindowTitle = $Title ;
-        } else { 
-            write-host "whatif:update:`$host.ui.RawUI.WindowTitle to`n$($Title|out-string).trim())" ; 
-        } 
-        Rebuild-PSTitleBar -verbose:$($VerbosePreference -eq "Continue") -whatif:$($whatif);
+        $host.ui.RawUI.WindowTitle = $Title ;
+        Rebuild-PSTitleBar ;
     } ;
 }
 
@@ -6790,7 +6639,6 @@ Function test-PSTitleBar {
     Github      : 
     Tags        : Powershell,Console
     REVISIONS
-    * 12:14 PM 7/26/2021 add verbose echos
     * 10:15 AM 7/22/2021 init vers
     .DESCRIPTION
     test-PSTitleBar.ps1 - Test for presence of specified string(s) from the Powershell console Titlebar
@@ -6827,18 +6675,14 @@ Function test-PSTitleBar {
                 $Orgs = $consdata |?{$_ -match $rgxTenOrgs } | sort | select -unique  ; 
                 #>
                 if($host.ui.RawUI.WindowTitle  -match "\s$($Tg)\s"){
-                    write-verbose "(matched '\s$($Tg)\s' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
-                    $bPresent = $true ;
-                }else{
-                    write-verbose "(*no*-match '\s$($Tg)\s' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
-                } ;
+                      $bPresent = $true ;
+                }else{} ;
             } ; 
         } else {
-            if($host.ui.RawUI.WindowTitle -match "\s$($Tag)\s"){
+            #if($host.ui.RawUI.WindowTitle -like "*$($Tag)*"){
+            if($host.ui.RawUI.WindowTitle -match "\s$($Tg)\s"){
                   $bPresent = $true ;
-            }else{
-                write-verbose "(*no*-match '\s$($Tag)\s' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
-            } ;
+            }else{} ;
         }; 
     } ;
     $bPresent | write-output ;
@@ -7328,14 +7172,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUAAHSMD8nCFTFQ1V7dk4xn1ha
-# ZqygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUdZMQqXHfk06ADjCRrjHaT6R1
+# mEugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -7350,9 +7194,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRcoYrh
-# hbUQtv3v0b6bAdNIQkO3+TANBgkqhkiG9w0BAQEFAASBgLgJLof7n0rUpUi2RdfA
-# LDu48f70r2UsOLIcbjlDv/HX5IN3YUN+cOX3WRpiCeqTZ9KmRTZOc6gvumjvh+l6
-# jFPFiDnJQLj3Kz0L7JJcRrH/Wra9IrdKzscZx/8KxEmY1t6S3YZex5xKsC5QafT9
-# Hs3lCLk1OTJ4zXOyF1LLOtZj
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQ9lsjx
+# ohSM/+X4cWx4G2MjkUQTGzANBgkqhkiG9w0BAQEFAASBgHF8JApXGZy5twDteh5p
+# 0nsft9An7Pl8owVui2XW0aMqP5Iqvr8VurFnd+pz49T9jPJDqKy72DmSs1F1ocAL
+# lzYllbXDPMuIgF8QqEeJwraSUyJBcd3sUeAl0vKdq30TCRQ+Ry4tM5j7kjkAzZSl
+# QyQYMYBPqDOrL6tQDd0BpvMs
 # SIG # End signature block

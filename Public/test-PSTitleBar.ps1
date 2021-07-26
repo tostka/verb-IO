@@ -1,4 +1,5 @@
-﻿Function test-PSTitleBar {
+﻿#*------v test-PSTitleBar.ps1 v------
+Function test-PSTitleBar {
     <#
     .SYNOPSIS
     test-PSTitleBar.ps1 - Test for presence of specified string(s) from the Powershell console Titlebar
@@ -18,6 +19,7 @@
     Github      : 
     Tags        : Powershell,Console
     REVISIONS
+    * 12:14 PM 7/26/2021 add verbose echos
     * 10:15 AM 7/22/2021 init vers
     .DESCRIPTION
     test-PSTitleBar.ps1 - Test for presence of specified string(s) from the Powershell console Titlebar
@@ -54,15 +56,21 @@
                 $Orgs = $consdata |?{$_ -match $rgxTenOrgs } | sort | select -unique  ; 
                 #>
                 if($host.ui.RawUI.WindowTitle  -match "\s$($Tg)\s"){
-                      $bPresent = $true ;
-                }else{} ;
+                    write-verbose "(matched '\s$($Tg)\s' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
+                    $bPresent = $true ;
+                }else{
+                    write-verbose "(*no*-match '\s$($Tg)\s' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
+                } ;
             } ; 
         } else {
-            #if($host.ui.RawUI.WindowTitle -like "*$($Tag)*"){
-            if($host.ui.RawUI.WindowTitle -match "\s$($Tg)\s"){
+            if($host.ui.RawUI.WindowTitle -match "\s$($Tag)\s"){
                   $bPresent = $true ;
-            }else{} ;
+            }else{
+                write-verbose "(*no*-match '\s$($Tag)\s' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
+            } ;
         }; 
     } ;
     $bPresent | write-output ;
 }
+
+#*------^ test-PSTitleBar.ps1 ^------

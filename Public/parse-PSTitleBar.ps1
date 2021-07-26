@@ -1,4 +1,5 @@
-﻿Function parse-PSTitleBar {
+﻿#*------v parse-PSTitleBar.ps1 v------
+Function parse-PSTitleBar {
     <#
     .SYNOPSIS
     parse-PSTitleBar.ps1 - parse Powershell console Titlebar into components '[consHost] [role] - [domain] - [org] [svcs]' sorted format
@@ -18,6 +19,7 @@
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Console
     REVISIONS
+    * 11:42 AM 7/26/2021 added verbose echo support
     * 3:15 PM 7/23/2021 init vers
     .DESCRIPTION
     parse-PSTitleBar.ps1 - parse Powershell console Titlebar into components '[consHost] [role] - [domain] - [org] [svcs]' sorted format
@@ -27,16 +29,20 @@
     .LINK
     https://github.com/dsolodow/IndyPoSH/blob/master/Profile.ps1
     #>
+    [CmdletBinding()]
     Param (
         [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
         [switch] $showDebug
     )
     BEGIN {
         $showDebug=$true ; 
+        $verbose = ($VerbosePreference -eq "Continue") ; 
         # simpler alt, take everything after last '-':
-        [regex]$rgxsvcs = ('(' + (((Get-Variable  -name "TorMeta").value.OrgSvcs |foreach-object{[regex]::escape($_)}) -join '|') + ')') ;
-        $Metas=(get-variable *meta|?{$_.name -match '^\w{3}Meta$'}) ; 
-        if(!$rgxTenOrgs){ [regex]$rgxTenOrgs = ('(' + (($metas.name.substring(0,3) |foreach-object{[regex]::escape($_)}) -join '|') + ')') } ; 
+        [regex]$rgxsvcs = ('^(' + (((Get-Variable  -name "TorMeta").value.OrgSvcs |foreach-object{[regex]::escape($_)}) -join '|') + ')$') ;
+        write-verbose "using `$rgxsvcs:$($rgxsvcs)" ; 
+        $Metas=(get-variable *meta|?{$_.name -match '^\w{3}Meta$'}).name ; 
+        if(!$rgxTenOrgs){ [regex]$rgxTenOrgs = ('^(' + (($metas.substring(0,3) |foreach-object{[regex]::escape($_)}) -join '|') + ')$') } ; 
+        write-verbose "`$rgxTenOrgs:$($rgxTenOrgs)" ; 
     } 
     PROCESS {
         #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
@@ -50,11 +56,20 @@
                 Services = $null ; 
             } ; 
             # doing it with rgx
-            if($host.ui.rawui.windowtitle -match '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)'){
+            #$rgxTitleBarTemplate = '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)' ; 
+            #$rgxTitleBarTemplate = '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)' ; 
+            $rgxTitleBarTemplate = '^(PS|PSc)\s(.*)\s-\s(.*)\s-(.*)$' ; 
+            if($host.ui.rawui.windowtitle -match $rgxTitleBarTemplate){
                 $hshCons.host,$hshCons.role,$hshCons.domain=$matches[1..3]; 
+                if($hshCons.role.indexof('-')){
+                    $xs = $hshCons.role ; 
+                    $hshCons.role=$xs.tostring().split('-')[0] ; 
+                    $hshCons.add('TermTag',($xs.tostring().split('-'))[1] ) ; 
+                    remove-variable xs
+                } ;
                 $hshCons.Info = $matches[4] ;
-                $hshCons.Orgs = $matches[4] -split ' '| ?{$_} | ?{$_ -match $rgxTenOrgs} | sort | select -unique  ; 
-                $hshCons.Services = $matches[4] -split ' '| ?{$_} | ?{$_ -match $rgxsvcs} | sort | select -unique  ; 
+                $hshCons.Orgs = $hshCons.Info -split ' '| ?{$_} | ?{$_ -match $rgxTenOrgs} | sort | select -unique  ; 
+                $hshCons.Services = $hshCons.Info -split ' '| ?{$_} | ?{$_ -match $rgxsvcs} | sort | select -unique  ; 
             }
             <# simple parser        
             $consPrembl = $host.ui.rawui.windowtitle.substring(0,$host.ui.rawui.windowtitle.LastIndexOf('-')).trim() ;
@@ -68,6 +83,9 @@
         }
     }
     END {
+        write-verbose "Returning values:`n$(($hshCons|out-string).trim())" ; 
         [pscustomobject]$hshCons | write-output ;  
     } ;
-} ;
+}
+
+#*------^ parse-PSTitleBar.ps1 ^------
