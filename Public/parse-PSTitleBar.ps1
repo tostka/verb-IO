@@ -19,6 +19,7 @@ Function parse-PSTitleBar {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Console
     REVISIONS
+    * 8:15 AM 7/27/2021 sub'd in $rgxQ for duped rgx
     * 11:42 AM 7/26/2021 added verbose echo support
     * 3:15 PM 7/23/2021 init vers
     .DESCRIPTION
@@ -56,7 +57,6 @@ Function parse-PSTitleBar {
                 Services = $null ; 
             } ; 
             # doing it with rgx
-            #$rgxTitleBarTemplate = '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)' ; 
             #$rgxTitleBarTemplate = '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)' ; 
             $rgxTitleBarTemplate = '^(PS|PSc)\s(.*)\s-\s(.*)\s-(.*)$' ; 
             if($host.ui.rawui.windowtitle -match $rgxTitleBarTemplate){

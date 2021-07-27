@@ -19,6 +19,7 @@ Function test-PSTitleBar {
     Github      : 
     Tags        : Powershell,Console
     REVISIONS
+    * 8:03 AM 7/27/2021 added rgx esc to inbound tags
     * 12:14 PM 7/26/2021 add verbose echos
     * 10:15 AM 7/22/2021 init vers
     .DESCRIPTION
@@ -43,8 +44,10 @@ Function test-PSTitleBar {
         [switch] $showDebug
     )
     $showDebug=$true ; 
-    #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
+    $rgxRgxOps = [regex]'[\[\]\\\{\}\+\*\?\.]+' ; 
+    write-verbose "`$Tag:`n$(($Tag|out-string).trim())" ; 
     $bPresent = $false ; 
+    #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
     If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
         if($Tag -is [system.array]){ 
             foreach ($Tg in $Tag){
@@ -55,18 +58,31 @@ Function test-PSTitleBar {
                 $svcs = $consdata | ?{$_ -match $rgxsvcs} | sort | select -unique  ; 
                 $Orgs = $consdata |?{$_ -match $rgxTenOrgs } | sort | select -unique  ; 
                 #>
-                if($host.ui.RawUI.WindowTitle  -match "\s$($Tg)\s"){
-                    write-verbose "(matched '\s$($Tg)\s' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
+                if($Tg -notmatch $rgxRgxOps){
+                    $rgxQ = "\s$([Regex]::Escape($Tg))\s" ; 
+                } else { 
+                    $rgxQ = "\s$($Tg)\s" ; # assume it's already a regex, no manual escape
+                };  
+                write-verbose "`$rgxQ:$($rgxQ)" ; 
+                if($host.ui.RawUI.WindowTitle  -match $rgxQ){
+                    write-verbose "(matched '$($rgxQ)' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
                     $bPresent = $true ;
                 }else{
-                    write-verbose "(*no*-match '\s$($Tg)\s' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
+                    write-verbose "(*no*-match '$($rgxQ)' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
                 } ;
             } ; 
         } else {
-            if($host.ui.RawUI.WindowTitle -match "\s$($Tag)\s"){
-                  $bPresent = $true ;
+            if($Tag -notmatch $rgxRgxOps){
+                $rgxQ = "\s$([Regex]::Escape($Tag))\s" ;
+            } else { 
+                $rgxQ = "\s$($Tag)\s" ; # assume it's already a regex, no manual escape
+            }; 
+            write-verbose "`$rgxQ:$($rgxQ)" ; 
+            if($host.ui.RawUI.WindowTitle -match $rgxQ){
+                write-verbose "(matched '$($rgxQ)' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
+                $bPresent = $true ;
             }else{
-                write-verbose "(*no*-match '\s$($Tag)\s' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
+                write-verbose "(*no*-match '$($rgxQ)' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
             } ;
         }; 
     } ;

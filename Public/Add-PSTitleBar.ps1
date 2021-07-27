@@ -15,6 +15,7 @@ Function Add-PSTitleBar {
     Github      : 
     Tags        : Powershell,Console
     REVISIONS
+    * 8:15 AM 7/27/2021 sub'd in $rgxQ for duped rgx
     * 10:30 AM 7/26/2021 reworked, added whatif, showdebug, verbose echos, working on array-supp in the inputs
     * 3:11 PM 4/19/2021 added cmdletbinding/verbose supp & alias add-PSTitle
     * 4:37 PM 2/27/2020 updated CBH
@@ -44,6 +45,8 @@ Function Add-PSTitleBar {
     )
     $showDebug=$true ; 
     $verbose = ($VerbosePreference -eq "Continue") ; 
+    write-verbose "`$Tag:`n$(($Tag|out-string).trim())" ; 
+    $rgxRgxOps = [regex]'[\[\]\\\{\}\+\*\?\.]+' ; 
     #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
     #If ($host.name -eq 'ConsoleHost') {
     If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
@@ -55,8 +58,14 @@ Function Add-PSTitleBar {
                 # don't add if already present
                 #if($host.ui.RawUI.WindowTitle -like "*$($Tg)*"){}
                 # search space delimited, mebbe regex, $env:userdomain is overlapping the TenOrg (which is a substring of the domain), plus side always has trailing \s
-                if($host.ui.RawUI.WindowTitle  -match "\s$($Tg)\s"){
-                    write-verbose "(not-matched:'\s$($Tg)\s' in `$host.ui.RawUI.WindowTitle`n$($host.ui.RawUI.WindowTitle))" ; 
+                if($Tg -notmatch $rgxRgxOps){
+                    $rgxQ = "\s$([Regex]::Escape($Tg))\s" ; 
+                } else { 
+                    $rgxQ = "\s$($Tg)\s" ; # assume it's already a regex, no manual escape
+                };  
+                write-verbose "`$rgxQ:$($rgxQ)" ; 
+                if($host.ui.RawUI.WindowTitle  -match $rgxQ){
+                    write-verbose "(pre-matched '$($rgxQ)' in`n$(($host.ui.RawUI.WindowTitle|out-string).trim()))" ; 
                 }else{
                     if(-not($whatif)){
                         write-verbose "Update `$host.ui.RawUI.WindowTitle to`n '$($host.ui.RawUI.WindowTitle) $($Tg) )'" ; 
@@ -67,8 +76,14 @@ Function Add-PSTitleBar {
                 } ;
             } ; 
         } else { 
-            if($host.ui.RawUI.WindowTitle  -match "\s$($Tag)\s"){
-                write-verbose "(not-matched:'\s$($Tag)\s' in `$host.ui.RawUI.WindowTitle`n$($host.ui.RawUI.WindowTitle))" ; 
+            if($Tag -notmatch $rgxRgxOps){
+                $rgxQ = "\s$([Regex]::Escape($Tag))\s" ; 
+            } else { 
+                $rgxQ = "\s$($Tag)\s" ; # assume it's already a regex, no manual escape
+            }; 
+            write-verbose "`$rgxQ:$($rgxQ)" ; 
+            if($host.ui.RawUI.WindowTitle  -match $rgxQ ){
+                write-verbose "(not-matched:'$($rgxQ)' in `$host.ui.RawUI.WindowTitle`n$($host.ui.RawUI.WindowTitle))" ; 
             }else{
                 if(-not($whatif)){
                     write-verbose "Update `$host.ui.RawUI.WindowTitle to`n '$($host.ui.RawUI.WindowTitle) $($Tag) )'" ; 
@@ -79,7 +94,7 @@ Function Add-PSTitleBar {
             } ;
         } ;
     } ;
-    rebuild-PSTitleBar  -verbose:$($VerbosePreference -eq "Continue") -whatif:$($whatif);
+    rebuild-PSTitleBar -verbose:$($VerbosePreference -eq "Continue") -whatif:$($whatif);
 }
 
 #*------^ Add-PSTitleBar.ps1 ^------

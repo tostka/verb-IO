@@ -58,6 +58,7 @@ Function set-PSTitleBar {
         [switch] $whatIf
     )
     $verbose = ($VerbosePreference -eq "Continue") ; 
+    write-verbose "`$Title:$($Title)" ; 
     If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
         #only use on console host; since ISE shares the WindowTitle across multiple tabs
         if(-not($whatif)){

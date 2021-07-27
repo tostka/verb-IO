@@ -36,7 +36,7 @@ Function replace-PSTitleBarText {
     [CmdletBinding()]
     #[Alias('set-PSTitle')]
     Param (
-        [parameter(Mandatory = $true,Position=0,HelpMessage="Title substring to be replaced on current powershell console Titlebar[-title 'Domain'")]
+        [parameter(Mandatory = $true,Position=0,HelpMessage="Title substring to be replaced on current powershell console Titlebar (supports regex syntax)[-title 'Domain'")]
         [String]$Text,
         [parameter(Mandatory = $true,Position=0,HelpMessage="Title substring replace the -Text string with, on current powershell console Titlebar[-Replacement 'Domain-EMS'")]
         [String]$Replacement,
@@ -49,6 +49,8 @@ Function replace-PSTitleBarText {
     )
     $showDebug=$true ; 
     $verbose = ($VerbosePreference -eq "Continue") ; 
+    write-verbose "`$Text:$($Text)" ; 
+    write-verbose "`$Replacement:$($Replacement)" ; 
     If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
         #only use on console host; since ISE shares the WindowTitle across multiple tabs
         #$bPresent = $true ;
@@ -60,6 +62,6 @@ Function replace-PSTitleBarText {
         } 
         rebuild-PSTitleBar  -verbose:$($VerbosePreference -eq "Continue") -whatif:$($whatif);
     } ;
-} ;
+}
 
 #*------^ replace-PSTitleBarText.ps1 ^------
