@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.86.0.0
+Version     : 1.0.89.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -477,6 +477,219 @@ function ColorMatch {
 
 #*------^ ColorMatch.ps1 ^------
 
+#*------v Compare-ObjectsSideBySide.ps1 v------
+function Compare-ObjectsSideBySide ($lhs, $rhs) {
+    <#
+    .SYNOPSIS
+    Compare-ObjectsSideBySide() - Displays a pair of objects side-by-side comparatively in console
+    .NOTES
+    Author: Richard Slater
+    Website:	https://stackoverflow.com/users/74302/richard-slater
+    Updated By: Todd Kadrie
+    Website:	http://www.toddomation.com
+    Twitter:	@tostka, http://twitter.com/tostka
+    Additional Credits: REFERENCE
+    Website:	URL
+    Twitter:	URL
+    REVISIONS   :
+    * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
+    * 10:18 AM 11/2/2018 reformatted, tightened up, shifted params to body, added pshelp
+    * May 7 '16 at 20:55 posted version
+    .DESCRIPTION
+    Compare-ObjectsSideBySide() - Displays a pair of objects side-by-side comparatively in console
+    .PARAMETER  col1
+    Object to be displayed in Left Column [-col1 $PsObject1]
+    .PARAMETER  col2
+    Object to be displayed in Right Column [-col2 $PsObject2]
+    .PARAMETER ShowDebug
+    Parameter to display Debugging messages [-ShowDebug switch]
+    .INPUTS
+    Acceptes piped input.
+    .OUTPUTS
+    Outputs specified object side-by-side on console
+    .EXAMPLE
+    $object1 = New-Object PSObject -Property @{
+      'Forename' = 'Richard';
+      'Surname' = 'Slater';
+      'Company' = 'Amido';
+      'SelfEmployed' = $true;
+    } ;
+    $object2 = New-Object PSObject -Property @{
+      'Forename' = 'Jane';
+      'Surname' = 'Smith';
+      'Company' = 'Google';
+      'MaidenName' = 'Jones' ;
+    } ;
+    Compare-ObjectsSideBySide $object1 $object2 | Format-Table Property, col1, col2;
+    Display $object1 & $object2 in comparative side-by-side columns
+    .LINK
+    https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
+    #>
+    $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $combinedMembers = ($col1Members + $col2Members) | Sort-Object -COque ;
+    $combinedMembers | ForEach-Object {
+        $properties = @{'Property' = $_} ;
+        if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
+        if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
+        New-Object PSObject -Property $properties ;
+    } ;
+}
+
+#*------^ Compare-ObjectsSideBySide.ps1 ^------
+
+#*------v Compare-ObjectsSideBySide3.ps1 v------
+function Compare-ObjectsSideBySide3 ($col1, $col2, $col3) {
+    <#
+    .SYNOPSIS
+    Compare-ObjectsSideBySide3() - Displays three objects side-by-side comparatively in console
+    .NOTES
+    Author: Richard Slater
+    Website:	https://stackoverflow.com/users/74302/richard-slater
+    Updated By: Todd Kadrie
+    Website:	http://www.toddomation.com
+    Twitter:	@tostka, http://twitter.com/tostka
+    Additional Credits: REFERENCE
+    Website:	URL
+    Twitter:	URL
+    REVISIONS   :
+    * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
+    * 10:18 AM 11/2/2018 Extension of base model, to 3 columns
+    * May 7 '16 at 20:55 posted version
+    .DESCRIPTION
+    Compare-ObjectsSideBySide3() - Displays three objects side-by-side comparatively in console
+    .PARAMETER  col1
+    Object to be displayed in Column1 [-col1 $PsObject1]
+    .PARAMETER  col2
+    Object to be displayed in Column2 [-col2 $PsObject2]
+    .PARAMETER  col3
+    Object to be displayed in Column3 [-col3 $PsObject3]
+    .PARAMETER ShowDebug
+    Parameter to display Debugging messages [-ShowDebug switch]
+    .INPUTS
+    Acceptes piped input.
+    .OUTPUTS
+    Outputs specified object side-by-side on console
+    .EXAMPLE
+    $object1 = New-Object PSObject -Property @{
+      'Forename' = 'Richard';
+      'Surname' = 'Slater';
+      'Company' = 'Amido';
+      'SelfEmployed' = $true;
+    } ;
+    $object2 = New-Object PSObject -Property @{
+      'Forename' = 'Jane';
+      'Surname' = 'Smith';
+      'Company' = 'Google';
+      'MaidenName' = 'Jones' ;
+    } ;
+    $object3 = New-Object PSObject -Property @{
+      'Forename' = 'Zhe';
+      'Surname' = 'Person';
+      'Company' = 'Apfel';
+      'MaidenName' = 'NunaUBusiness' ;
+    } ;
+    Compare-ObjectsSideBySide3 $object1 $object2 $object3 | Format-Table Property, col1, col2, col3;
+    Display $object1 & $object2 in comparative side-by-side columns
+    .LINK
+    https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
+    #>
+    $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $combinedMembers = ($col1Members + $col2Members + $col3Members ) | Sort-Object -COque ;
+    $combinedMembers | ForEach-Object {
+        $properties = @{'Property' = $_} ;
+        if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
+        if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
+        if ($col3Members.Contains($_)) {$properties['Col3'] = $col3 | Select-Object -ExpandProperty $_} ;
+        New-Object PSObject -Property $properties ;
+    } ;
+}
+
+#*------^ Compare-ObjectsSideBySide3.ps1 ^------
+
+#*------v Compare-ObjectsSideBySide4.ps1 v------
+function Compare-ObjectsSideBySide4 ($col1, $col2, $col3, $col4) {
+    <#
+    .SYNOPSIS
+    Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
+    .NOTES
+    Author: Richard Slater
+    Website:	https://stackoverflow.com/users/74302/richard-slater
+    Updated By: Todd Kadrie
+    Website:	http://www.toddomation.com
+    Twitter:	@tostka, http://twitter.com/tostka
+    Additional Credits: REFERENCE
+    Website:	URL
+    Twitter:	URL
+    REVISIONS   :
+    * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
+    * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
+    * May 7 '16 at 20:55 posted version
+    .DESCRIPTION
+    Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
+    .PARAMETER  col1
+    Object to be displayed in Column1 [-col1 $PsObject1]
+    .PARAMETER  col2
+    Object to be displayed in Column2 [-col2 $PsObject2]
+    .PARAMETER  col3
+    Object to be displayed in Column3 [-col3 $PsObject3]
+    .PARAMETER  col4
+    Object to be displayed in Column4 [-col4 $PsObject4]
+    .PARAMETER ShowDebug
+    Parameter to display Debugging messages [-ShowDebug switch]
+    .INPUTS
+    Acceptes piped input.
+    .OUTPUTS
+    Outputs specified object side-by-side on console
+    .EXAMPLE
+    $object1 = New-Object PSObject -Property @{
+      'Forename' = 'Richard';
+      'Surname' = 'Slater';
+      'Company' = 'Amido';
+      'SelfEmployed' = $true;
+    } ;
+    $object2 = New-Object PSObject -Property @{
+      'Forename' = 'Jane';
+      'Surname' = 'Smith';
+      'Company' = 'Google';
+      'MaidenName' = 'Jones' ;
+    } ;
+    $object3 = New-Object PSObject -Property @{
+      'Forename' = 'Zhe';
+      'Surname' = 'Person';
+      'Company' = 'Apfel';
+      'MaidenName' = 'NunaUBusiness' ;
+    } ;
+    $object4 = New-Object PSObject -Property @{
+      'Forename' = 'Zir';
+      'Surname' = 'NPC';
+      'Company' = 'Facemook';
+      'MaidenName' = 'Not!' ;
+    } ;
+    Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
+    Display $object1,2,3 & 4 in comparative side-by-side columns
+    .LINK
+    https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
+    #>
+    $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $col4Members = $col4 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $combinedMembers = ($col1Members + $col2Members + $col3Members + $col4Members) | Sort-Object -COque ;
+    $combinedMembers | ForEach-Object {
+        $properties = @{'Property' = $_} ;
+        if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
+        if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
+        if ($col3Members.Contains($_)) {$properties['Col3'] = $col3 | Select-Object -ExpandProperty $_} ;
+        if ($col4Members.Contains($_)) {$properties['col4'] = $col4 | Select-Object -ExpandProperty $_} ;
+        New-Object PSObject -Property $properties ;
+    } ;
+}
+
+#*------^ Compare-ObjectsSideBySide4.ps1 ^------
+
 #*------v convert-ColorHexCodeToWindowsMediaColorsName.ps1 v------
 Function convert-ColorHexCodeToWindowsMediaColorsName {
     <#
@@ -496,6 +709,7 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
     AddedCredit : mdjxkln
     AddedWebsite:	https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
     REVISIONS
+       * 11:36 AM 7/29/2021 completely unfinished, added (borked) code to populate $colors, but need to debug further. Looks like an abandoned concept that must have not been needed (likely around fact that ISE/VSC & winhost each implement colors differently, and aren't cross-compatible. 
        * 3:14 PM 4/19/2021 init vers
     .DESCRIPTION
     convert-ColorHexCodeToWindowsMediaColorsName.ps1 - Convert color hexcodes into equiv [windows.media.colors] name value (if exists)
@@ -528,6 +742,8 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
     Param ([parameter(Mandatory = $true,Position=0,HelpMessage="Colorhex code to be converted to [windows.media.colors] name value [-colorcode '#FF9ACD32'")][String]$ColorCode)
     BEGIN{
         # build indexed hash of media colors keyed on hexcodes
+        Add-Type –assemblyName PresentationFramework
+        $colors = [windows.media.colors] | Get-Member -static -Type Property |  Select -Expand Name ;
         $ISEColors = @{} ;
         $colors| foreach {
             $hexcolor = ([windows.media.colors]::$($_.name)).tostring() ; 
@@ -4670,6 +4886,82 @@ function new-Shortcut {
 
 #*------^ new-Shortcut.ps1 ^------
 
+#*------v Out-Excel.ps1 v------
+function Out-Excel {
+    <#
+    .SYNOPSIS
+    Out-Excel.ps1 - Simple func to deliver Excel as a out-gridview alternative.
+    .NOTES
+    Version     : 1.0.0
+    Author      : heyscriptingguy
+    Website     :	http://blogs.technet.com/b/heyscriptingguy/archive/2014/01/10/powershell-and-excel-fast-safe-and-reliable.aspx
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-
+    FileName    : Out-Excel.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-XXX
+    Tags        : Powershell,Excel
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    # vers: * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
+    # vers: 1/10/2014
+    .DESCRIPTION
+    Out-Excel.ps1 - Simple func to deliver Excel as a out-gridview alternative.
+    .EXAMPLE
+    PS> $obj | Out-Excel
+    .EXAMPLE
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    PARAM($Path = "$env:temp\$(Get-Date -Format yyyyMMddHHmmss).csv")
+    $input | Export-CSV -Path $Path -UseCulture -Encoding UTF8 -NoTypeInformation
+    Invoke-Item -Path $Path
+}
+
+#*------^ Out-Excel.ps1 ^------
+
+#*------v Out-Excel-Events.ps1 v------
+function Out-Excel-Events {
+<#
+.SYNOPSIS
+Out-Excel-Events.ps1 - Simple func() to deliver Excel as a out-gridview alternative, this variant massages array ReplacementStrings into a comma-delimited string.
+.NOTES
+Version     : 1.0.0
+Author      : heyscriptingguy
+Website     :	http://blogs.technet.com/b/heyscriptingguy/archive/2014/01/10/powershell-and-excel-fast-safe-and-reliable.aspx
+Twitter     :	@tostka / http://twitter.com/tostka
+CreatedDate : 2020-
+FileName    : Out-Excel-Events.ps1 
+License     : (none asserted)
+Copyright   : (none asserted)
+Github      : https://github.com/tostka/verb-XXX
+Tags        : Powershell,Excel
+REVISIONS
+# vers: * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
+# vers: 1/10/2014
+.DESCRIPTION
+Simple func() to deliver Excel as a out-gridview alternative, this variant massages array ReplacementStrings into a comma-delimited string.
+.EXAMPLE
+PS> $obj | Out-Excel-Events
+.EXAMPLE
+.LINK
+https://github.com/tostka/verb-IO
+#>
+    PARAM($Path = "$env:temp\$(Get-Date -Format yyyyMMddHHmmss).csv")
+    $input | Select -Property * |
+    ForEach-Object {
+        $_.ReplacementStrings = $_.ReplacementStrings -join ','
+        $_.Data = $_.Data -join ','
+        $_
+    } | Export-CSV -Path $Path -UseCulture -Encoding UTF8 -NoTypeInformation
+    Invoke-Item -Path $Path
+}
+
+#*------^ Out-Excel-Events.ps1 ^------
+
 #*------v parse-PSTitleBar.ps1 v------
 Function parse-PSTitleBar {
     <#
@@ -7379,5 +7671,5 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 

@@ -17,6 +17,7 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
     AddedCredit : mdjxkln
     AddedWebsite:	https://xkln.net/blog/putting-the-powershell-window-title-to-better-use/
     REVISIONS
+       * 11:36 AM 7/29/2021 completely unfinished, added (borked) code to populate $colors, but need to debug further. Looks like an abandoned concept that must have not been needed (likely around fact that ISE/VSC & winhost each implement colors differently, and aren't cross-compatible. 
        * 3:14 PM 4/19/2021 init vers
     .DESCRIPTION
     convert-ColorHexCodeToWindowsMediaColorsName.ps1 - Convert color hexcodes into equiv [windows.media.colors] name value (if exists)
@@ -49,6 +50,8 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
     Param ([parameter(Mandatory = $true,Position=0,HelpMessage="Colorhex code to be converted to [windows.media.colors] name value [-colorcode '#FF9ACD32'")][String]$ColorCode)
     BEGIN{
         # build indexed hash of media colors keyed on hexcodes
+        Add-Type –assemblyName PresentationFramework
+        $colors = [windows.media.colors] | Get-Member -static -Type Property |  Select -Expand Name ;
         $ISEColors = @{} ;
         $colors| foreach {
             $hexcolor = ([windows.media.colors]::$($_.name)).tostring() ; 
