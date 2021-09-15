@@ -1,5 +1,5 @@
-﻿#*------v Function Compare-ObjectsSideBySide4 v------
-function Compare-ObjectsSideBySide4 ($col1, $col2, $col3, $col4) {
+﻿#*------v Compare-ObjectsSideBySide4.ps1 v------
+function Compare-ObjectsSideBySide4 {
     <#
     .SYNOPSIS
     Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
@@ -10,24 +10,26 @@ function Compare-ObjectsSideBySide4 ($col1, $col2, $col3, $col4) {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     Additional Credits: REFERENCE
-    Website:	URL
-    Twitter:	URL
+    FileName    : Compare-ObjectsSideBySide4.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell,Compare
     REVISIONS   :
+    * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
     * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
     * May 7 '16 at 20:55 posted version
     .DESCRIPTION
     Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
-    .PARAMETER  col1
-    Object to be displayed in Column1 [-col1 $PsObject1]
-    .PARAMETER  col2
-    Object to be displayed in Column2 [-col2 $PsObject2]
-    .PARAMETER  col3
-    Object to be displayed in Column3 [-col3 $PsObject3]
-    .PARAMETER  col4
-    Object to be displayed in Column4 [-col4 $PsObject4]
-    .PARAMETER ShowDebug
-    Parameter to display Debugging messages [-ShowDebug switch]
+    .PARAMETER col1
+    Object to compare in 1st column[-col1 `$PsObject1]
+    PARAMETER col2
+    Object to compare in 2nd column[-col2 `$PsObject1]
+    PARAMETER col3
+    Object to compare in 3rd column[-col3 `$PsObject1]
+    PARAMETER col3
+    Object to compare in 4th column[-col4 `$PsObject1]
     .INPUTS
     Acceptes piped input.
     .OUTPUTS
@@ -62,6 +64,20 @@ function Compare-ObjectsSideBySide4 ($col1, $col2, $col3, $col4) {
     .LINK
     https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
     #>
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in 1st column[-col1 `$PsObject1]")]
+        #[Alias('lhs')]
+        $col1,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 2nd column[-col1 `$PsObject1]")]
+        #[Alias('rhs')]        
+        $col2,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 3rd column[-col1 `$PsObject1]")]
+        #[Alias('rhs')]        
+        $col3,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 4th column[-col1 `$PsObject1]")]
+        #[Alias('rhs')]        
+        $col4
+    ) ;
     $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
     $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
     $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
@@ -75,4 +91,6 @@ function Compare-ObjectsSideBySide4 ($col1, $col2, $col3, $col4) {
         if ($col4Members.Contains($_)) {$properties['col4'] = $col4 | Select-Object -ExpandProperty $_} ;
         New-Object PSObject -Property $properties ;
     } ;
-} ; #*------^ END Function Compare-ObjectsSideBySide4 ^------
+}
+
+#*------^ Compare-ObjectsSideBySide4.ps1 ^------

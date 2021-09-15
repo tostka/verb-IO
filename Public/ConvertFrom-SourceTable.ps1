@@ -6,12 +6,15 @@ Function ConvertFrom-SourceTable {
   .NOTES
   Version     : 0.3.11
   Author      : iRon
-  Website     : http://www.toddomation.com
+  Website     : https://github.com/iRon7/ConvertFrom-SourceTable/
   Twitter     : 
   CreatedDate : 2020-03-27
   FileName    : ConvertFrom-SourceTable
   License     : https://github.com/iRon7/ConvertFrom-SourceTable/LICENSE.txt
   Copyright   : (Not specified)
+  AddedCredit : Todd Kadrie
+  AddedWebsite:	http://www.toddomation.com
+  AddedTwitter:	@tostka / http://twitter.com/tostka
   Github      : https://github.com/iRon7/ConvertFrom-SourceTable
   Tags        : Powershell,Conversion,Text
   REVISIONS

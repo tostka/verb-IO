@@ -25,9 +25,6 @@ Function convert-DehydratedBytesToGB {
     .OUTPUT
     System.Object[] 
     .EXAMPLE
-    convert-DehydratedBytesToGB 
-    Set the string 'EMS' as the powershell console Title Bar
-    .EXAMPLE
      (get-mailbox | get-mailboxstatistics).totalitemsize.value | convert-DehydratedBytesToGB ;
     Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values
     .LINK

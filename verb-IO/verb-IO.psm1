@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.92.0.0
+Version     : 1.0.94.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -478,7 +478,7 @@ function ColorMatch {
 #*------^ ColorMatch.ps1 ^------
 
 #*------v Compare-ObjectsSideBySide.ps1 v------
-function Compare-ObjectsSideBySide ($lhs, $rhs) {
+function Compare-ObjectsSideBySide{
     <#
     .SYNOPSIS
     Compare-ObjectsSideBySide() - Displays a pair of objects side-by-side comparatively in console
@@ -491,7 +491,13 @@ function Compare-ObjectsSideBySide ($lhs, $rhs) {
     Additional Credits: REFERENCE
     Website:	URL
     Twitter:	URL
+    FileName    : convert-ColorHexCodeToWindowsMediaColorsName.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : PowershellConsole
     REVISIONS   :
+    * 10:17 AM 9/15/2021 fixed typo in params, moved to full param block, and added lhs/rhs as aliases; expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
     * 10:18 AM 11/2/2018 reformatted, tightened up, shifted params to body, added pshelp
     * May 7 '16 at 20:55 posted version
@@ -524,10 +530,20 @@ function Compare-ObjectsSideBySide ($lhs, $rhs) {
     Display $object1 & $object2 in comparative side-by-side columns
     .LINK
     https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
+    .LINK
+    https://github.com/tostka/verb-IO
     #>
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj1]")]
+        [Alias('lhs')]
+        $col1,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj2]")]
+        [Alias('rhs')]        
+        $col2
+    ) ;
     $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
     $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $combinedMembers = ($col1Members + $col2Members) | Sort-Object -COque ;
+    $combinedMembers = ($col1Members + $col2Members) | Sort-Object -Unique ;
     $combinedMembers | ForEach-Object {
         $properties = @{'Property' = $_} ;
         if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
@@ -539,78 +555,7 @@ function Compare-ObjectsSideBySide ($lhs, $rhs) {
 #*------^ Compare-ObjectsSideBySide.ps1 ^------
 
 #*------v Compare-ObjectsSideBySide3.ps1 v------
-function Compare-ObjectsSideBySide3 ($col1, $col2, $col3) {
-    <#
-    .SYNOPSIS
-    Compare-ObjectsSideBySide3() - Displays three objects side-by-side comparatively in console
-    .NOTES
-    Author: Richard Slater
-    Website:	https://stackoverflow.com/users/74302/richard-slater
-    Updated By: Todd Kadrie
-    Website:	http://www.toddomation.com
-    Twitter:	@tostka, http://twitter.com/tostka
-    Additional Credits: REFERENCE
-    Website:	URL
-    Twitter:	URL
-    REVISIONS   :
-    * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
-    * 10:18 AM 11/2/2018 Extension of base model, to 3 columns
-    * May 7 '16 at 20:55 posted version
-    .DESCRIPTION
-    Compare-ObjectsSideBySide3() - Displays three objects side-by-side comparatively in console
-    .PARAMETER  col1
-    Object to be displayed in Column1 [-col1 $PsObject1]
-    .PARAMETER  col2
-    Object to be displayed in Column2 [-col2 $PsObject2]
-    .PARAMETER  col3
-    Object to be displayed in Column3 [-col3 $PsObject3]
-    .PARAMETER ShowDebug
-    Parameter to display Debugging messages [-ShowDebug switch]
-    .INPUTS
-    Acceptes piped input.
-    .OUTPUTS
-    Outputs specified object side-by-side on console
-    .EXAMPLE
-    $object1 = New-Object PSObject -Property @{
-      'Forename' = 'Richard';
-      'Surname' = 'Slater';
-      'Company' = 'Amido';
-      'SelfEmployed' = $true;
-    } ;
-    $object2 = New-Object PSObject -Property @{
-      'Forename' = 'Jane';
-      'Surname' = 'Smith';
-      'Company' = 'Google';
-      'MaidenName' = 'Jones' ;
-    } ;
-    $object3 = New-Object PSObject -Property @{
-      'Forename' = 'Zhe';
-      'Surname' = 'Person';
-      'Company' = 'Apfel';
-      'MaidenName' = 'NunaUBusiness' ;
-    } ;
-    Compare-ObjectsSideBySide3 $object1 $object2 $object3 | Format-Table Property, col1, col2, col3;
-    Display $object1 & $object2 in comparative side-by-side columns
-    .LINK
-    https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
-    #>
-    $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $combinedMembers = ($col1Members + $col2Members + $col3Members ) | Sort-Object -COque ;
-    $combinedMembers | ForEach-Object {
-        $properties = @{'Property' = $_} ;
-        if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
-        if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
-        if ($col3Members.Contains($_)) {$properties['Col3'] = $col3 | Select-Object -ExpandProperty $_} ;
-        New-Object PSObject -Property $properties ;
-    } ;
-}
-
-#*------^ Compare-ObjectsSideBySide3.ps1 ^------
-
-#*------v Compare-ObjectsSideBySide4.ps1 v------
-function Compare-ObjectsSideBySide4 ($col1, $col2, $col3, $col4) {
+function Compare-ObjectsSideBySide4 {
     <#
     .SYNOPSIS
     Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
@@ -621,22 +566,26 @@ function Compare-ObjectsSideBySide4 ($col1, $col2, $col3, $col4) {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     Additional Credits: REFERENCE
-    Website:	URL
-    Twitter:	URL
+    FileName    : Compare-ObjectsSideBySide4.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell,Compare
     REVISIONS   :
+    * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
     * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
     * May 7 '16 at 20:55 posted version
     .DESCRIPTION
     Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
-    .PARAMETER  col1
-    Object to be displayed in Column1 [-col1 $PsObject1]
-    .PARAMETER  col2
-    Object to be displayed in Column2 [-col2 $PsObject2]
-    .PARAMETER  col3
-    Object to be displayed in Column3 [-col3 $PsObject3]
-    .PARAMETER  col4
-    Object to be displayed in Column4 [-col4 $PsObject4]
+    .PARAMETER col1
+    Object to compare in 1st column[-col1 `$PsObject1]
+    PARAMETER col2
+    Object to compare in 2nd column[-col2 `$PsObject1]
+    PARAMETER col3
+    Object to compare in 3rd column[-col3 `$PsObject1]
+    PARAMETER col3
+    Object to compare in 4th column[-col4 `$PsObject1]
     .PARAMETER ShowDebug
     Parameter to display Debugging messages [-ShowDebug switch]
     .INPUTS
@@ -673,6 +622,117 @@ function Compare-ObjectsSideBySide4 ($col1, $col2, $col3, $col4) {
     .LINK
     https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
     #>
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in 1st column[-col1 `$PsObject1]")]
+        #[Alias('lhs')]
+        $col1,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 2nd column[-col1 `$PsObject1]")]
+        #[Alias('rhs')]        
+        $col2,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 3rd column[-col1 `$PsObject1]")]
+        #[Alias('rhs')]        
+        $col3,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 4th column[-col1 `$PsObject1]")]
+        #[Alias('rhs')]        
+        $col4
+    ) ;
+    $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $col4Members = $col4 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+    $combinedMembers = ($col1Members + $col2Members + $col3Members + $col4Members) | Sort-Object -Unique ;
+    $combinedMembers | ForEach-Object {
+        $properties = @{'Property' = $_} ;
+        if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
+        if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
+        if ($col3Members.Contains($_)) {$properties['Col3'] = $col3 | Select-Object -ExpandProperty $_} ;
+        if ($col4Members.Contains($_)) {$properties['col4'] = $col4 | Select-Object -ExpandProperty $_} ;
+        New-Object PSObject -Property $properties ;
+    } ;
+}
+
+#*------^ Compare-ObjectsSideBySide3.ps1 ^------
+
+#*------v Compare-ObjectsSideBySide4.ps1 v------
+function Compare-ObjectsSideBySide4 {
+    <#
+    .SYNOPSIS
+    Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
+    .NOTES
+    Author: Richard Slater
+    Website:	https://stackoverflow.com/users/74302/richard-slater
+    Updated By: Todd Kadrie
+    Website:	http://www.toddomation.com
+    Twitter:	@tostka, http://twitter.com/tostka
+    Additional Credits: REFERENCE
+    FileName    : Compare-ObjectsSideBySide4.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell,Compare
+    REVISIONS   :
+    * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
+    * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
+    * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
+    * May 7 '16 at 20:55 posted version
+    .DESCRIPTION
+    Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
+    .PARAMETER col1
+    Object to compare in 1st column[-col1 `$PsObject1]
+    PARAMETER col2
+    Object to compare in 2nd column[-col2 `$PsObject1]
+    PARAMETER col3
+    Object to compare in 3rd column[-col3 `$PsObject1]
+    PARAMETER col3
+    Object to compare in 4th column[-col4 `$PsObject1]
+    .INPUTS
+    Acceptes piped input.
+    .OUTPUTS
+    Outputs specified object side-by-side on console
+    .EXAMPLE
+    $object1 = New-Object PSObject -Property @{
+      'Forename' = 'Richard';
+      'Surname' = 'Slater';
+      'Company' = 'Amido';
+      'SelfEmployed' = $true;
+    } ;
+    $object2 = New-Object PSObject -Property @{
+      'Forename' = 'Jane';
+      'Surname' = 'Smith';
+      'Company' = 'Google';
+      'MaidenName' = 'Jones' ;
+    } ;
+    $object3 = New-Object PSObject -Property @{
+      'Forename' = 'Zhe';
+      'Surname' = 'Person';
+      'Company' = 'Apfel';
+      'MaidenName' = 'NunaUBusiness' ;
+    } ;
+    $object4 = New-Object PSObject -Property @{
+      'Forename' = 'Zir';
+      'Surname' = 'NPC';
+      'Company' = 'Facemook';
+      'MaidenName' = 'Not!' ;
+    } ;
+    Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
+    Display $object1,2,3 & 4 in comparative side-by-side columns
+    .LINK
+    https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
+    #>
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in 1st column[-col1 `$PsObject1]")]
+        #[Alias('lhs')]
+        $col1,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 2nd column[-col1 `$PsObject1]")]
+        #[Alias('rhs')]        
+        $col2,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 3rd column[-col1 `$PsObject1]")]
+        #[Alias('rhs')]        
+        $col3,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 4th column[-col1 `$PsObject1]")]
+        #[Alias('rhs')]        
+        $col4
+    ) ;
     $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
     $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
     $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
@@ -791,9 +851,6 @@ Function convert-DehydratedBytesToGB {
     .OUTPUT
     System.Object[] 
     .EXAMPLE
-    convert-DehydratedBytesToGB 
-    Set the string 'EMS' as the powershell console Title Bar
-    .EXAMPLE
      (get-mailbox | get-mailboxstatistics).totalitemsize.value | convert-DehydratedBytesToGB ;
     Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values
     .LINK
@@ -854,9 +911,6 @@ Function convert-DehydratedBytesToMB {
     Number of decimal places to return on results
     .OUTPUT
     System.Object[] 
-    .EXAMPLE
-    convert-DehydratedBytesToMB 
-    Set the string 'EMS' as the powershell console Title Bar
     .EXAMPLE
      (get-mailbox | get-mailboxstatistics).totalitemsize.value | convert-DehydratedBytesToMB ;
     Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values
@@ -1408,12 +1462,15 @@ Function ConvertFrom-SourceTable {
   .NOTES
   Version     : 0.3.11
   Author      : iRon
-  Website     : http://www.toddomation.com
+  Website     : https://github.com/iRon7/ConvertFrom-SourceTable/
   Twitter     : 
   CreatedDate : 2020-03-27
   FileName    : ConvertFrom-SourceTable
   License     : https://github.com/iRon7/ConvertFrom-SourceTable/LICENSE.txt
   Copyright   : (Not specified)
+  AddedCredit : Todd Kadrie
+  AddedWebsite:	http://www.toddomation.com
+  AddedTwitter:	@tostka / http://twitter.com/tostka
   Github      : https://github.com/iRon7/ConvertFrom-SourceTable
   Tags        : Powershell,Conversion,Text
   REVISIONS
@@ -7914,14 +7971,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUQBmDRJ7UmXGrssWCbI1mSiMl
-# s3qgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUzf91K+uPo7o3c09FAfSqIOla
+# 2t+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -7936,9 +7993,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRpwHBW
-# 5wxBI0z1HXuUr6lM0SKp8TANBgkqhkiG9w0BAQEFAASBgArLkZ6iw0cDAOuTLWzc
-# f0k5MLS9aCNvOLQUG5U1/Zd4UFREcy28N921grXOBAUwM2bqsY8m1sbYshPXktcm
-# WtgCVS9BSI3wCY3nyrv5u6qL2GxrVCmvbnO1F4szUreU9k1WhYV32R4I6a1iZj4r
-# bgg7mhryq0AAVCKbWG6ITIU/
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQETbtw
+# rN35EYybbg3SWARUiJpEjDANBgkqhkiG9w0BAQEFAASBgKTtjKuyaoPtdJkgsGgU
+# kK6OuXkX1DV7a2QtiKSuAqHGMCKDlo1j2M8c3+b43y9e1hwAL7auIch16om9G7rT
+# wZpDv5mdzvfWE2CM26RGtqxoyPyK1LsISKCZrca035iIyIfjxtvipoZEdhNfLhZK
+# e7T0ofzN4xhyiYCL/VoC2EPy
 # SIG # End signature block
