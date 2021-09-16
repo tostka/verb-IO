@@ -5,6 +5,7 @@
     .NOTES
     Author: Tim Lewis
     REVISIONS   :
+    * 11:40 AM 9/16/2021 string
     * added pshelp and put into otb format, tightened up layout.
     * Feb 23 '14 at 11:24 posted vers
     .DESCRIPTION
@@ -24,7 +25,7 @@
     .OUTPUTS
     None. Returns no objects or output.
     .EXAMPLE
-    set-shortcut -linkpath "C:\Users\kadrits\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\SU\Iexplore Kadrits.lnk" -TargetPath 'C:\sc\batch\BatScripts\runas-UID-IE.cmd' ;
+    set-shortcut -linkpath "$($env:USERPROFILE)\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\SU\Iexplore ACCT.lnk" -TargetPath 'C:\sc\batch\BatScripts\runas-UID-IE.cmd' ;
     .EXAMPLE
     
     .LINK

@@ -16,6 +16,7 @@ Function set-ConsoleColors {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Output
     REVISION
+    * 11:41 AM 9/16/2021 string
     * 1:25 PM 3/5/2021 init ; added support for both ISE & powershell console
     .DESCRIPTION
     set-ConsoleColors.ps1 - Converts a PowerShell object to a Markdown table.
@@ -93,7 +94,7 @@ Function set-ConsoleColors {
                         BellStyle                              : Audible
                         HistorySearchCaseSensitive             : False
                         ViModeIndicator                        : None
-                        HistorySavePath                        : C:\Users\kadriTSS\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
+                        HistorySavePath                        : $($ENV:USERPROFILE)\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
                         HistorySaveStyle                       : SaveIncrementally
                         DefaultTokenForegroundColor            : DarkYellow
                         CommentForegroundColor                 : DarkGreen
