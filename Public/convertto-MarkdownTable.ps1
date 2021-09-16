@@ -1,4 +1,4 @@
-#*------v Function convertTo-MarkdownTable v------
+#*------v convertto-MarkdownTable.ps1 v------
 Function convertTo-MarkdownTable {
     <#
     .SYNOPSIS
@@ -24,10 +24,11 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 4:04 PM 9/16/2021 coded around legacy code issue, when using [ordered] hash - need it or it randomizes column positions. Also added -NoDashRow param (breaks md rendering, but useful if using this to dump delimited output to console, for readability)
     * 10:51 AM 6/22/2021 added convertfrom-mdt alias
     * 4:49 PM 6/21/2021 pretest $thing.value: suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
     * 10:49 AM 2/18/2021 added default alias: out-markdowntable & out-mdt
-8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
+    8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
     unknown - alexandrm's revision (undated)
     unknown - Guruant's source version (undated account deleted on github)
     .DESCRIPTION
@@ -38,6 +39,14 @@ Function convertTo-MarkdownTable {
     Switch to generate L & R outter border on output [-Border]
     .PARAMETER Tight
     Switch to drop additional whitespace around border/column-delimiters [-Tight]
+    .PARAMETER NoDashRow
+    Switch to drop the Header-seperator row (Note:This breaks proper markdown-rendering-syntax, but useful for non-markdown use to create a tighter vertical output) [-NoDashRow]
+    .PARAMETER Title
+    String to be tagged as H1 [-Title 'title text']
+    .PARAMETER PreContent
+    String to be added above returned md table [-PreContent 'Preface']
+    .PARAMETER PostContent
+    String to be added below returned md table [-PostContent 'Preface']
     .INPUTS
     Accepts piped input.
     .OUTPUTS
@@ -68,20 +77,27 @@ Function convertTo-MarkdownTable {
     Running|Winrm|Windows Remote Management (WS-Management)
     Demo effect of the -Tight param.
     .EXAMPLE
-   Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
-   ConvertTo-Markdown | Out-File C:\MyScript.ps1.md
-   Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
-   .EXAMPLE
-   Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*'
-   Demo use of -title, -precontent & -postcontent params:
-   .EXAMPLE
-   $pltcMT=[ordered]@{
+    Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
+    ConvertTo-Markdown | Out-File C:\MyScript.ps1.md
+    Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
+    .EXAMPLE
+    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*'
+    Demo use of -title, -precontent & -postcontent params:
+    .EXAMPLE
+    $pltcMT=[ordered]@{
         Title='This is Title' ;
         PreContent='A little something *before*' ;
         PostContent='A little something *after*'
-   } ;
-   Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
-   Same as prior example, but leveraging more readable splatting
+    } ;
+    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
+    Same as prior example, but leveraging more readable splatting
+    .EXAMPLE
+    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
+    output:
+    Status  | Name  | DisplayName                              
+    Stopped | Bits  | Background Intelligent Transfer Service  
+    Running | Winrm | Windows Remote Management (WS-Management)
+    Demo effect of -NoDashRow param (drops header-seperator line)
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -95,6 +111,8 @@ Function convertTo-MarkdownTable {
         [switch] $Border,
         [Parameter(HelpMessage="Switch to drop additional whitespace around border/column-delimiters [-Tight]")]
         [switch] $Tight,
+        [Parameter(HelpMessage="Switch to drop the Header-seperator row (Note:This breaks proper markdown-rendering-syntax, but useful for non-markdown use to create a tighter vertical output) [-NoDashRow]")]
+        [switch] $NoDashRow,
         [Parameter(HelpMessage="String to be tagged as H1 [-Title 'title text']")]
         [string] $Title,
         [Parameter(HelpMessage="String to be added above returned md table [-PreContent 'Preface']")]
@@ -105,8 +123,7 @@ Function convertTo-MarkdownTable {
     BEGIN {
         $verbose = ($VerbosePreference -eq "Continue") ; 
         $items = @() ;
-        #$columns = [ordered]@{} ; # no causes "Method invocation failed because [System.Collections.Specialized.OrderedDictionary] does not contain a method named 'ContainsKey'."
-        $columns = @{} ;
+        $columns = [ordered]@{} ; 
         $output = @"
 
 "@
@@ -144,14 +161,15 @@ Function convertTo-MarkdownTable {
                 # suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
                 if($thing.Value){$valuLen =  $thing.Value.ToString().Length }
                 else {$valuLen = 0 } ;
-                if(-not $columns.ContainsKey($thing.Name) -or $columns[$thing.Name] -lt $valuLen) {
+                #if(-not $columns.ContainsKey($thing.Name) -or $columns[$thing.Name] -lt $valuLen) {
+                # variant [ordered] hash syntax:
+                if(-not($columns.keys -Contains $thing.Name) -or $columns[$thing.Name] -lt $valuLen) {
                     if ($null -ne $thing.Value) {
                         $columns[$thing.Name] = $thing.Value.ToString().Length
                     } else {
                         $columns[$thing.Name] = 0 ; # null's 0-length, so use it. 
                     } ; 
                 } ;
-
             } ;  # loop-E
 
         } ;
@@ -173,12 +191,16 @@ Function convertTo-MarkdownTable {
         ForEach($key in $columns.Keys) {
             $separator += '-' * $columns[$key] ;
         } ;
-        if (!$Border) { 
-            $output += ($separator -join $Delimiter) + "`n" ; 
-        }
-        else{
-            $output += $BorderLeft + ($separator -join $Delimiter) + $BorderRight + "`n" ; 
-        } ;
+        if($NoDashRow){
+            write-verbose "(skipping Header-separator row - violates md syntax!)" ; 
+        } else { 
+            if (!$Border) { 
+                $output += ($separator -join $Delimiter) + "`n" ; 
+            }
+            else{
+                $output += $BorderLeft + ($separator -join $Delimiter) + $BorderRight + "`n" ; 
+            } ;
+        } ; 
         ForEach($item in $items) {
             $values = @() ;
             ForEach($key in $columns.Keys) {
@@ -199,5 +221,6 @@ Function convertTo-MarkdownTable {
         $output | write-output ; 
 
     } ; # END-E
-} ;
-#*------^ END Function convertTo-MarkdownTable ^------
+}
+
+#*------^ convertto-MarkdownTable.ps1 ^------
