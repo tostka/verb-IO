@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.94.0.0
+Version     : 1.0.96.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2323,10 +2323,11 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 4:04 PM 9/16/2021 coded around legacy code issue, when using [ordered] hash - need it or it randomizes column positions. Also added -NoDashRow param (breaks md rendering, but useful if using this to dump delimited output to console, for readability)
     * 10:51 AM 6/22/2021 added convertfrom-mdt alias
     * 4:49 PM 6/21/2021 pretest $thing.value: suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
     * 10:49 AM 2/18/2021 added default alias: out-markdowntable & out-mdt
-8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
+    8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
     unknown - alexandrm's revision (undated)
     unknown - Guruant's source version (undated account deleted on github)
     .DESCRIPTION
@@ -2337,6 +2338,14 @@ Function convertTo-MarkdownTable {
     Switch to generate L & R outter border on output [-Border]
     .PARAMETER Tight
     Switch to drop additional whitespace around border/column-delimiters [-Tight]
+    .PARAMETER NoDashRow
+    Switch to drop the Header-seperator row (Note:This breaks proper markdown-rendering-syntax, but useful for non-markdown use to create a tighter vertical output) [-NoDashRow]
+    .PARAMETER Title
+    String to be tagged as H1 [-Title 'title text']
+    .PARAMETER PreContent
+    String to be added above returned md table [-PreContent 'Preface']
+    .PARAMETER PostContent
+    String to be added below returned md table [-PostContent 'Preface']
     .INPUTS
     Accepts piped input.
     .OUTPUTS
@@ -2367,20 +2376,27 @@ Function convertTo-MarkdownTable {
     Running|Winrm|Windows Remote Management (WS-Management)
     Demo effect of the -Tight param.
     .EXAMPLE
-   Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
-   ConvertTo-Markdown | Out-File C:\MyScript.ps1.md
-   Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
-   .EXAMPLE
-   Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*'
-   Demo use of -title, -precontent & -postcontent params:
-   .EXAMPLE
-   $pltcMT=[ordered]@{
+    Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
+    ConvertTo-Markdown | Out-File C:\MyScript.ps1.md
+    Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
+    .EXAMPLE
+    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*'
+    Demo use of -title, -precontent & -postcontent params:
+    .EXAMPLE
+    $pltcMT=[ordered]@{
         Title='This is Title' ;
         PreContent='A little something *before*' ;
         PostContent='A little something *after*'
-   } ;
-   Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
-   Same as prior example, but leveraging more readable splatting
+    } ;
+    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
+    Same as prior example, but leveraging more readable splatting
+    .EXAMPLE
+    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
+    output:
+    Status  | Name  | DisplayName                              
+    Stopped | Bits  | Background Intelligent Transfer Service  
+    Running | Winrm | Windows Remote Management (WS-Management)
+    Demo effect of -NoDashRow param (drops header-seperator line)
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -2394,6 +2410,8 @@ Function convertTo-MarkdownTable {
         [switch] $Border,
         [Parameter(HelpMessage="Switch to drop additional whitespace around border/column-delimiters [-Tight]")]
         [switch] $Tight,
+        [Parameter(HelpMessage="Switch to drop the Header-seperator row (Note:This breaks proper markdown-rendering-syntax, but useful for non-markdown use to create a tighter vertical output) [-NoDashRow]")]
+        [switch] $NoDashRow,
         [Parameter(HelpMessage="String to be tagged as H1 [-Title 'title text']")]
         [string] $Title,
         [Parameter(HelpMessage="String to be added above returned md table [-PreContent 'Preface']")]
@@ -2404,8 +2422,7 @@ Function convertTo-MarkdownTable {
     BEGIN {
         $verbose = ($VerbosePreference -eq "Continue") ; 
         $items = @() ;
-        #$columns = [ordered]@{} ; # no causes "Method invocation failed because [System.Collections.Specialized.OrderedDictionary] does not contain a method named 'ContainsKey'."
-        $columns = @{} ;
+        $columns = [ordered]@{} ; 
         $output = @"
 
 "@
@@ -2443,14 +2460,15 @@ Function convertTo-MarkdownTable {
                 # suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
                 if($thing.Value){$valuLen =  $thing.Value.ToString().Length }
                 else {$valuLen = 0 } ;
-                if(-not $columns.ContainsKey($thing.Name) -or $columns[$thing.Name] -lt $valuLen) {
+                #if(-not $columns.ContainsKey($thing.Name) -or $columns[$thing.Name] -lt $valuLen) {
+                # variant [ordered] hash syntax:
+                if(-not($columns.keys -Contains $thing.Name) -or $columns[$thing.Name] -lt $valuLen) {
                     if ($null -ne $thing.Value) {
                         $columns[$thing.Name] = $thing.Value.ToString().Length
                     } else {
                         $columns[$thing.Name] = 0 ; # null's 0-length, so use it. 
                     } ; 
                 } ;
-
             } ;  # loop-E
 
         } ;
@@ -2472,12 +2490,16 @@ Function convertTo-MarkdownTable {
         ForEach($key in $columns.Keys) {
             $separator += '-' * $columns[$key] ;
         } ;
-        if (!$Border) { 
-            $output += ($separator -join $Delimiter) + "`n" ; 
-        }
-        else{
-            $output += $BorderLeft + ($separator -join $Delimiter) + $BorderRight + "`n" ; 
-        } ;
+        if($NoDashRow){
+            write-verbose "(skipping Header-separator row - violates md syntax!)" ; 
+        } else { 
+            if (!$Border) { 
+                $output += ($separator -join $Delimiter) + "`n" ; 
+            }
+            else{
+                $output += $BorderLeft + ($separator -join $Delimiter) + $BorderRight + "`n" ; 
+            } ;
+        } ; 
         ForEach($item in $items) {
             $values = @() ;
             ForEach($key in $columns.Keys) {
@@ -6446,6 +6468,7 @@ Function set-ConsoleColors {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Output
     REVISION
+    * 11:41 AM 9/16/2021 string
     * 1:25 PM 3/5/2021 init ; added support for both ISE & powershell console
     .DESCRIPTION
     set-ConsoleColors.ps1 - Converts a PowerShell object to a Markdown table.
@@ -6523,7 +6546,7 @@ Function set-ConsoleColors {
                         BellStyle                              : Audible
                         HistorySearchCaseSensitive             : False
                         ViModeIndicator                        : None
-                        HistorySavePath                        : C:\Users\kadriTSS\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
+                        HistorySavePath                        : $($ENV:USERPROFILE)\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
                         HistorySaveStyle                       : SaveIncrementally
                         DefaultTokenForegroundColor            : DarkYellow
                         CommentForegroundColor                 : DarkGreen
@@ -6872,6 +6895,7 @@ function Set-Shortcut {
     .NOTES
     Author: Tim Lewis
     REVISIONS   :
+    * 11:40 AM 9/16/2021 string
     * added pshelp and put into otb format, tightened up layout.
     * Feb 23 '14 at 11:24 posted vers
     .DESCRIPTION
@@ -6891,7 +6915,7 @@ function Set-Shortcut {
     .OUTPUTS
     None. Returns no objects or output.
     .EXAMPLE
-    set-shortcut -linkpath "C:\Users\kadrits\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\SU\Iexplore Kadrits.lnk" -TargetPath 'C:\sc\batch\BatScripts\runas-UID-IE.cmd' ;
+    set-shortcut -linkpath "$($env:USERPROFILE)\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\SU\Iexplore ACCT.lnk" -TargetPath 'C:\sc\batch\BatScripts\runas-UID-IE.cmd' ;
     .EXAMPLE
     
     .LINK
@@ -7977,8 +8001,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUzf91K+uPo7o3c09FAfSqIOla
-# 2t+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUSJPXdVkSoR0rXTi1Ct1MzazF
+# ntSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -7993,9 +8017,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQETbtw
-# rN35EYybbg3SWARUiJpEjDANBgkqhkiG9w0BAQEFAASBgKTtjKuyaoPtdJkgsGgU
-# kK6OuXkX1DV7a2QtiKSuAqHGMCKDlo1j2M8c3+b43y9e1hwAL7auIch16om9G7rT
-# wZpDv5mdzvfWE2CM26RGtqxoyPyK1LsISKCZrca035iIyIfjxtvipoZEdhNfLhZK
-# e7T0ofzN4xhyiYCL/VoC2EPy
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTgtC+q
+# 3k4AFR1ej/R3iR+dmGjwpTANBgkqhkiG9w0BAQEFAASBgGiId/qoCO1sXhbW+Eay
+# G07NbJk6mnr/mWKVRq6MLrHWjvZYhFKqLKjlNqhmdOqDjkQ3mPIPzmdj7FDJEb2G
+# tug4XwjFX1HoS5c08dt5wPg0B5rIVky4Y9phF0v81i5Wik8xlfUHPiY8NPQtTrJC
+# m2UZBMkSc8cSySLBIwhSXtni
 # SIG # End signature block
