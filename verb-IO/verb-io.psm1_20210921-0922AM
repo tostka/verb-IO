@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.108.0.0
+Version     : 1.0.102.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -6027,7 +6027,6 @@ function remove-UnneededFileVariants {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
-    * 9:58 AM 9/21/2021 rem'd retry loop
     * 12:34 PM 9/20/2021  init
     .DESCRIPTION
     remove-UnneededFileVariants.ps1 - Collect a set of files at -path & -include (filename), then post-filter matching -pattern, and keep the most recent -Keep generations of the files, as sorted and filtered on CreationTime|LastWriteTime (as specified by FilterOn specification)
@@ -6091,73 +6090,75 @@ function remove-UnneededFileVariants {
     if($cuttime){
         write-verbose "`$cuttime:$($cuttime)" ; 
     } ; 
-    TRY {
-        $initialpop = $population = get-childitem @pltGci ; # our pool of files to purge (cached original & working set)
-        if($pattern){
-            $smsg = "post-filtering on pattern:$($pattern)" ;
-            $smsg += "`n($(($population|measure).count) in set *before* filtering)"
-            $population | ?{$_.name -match $pattern} 
-            $smsg += "`n($(($population|measure).count) in set *after* filtering)"
-            write-verbose $smsg ;
-        } ; 
-        if($cuttime){
-            $smsg = "filtering on files prior to `$cuttime:$((get-date $cuttime).tostring('MM/dd/yyyy HH:mm:ss tt')), on $($FilterOn) property" ;
-            $smsg += "`n($(($population|measure).count) in set *before* filtering)"
+    Do {
+        TRY {
+            $initalpop = $population = get-childitem @pltGci ;
+            if($pattern){
+                $smsg = "post-filtering on pattern:$($pattern)" ;
+                $smsg += "`n($(($population|measure).count) in set *before* filtering)"
+                $population | ?{$_.name -match $pattern} 
+                $smsg += "`n($(($population|measure).count) in set *after* filtering)"
+                write-verbose $smsg ;
+            } ; 
+            if($cuttime){
+                $smsg = "filtering on files prior to `$cuttime:$((get-date $cuttime).tostring('MM/dd/yyyy HH:mm:ss tt')), on $($FilterOn) property" ;
+                $smsg += "`n($(($population|measure).count) in set *before* filtering)"
 
-            switch($FilterOn){
-                'CreationTime'{
-                    $population = $population | ?{$_.CreationTime -lt $cuttime } | 
-                        sort-object CreationTime -Descending  ;
-                }
-                'LastWriteTime' {
-                    $population = $population | ?{$_.LastWriteTime -lt $cuttime  } | 
-                        sort-object LastWriteTime -Descending  ;
-                } ; 
-            } ;
+                switch($FilterOn){
+                    'CreationTime'{
+                        $population = $population | ?{$_.CreationTime -lt $cuttime } | 
+                            sort-object CreationTime -Descending  ;
+                    }
+                    'LastWriteTime' {
+                        $population = $population | ?{$_.LastWriteTime -lt $cuttime  } | 
+                            sort-object LastWriteTime -Descending  ;
+                    } ; 
+                } ;
+                $smsg += "`n($(($population|measure).count) in set *after* filtering)"
+                write-verbose $smsg ;
+                
+            } ; 
+            $smsg = "attempting to retain remaining $($Keep) generations net of prior filtering" ;
+            $smsg += "`n($(($population|measure).count) in set *before* filtering)"
+            $population = $population | select-object -skip $Keep ; 
             $smsg += "`n($(($population|measure).count) in set *after* filtering)"
+            if(($population|measure).count -lt $Keep){
+                $smsg += "`n(Note:net population is *below* target -Keep:$($Keep) spec - insufficient older files available)" ; 
+            } ; 
             write-verbose $smsg ;
             
-        } ; 
-        $smsg = "attempting to retain remaining $($Keep) generations net of prior filtering" ;
-        $smsg += "`n($(($population|measure).count) in set *before* filtering)"
-        $population = $population | select-object -skip $Keep ; 
-        $smsg += "`n($(($population|measure).count) in set *after* filtering)"
-        if(($population|measure).count -lt $Keep){
-            $smsg += "`n(Note:net population is *below* target -Keep:$($Keep) spec - insufficient older files available)" ; 
-        } ; 
-        write-verbose $smsg ;
-        
-        
-        # $initialpop = $population
-        $smsg = "Reducing matched population from $(($initialpop|measure).count) to $(($population|measure).count) files via:" ; 
-        if($pattern){
-            $smsg += "`npost-filtered files with regex pattern:$($pattern)" ; 
-        } ;
-        if($cuttime){
-            $smsg += "`nfiltered files on $($filteron) prior to $((get-date $cuttime).tostring('MM/dd/yyyy HH:mm:ss tt'))" ; 
-        } ; 
-        
-        
-        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
-        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            
+            # $initalpop = $population
+            $smsg = "Reducing matched population from $(($initalpop|measure).count) to $(($population|measure).count) files via:" ; 
+            if($pattern){
+                $smsg += "`npost-filtered files with regex pattern:$($pattern)" ; 
+            } ;
+            if($cuttime){
+                $smsg += "`nfiltered files on $($filteron) prior to $((get-date $cuttime).tostring('MM/dd/yyyy HH:mm:ss tt'))" ; 
+            } ; 
+            
+            
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
 
-      
-    } CATCH {
-        $ErrTrapd=$Error[0] ;
-        $smsg = "Failed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: $($ErrTrapd)" ;
-        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
-        else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-        #-=-record a STATUSWARN=-=-=-=-=-=-=
-        $statusdelta = ";WARN"; # CHANGE|INCOMPLETE|ERROR|WARN|FAIL ;
-        if(gv passstatus -scope Script -ea 0){$script:PassStatus += $statusdelta } ;
-        if(gv -Name PassStatus_$($tenorg) -scope Script -ea 0){set-Variable -Name PassStatus_$($tenorg) -scope Script -Value ((get-Variable -Name PassStatus_$($tenorg)).value + $statusdelta)} ; 
-        #-=-=-=-=-=-=-=-=
-        $smsg = "FULL ERROR TRAPPED (EXPLICIT CATCH BLOCK WOULD LOOK LIKE): } catch[$($ErrTrapd.Exception.GetType().FullName)]{" ; 
-        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level ERROR } #Error|Warn|Debug 
-        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-        Break #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
-    } ; 
-    
+          
+        } CATCH {
+            $ErrTrapd=$Error[0] ;
+            $smsg = "Failed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: $($ErrTrapd)" ;
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+            else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            #-=-record a STATUSWARN=-=-=-=-=-=-=
+            $statusdelta = ";WARN"; # CHANGE|INCOMPLETE|ERROR|WARN|FAIL ;
+            if(gv passstatus -scope Script -ea 0){$script:PassStatus += $statusdelta } ;
+            if(gv -Name PassStatus_$($tenorg) -scope Script -ea 0){set-Variable -Name PassStatus_$($tenorg) -scope Script -Value ((get-Variable -Name PassStatus_$($tenorg)).value + $statusdelta)} ; 
+            #-=-=-=-=-=-=-=-=
+            $smsg = "FULL ERROR TRAPPED (EXPLICIT CATCH BLOCK WOULD LOOK LIKE): } catch[$($ErrTrapd.Exception.GetType().FullName)]{" ; 
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level ERROR } #Error|Warn|Debug 
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            Break #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
+        } ; 
+        
+    } Until ($Exit -eq $Retries -OR $whatif) ;
 
     if($population){
     
@@ -8195,8 +8196,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUw0t4B+lGsmD5p4hNBYLAfWZ/
-# Tw+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1s3IqtQo31UBscqcHPgAluQt
+# SF2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -8211,9 +8212,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQVyrh/
-# m7zLYA7RjOdk5KfWAGoMBjANBgkqhkiG9w0BAQEFAASBgLO59L+crLXQIFiUspgh
-# a9eDxHw2ngSHrU5/D81rRuVW3doG1Mo0UKGaBv0ef6nXgolipGj6BdPjTE6C3ENW
-# CoS4EnuJqU6lO+wf8PcyJo0SsHsXP7IvHpO1KuN26QESvDyR13K3oXEFOVKUqa+J
-# ZAo6HGofUNXryhKAvpOzGpKf
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT5Bffl
+# B3cezJBU3KLbf8peqc0nBzANBgkqhkiG9w0BAQEFAASBgFbL4kfOBHRhMUQeXTGu
+# 0KMNmbBj48OQ+VQNHpL8WlBTf47szhH+Fu51gDChuuUY0nWrfiL6IDg3GuWga1Lm
+# xyuCLzrprz4I3QGhWmAJj1WKT0OeoPotPz0Gve+4YxSV4QENYxZlaIATPgd0eQpa
+# F1bHaqVmpEJqTi2L3aIOLeT4
 # SIG # End signature block
