@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.108.0.0
+Version     : 1.0.109.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -802,7 +802,7 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
     Param ([parameter(Mandatory = $true,Position=0,HelpMessage="Colorhex code to be converted to [windows.media.colors] name value [-colorcode '#FF9ACD32'")][String]$ColorCode)
     BEGIN{
         # build indexed hash of media colors keyed on hexcodes
-        Add-Type �assemblyName PresentationFramework
+        Add-Type –assemblyName PresentationFramework
         $colors = [windows.media.colors] | Get-Member -static -Type Property |  Select -Expand Name ;
         $ISEColors = @{} ;
         $colors| foreach {
@@ -3397,6 +3397,103 @@ function Find-LockedFileProcess {
 }
 
 #*------^ Find-LockedFileProcess.ps1 ^------
+
+#*------v Format-Json.ps1 v------
+function Format-Json {
+    <#
+    .SYNOPSIS
+    Format-Json.ps1 - Prettifies JSON output.
+    .NOTES
+    Version     : 0.0.
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2020-
+    FileName    : Format-Json.ps1
+    License     : (none asserted)
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-XXX
+    Tags        : Powershell,Json
+    AddedCredit : Theo
+    AddedWebsite: https://stackoverflow.com/users/9898643/theo
+    AddedTwitter: 
+    REVISIONS
+    * 9:09 AM 10/4/2021 minor reformatting, expansion of CBH
+    * 5/27/2019 - Theo posted version (stackoverflow answer)
+    .DESCRIPTION
+    Format-Json.ps1 - Reformats a JSON string so the output looks better than what ConvertTo-Json outputs.
+    .PARAMETER Json
+    Required: [string] The JSON text to prettify.
+    .PARAMETER Minify
+    Optional: Returns the json string compressed.
+    .PARAMETER Indentation
+    Optional: The number of spaces (1..1024) to use for indentation. Defaults to 4.
+    .PARAMETER AsArray
+    Optional: If set, the output will be in the form of a string array, otherwise a single string is output.
+    .INPUTS
+    None. Does not accepted piped input.(.NET types, can add description)
+    .OUTPUTS
+    None. Returns no objects or output (.NET types)
+    System.Boolean
+    [| get-member the output to see what .NET obj TypeName is returned, to use here]
+    .EXAMPLE
+    PS> $json | ConvertTo-Json  | Format-Json -Indentation 2
+    .EXAMPLE
+    $json = Get-Content 'D:\script\test.json' -Encoding UTF8 | ConvertFrom-Json
+    $json.yura.ContentManager.branch = 'test'
+    # recreate the object as array, and use the -Depth parameter (your json needs 3 minimum)
+    ConvertTo-Json @($json) -Depth 3 | Format-Json | Set-Content "D:\script\test1.json" -Encoding UTF8
+    # instead of using '@($json)' you can of course also recreate the array by adding the square brackets manually:
+    # '[{0}{1}{0}]' -f [Environment]::NewLine, ($json | ConvertTo-Json -Depth 3) |
+    #        Format-Json | Set-Content "D:\script\test1.json" -Encoding UTF8
+    .LINK
+    https://stackoverflow.com/questions/56322993/proper-formating-of-json-using-powershell#56324247
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding(DefaultParameterSetName = 'Prettify')]
+    PARAM(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true,HelpMessage="[string] The JSON text to prettify.[-Json $jsontext]")]
+        [string]$Json,
+        [Parameter(ParameterSetName = 'Minify',HelpMessage="Returns the json string compressed.[-Minify SAMPLEINPUT]")]
+        [switch]$Minify,
+        [Parameter(ParameterSetName = 'Prettify',HelpMessage="The number of spaces (1..1024) to use for indentation. Defaults to 4.[-Indentation 2]")]
+        [ValidateRange(1, 1024)]
+        [int]$Indentation = 4,
+        [Parameter(ParameterSetName = 'Prettify',HelpMessage="If set, the output will be in the form of a string array, otherwise a single string is output.[-AsArray]")]
+        [switch]$AsArray
+    ) ;
+    if ($PSCmdlet.ParameterSetName -eq 'Minify') {
+        return ($Json | ConvertFrom-Json) | ConvertTo-Json -Depth 100 -Compress ; 
+    } ; 
+    # If the input JSON text has been created with ConvertTo-Json -Compress
+    # then we first need to reconvert it without compression
+    if ($Json -notmatch '\r?\n') {
+        $Json = ($Json | ConvertFrom-Json) | ConvertTo-Json -Depth 100 ; 
+    } ; 
+    $indent = 0 ; 
+    $regexUnlessQuoted = '(?=([^"]*"[^"]*")*[^"]*$)' ; 
+    $result = $Json -split '\r?\n' |
+        ForEach-Object {
+            # If the line contains a ] or } character,
+            # we need to decrement the indentation level unless it is inside quotes.
+            if ($_ -match "[}\]]$regexUnlessQuoted") {
+                $indent = [Math]::Max($indent - $Indentation, 0) ; 
+            } ; 
+            # Replace all colon-space combinations by ": " unless it is inside quotes.
+            $line = (' ' * $indent) + ($_.TrimStart() -replace ":\s+$regexUnlessQuoted", ': ') ; 
+            # If the line contains a [ or { character,
+            # we need to increment the indentation level unless it is inside quotes.
+            if ($_ -match "[\{\[]$regexUnlessQuoted") {
+                $indent += $Indentation ; 
+            } ; 
+            $line ; 
+        }
+    if ($AsArray) { return $result } ; 
+    return $result -Join [Environment]::NewLine ; 
+}
+
+#*------^ Format-Json.ps1 ^------
 
 #*------v Get-AverageItems.ps1 v------
 function Get-AverageItems {
@@ -6735,7 +6832,7 @@ Function set-ConsoleColors {
                         ShowToolTips                           : False
                         DingTone                               : 1221
                         CompletionQueryItems                   : 100
-                        WordDelimiters                         : ;:,.[]{}()/\|^&*-=+'"–—―
+                        WordDelimiters                         : ;:,.[]{}()/\|^&*-=+'"â€“â€”â€•
                         DingDuration                           : 50
                         BellStyle                              : Audible
                         HistorySearchCaseSensitive             : False
@@ -8189,14 +8286,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUw0t4B+lGsmD5p4hNBYLAfWZ/
-# Tw+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUXRzHZ1tfhwZxOWLuukpv3zn5
+# okigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -8211,9 +8308,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQVyrh/
-# m7zLYA7RjOdk5KfWAGoMBjANBgkqhkiG9w0BAQEFAASBgLO59L+crLXQIFiUspgh
-# a9eDxHw2ngSHrU5/D81rRuVW3doG1Mo0UKGaBv0ef6nXgolipGj6BdPjTE6C3ENW
-# CoS4EnuJqU6lO+wf8PcyJo0SsHsXP7IvHpO1KuN26QESvDyR13K3oXEFOVKUqa+J
-# ZAo6HGofUNXryhKAvpOzGpKf
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTDXgu9
+# 1CoqsanP0rVQGxrsNLowtjANBgkqhkiG9w0BAQEFAASBgE255XsEwuuXAmHSeAUE
+# uYtp7/7FJBwrO7RBaSh3LbpKDtHe8u+Ivf0f6h1pQvzjIu5H4lodimX+6wP1Fah5
+# +L+I36S5dsQ0QwHEtc6rwjBCy79qB/jMF0Vv4Wm0l/Em9LISoMw1jhkWiXwajUXl
+# dHBMeiAGjP9kzdNIkKhN8g/5
 # SIG # End signature block
