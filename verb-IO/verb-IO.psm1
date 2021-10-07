@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.109.0.0
+Version     : 1.0.110.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -3422,6 +3422,33 @@ function Format-Json {
     * 5/27/2019 - Theo posted version (stackoverflow answer)
     .DESCRIPTION
     Format-Json.ps1 - Reformats a JSON string so the output looks better than what ConvertTo-Json outputs.
+    In effect it can take a Minified/compressed one-long-string output (as MS AAD produces for audit logs)...
+    #-=-=-=-=-=-=-=-=
+    [{"id":"59b5c4e8-a576-4aff-84ab-ffd76f605500","createdDateTime":"2019-04-19T14:27:07.7126929+00:00","userDisplayName":"USER NAME","userPrincipalName":"UPN@DOMAIN.COM","userId":"[GUID]","appId":"00000002-0000-0ff1-ce00-000000000000","appDisplayName":"Office 365 Exchange Online","resourceId":"00000002-0000-0ff1-ce00-000000000000","resourceDisplayName":"office 365 exchange online","ipAddress":"192.168.1.1","status":{"signInStatus":"Success","errorCode":0,"failureReason":null,"additionalDetails<TRIMMED>},
+    #-=-=-=-=-=-=-=-=
+    ... and convert it to a properly indented, human-friendly array of lines arrangement:
+    #-=-=-=-=-=-=-=-=
+    [
+        {
+            "id": "59b5c4e8-a576-4aff-84ab-ffd76f605500",
+            "createdDateTime": "2019-04-19T14:27:07.7126929+00:00",
+            "userDisplayName": "USER NAME",
+            "userPrincipalName": "UPN@DOMAIN.COM",
+            "userId": "[GUID]",
+            "appId": "00000002-0000-0ff1-ce00-000000000000",
+            "appDisplayName": "Office 365 Exchange Online",
+            "resourceId": "00000002-0000-0ff1-ce00-000000000000",
+            "resourceDisplayName": "office 365 exchange online",
+            "ipAddress": "192.168.1.1",
+            "status": {
+                "signInStatus": "Success",
+                "errorCode": 0,
+                "failureReason": null,
+                "additionalDetails": null
+            },
+            <TRIMMED>
+        },
+    #-=-=-=-=-=-=-=-=
     .PARAMETER Json
     Required: [string] The JSON text to prettify.
     .PARAMETER Minify
@@ -3453,7 +3480,7 @@ function Format-Json {
     #>
     [CmdletBinding(DefaultParameterSetName = 'Prettify')]
     PARAM(
-        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true,HelpMessage="[string] The JSON text to prettify.[-Json $jsontext]")]
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true,HelpMessage="[string] The JSON text to prettify.[-Json `$jsontext]")]
         [string]$Json,
         [Parameter(ParameterSetName = 'Minify',HelpMessage="Returns the json string compressed.[-Minify SAMPLEINPUT]")]
         [switch]$Minify,
@@ -5956,6 +5983,53 @@ function remove-ItemRetry {
 
 #*------^ remove-ItemRetry.ps1 ^------
 
+#*------v remove-JsonComments.ps1 v------
+Function Remove-JsonComments{ 
+    <#
+    .SYNOPSIS
+    Remove-JsonComments.ps1 - Removes \\Comments from JSON, to permit ConvertFrom-JSON in ps5.1, to properly process json (PsCv7 ConvertFrom-JSON handles wo issues).
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-10-05
+    FileName    : Remove-JsonComments.ps1
+    License     : (none-asserted)
+    Copyright   : (none-asserted)
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell
+    AddedCredit : Paul Harrison
+    AddedWebsite:	https://techcommunity.microsoft.com/t5/core-infrastructure-and-security/parsing-json-with-powershell/ba-p/2768721
+    AddedTwitter:	URL
+    REVISIONS
+    * 1:37 PM 10/5/2021 added CBH, and minor formatting. 
+    * Sep 20 2021 02:25 PM PaulH's posted version
+    .DESCRIPTION
+    Remove-JsonComments.ps1 - Removes \\Comments from JSON, to permit ConvertFrom-JSON in ps5.1, to properly process json (PsCv7 ConvertFrom-JSON handles comments wo issues).
+    Comments will prevent ConvertFrom-Json from working properly in PowerShell 5.1.  I like to use this simple function to fix my JSON for me. 
+    .PARAMETER  File
+[string] The JSON file from which to remove \\Comments.[-File c:\path-to\file.json]
+    .EXAMPLE
+    PS> Remove-Comments .\test.json 
+    .LINK
+    https://techcommunity.microsoft.com/t5/core-infrastructure-and-security/parsing-json-with-powershell/ba-p/2768721
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    PARAM( 
+        [CmdletBinding()] 
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true,Position=0,HelpMessage="[string] The JSON file from which to remove \\Comments.[-File c:\path-to\file.json]")] 
+        [ValidateScript({test-path $_})] 
+        [string] $File 
+    )  ; 
+    $CComments = "(?s)/\\*.*?\\*/"  ; 
+    $content = Get-Content $File -Raw  ; 
+    [regex]::Replace($content,$CComments,"") | Out-File $File -Force  ; 
+}
+
+#*------^ remove-JsonComments.ps1 ^------
+
 #*------v Remove-PSTitleBar.ps1 v------
 Function Remove-PSTitleBar {
     <#
@@ -8286,14 +8360,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,ConvertTo-SRT,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUXRzHZ1tfhwZxOWLuukpv3zn5
-# okigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU3mpZ6R+u/kZ+hkZ/joqBC3eA
+# w9KgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -8308,9 +8382,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTDXgu9
-# 1CoqsanP0rVQGxrsNLowtjANBgkqhkiG9w0BAQEFAASBgE255XsEwuuXAmHSeAUE
-# uYtp7/7FJBwrO7RBaSh3LbpKDtHe8u+Ivf0f6h1pQvzjIu5H4lodimX+6wP1Fah5
-# +L+I36S5dsQ0QwHEtc6rwjBCy79qB/jMF0Vv4Wm0l/Em9LISoMw1jhkWiXwajUXl
-# dHBMeiAGjP9kzdNIkKhN8g/5
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSpeFgP
+# 1pFN6+3+kju0OwVTCGPVgDANBgkqhkiG9w0BAQEFAASBgE1KykYRunJkPkIWKKGo
+# 17lxZluT27be69RGelSF+4vHIu0I4xhrFUdG4ccHxTUK1AVbFpaZHnJwX0wdN35L
+# IqJqRJqpVghYJdy8pqZ18h9D7816vQ3lYPJaIyCumAGjg7EUHMI+9AWzgmsccWbT
+# GsjolXXKO0+6UqVS3qwKHzpS
 # SIG # End signature block
