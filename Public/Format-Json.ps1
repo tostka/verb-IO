@@ -22,11 +22,11 @@ function Format-Json {
     * 5/27/2019 - Theo posted version (stackoverflow answer)
     .DESCRIPTION
     Format-Json.ps1 - Reformats a JSON string so the output looks better than what ConvertTo-Json outputs.
-    In effect it can take a Minified/compressed output (as MS AAD produces for audit logs):
+    In effect it can take a Minified/compressed one-long-string output (as MS AAD produces for audit logs)...
     #-=-=-=-=-=-=-=-=
     [{"id":"59b5c4e8-a576-4aff-84ab-ffd76f605500","createdDateTime":"2019-04-19T14:27:07.7126929+00:00","userDisplayName":"USER NAME","userPrincipalName":"UPN@DOMAIN.COM","userId":"[GUID]","appId":"00000002-0000-0ff1-ce00-000000000000","appDisplayName":"Office 365 Exchange Online","resourceId":"00000002-0000-0ff1-ce00-000000000000","resourceDisplayName":"office 365 exchange online","ipAddress":"192.168.1.1","status":{"signInStatus":"Success","errorCode":0,"failureReason":null,"additionalDetails<TRIMMED>},
     #-=-=-=-=-=-=-=-=
-    ... and convert it to a properly indented, human-friendly arrangement:
+    ... and convert it to a properly indented, human-friendly array of lines arrangement:
     #-=-=-=-=-=-=-=-=
     [
         {
@@ -49,7 +49,6 @@ function Format-Json {
             <TRIMMED>
         },
     #-=-=-=-=-=-=-=-=
-
     .PARAMETER Json
     Required: [string] The JSON text to prettify.
     .PARAMETER Minify
