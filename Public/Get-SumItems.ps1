@@ -14,6 +14,7 @@ function Get-SumItems {
     Github      : 
     Tags        : Powershell,Math
     REVISIONS
+    * 12:37 PM 10/25/2021 rem'd req version
     12:29 PM 5/15/2013 revised
     17:10 1/3/2010 posted rev
     .DESCRIPTION
@@ -27,7 +28,7 @@ function Get-SumItems {
     .LINK
     http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
     #>
-    #requires -version 2
+    ##requires -version 2
     BEGIN { $x = 0 }
     PROCESS { $x += $_ }
     END { $x }
