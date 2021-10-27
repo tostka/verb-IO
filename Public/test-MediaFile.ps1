@@ -17,6 +17,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
     * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
     .DESCRIPTION
     test-MediaFile.ps1 - 1) Pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
@@ -87,7 +88,9 @@ Function test-MediaFile {
             [Parameter(HelpMessage="[int] Cutoff threshold for minimum video lines of resolution (in pixels the underlying video stream 'Height_String').[-ThresholdMinVerticalRes 300]")]
             [int]$ThresholdMinVerticalRes=480,
             [Parameter(HelpMessage="Suppress all outputs but return pass status as`$true/`$false, to the pipeline[-Silent]")]
-            [switch] $Silent
+            [switch] $Silent,
+            [Parameter(HelpMessage="Switch to create a matching XML metadata export file (with -Path name/location and .xml         ext).[-ExportToFile]")]
+            [switch]$ExportMediaToFile=$true
         ) ;
         BEGIN{
 
