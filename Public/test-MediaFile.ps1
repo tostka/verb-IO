@@ -17,6 +17,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
     * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
     .DESCRIPTION
@@ -124,7 +125,7 @@ Function test-MediaFile {
         PROCESS{
             foreach($entry in $Path){
                 $entry = (Convert-Path -LiteralPath $entry) ;
-                $pfile = gci $entry ; 
+                $pfile = get-childitem -literalpath $entry ; 
                 # pull get-mediaInfo and validate it's legit    
                 $pltGMIR=[ordered]@{
                     ExportToFile = $($ExportMediaToFile) ; 
@@ -136,7 +137,7 @@ Function test-MediaFile {
                     else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                 } ; 
                 $mediaMeta = Get-MediaInfoRAW -Path "$($entry)" -verbose:$($VerbosePreference -eq "Continue") ; 
-                $finalfile = gci $finalname ; 
+                $finalfile = get-childitem -literalpath $finalname ; 
                
                 $hasGeneralProps = [boolean]($mediaMeta.general.CompleteName -AND $mediaMeta.general.OverallBitRate_String -AND $mediaMeta.general.OverallBitRate_kbps) 
                 $hasMbps = [boolean]([double]$mediaMeta.general.FileSize_MB/[double]$mediaMeta.general.Duration_Mins -gt $ThresholdMbPerMin) ; 
