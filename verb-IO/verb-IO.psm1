@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.1.1.0.0
+Version     : 1.2.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -3730,7 +3730,7 @@ Function extract-Icon {
     extract-Icon - Exports an ico from a given source to a given destination (file, if OutputIconFilename specified, to pipeline, if not)
         .Description
     .NOTES
-    Version     : 1.1.1
+    Version     : 1.1.0
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
@@ -8343,6 +8343,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
     * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
     .DESCRIPTION
@@ -8450,7 +8451,7 @@ Function test-MediaFile {
         PROCESS{
             foreach($entry in $Path){
                 $entry = (Convert-Path -LiteralPath $entry) ;
-                $pfile = gci $entry ; 
+                $pfile = get-childitem -literalpath $entry ; 
                 # pull get-mediaInfo and validate it's legit    
                 $pltGMIR=[ordered]@{
                     ExportToFile = $($ExportMediaToFile) ; 
@@ -8462,7 +8463,7 @@ Function test-MediaFile {
                     else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                 } ; 
                 $mediaMeta = Get-MediaInfoRAW -Path "$($entry)" -verbose:$($VerbosePreference -eq "Continue") ; 
-                $finalfile = gci $finalname ; 
+                $finalfile = get-childitem -literalpath $finalname ; 
                
                 $hasGeneralProps = [boolean]($mediaMeta.general.CompleteName -AND $mediaMeta.general.OverallBitRate_String -AND $mediaMeta.general.OverallBitRate_kbps) 
                 $hasMbps = [boolean]([double]$mediaMeta.general.FileSize_MB/[double]$mediaMeta.general.Duration_Mins -gt $ThresholdMbPerMin) ; 
@@ -9310,8 +9311,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUBxzX7L8uSmuYbWOH67ComIoj
-# TzOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/pQnW+JB4YrN9MwhBy/fcmwE
+# IqagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -9326,9 +9327,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT7ImV2
-# PRcMNF8mTpp8zmdix0FKAzANBgkqhkiG9w0BAQEFAASBgALpGCONpAi1rmrHd43y
-# HX/GJ5Bb3R2hJARY5x85ep2CdBXR/TsQQjJZ7LL8jhIK58U8rNMyykMBGQMiYJUF
-# iLf3u4h/VbYoUgp8DY/t4znt+C8zXNeTCuc2Ny45aGstHoT5H1TzTCH3pMUPVEL9
-# joFFwuypxObDIoEjTJWBxG5J
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRIg3zv
+# 3JzYIEhPDA9+/gDvnOQYtjANBgkqhkiG9w0BAQEFAASBgKJl1hVFiDWzTm61AHW7
+# +e3jzgGj65iJ1iiahxHG4w/3nmf3d5qFOF19eqfBbtVm9LxWsjdEZ8M7mHaGY1Rx
+# 5ujtQxhTLCgjzrPRaiju5GOTy/+JXNmsr6k4VIkojq/7O0dYJkJVtZoqOeKehuoj
+# 8CDeZW2V7HG2lI1jlBgsezqg
 # SIG # End signature block
