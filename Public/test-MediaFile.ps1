@@ -1,4 +1,4 @@
-#*------v Function test-MediaFile v------
+#*------v test-MediaFile.ps1 v------
 Function test-MediaFile {
     <#
     .SYNOPSIS
@@ -17,6 +17,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
     * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
     * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
@@ -136,8 +137,8 @@ Function test-MediaFile {
                     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
                     else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                 } ; 
-                $mediaMeta = Get-MediaInfoRAW -Path "$($entry)" -verbose:$($VerbosePreference -eq "Continue") ; 
-                $finalfile = get-childitem -literalpath $finalname ; 
+                $mediaMeta = Get-MediaInfoRAW -Path "$($entry)" @pltGMIR ; 
+                $finalfile = get-childitem -literalpath "$($entry)"; 
                
                 $hasGeneralProps = [boolean]($mediaMeta.general.CompleteName -AND $mediaMeta.general.OverallBitRate_String -AND $mediaMeta.general.OverallBitRate_kbps) 
                 $hasMbps = [boolean]([double]$mediaMeta.general.FileSize_MB/[double]$mediaMeta.general.Duration_Mins -gt $ThresholdMbPerMin) ; 
@@ -222,5 +223,6 @@ Function test-MediaFile {
         END{
           
         };
-} ; 
-#*------^ END Function test-MediaFile ^------
+}
+
+#*------^ test-MediaFile.ps1 ^------
