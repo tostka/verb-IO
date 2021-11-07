@@ -17,6 +17,7 @@ function remove-UnneededFileVariants {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 7:28 PM 11/6/2021 added missing $population = $population reassign post filtering (prevented filter reduction form occuring at all)
     * 9:58 AM 9/21/2021 rem'd retry loop
     * 12:34 PM 9/20/2021  init
     .DESCRIPTION
@@ -86,7 +87,7 @@ function remove-UnneededFileVariants {
         if($pattern){
             $smsg = "post-filtering on pattern:$($pattern)" ;
             $smsg += "`n($(($population|measure).count) in set *before* filtering)"
-            $population | ?{$_.name -match $pattern} 
+            $population = $population | ?{$_.name -match $pattern} 
             $smsg += "`n($(($population|measure).count) in set *after* filtering)"
             write-verbose $smsg ;
         } ; 
@@ -189,4 +190,5 @@ function remove-UnneededFileVariants {
     $Exit = $Retries ;
 
 }
+
 #*------^ remove-UnneededFileVariants.ps1 ^------
