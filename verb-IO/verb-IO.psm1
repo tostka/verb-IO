@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.2.0.0.0
+Version     : 1.2.2.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -6712,6 +6712,7 @@ function remove-UnneededFileVariants {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 7:28 PM 11/6/2021 added missing $population = $population reassign post filtering (prevented filter reduction form occuring at all)
     * 9:58 AM 9/21/2021 rem'd retry loop
     * 12:34 PM 9/20/2021  init
     .DESCRIPTION
@@ -6781,7 +6782,7 @@ function remove-UnneededFileVariants {
         if($pattern){
             $smsg = "post-filtering on pattern:$($pattern)" ;
             $smsg += "`n($(($population|measure).count) in set *before* filtering)"
-            $population | ?{$_.name -match $pattern} 
+            $population = $population | ?{$_.name -match $pattern} 
             $smsg += "`n($(($population|measure).count) in set *after* filtering)"
             write-verbose $smsg ;
         } ; 
@@ -8343,6 +8344,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
     * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
     * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
@@ -8462,8 +8464,8 @@ Function test-MediaFile {
                     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
                     else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                 } ; 
-                $mediaMeta = Get-MediaInfoRAW -Path "$($entry)" -verbose:$($VerbosePreference -eq "Continue") ; 
-                $finalfile = get-childitem -literalpath $finalname ; 
+                $mediaMeta = Get-MediaInfoRAW -Path "$($entry)" @pltGMIR ; 
+                $finalfile = get-childitem -literalpath "$($entry)"; 
                
                 $hasGeneralProps = [boolean]($mediaMeta.general.CompleteName -AND $mediaMeta.general.OverallBitRate_String -AND $mediaMeta.general.OverallBitRate_kbps) 
                 $hasMbps = [boolean]([double]$mediaMeta.general.FileSize_MB/[double]$mediaMeta.general.Duration_Mins -gt $ThresholdMbPerMin) ; 
@@ -9311,8 +9313,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/pQnW+JB4YrN9MwhBy/fcmwE
-# IqagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU9bN6aa/uzdp4QDDMJq10zeRM
+# USegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -9327,9 +9329,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRIg3zv
-# 3JzYIEhPDA9+/gDvnOQYtjANBgkqhkiG9w0BAQEFAASBgKJl1hVFiDWzTm61AHW7
-# +e3jzgGj65iJ1iiahxHG4w/3nmf3d5qFOF19eqfBbtVm9LxWsjdEZ8M7mHaGY1Rx
-# 5ujtQxhTLCgjzrPRaiju5GOTy/+JXNmsr6k4VIkojq/7O0dYJkJVtZoqOeKehuoj
-# 8CDeZW2V7HG2lI1jlBgsezqg
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBS9Z0xE
+# T/918APJRtAcRVj65lBJxTANBgkqhkiG9w0BAQEFAASBgGAkOwGaXrBGR3ZLrayS
+# YBI61tbQuxMnGW/iTKTuK1gB/80VZeYtVMDCKeq2bO+A7AvaQFka7X6G1puCDNDX
+# NbVKqWuWGub1L2yCYsF3UPkUWouZxjJow72IMypdSN5CH+HDsPCsNN+qOStymPRr
+# My2GAsAtV/h/uhAn5XmkxOaf
 # SIG # End signature block

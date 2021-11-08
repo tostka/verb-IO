@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.0.112.0.0
+Version     : 1.2.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -767,28 +767,39 @@ Function convert-BinaryToDecimalStorageUnits {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole
     REVISIONS
+    * 12:48 PM 10/20/2021 updated CBH w source article link, added comments
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
-    convert-BinaryToDecimalStorageUnits.ps1 - Convert KiB|MiB|GiB|TiB|PiB binary storage units to bytes|mb|kb|gb|tb|pb.  Rationale: 'kilo' is a prefix for base-10 or decimal numbers, which doesn't actually apply to that figure when it's a representation of a binary number (as memory etc represent). The correct prefix is instead kibi, so 1024 bits is really a kibibit.
+    convert-BinaryToDecimalStorageUnits.ps1 - Convert KiB|MiB|GiB|TiB|PiB binary storage units to bytes|mb|kb|gb|tb|pb.  Rationale: 
+    [Gigabytes and Gibibytes - What you need to know - Storage - Tech Explained - HEXUS.net - hexus.net/](https://hexus.net/tech/tech-explained/storage/1376-gigabytes-gibibytes-what-need-know/) : 
+    The answer lies in the correct representation of binary numbers. When talking about a binary number like computer memory or processor cache, where the memory is made up of a series of memory cells that hold single bits of information, the number of memory cells is always power of 2. For instance, 1024 bits of memory, what you'd likely usually call a kilobit, is 2^10 bits. However, kilo is a prefix for base-10 or decimal numbers, so it doesn't actually apply to that figure when it's a representation of a binary number. The correct prefix is instead kibi, so 1024 bits is really a kibibit.
+
+That rule applies everywhere. So what you'd usually think of as 1GB, or 1 gigabyte, isn't 1,000,000,000 bytes. Giga is the decimal prefix, so when you say gigabyte it means 1,000,000,000 bytes, not the 1,073,741,824 bytes it actually is (1024 * 1024 * 1024, all binary representations). Gibibyte is the correct term, abbreviated as 1GiB. So you have 1GiB of system memory, not 1GB.
+
+The most common exception, where it's very correct, is the hard disk, where 1GB of disk space does actually mean 1,000,000,000 bytes. That's why for every 1GB of hard disk space, you actually see around 950MiB of space in your operating system (regardless of whether the OS tells you that's MB, which it isn't!).
+    
+For small values, it's a rounding error difference between GB\GiB. But as the values grow they significantly diverge. 
+    Specific reason I wrote this: get-MediaInfoRaw() (MediaInfo.dll)'s native storage units ('binary') output is in '[KMGTP]iB' units, which I wanted converted to common [kmgtp]b decimal units.
     .PARAMETER Value
-    String representation of an integer size and unit in 'KiB|MiB|GiB|TiB|PiB' [-value '1.39 GiB']
+    String representation of a numeric size and units stated in 'KiB|MiB|GiB|TiB|PiB' [-value '1.39 GiB']
     .PARAMETER To
-    Desired output metric (Bytes|KB}MB|GB|TB) [-To 'GB']
+    Desired output metric (Bytes|KB|MB|GB|TB) [-To 'GB']
     .PARAMETER Decimals
-    decimal places of rounding[-Decimals 2]
+    Decimal places of rounding[-Decimals 2]
     .OUTPUT
-    decimal size in converted decimal unit.
+    Decimal size in converted decimal unit.
     .EXAMPLE
     $filesizeGB = '1.39 GiB' | convert-BinaryToDecimalStorageUnits -To GB -Decimals 2;
     Example converting a binary Gibibyte value into a decimal gigabyte value, rounded to 2 decimal places.
     .LINK
+    https://hexus.net/tech/tech-explained/storage/1376-gigabytes-gibibytes-what-need-know/
+    .LINK
     https://github.com/tostka/verb-IO
     #>
-
-    #[Alias('convert-
+    #[Alias('convert-xxx')]
     [CmdletBinding()]
     Param (
-        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="String representation of an integer size and unit in 'KiB|MiB|GiB|TiB|PiB' [-value '1.39 GiB']")]
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="String representation of a numeric size and units stated in 'KiB|MiB|GiB|TiB|PiB' [-value '1.39 GiB']")]
         #[ValidateNotNullOrEmpty()]
         [ValidatePattern("^([\d\.]+)((\s)*)([KMGTP]iB)$")]
         [string]$Value,
@@ -810,29 +821,29 @@ Function convert-BinaryToDecimalStorageUnits {
     switch ($unit){
         'PiB' {
             $smsg += " PiB" ;
-            $inBytes = [double]($size * [math]::Pow(1024,5)) ;            
+            $inBytes = [double]($size * [math]::Pow(1024,5)) ; # pb-> pib would be gb/1024^5
         }
         'TiB' {
             # Tibibyte
             $smsg += " TiB" ;
-            $inBytes = [double]($size * [math]::Pow(1024,4)) ;
+            $inBytes = [double]($size * [math]::Pow(1024,4)) ; # tb-> tib would be gb/1024^4
         }
         'GiB' {
             # gibibyte
             $smsg += " GiB" ;
             write-verbose "converting  GiB -> $($To)" ;
-            $inBytes = [double]($size * [math]::Pow(1024,3)) ;
+            $inBytes = [double]($size * [math]::Pow(1024,3)) ; # gb-> gib would be gb/1024^3
         }
         'MiB' {
             # mebibyte
             $smsg += " MiB" ; 
             write-verbose "converting  MiB -> $($To)" ;
-            $inBytes = [double]($size * [math]::Pow(1024,2) ) ;
+            $inBytes = [double]($size * [math]::Pow(1024,2) ) ; # mb-> mib would be gb/1024^2
         }
         'KiB' {
             # kibibyte
             $smsg += " KiB" ;
-            $inBytes = [double]($size * 1024 ) ;
+            $inBytes = [double]($size * 1024 ) ; # kb-> kib would be gb/1024
         }
         'Bytes' {
             $smsg += " Bytes" ; 
@@ -5090,6 +5101,7 @@ function Get-SumItems {
     Github      : 
     Tags        : Powershell,Math
     REVISIONS
+    * 12:37 PM 10/25/2021 rem'd req version
     12:29 PM 5/15/2013 revised
     17:10 1/3/2010 posted rev
     .DESCRIPTION
@@ -5103,6 +5115,7 @@ function Get-SumItems {
     .LINK
     http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
     #>
+    ##requires -version 2
     BEGIN { $x = 0 }
     PROCESS { $x += $_ }
     END { $x }
@@ -7338,6 +7351,7 @@ Function Select-StringAll {
     AddedWebsite: http://www.toddomation.com
     AddedTwitter: @tostka / http://twitter.com/tostka
     REVISIONS
+    * 12:37 PM 10/25/2021 rem'd req version
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
     Select-StringAll.ps1 - Finds text in strings and files using CONJUNCTIVE logic.
@@ -7433,6 +7447,7 @@ When the context includes a match, the MatchInfo object for each match includes 
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    ##requires -version 3
     #[Alias('convert-
     [CmdletBinding(DefaultParameterSetName='File')]
   param(
@@ -8309,6 +8324,234 @@ Function stop-driveburn {
 
 #*------^ stop-driveburn.ps1 ^------
 
+#*------v test-MediaFile.ps1 v------
+Function test-MediaFile {
+    <#
+    .SYNOPSIS
+    test-MediaFile.ps1 - 1) Pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
+    2) Compares key A/V metrics against (my arbitrary) thresholds for suitability, 
+    and 3) outputs a summary report of the metrics. 
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-10-12
+    FileName    : test-MediaFile.ps1
+    License     : MIT License
+    Copyright   : (c) 2021 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
+    REVISIONS
+    * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
+    * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
+    * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
+    .DESCRIPTION
+    test-MediaFile.ps1 - 1) Pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
+    2) Compares key A/V metrics against (my arbitrary) thresholds for suitability, 
+    and 3) outputs a summary report of the metrics. 
+
+    This is a wrapper function for my Get-MediaINfoRaw() cmdlet, which is part of my [Get-MediaInfo](https://github.com/tostka/Get-MediaInfo)
+    module, which is forked from Frank Skare/stax76's Get-MediaInfoSummary() function (part of his [get-MediaInfo module](https://github.com/stax76/Get-MediaInfo)).
+    which in turn leverages the [MediaInfo.dll](https://mediaarea.net/en/MediaInfo/Support/SDK/ReadFirst),
+    development component made available by the open source [MediaInfo](https://mediaarea.net/en/MediaInfo) project 
+    (which has a nifty free-standing .exe gui version as their core tool). 
+    
+    1) This wrapper function calls Get-MediaInfoRaw(), to retrieve desciptive media metadata on the file specified by the -Path param.
+    
+    2) It then and processes the returned media metadata, checking the following thresholds:
+    
+    - Has all of the following General stream properties populated:
+        CompleteNamem, OverallBitRate_String and OverallBitRate_kbps 
+        (last 2 are my Get-MediaInfoRaw() decimal-parsed variants of the xxx_String properties).
+    
+    - Has a 'mb-Per-Minute' ratio of _2_ or better (specified via the -Threshmbpm parameter).  
+        I calulate 'mb-Per-Minute' as: General stream 'FileSize_MB' / General stream 'Duration_Mins' 
+        (both are my numeric parses of the underlying xxx_String properties)
+
+        Goal of this metric is flagging 'bogus' files, that don't have 
+        enough "size to metadata minutes" to reflect a typical "legit" video file.    
+        
+    - Has a minimum vertical resolution of at least 480 pixels (specified via the -ThresholdMinVerticalRes parameter), 
+        as reported in the Video stream Height_String property.
+  
+    - Has all of the following Video stream properties populated:
+        Format_String, CodecID, Duration_Mins, BitRate_kbps, FrameRate_fps 
+        (the trailing three are numeric parses of the matching _String properties). 
+    
+    - Has all of the following Audio stream properties populated:
+      Format_String, CodecID, SamplingRate_bit
+      (last is my numeric parse of SamplingRate_String).
+
+    3) It then outputs a summary report to console.
+
+    .PARAMETER Path
+    Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]
+    .PARAMETER ThresholdMbPerMin
+    [float] Cutoff threshold for ratio of 'file size in mb'/'minutes duration' (defaults 2).[-ThresholdMbPerMin 1.5]
+    .PARAMETER ThresholdMinVerticalRes
+    [int] Cutoff threshold for minimum video lines of resolution (in pixels the underlying video stream 'Height_String').[-ThresholdMinVerticalRes 300]
+    .OUTPUT
+    None. Outputs summary to console. 
+    .EXAMPLE
+    test-MediaFile -Path c:\pathto\video.mp4
+    Example summarizing a video file
+    .EXAMPLE
+    'c:\pathto\video.mp4'| test-MediaFile 
+    Example using pipeline support
+    .LINK
+    https://hexus.net/tech/tech-explained/storage/1376-gigabytes-gibibytes-what-need-know/
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    #[Alias('convert-xxx')]
+    PARAM(
+            #[Parameter(Position=0,Mandatory=$True,ValueFromPipelineByPropertyName=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
+            [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
+            [ValidateScript({Test-Path $_})]
+            [string[]] $Path,
+            [Parameter(HelpMessage="[float] Cutoff threshold for ratio of 'file size in mb'/'minutes duration' (defaults 2).[-ThresholdMbPerMin 1.5]")]
+            [float]$ThresholdMbPerMin=2,
+            [Parameter(HelpMessage="[int] Cutoff threshold for minimum video lines of resolution (in pixels the underlying video stream 'Height_String').[-ThresholdMinVerticalRes 300]")]
+            [int]$ThresholdMinVerticalRes=480,
+            [Parameter(HelpMessage="Suppress all outputs but return pass status as`$true/`$false, to the pipeline[-Silent]")]
+            [switch] $Silent,
+            [Parameter(HelpMessage="Switch to create a matching XML metadata export file (with -Path name/location and .xml         ext).[-ExportToFile]")]
+            [switch]$ExportMediaToFile=$true
+        ) ;
+        BEGIN{
+
+        #$propsGeneral1 = @{name="FileName";expression={$_.CompleteName}}, @{name="FileMB";expression={"$($_.FileSize_MB)mb"}}
+        #$propsGeneral2 = @{name="FileMB";expression={"$($_.FileSize_MB)mb"}},@{name="Mins";expression={[math]::round($_.Duration_Mins,1)}},@{name="OBitRate";expression={"$($_.OverallBitRate_kbps) kbps"}} ; 
+        #$propsAudio = @{name="Chnls";expression={$_.Channel_s__String.replace('annels','')}},@{name="Lang";expression={$_.Language_String}},@{name="Fmt";expression={$_.Format_String}},@{name="BitRate";expression={$_.BitRate_String}},@{name="kHz";expression={$_.SamplingRate_bit}}; 
+        #$propsVideo = 'Format_String','BitRate_Mode_String','BitRate_kbps','Width_Pixels','Height_Pixels','DisplayAspectRatio_String','FrameRate_fps','Standard','Encoded_Library_String' ; 
+
+        $propsGeneral1 = @{name="FileName";expression={$_.CompleteName}}
+                        
+        $propsGeneral2 = @{name="FileMB";expression={"$($_.FileSize_MB)mb"}},@{name="Mins";expression={[math]::round($_.Duration_Mins,1)}},
+            @{name="OBitRate";expression={"$($_.OverallBitRate_kbps) kbps"}},@{name="Format";expression={"$($_.Format_String) kbps"}},@{name="Ext";expression={$pfile.extension}} ; 
+        $propsAudio = @{name="A-Chnls";expression={$_.Channel_s__String.replace('annels','')}},@{name="A-Lang";expression={$_.Language_String}},
+            @{name="A-Fmt";expression={$_.Format_String}},@{name="A-BitRate";expression={$_.BitRate_String}},
+            @{name="A-kHz";expression={$_.SamplingRate_bit}}; 
+
+        $propsVideo = @{name="V-Fmt";expression={$_.Format_String}},@{name="V-Kbps";expression={$_.BitRate_kbps}},
+            @{name="V-WxH:Ratio";expression={"$($_.Width_Pixels)x$($_.Height_Pixels):$($_.DisplayAspectRatio_String)"}},
+            @{name="V-fps";expression={[math]::round($_.FrameRate_fps,1)}},@{name="V-Std";expression={$_.Standard}},
+            @{name="V-Encoder";Expression={(($_.Encoded_Library_String.ToString())).substring(0,[System.Math]::Min(10, $_.Encoded_Library_String.Length)).trim() + "..."}} ;
+
+        
+        $propsGeneralTest = 'CompleteName','OverallBitRate_String','OverallBitRate_kbps' ;
+        $propsVidTest = 'Format_String','CodecID','Duration_Mins','BitRate_kbps','FrameRate_fps' ;
+        $propsAudioTest = 'Format_String','CodecID','SamplingRate_bit' ; 
+
+        $isLegit = $false ; 
+        $isWarn = $false ; 
+        
+        }  # BEG-E
+        PROCESS{
+            foreach($entry in $Path){
+                $entry = (Convert-Path -LiteralPath $entry) ;
+                $pfile = get-childitem -literalpath $entry ; 
+                # pull get-mediaInfo and validate it's legit    
+                $pltGMIR=[ordered]@{
+                    ExportToFile = $($ExportMediaToFile) ; 
+                    verbose = $($VerbosePreference -eq "Continue")
+                } ; 
+                if(-not$Silent){
+                    $smsg = "Get-MediaInfoRAW w`n$(($pltGMIR|out-string).trim())`n-Path: -$($entry)" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+                    else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                } ; 
+                $mediaMeta = Get-MediaInfoRAW -Path "$($entry)" -verbose:$($VerbosePreference -eq "Continue") ; 
+                $finalfile = get-childitem -literalpath $finalname ; 
+               
+                $hasGeneralProps = [boolean]($mediaMeta.general.CompleteName -AND $mediaMeta.general.OverallBitRate_String -AND $mediaMeta.general.OverallBitRate_kbps) 
+                $hasMbps = [boolean]([double]$mediaMeta.general.FileSize_MB/[double]$mediaMeta.general.Duration_Mins -gt $ThresholdMbPerMin) ; 
+                $hasVRes = [boolean]([int]$mediaMeta.video.Height_Pixels -gt $ThreshVRes)
+                $hasVidProps = [boolean](($mediameta.video.Format_String -AND $mediameta.video.CodecID -AND $mediameta.video.Duration_Mins -AND $mediameta.video.BitRate_kbps -AND $mediameta.video.FrameRate_fps) )
+                $hasAudioProps = [boolean](($mediameta.audio.Format_String -AND $mediameta.audio.CodecID -AND $mediameta.audio.SamplingRate_bit ) )               
+
+                $MDtbl=[ordered]@{NoDashRow=$true } ; # out-markdowntable splat
+                
+                $sRpt = '-'*5 ; 
+                $sRpt += "`n$(($mediaMeta.general| select $propsGeneral1|out-markdowntable @MDtbl |out-string).trim())" ;
+                $sRpt += "`n$(($mediaMeta.general| select $propsGeneral2|out-markdowntable @MDtbl |out-string).trim())" ;
+                $sRpt += "`n$(($mediaMeta.video| select $propsVideo|out-markdowntable @MDtbl |out-string).trim())" ;
+                $sRpt += "`n$(($mediaMeta.audio| select $propsAudio|out-markdowntable @MDtbl |out-string).trim())" ;
+                $sRpt += "`n$(($mediaMeta.SubtitleLanguagesInternal|out-markdowntable @MDtbl |out-string).trim())" ;
+                $sRpt += "`n$('-'*5)" ; 
+
+                if($hasGeneralProps -AND $hasMbps -AND $hasVRes -AND $hasVidProps -AND $hasAudioProps){
+                    $isLegit = $true ; 
+                    $smsg = "($($finalname) passes meta props test)" ;                         
+                    if(-not$Silent){
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+                        else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                        $smsg = $sRpt ;
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+                        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    } ; 
+                } else { 
+                    $isLegit = $false ; 
+                    $smsg = "$($finalname) *FAILS* meta props test" ; 
+                    $smsg += $sRpt ;
+                    if(-not$Silent){
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+                        else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                    } ; 
+                    if(-not $hasGeneralProps){
+                        $smsg = "-LACKS key general meta props!:" ; 
+                        $smsg = "`n$(($mediaMeta.general| fl $propsGeneralTest|out-string).trim())" ; 
+                        if(-not$Silent){
+                            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+                            else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                        }
+                    } ;
+                    if(-not $hasVidProps){
+                        $smsg = "-LACKS key video meta props!:" ; 
+                        $smsg = "`n$(($mediaMeta.video| fl $propsVidTest|out-string).trim())" ; 
+                        if(-not$Silent){
+                            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+                            else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                        } ; 
+                    } ;
+                    if(-not $hasAudioProps){
+                        $smsg = "-LACKS key audio meta props!:" ; 
+                        $smsg = "`n$(($mediaMeta.audio| fl $propsVidTest|out-string).trim())" ; 
+                        if(-not$Silent){
+                            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+                            else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                        } ;
+                    } ;
+                    if(-not $hasMbps){
+                        $smsg = "-has a VERY LOW MB/SEC spec! ($($mediaMeta.general.FileSize_MB/$mediaMeta.general.Duration_Mins) vs min:$($ThresholdMbPerMin))!:" ; 
+                        $smsg = "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
+                        if(-not$Silent){
+                            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+                            else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                        } ;
+                    } ;
+                    if(-not $hasVRes){
+                        $smsg = "-is a VERY LOW RES! ($($mediaMeta.video.Height_Pixels) vs min:$($ThreshVRes))!:" ; 
+                        $smsg = "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
+                        if(-not$Silent){
+                            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+                            else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                        };
+                    } ;
+                } ;  # good/bad
+                
+                $isLegit | write-output ;
+
+            }  # loop-E
+        }  # PROC-E
+        END{
+          
+        };
+}
+
+#*------^ test-MediaFile.ps1 ^------
+
 #*------v Test-PendingReboot.ps1 v------
 function Test-PendingReboot {
     <#
@@ -9062,14 +9305,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,move-FileOnReboot,new-Shortcut,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-MediaFile,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkTeswHCWsAl5Tpp3Onwutorw
-# XlmgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/pQnW+JB4YrN9MwhBy/fcmwE
+# IqagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -9084,9 +9327,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQxQqow
-# 9D/C2nNaouc6hq6FwDrtBzANBgkqhkiG9w0BAQEFAASBgLgDccQsBFIy2xRlAfEI
-# rLHP0VcZ/4FyBieOXwkF9nbJ+arCJJC0MhMHVO2IZqBPX20wwIF14mMPqaLgNtxl
-# KAqNqIgSisL3KqDUzeKfS1XWQce4eElq2x9qSCQ8lwgr6aryBVlv4++g7WCnFszD
-# ZKP1yL1ODQgPzaeLe+uO4ibn
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRIg3zv
+# 3JzYIEhPDA9+/gDvnOQYtjANBgkqhkiG9w0BAQEFAASBgKJl1hVFiDWzTm61AHW7
+# +e3jzgGj65iJ1iiahxHG4w/3nmf3d5qFOF19eqfBbtVm9LxWsjdEZ8M7mHaGY1Rx
+# 5ujtQxhTLCgjzrPRaiju5GOTy/+JXNmsr6k4VIkojq/7O0dYJkJVtZoqOeKehuoj
+# 8CDeZW2V7HG2lI1jlBgsezqg
 # SIG # End signature block

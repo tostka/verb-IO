@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.1.1.0.0
+Version     : 1.2.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -6712,6 +6712,7 @@ function remove-UnneededFileVariants {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 7:28 PM 11/6/2021 added missing $population = $population reassign post filtering (prevented filter reduction form occuring at all)
     * 9:58 AM 9/21/2021 rem'd retry loop
     * 12:34 PM 9/20/2021  init
     .DESCRIPTION
@@ -6781,7 +6782,7 @@ function remove-UnneededFileVariants {
         if($pattern){
             $smsg = "post-filtering on pattern:$($pattern)" ;
             $smsg += "`n($(($population|measure).count) in set *before* filtering)"
-            $population | ?{$_.name -match $pattern} 
+            $population = $population | ?{$_.name -match $pattern} 
             $smsg += "`n($(($population|measure).count) in set *after* filtering)"
             write-verbose $smsg ;
         } ; 
@@ -8343,6 +8344,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
     * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
     * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
@@ -8462,8 +8464,8 @@ Function test-MediaFile {
                     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
                     else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                 } ; 
-                $mediaMeta = Get-MediaInfoRAW -Path "$($entry)" -verbose:$($VerbosePreference -eq "Continue") ; 
-                $finalfile = get-childitem -literalpath $finalname ; 
+                $mediaMeta = Get-MediaInfoRAW -Path "$($entry)" @pltGMIR ; 
+                $finalfile = get-childitem -literalpath "$($entry)"; 
                
                 $hasGeneralProps = [boolean]($mediaMeta.general.CompleteName -AND $mediaMeta.general.OverallBitRate_String -AND $mediaMeta.general.OverallBitRate_kbps) 
                 $hasMbps = [boolean]([double]$mediaMeta.general.FileSize_MB/[double]$mediaMeta.general.Duration_Mins -gt $ThresholdMbPerMin) ; 
