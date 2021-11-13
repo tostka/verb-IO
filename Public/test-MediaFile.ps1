@@ -17,7 +17,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
-    * 7:37 PM 11/12/2021 flip $path param test-path to use -literalpath - too many square brackets in sources
+    * 7:37 PM 11/12/2021 added example for doing a full dir of files ; flip $path param test-path to use -literalpath - too many square brackets in sources
     * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
     * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
@@ -75,6 +75,8 @@ Function test-MediaFile {
     .EXAMPLE
     'c:\pathto\video.mp4'| test-MediaFile 
     Example using pipeline support
+    .EXAMPLE
+    gci "c:\PathTo\*" -include *.mkv | select -expand fullname | test-MediaFile
     .LINK
     https://hexus.net/tech/tech-explained/storage/1376-gigabytes-gibibytes-what-need-know/
     .LINK
