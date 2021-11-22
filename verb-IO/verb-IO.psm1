@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.2.3.0.0
+Version     : 1.3.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -8402,6 +8402,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 7:37 PM 11/12/2021 added example for doing a full dir of files ; flip $path param test-path to use -literalpath - too many square brackets in sources
     * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
     * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
@@ -8459,6 +8460,8 @@ Function test-MediaFile {
     .EXAMPLE
     'c:\pathto\video.mp4'| test-MediaFile 
     Example using pipeline support
+    .EXAMPLE
+    gci "c:\PathTo\*" -include *.mkv | select -expand fullname | test-MediaFile
     .LINK
     https://hexus.net/tech/tech-explained/storage/1376-gigabytes-gibibytes-what-need-know/
     .LINK
@@ -8468,7 +8471,7 @@ Function test-MediaFile {
     PARAM(
             #[Parameter(Position=0,Mandatory=$True,ValueFromPipelineByPropertyName=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
             [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
-            [ValidateScript({Test-Path $_})]
+            [ValidateScript({Test-Path -literalpath $_})]
             [string[]] $Path,
             [Parameter(HelpMessage="[float] Cutoff threshold for ratio of 'file size in mb'/'minutes duration' (defaults 2).[-ThresholdMbPerMin 1.5]")]
             [float]$ThresholdMbPerMin=2,
@@ -9371,8 +9374,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUeI3RJmkN0QO2KRq1F+mkauh1
-# beKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUf1bZJp3JSr3xDrBMs365hi4m
+# 5mugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -9387,9 +9390,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRxX1vL
-# VsiO3WolRmV3mFbs+xVTYjANBgkqhkiG9w0BAQEFAASBgALFxUHo1x9Zr37jDOIT
-# tL0Mu57p3Za/MmHO2XFguLIawUycZhpKvplTJelYijbmeJUlGiN1Q+2AT2i8JS/9
-# AErVYTklXoYJSbac+P1gb742X5K6dlhtvKhLe/CIxD/NJkM3hgIETQ5adePtXeMq
-# 5mzmv3wRsiE8sucfWm0HR5Iv
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSI4b1j
+# WQ/uBsEsRgsL2kxhf/yeDDANBgkqhkiG9w0BAQEFAASBgBEIXAgrVC+ITlOf1i7x
+# kW7SXoLHSeg2LGowqfgqBFy0VV6hQWkRlgYUzZDS9/NRFbmRJkK2Hmnx/SGZy3M7
+# gUtPADZd5G33lM66ZMeYxR0N0G9XUc7sYCjcFFSSCyB/z/cz1c4+o1WXU6+64x1c
+# bkf1tmYDITk/SYhEiI87JDRk
 # SIG # End signature block
