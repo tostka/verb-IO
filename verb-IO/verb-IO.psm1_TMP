@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.2.3.0.0
+Version     : 1.3.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -5866,10 +5866,10 @@ Function out-Clipboard {
     AddedWebsite:	https://community.idera.com/members/tobias-weltner
     AddedTwitter:	URL
     REVISIONS
+    * 10:59 AM 11/29/2021 fixed - shift to adv func broke the $input a-vari (only present w simple funcs): Added declared $content pipeline vari; added -NoLegacy switch to suppress the default 'append-`n to each line' clip.exe behavior emulation. 
     * 3:17 PM 11/8/2021 init vers, flip profile alias & clip.exe to holistic function for either
     .DESCRIPTION
     out-Clipboard.ps1 - cross-version emulation of the older pre-psv3 out-clipboard 'clip.exe' use (for pre psv3); or emulates the `n-appending bahavior of clip.exe, when using it for psv3+. This differentiates from the native set-clipboard, which appends no trailing `n.
-    
     Set-clipboard supports pipeline support, like the older | clip.exe approach. 
     But, there are differences between set-clipboard & clip.exe: 
     - clip.exe appends `n to every item added. 
@@ -5880,24 +5880,38 @@ Function out-Clipboard {
     .EXAMPLE
     "some text" | out-clipboard ; 
     .LINK
-    https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/converting-hash-tables-to-objects
-    .LINK
     https://github.com/tostka/verb-IO
     #>
 
     [CmdletBinding()]
-    Param ()
+    Param (
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Content to be copied to clipboard [-Content `$object]")]
+        [ValidateNotNullOrEmpty()]$Content,
+        [Parameter(HelpMessage="Switch to suppress the default 'append `n' clip.exe-emulating behavior[-NoLegacy]")]
+        [switch]$NoLegacy
+    ) ;
     PROCESS {
         if($host.version.major -lt 3){
             # provide clipfunction downrev
-            $tClip = "$((Resolve-Path $env:SystemRoot\System32\clip.exe).path)" ;
-            #$input | "($tClip)" ; 
-            Set-Alias -Name 'Out-Clipboard' -Value $tClip -scope script ;
-            $input | out-clipboard 
+            if(-not (get-command out-clipboard)){
+                # build the alias if not pre-existing
+                $tClip = "$((Resolve-Path $env:SystemRoot\System32\clip.exe).path)" ;
+                #$input | "($tClip)" ; 
+                #$content | ($tClip) ; 
+                Set-Alias -Name 'Out-Clipboard' -Value $tClip -scope script ;
+            } ;
+            # input only works in simple functions, in adv funcs declare a suitable vari
+            #$input | out-clipboard 
+            $content | out-clipboard ;
         } else {
             # emulate clip.exe's `n-append behavior on ps3+
-            $input = $input | foreach-object {"$($_)$([Environment]::NewLine)"} ; 
+            <#$input = $input | foreach-object {"$($_)$([Environment]::NewLine)"} ; 
             $input | set-clipboard ; 
+            #>
+            if(-not $NoLegacy){
+                $content = $content | foreach-object {"$($_)$([Environment]::NewLine)"} ; 
+            } ; 
+            $content | set-clipboard ;
         } ; 
     } ; 
 }
@@ -8402,6 +8416,8 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
+    * 8:15 PM 11/19/2021 added tmr alias
     * 7:37 PM 11/12/2021 added example for doing a full dir of files ; flip $path param test-path to use -literalpath - too many square brackets in sources
     * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
     * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
@@ -8467,7 +8483,7 @@ Function test-MediaFile {
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    #[Alias('convert-xxx')]
+    [Alias('tmf')]
     PARAM(
             #[Parameter(Position=0,Mandatory=$True,ValueFromPipelineByPropertyName=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
             [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
@@ -8569,6 +8585,18 @@ Function test-MediaFile {
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         }
+                        $smsg = $null ; 
+                        if(-not $mediaMeta.general.CompleteName){
+                            $smsg = "`n(missing general.CompleteName)" ; 
+                        }
+                        if(-not $mediaMeta.general.OverallBitRate_String){
+                            $smsg = "`n(missing general.OverallBitRate_String)" ; 
+                        } 
+                        if(-not $mediaMeta.general.OverallBitRate_kbps){
+                            $smsg = "`n(missing general.OverallBitRate_kbps)" ; 
+                        } ; 
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+                        else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                     } ;
                     if(-not $hasVidProps){
                         $smsg = "-LACKS key video meta props!:" ; 
@@ -8577,6 +8605,25 @@ Function test-MediaFile {
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ; 
+                        $smsg = $null ; 
+                        # ($mediameta.video.Format_String -AND $mediameta.video.CodecID -AND $mediameta.video.Duration_Mins -AND $mediameta.video.BitRate_kbps -AND $mediameta.video.FrameRate_fps)
+                        if(-not $mediameta.video.Format_String ){
+                            $smsg = "`n(missing video.Format_String)" ; 
+                        }
+                        if(-not $mediameta.video.CodecID){
+                            $smsg = "`n(missing video.CodecID)" ; 
+                        } 
+                        if(-not $mediameta.video.Duration_Mins){
+                            $smsg = "`n(missing video.Duration_Mins)" ; 
+                        } ; 
+                        if(-not $mediameta.video.BitRate_kbps){
+                            $smsg = "`n(missing video.BitRate_kbps)" ; 
+                        } ; 
+                        if(-not $mediameta.video.FrameRate_fps){
+                            $smsg = "`n(missing video.FrameRate_fps)" ; 
+                        } ;   
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+                        else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;                       
                     } ;
                     if(-not $hasAudioProps){
                         $smsg = "-LACKS key audio meta props!:" ; 
@@ -8585,6 +8632,22 @@ Function test-MediaFile {
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ;
+                        $smsg = $null ; 
+                        # ($mediameta.audio.Format_String -AND $mediameta.audio.CodecID -AND $mediameta.audio.SamplingRate_bit )
+                        if(-not $mediameta.audio.Format_String ){
+                            $smsg = "`n(missing audio.Format_String)" ; 
+                        }
+                        if(-not $mediameta.audio.CodecID){
+                            $smsg = "`n(missing audio.CodecID)" ; 
+                        } 
+                        if(-not $mediameta.audio.SamplingRate_bit){
+                            $smsg = "`n(missing audio.SamplingRate_bit)" ; 
+                        } ; 
+                        if(-not $mediameta.video.BitRate_kbps){
+                            $smsg = "`n(missing video.BitRate_kbps)" ; 
+                        } ;                        
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+                        else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;                      
                     } ;
                     if(-not $hasMbps){
                         $smsg = "-has a VERY LOW MB/SEC spec! ($($mediaMeta.general.FileSize_MB/$mediaMeta.general.Duration_Mins) vs min:$($ThresholdMbPerMin))!:" ; 
