@@ -1251,6 +1251,8 @@ new-Shortcut:OutBuffer
 new-Shortcut:ob
 new-Shortcut:PipelineVariable
 new-Shortcut:pv
+out-Clipboard:Content
+out-Clipboard:NoLegacy
 out-Clipboard:Verbose
 out-Clipboard:vb
 out-Clipboard:Debug

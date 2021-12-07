@@ -12,7 +12,7 @@
 RootModule = 'verb-IO.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.3.1'
+ModuleVersion = '1.4.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Powershell Input/Output generic functions module'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Add-PSTitleBar','Authenticate-File','backup-File','check-FileLock','Close-IfAlreadyRunning','ColorMatch','Compare-ObjectsSideBySide','Compare-ObjectsSideBySide4','Compare-ObjectsSideBySide4','convert-BinaryToDecimalStorageUnits','convert-ColorHexCodeToWindowsMediaColorsName','convert-DehydratedBytesToGB','convert-DehydratedBytesToMB','Convert-FileEncoding','ConvertFrom-CanonicalOU','ConvertFrom-CanonicalUser','ConvertFrom-CmdList','ConvertFrom-DN','ConvertFrom-IniFile','convertFrom-MarkdownTable','ConvertFrom-SourceTable','Null','True','False','Debug-Column','Mask','Slice','TypeName','ErrorRecord','convert-HelpToMarkdown','_encodePartOfHtml','_getCode','_getRemark','ConvertTo-HashIndexed','convertTo-MarkdownTable','convertTo-Object','ConvertTo-SRT','convert-VideoToMp3','copy-Profile','Count-Object','Create-ScheduledTaskLegacy','dump-Shortcuts','Echo-Finish','Echo-ScriptEnd','Echo-Start','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','Format-Json','Get-AverageItems','get-colorcombo','Get-CountItems','Get-FileEncoding','Get-FileEncodingExtended','Get-FolderSize','Convert-FileSize','Get-FolderSize2','Get-FsoShortName','Get-FsoShortPath','Get-FsoTypeObj','get-InstalledApplication','get-LoremName','Get-ProductItems','get-RegistryProperty','Get-ScheduledTaskLegacy','Get-Shortcut','Get-SumItems','get-TaskReport','Get-Time','Get-TimeStamp','get-TimeStampNow','get-Uptime','Invoke-Flasher','Invoke-Pause','Invoke-Pause2','move-FileOnReboot','new-Shortcut','out-Clipboard','Out-Excel','Out-Excel-Events','parse-PSTitleBar','play-beep','prompt-Continue','Read-Host2','rebuild-PSTitleBar','Remove-InvalidFileNameChars','remove-ItemRetry','Remove-JsonComments','Remove-PSTitleBar','Remove-ScheduledTaskLegacy','remove-UnneededFileVariants','replace-PSTitleBarText','reset-ConsoleColors','revert-File','Run-ScheduledTaskLegacy','Save-ConsoleOutputToClipBoard','select-first','Select-last','Select-StringAll','set-ConsoleColors','Set-FileContent','set-PSTitleBar','Set-Shortcut','Shorten-Path','Show-MsgBox','Sign-File','stop-driveburn','test-MediaFile','Test-PendingReboot','Test-RegistryKey','Test-RegistryValue','Test-RegistryValueNotNull','test-PSTitleBar','Test-RegistryKey','Test-RegistryValue','Test-RegistryValueNotNull','Touch-File','trim-FileList','unless','update-RegistryProperty','Write-ProgressHelper')
+FunctionsToExport = @('Add-PSTitleBar','Authenticate-File','backup-File','check-FileLock','Close-IfAlreadyRunning','ColorMatch','Compare-ObjectsSideBySide','Compare-ObjectsSideBySide4','Compare-ObjectsSideBySide4','convert-BinaryToDecimalStorageUnits','convert-ColorHexCodeToWindowsMediaColorsName','convert-DehydratedBytesToGB','convert-DehydratedBytesToMB','Convert-FileEncoding','ConvertFrom-CanonicalOU','ConvertFrom-CanonicalUser','ConvertFrom-CmdList','ConvertFrom-DN','ConvertFrom-IniFile','convertFrom-MarkdownTable','ConvertFrom-SourceTable','Null','True','False','Debug-Column','Mask','Slice','TypeName','ErrorRecord','convert-HelpToMarkdown','_encodePartOfHtml','_getCode','_getRemark','ConvertTo-HashIndexed','convertTo-MarkdownTable','convertTo-Object','ConvertTo-SRT','convert-VideoToMp3','copy-Profile','Count-Object','Create-ScheduledTaskLegacy','dump-Shortcuts','Echo-Finish','Echo-ScriptEnd','Echo-Start','Expand-ZIPFile','extract-Icon','Find-LockedFileProcess','Format-Json','Get-AverageItems','get-colorcombo','Get-CountItems','Get-FileEncoding','Get-FileEncodingExtended','Get-FolderSize','Convert-FileSize','Get-FolderSize2','Get-FsoShortName','Get-FsoShortPath','Get-FsoTypeObj','get-InstalledApplication','get-LoremName','Get-ProductItems','get-RegistryProperty','Get-ScheduledTaskLegacy','Get-Shortcut','Get-SumItems','get-TaskReport','Get-Time','Get-TimeStamp','get-TimeStampNow','get-Uptime','Invoke-Flasher','Invoke-Pause','Invoke-Pause2','mount-UnavailableMappedDrives','move-FileOnReboot','new-Shortcut','out-Clipboard','Out-Excel','Out-Excel-Events','parse-PSTitleBar','play-beep','prompt-Continue','Read-Host2','rebuild-PSTitleBar','Remove-InvalidFileNameChars','remove-ItemRetry','Remove-JsonComments','Remove-PSTitleBar','Remove-ScheduledTaskLegacy','remove-UnneededFileVariants','replace-PSTitleBarText','reset-ConsoleColors','revert-File','Run-ScheduledTaskLegacy','Save-ConsoleOutputToClipBoard','select-first','Select-last','Select-StringAll','set-ConsoleColors','Set-FileContent','set-PSTitleBar','Set-Shortcut','Shorten-Path','Show-MsgBox','Sign-File','stop-driveburn','test-MediaFile','Test-PendingReboot','Test-RegistryKey','Test-RegistryValue','Test-RegistryValueNotNull','test-PSTitleBar','Test-RegistryKey','Test-RegistryValue','Test-RegistryValueNotNull','Touch-File','trim-FileList','unless','update-RegistryProperty','Write-ProgressHelper')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU24uBD/wAca2fXweQJXtTlph0
-# U0WgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUQHbM+B7eSmK3D1j2FHh8/R1U
+# MqCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQz+F1Y
-# FIlbz/J2z7LGh+nCPj7dEDANBgkqhkiG9w0BAQEFAASBgBLbLt6TVeBGD8XaMrTS
-# olyrJP4WiAOF0d5ba+xoPui89vb+Bpryakcvjwdk0lPsJq/+UGWia/neSOyP6fY8
-# /hZC1HkxdXgxBVoRFOgAWLmyajGB5Ss8GehZnwdBKZ0EFqnLUYPH9+UVnCx2y+CB
-# bu5AD8q+b7HqLkAB9/+vguBf
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRbj+aR
+# YT2JqqF3QSLTIA2R6UTMcDANBgkqhkiG9w0BAQEFAASBgFzIJ/Fk97tQPuNkyebo
+# qZ1Ee+aBmMrCdjJ55QaWuVij/LoxXHwAIX9X7WJPjZMWhyn+1/QpWxmNJ6FCrcax
+# tMdSwkVc3OR+Xc+6ESMniuecA5MVNSLi1CUJ4nUTccWftqvL+eXNCxomGD1EK+Q7
+# 09lSeVVbiu5g53WrsGp2qVLq
 # SIG # End signature block
