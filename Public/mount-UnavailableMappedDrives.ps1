@@ -28,7 +28,7 @@ Function mount-UnavailableMappedDrives{
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    PS>  .\mount-UnavailableMappedDrives.ps1 -rgxRemoteHOsts $homMeta.rgxMapsUNCs -verbose ;
+    PS>  mount-UnavailableMappedDrives -rgxRemoteHOsts $homMeta.rgxMapsUNCs -verbose ;
     Run a pass with verbose output, and a regex UNC root path filter passed as a hash variable
     .LINK
     https://github.com/tostka/verb-io
