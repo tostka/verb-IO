@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.4.0.0.0
+Version     : 1.5.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -5609,7 +5609,7 @@ Function mount-UnavailableMappedDrives{
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    PS>  .\mount-UnavailableMappedDrives.ps1 -rgxRemoteHOsts $homMeta.rgxMapsUNCs -verbose ;
+    PS>  mount-UnavailableMappedDrives -rgxRemoteHOsts $homMeta.rgxMapsUNCs -verbose ;
     Run a pass with verbose output, and a regex UNC root path filter passed as a hash variable
     .LINK
     https://github.com/tostka/verb-io
@@ -6559,18 +6559,28 @@ Function Remove-InvalidFileNameChars {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Filesystem
     REVISIONS   :
+    * 4:35 PM 12/16/2021 added -PurgeSpaces, to fully strip down the result. Added a 2nd CBH example
     * 7:21 AM 9/2/2020 added alias:'Remove-IllegalFileNameChars'
     * 3:32 PM 9/1/2020 added to verb-IO
     * 4/14/14 posted version
     .DESCRIPTION
     Remove-InvalidFileNameChars - Remove OS-specific illegal filename characters from the passed string
+    Note: You should pass the filename, and not a full-path specification as '-Name', 
+    or the function will remove path-delimters and other routine path components. 
     .PARAMETER Name
+    Potential file 'name' string (*not* path), to have illegal filename characters removed. 
+    .PARAMETER PurgeSpaces
+    Switch to purge spaces along with OS-specific illegal filename characters. 
     .INPUTS
     Accepts piped input.
     .OUTPUTS
     System.String
     .EXAMPLE
     $Name = Remove-InvalidFileNameChars -name $ofile ; 
+    Remove OS-specific illegal characters from the sample filename in $ofile. 
+    .EXAMPLE
+    $Name = Remove-InvalidFileNameChars -name $ofile -purgespaces ; 
+    Remove OS-specific illegal characters & spaces from the sample filename in $ofile. 
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -6578,10 +6588,15 @@ Function Remove-InvalidFileNameChars {
     [Alias('Remove-IllegalFileNameChars')]
     Param(
         [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
-        [String]$Name
+        [String]$Name,
+        [switch]$PurgeSpaces
     )
     $verbose = ($VerbosePreference -eq "Continue") ; 
-    $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join ''
+    $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join '' ; 
+    if($PurgeSpaces){
+        write-verbose "(-PurgeSpaces: removing spaces as well)" ; 
+        $invalidChars += ' ' ; 
+    } ; 
     $re = "[{0}]" -f [RegEx]::Escape($invalidChars)
     ($Name -replace $re) | write-output ; 
 }
@@ -8539,6 +8554,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 8:08 PM 12/11/2021 added simpler pipeline example 
     * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
     * 8:15 PM 11/19/2021 added tmr alias
     * 7:37 PM 11/12/2021 added example for doing a full dir of files ; flip $path param test-path to use -literalpath - too many square brackets in sources
@@ -8600,7 +8616,11 @@ Function test-MediaFile {
     'c:\pathto\video.mp4'| test-MediaFile 
     Example using pipeline support
     .EXAMPLE
-    gci "c:\PathTo\*" -include *.mkv | select -expand fullname | test-MediaFile
+    gci "c:\PathTo\*" -include *.mkv | select -expand fullname | test-MediaFile ; 
+    Pipeline example
+    .EXAMPLE
+    gci "c:\pathto\*.mp4" | tmf; 
+    Another simpler pipeline example
     .LINK
     https://hexus.net/tech/tech-explained/storage/1376-gigabytes-gibibytes-what-need-know/
     .LINK
@@ -9560,8 +9580,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUMoqNvft83fJ01Ykc9g3eg7qC
-# +26gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUFECFS2jDp9l3vWF9YW4uAB3R
+# XSagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -9576,9 +9596,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTW67Al
-# LhgoQ/VoL21S9sQnMAlI6zANBgkqhkiG9w0BAQEFAASBgEfuol20m9TrpiWNWMfj
-# tnKgHcaL2qmshz7MMNjiQdiSlvJ9nv4IkfP5tNWsG3Yd/PikdxltcMpaifdcxAmy
-# sJDJI7Bx7s93iH7St9ScDXmzlAJD1zJ7jtZbUBYL4guEvR7h8AwCi1+kAd+SlLfh
-# 11xS+gWXdW5v2yLI67/N3+bm
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQhbEtW
+# hyPZ5LeYuiLXqJu7FWKTYjANBgkqhkiG9w0BAQEFAASBgJV+ClozbqkTRhAry0iV
+# 81rUtssak2i+kO5SG+94e+EaOSBaJdDvJ7s/IJ/PTlBVyEW8uqZNJYwPlkRdDPRw
+# 4S3MRUpXm7cYtgca0xksBet24aXjmC7UlpkrXBTUIJiFCYiwqNLf6B9VHEMIWHSg
+# S8o6/1lR3Vxioh/pqmCaBAXv
 # SIG # End signature block
