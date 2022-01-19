@@ -1402,6 +1402,7 @@ rebuild-PSTitleBar:ob
 rebuild-PSTitleBar:PipelineVariable
 rebuild-PSTitleBar:pv
 Remove-InvalidFileNameChars:Name
+Remove-InvalidFileNameChars:PurgeSpaces
 Remove-InvalidFileNameChars:Verbose
 Remove-InvalidFileNameChars:vb
 Remove-InvalidFileNameChars:Debug

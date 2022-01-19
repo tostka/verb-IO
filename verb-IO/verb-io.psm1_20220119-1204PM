@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.6.1.0.0
+Version     : 1.5.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -9587,8 +9587,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUcoDC5CrYWwbHqRLjrOkdax3f
-# vv6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUFECFS2jDp9l3vWF9YW4uAB3R
+# XSagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -9603,9 +9603,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTVWm/C
-# OULpekakNRroaBAuTEi09zANBgkqhkiG9w0BAQEFAASBgHqsJMWaWD7wfjoW8DbW
-# RoEG9IxYKJV2mMnG6Gqe0reh+3A3ukFXvf0laDUnCvtEr9iJOINhvpxyZJyRMiKI
-# 48QqYHP91aLMMJzy2ccr2X6W1ikj3dBweqvmJ02bjEnFbmSpwqfIuYEJbjhHjuMC
-# fUCuFhXg4YW2MkW9rdrGF85r
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQhbEtW
+# hyPZ5LeYuiLXqJu7FWKTYjANBgkqhkiG9w0BAQEFAASBgJV+ClozbqkTRhAry0iV
+# 81rUtssak2i+kO5SG+94e+EaOSBaJdDvJ7s/IJ/PTlBVyEW8uqZNJYwPlkRdDPRw
+# 4S3MRUpXm7cYtgca0xksBet24aXjmC7UlpkrXBTUIJiFCYiwqNLf6B9VHEMIWHSg
+# S8o6/1lR3Vxioh/pqmCaBAXv
 # SIG # End signature block

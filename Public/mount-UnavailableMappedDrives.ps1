@@ -1,4 +1,4 @@
-﻿*------v mount-UnavailableMappedDrives.ps1 v------
+﻿#*------v mount-UnavailableMappedDrives.ps1 v------
 Function mount-UnavailableMappedDrives{
     <#
     .SYNOPSIS
@@ -43,7 +43,7 @@ Function mount-UnavailableMappedDrives{
     $propsSDrv = 'Status','LocalPath','RemotePath' ; 
     $error.clear() ;
     TRY {
-        if(-not($rgxRemoteHosts){
+        if(-not($rgxRemoteHosts)){
             $smsg = "`$rgxRemoteHosts is not configured!`nspecify a value and rerun" ; 
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;

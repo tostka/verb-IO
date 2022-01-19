@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.4.0.0.0
+Version     : 1.6.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -5601,6 +5601,7 @@ Function mount-UnavailableMappedDrives{
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 11:07 AM 1/19/2022 swapped in $hommeta.rgxMapsUNCs for hard-coded rgx ; added test for value, pre-run
     *2:51 PM 12/5/2021 init
     .DESCRIPTION
     mount-UnavailableMappedDrives.ps1 - Check mapped shell drives (via Get-SMBMapping) for 'Unavailable' status, and create temp PSDrive mounts for each, to make the PS profile completely functional. 
@@ -5618,13 +5619,19 @@ Function mount-UnavailableMappedDrives{
     #Requires -Modules SmbShare
     PARAM(
         [Parameter(HelpMessage="Regex of RemotePath 'hosts' to be re-mounted in session[-rgxRemoteHosts '(Host1|host2)']")]
-        [string]$rgxRemoteHosts="\\\\(SYNNAS2|SYNNAS)",
+        [string]$rgxRemoteHosts=$HOMMeta.rgxMapsUNCs,
         [Parameter(HelpMessage="Whatif Flag  [-whatIf]")]
         [switch] $whatIf
     ) ;
     $propsSDrv = 'Status','LocalPath','RemotePath' ; 
     $error.clear() ;
     TRY {
+        if(-not($rgxRemoteHosts)){
+            $smsg = "`$rgxRemoteHosts is not configured!`nspecify a value and rerun" ; 
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+            else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            throw $smsg ;
+        } ; 
         $unavdrvs = Get-SMBMapping -verbose:$($VerbosePreference -eq "Continue") | ?{$_.RemotePath -match $rgxRemoteHosts -AND $_.status -eq 'Unavailable'} ; 
         $psdrvs = Get-psdrive -verbose:$($VerbosePreference -eq "Continue") | ?{$_.remotepath -match $rgxRemoteHosts } ; 
         if($unavdrvs){
