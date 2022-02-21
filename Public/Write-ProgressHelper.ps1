@@ -31,17 +31,16 @@ function Write-ProgressHelper {
     .OUTPUTS
     None. 
     .EXAMPLE
-    # dyn tally # of write-prog instances in curr $MyInvocation
-    $script:steps = ([System.Management.Automation.PsParser]::Tokenize((gc "$PSScriptRoot\$($MyInvocation.MyCommand.Name)"), [ref]$null) | where { $_.Type -eq 'Command' -and $_.Content -eq 'Write-ProgressHelper' }).Count ; 
+    PS> $script:steps = ([System.Management.Automation.PsParser]::Tokenize((gc "$PSScriptRoot\$($MyInvocation.MyCommand.Name)"), [ref]$null) | where { $_.Type -eq 'Command' -and $_.Content -eq 'Write-ProgressHelper' }).Count ; 
     # splat to hold the static write-progress params
-    $pltWPH=@{
-        Activity = "BROAD ACTIVITY" ;
-        CurrentOperation = "Querying..." ;
-    };
-    $iStep = 0 ; # counter to be incremented ea write-progress exec
-    Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING' -StepNumber ($iStep++) ;
+    PS> $pltWPH=@{
+            Activity = "BROAD ACTIVITY" ;
+            CurrentOperation = "Querying..." ;
+        };
+    PS> $iStep = 0 ; # counter to be incremented ea write-progress exec
+    PS> Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING' -StepNumber ($iStep++) ;
     ## SOME PROCESS HERE
-    Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING2' -StepNumber ($iStep++) ;
+    PS> Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING2' -StepNumber ($iStep++) ;
     Above displays a two-step Write-Progress bar, dynamically scaling the progress & total around the number of 'write-progress' cmdlets present in the $MyInvocation
     .LINK
     https://adamtheautomator.com/building-progress-bar-powershell-scripts/

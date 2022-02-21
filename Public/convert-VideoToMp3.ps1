@@ -8,6 +8,7 @@ function convert-VideoToMp3 {
     Website:	http://tinstoys.blogspot.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 5:26 PM 10/5/2021 ren, and alias orig: convert-tomp3 -> convert-VideoToMp3 (added alias:convertto-mp3); also build into freestanding function in verb-IO
     # 12:02 PM 4/1/2017 convert-ToMp3: if it's a string, it's not going to have a fullname prop - it's a full path string
     # 7:03 PM 11/8/2016 code in exception for directory objects, ren the new instead of the original, add -ea 0 to suppress $cf test not found failures, finding that renames fail if there's an existing fn clash -> ren the clash
@@ -39,6 +40,7 @@ function convert-VideoToMp3 {
     Returns an object with uptime data to the pipeline.
     .EXAMPLE
     $bRet=convert-VideoToMp3 -InputObject "C:\video.mkv" ;
+    Convert Specified video file to mp3.
     #>
     [CmdletBinding()]
     [Aliases('convert-ToMp3','convert-VideoToMp3')]

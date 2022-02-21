@@ -24,6 +24,7 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 4:04 PM 9/16/2021 coded around legacy code issue, when using [ordered] hash - need it or it randomizes column positions. Also added -NoDashRow param (breaks md rendering, but useful if using this to dump delimited output to console, for readability)
     * 10:51 AM 6/22/2021 added convertfrom-mdt alias
     * 4:49 PM 6/21/2021 pretest $thing.value: suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
@@ -56,47 +57,47 @@ Function convertTo-MarkdownTable {
     .EXAMPLE
     convertTo-MarkdownTable($data) ;
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable ;
-    Status  | Name  | DisplayName
-    ------- | ----- | -----------------------------------------
-    Running | Bits  | Background Intelligent Transfer Service
-    Running | Winrm | Windows Remote Management (WS-Management)
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable ;
+        Status  | Name  | DisplayName
+        ------- | ----- | -----------------------------------------
+        Running | Bits  | Background Intelligent Transfer Service
+        Running | Winrm | Windows Remote Management (WS-Management)
     Demo of stock use, with a select to spec properties (this cmdlet doesn't observer cmdlet default properties for display, must be manually selected)
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -border ; 
-    | Status  | Name  | DisplayName                               |
-    | ------- | ----- | ----------------------------------------- |
-    | Running | Bits  | Background Intelligent Transfer Service   |
-    | Running | Winrm | Windows Remote Management (WS-Management) |
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -border ; 
+        | Status  | Name  | DisplayName                               |
+        | ------- | ----- | ----------------------------------------- |
+        | Running | Bits  | Background Intelligent Transfer Service   |
+        | Running | Winrm | Windows Remote Management (WS-Management) |
     Demo effect of the -Border param.
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -tight ;
-    Status |Name |DisplayName
-    -------|-----|-----------------------------------------
-    Running|Bits |Background Intelligent Transfer Service
-    Running|Winrm|Windows Remote Management (WS-Management)
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -tight ;
+        Status |Name |DisplayName
+        -------|-----|-----------------------------------------
+        Running|Bits |Background Intelligent Transfer Service
+        Running|Winrm|Windows Remote Management (WS-Management)
     Demo effect of the -Tight param.
     .EXAMPLE
-    Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
-    ConvertTo-Markdown | Out-File C:\MyScript.ps1.md
+    PS> Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
+        ConvertTo-Markdown | Out-File C:\MyScript.ps1.md ; 
     Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*'
+    PS> Get-Service Bits,Winrm | select status,name,displayname | 
+        Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
     Demo use of -title, -precontent & -postcontent params:
     .EXAMPLE
-    $pltcMT=[ordered]@{
-        Title='This is Title' ;
-        PreContent='A little something *before*' ;
-        PostContent='A little something *after*'
-    } ;
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
+    PS> $pltcMT=[ordered]@{
+            Title='This is Title' ;
+            PreContent='A little something *before*' ;
+            PostContent='A little something *after*'
+        } ;
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
     Same as prior example, but leveraging more readable splatting
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
-    output:
-    Status  | Name  | DisplayName                              
-    Stopped | Bits  | Background Intelligent Transfer Service  
-    Running | Winrm | Windows Remote Management (WS-Management)
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
+        Status  | Name  | DisplayName                              
+        Stopped | Bits  | Background Intelligent Transfer Service  
+        Running | Winrm | Windows Remote Management (WS-Management)
     Demo effect of -NoDashRow param (drops header-seperator line)
     .LINK
     https://github.com/tostka/verb-IO

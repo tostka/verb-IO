@@ -18,7 +18,6 @@ Function Touch-File {
     .EXAMPLE
     touch-file -file c:\tmp.txt ;
     Create a new file, or update timestamp of exising file
-    .EXAMPLE
     .LINK
     https://superuser.com/questions/502374/equivalent-of-linux-touch-to-create-an-empty-file-with-powershell#
     #>

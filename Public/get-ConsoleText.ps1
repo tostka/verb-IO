@@ -19,6 +19,7 @@ Function get-ConsoleText {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Clipboard,Text
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 9:27 AM 2/2/2022 added -topipeline switch & post-split code (pipeline return returns text block, not lines, and os-agnostic split pads with spaces between lines unless explicitly supressed); fixed output: was just dumping console text to pipeline (and back into console buffer), piped it into set-clipboard ; minor tweaks OTB fmt, added CBH ; added else clause to echo non-support of VsCode.
     * 6/5/2019 posted AutomatedLab revision (non-functional, doesn't copy to cb)
     .DESCRIPTION
@@ -28,13 +29,13 @@ Function get-ConsoleText {
     .OUTPUT
     None. Outputs console text to clipboard.
     .EXAMPLE
-    get-ConsoleText ;
-    get-clipboard |  measure | select -expand count ;
+    PS> get-ConsoleText ;
+    PS> get-clipboard |  measure | select -expand count ;
     Copy console text to clipboard, then output the number of lines returned.
     .EXAMPLE
-    $content = get-ConsoleText -toPipeline ;
-    $content.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) |  measure | select -expand count ; 
-    $content.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries)) | select -first 15 ; 
+    PS> $content = get-ConsoleText -toPipeline ;
+    PS> $content.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) |  measure | select -expand count ; 
+    PS> $content.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries)) | select -first 15 ; 
     Demonstrate assign console text to a variable, and resplit (suppressing empty lines), and output the first 15 lines returned.
     .LINK
     https://github.com/AutomatedLab/AutomatedLab.Common/blob/develop/AutomatedLab.Common/Common/Public/Get-ConsoleText.ps1

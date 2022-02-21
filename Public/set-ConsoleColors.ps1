@@ -16,6 +16,7 @@ Function set-ConsoleColors {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Output
     REVISION
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 11:41 AM 9/16/2021 string
     * 1:25 PM 3/5/2021 init ; added support for both ISE & powershell console
     .DESCRIPTION
@@ -34,8 +35,8 @@ Function set-ConsoleColors {
     set-ConsoleColors -BackgroundColor DarkMagenta -ForegroundColor DarkYellow
     Set console/host color scheme to match the default Powershell colors
     .EXAMPLE
-    $colors = get-colorcombo -Combo 69 ; 
-    set-ConsoleColors @colors -verbose ; 
+    PS> $colors = get-colorcombo -Combo 69 ; 
+    PS> set-ConsoleColors @colors -verbose ; 
     Leverage the verb-IO:get-colorcombo() to pull & set the default scheme
     .LINK
     https://github.com/tostka/verb-IO

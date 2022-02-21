@@ -16,6 +16,7 @@ function Compare-ObjectsSideBySide4 {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Compare
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
     * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
@@ -35,31 +36,31 @@ function Compare-ObjectsSideBySide4 {
     .OUTPUTS
     Outputs specified object side-by-side on console
     .EXAMPLE
-    $object1 = New-Object PSObject -Property @{
-      'Forename' = 'Richard';
-      'Surname' = 'Slater';
-      'Company' = 'Amido';
-      'SelfEmployed' = $true;
-    } ;
-    $object2 = New-Object PSObject -Property @{
-      'Forename' = 'Jane';
-      'Surname' = 'Smith';
-      'Company' = 'Google';
-      'MaidenName' = 'Jones' ;
-    } ;
-    $object3 = New-Object PSObject -Property @{
-      'Forename' = 'Zhe';
-      'Surname' = 'Person';
-      'Company' = 'Apfel';
-      'MaidenName' = 'NunaUBusiness' ;
-    } ;
-    $object4 = New-Object PSObject -Property @{
-      'Forename' = 'Zir';
-      'Surname' = 'NPC';
-      'Company' = 'Facemook';
-      'MaidenName' = 'Not!' ;
-    } ;
-    Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
+    PS> $object1 = New-Object PSObject -Property @{
+          'Forename' = 'Richard';
+          'Surname' = 'Slater';
+          'Company' = 'Amido';
+          'SelfEmployed' = $true;
+        } ;
+    PS> $object2 = New-Object PSObject -Property @{
+          'Forename' = 'Jane';
+          'Surname' = 'Smith';
+          'Company' = 'Google';
+          'MaidenName' = 'Jones' ;
+        } ;
+    PS> $object3 = New-Object PSObject -Property @{
+          'Forename' = 'Zhe';
+          'Surname' = 'Person';
+          'Company' = 'Apfel';
+          'MaidenName' = 'NunaUBusiness' ;
+        } ;
+    PS> $object4 = New-Object PSObject -Property @{
+          'Forename' = 'Zir';
+          'Surname' = 'NPC';
+          'Company' = 'Facemook';
+          'MaidenName' = 'Not!' ;
+        } ;
+    PS> Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
     Display $object1,2,3 & 4 in comparative side-by-side columns
     .LINK
     https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects

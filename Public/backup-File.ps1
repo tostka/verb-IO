@@ -16,6 +16,7 @@
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 9:12 AM 12/29/2019 switch output to being the backupfile name ($pltBu.destination ), or $false for fail
     * 9:34 AM 12/11/2019 added dyanamic recycle of existing ext (got out of hardcoded .ps1)
     * 1:43 PM 11/16/2019 init
@@ -28,8 +29,8 @@
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $bRet = backup-File -path $oSrc.FullName -showdebug:$($showdebug) -whatif:$($whatif)
-    if (!$bRet) {throw "FAILURE" } ;
+    PS> $bRet = backup-File -path $oSrc.FullName -showdebug:$($showdebug) -whatif:$($whatif)
+    PS> if (!$bRet) {throw "FAILURE" } ;
     Backup specified file
     .LINK
     #>

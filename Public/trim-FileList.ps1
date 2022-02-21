@@ -14,6 +14,7 @@
     Github      : https://github.com/tostka
     Tags        : Powershell
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 6:53 AM 2/21/2020 init
     .DESCRIPTION
     .PARAMETER  Files
@@ -27,8 +28,8 @@
     .OUTPUTS
     None. Returns no objects or output
     .EXAMPLE
-    $tfiles = @(gci C:\sc\powershell\_key-admin-scripts-*.txt -recur |select -expand fullname )  ;
-    trim-FileList.ps1 -files $tfiles -verbose -whatif ; 
+    PS> $tfiles = @(gci C:\sc\powershell\_key-admin-scripts-*.txt -recur |select -expand fullname )  ;
+    PS> trim-FileList.ps1 -files $tfiles -verbose -whatif ; 
     Process all targeted files in the tree, verbose output, whatif pass
     .EXAMPLE
     trim-FileList -files x:\path-to\somefile.txt -verbose -whatif

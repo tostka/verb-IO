@@ -11,6 +11,7 @@ function Save-ConsoleOutputToClipBoard {
     Website:	http://www.adamtheautomator.com/
     Twitter:	@adbertram
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 5/14/2019 posted version
     .DESCRIPTION
     .INPUTS
@@ -18,7 +19,8 @@ function Save-ConsoleOutputToClipBoard {
     .OUTPUTS
     None. Returns no objects or output.
     .EXAMPLE
-    .EXAMPLE
+    Save-ConsoleOutputToClipBoard.ps1 
+    Save current console output to clipboard.
     .LINK
     https://gist.github.com/adbertram/4e4bf0ba5f876ed474f90534520cf2e2
     #>
@@ -26,7 +28,6 @@ function Save-ConsoleOutputToClipBoard {
     [OutputType('string')]
     [CmdletBinding()]
     param () ;
-
     <#if ($host.Name -ne -ConsoleHost-) {
         write-host -ForegroundColor Red "This script runs only in the console host. You cannot run this script in $($host.Name)." ;
     } ;#>

@@ -18,15 +18,17 @@ Function Echo-ScriptEnd {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 8:51 AM 10/31/2014 ren'd EchoXXX to Echo-XXX
     # 11/6/2013
     .DESCRIPTION
-    Echo-ScriptEnd - Opening Banner with Elapsed Timer (used with Echo-ScriptEnd or Echo-ScriptEnd)
     .EXAMPLE
-    Echo-ScriptEnd ; 
-    gci c:\windows\ | out-null ; 
-    Echo-ScriptEnd ; 
+    PS> Echo-ScriptEnd ; 
+    PS> gci c:\windows\ | out-null ; 
+    PS> Echo-ScriptEnd ; 
+    Echo-ScriptEnd - Opening Banner with Elapsed Timer (used with Echo-ScriptEnd or Echo-ScriptEnd)
     .LINK
+    https://github.com/tostka/verb-IO
     #>
     [cmdletbinding()]
     Param()

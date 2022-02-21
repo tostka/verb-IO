@@ -15,6 +15,7 @@ Function convertFrom-MarkdownTable {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:42 PM 6/22/2021 bug workaround: empty fields in source md table (|data||data|) cause later (export-csv|convertto-csv) to create a csv with *missing* delimiting comma on the problem field ;  added trim of each field content, and CBH example for creation of a csv from mdtable input; added aliases
     * 5:40 PM 6/21/2021 init
     .DESCRIPTION
@@ -28,26 +29,26 @@ Function convertFrom-MarkdownTable {
     .OUTPUTS
     System.Object[]
    .EXAMPLE
-   PS> $svcs = Get-Service Bits,Winrm | select status,name,displayname | convertTo-MarkdownTable -border | ConvertFrom-MarkDownTable ;  
+   PS> $svcs = Get-Service Bits,Winrm | select status,name,displayname | 
+      convertTo-MarkdownTable -border | ConvertFrom-MarkDownTable ;  
    Convert Service listing to and back from MD table, demo's working around border md table syntax (outter pipe-wrapped lines)
-   .EXAMPLE
-   -EmailAddress david.hiltzman@ditchwitch.com -groups LYN-DL-TorowideSourcing@toro.com -Ticket 999999 -verbose -whatif
    PS> $mdtable = @"
 |EmailAddress|DisplayName|Groups|Ticket|
 |---|---|---|---|
 |da.pope@vatican.org||CardinalDL@vatican.org|999999|
 |bozo@clown.com|Bozo Clown|SillyDL;SmartDL|000001|
 "@ ; 
-    $of = ".\out-csv-$(get-date -format 'yyyyMMdd-HHmmtt').csv" ; 
-    $mdtable | convertfrom-markdowntable | export-csv -path $of -notype ;
-    cat $of ;
-    output:
-    "EmailAddress","DisplayName","Groups","Ticket"
-"da.pope@vatican.org","","CardinalDL@vatican.org","999999"
-"bozo@clown.com","Bozo Clown","SillyDL;SmartDL","000001"
+      $of = ".\out-csv-$(get-date -format 'yyyyMMdd-HHmmtt').csv" ; 
+      $mdtable | convertfrom-markdowntable | export-csv -path $of -notype ;
+      cat $of ;
+
+        "EmailAddress","DisplayName","Groups","Ticket"
+        "da.pope@vatican.org","","CardinalDL@vatican.org","999999"
+        "bozo@clown.com","Bozo Clown","SillyDL;SmartDL","000001"
+
     Example simpler method for building csv input files fr mdtable syntax, without PSCustomObjects, hashes, or invoked object creation.
     .EXAMPLE
-    $mdtable | convertFrom-MarkdownTable | convertTo-MarkdownTable -border
+    PS> $mdtable | convertFrom-MarkdownTable | convertTo-MarkdownTable -border ; 
     Example to expand and dress up a simple md table, leveraging both convertfrom-mtd and convertto-mtd (which performs space padding to align pipe columns)
     .LINK
     https://github.com/tostka/verb-IO

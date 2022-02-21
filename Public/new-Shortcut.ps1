@@ -17,6 +17,7 @@ function new-Shortcut {
     AddedCredit : GodHand
     AddedWebsite: https://forums.mydigitallife.net/threads/create-shortcuts-with-powershell-new-shortcut.78748/
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 7:56 AM 4/15/2021 moved Elevated rewrite into non-whatif; added -ea 0 to the variable checks
     * 8:18 AM 4/13/2021 minor updates, added whatif support ; revised param names to match my set-shortcut (which uses the underlying call argument names) ; put into otb format, tightened up layout.
     * 1/5/2019 GodHand's posted vers
@@ -59,10 +60,10 @@ function new-Shortcut {
     .OUTPUTS
     PSCustomObject
     .EXAMPLE
-    PS C:\> New-Shortcut -TargetPath "C:\Tools and Utilities\Registry Workshop\RegWorkshop64.exe" -OutputDirectory "$HOME\Desktop" -Name "Registry Workshop" -Description "An advanced registry editor." -Elevated
-    PS C:\> New-Shortcut -TargetPath "C:\Tools and Utilities\Notepad++\notepad++.exe" -HotKey Ctrl+Alt+N
-    PS C:\> "D:\Imaging Tools\Deployment\imagex.exe | New-Shortcut
-    New-Shortcut -TargetPath 'C:\usr\local\bin\Admin-W10Home-TINSTOY-1280x768-TSK.RDP' -OutputDirectory "$HOME\Desktop" -Name "Tinstoy-RDP" -Description "RDP to Tinstoy." -Elevated -verbose #-whatif ;
+    PS> New-Shortcut -TargetPath "C:\Tools and Utilities\Registry Workshop\RegWorkshop64.exe" -OutputDirectory "$HOME\Desktop" -Name "Registry Workshop" -Description "An advanced registry editor." -Elevated
+    PS> New-Shortcut -TargetPath "C:\Tools and Utilities\Notepad++\notepad++.exe" -HotKey Ctrl+Alt+N
+    PS> "D:\Imaging Tools\Deployment\imagex.exe | New-Shortcut
+    PS> New-Shortcut -TargetPath 'C:\usr\local\bin\Admin-W10Home-TINSTOY-1280x768-TSK.RDP' -OutputDirectory "$HOME\Desktop" -Name "Tinstoy-RDP" -Description "RDP to Tinstoy." -Elevated -verbose #-whatif ;
     Examples using -OutputDirectory & -Name and a mix of parameters, included -Elevated & -Hotkey
     .EXAMPLE
     New-Shortcut -TargetPath "$($env:SystemRoot)\system32\WindowsPowerShell\v1.0\powershell.exe" -OutputDirectory "$HOME\Desktop" -Name "Powershell (Elevated)" -Description "Performs object-based (command-line) functions" -Elevated -verbose -whatif ;

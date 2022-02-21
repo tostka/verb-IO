@@ -15,6 +15,7 @@ function get-TaskReport {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:49 AM 1/8/2021 added extended get-scheduledtask examples to CBH ; repl wh's with a herestring at top ; fixed typo in initial !$Taskname output (extraneous `) 
     * 8:08 AM 12/2/2020 added function alias: get-ScheduledTaskReport (couldn't remember this vers didn't use 'sched', had to hunt it up in the module, by name)
     * 7:24 AM 11/24/2020 expanded no -Task echo to include get-scheduledtasks syntax, added it to CBH example
@@ -36,37 +37,35 @@ function get-TaskReport {
     # report on an array of tasks
     get-taskreport -TaskName 'monitor-ADAccountLock',"choco-cleaner","maintain-ExoUsrMbxFreeBusyDetails.ps1"
     .EXAMPLE
-    # Examples for use of ScheduledTask module get-ScheduledTasks cmdlet 
-     to work with Tasks as objects (Psv3+)
-    # pull the target task into a variable 
-    $task = get-scheduledtask choco-cleaner
+    PS> $task = get-scheduledtask choco-cleaner
     # Return Triggers
-    $task.triggers ;
-    # output:
-    Id               :
-    Arguments        : /c powershell -NoProfile -ExecutionPolicy Bypass -Command
-                       %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
-    Execute          : cmd
-    WorkingDirectory :
-    PSComputerName   :
+    PS> $task.triggers ;
+    PS> $task.actions ; 
     
-    # Return Actions 
-    $task.actions ; 
-    Id               :
-    Arguments        : /c powershell -NoProfile -ExecutionPolicy Bypass -Command
+        Id               :
+        Arguments        : /c powershell -NoProfile -ExecutionPolicy Bypass -Command
+                           %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
+        Execute          : cmd
+        WorkingDirectory :
+        PSComputerName   :
+    
+        # Return Actions 
+        Id               :
+        Arguments        : /c powershell -NoProfile -ExecutionPolicy Bypass -Command
                        %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
-    Execute          : cmd
-    WorkingDirectory :
-    PSComputerName   :
+        Execute          : cmd
+        WorkingDirectory :
+        PSComputerName   :
+    Examples for use of ScheduledTask module get-ScheduledTasks cmdlet to work with Tasks as objects (Psv3+)
     .EXAMPLE
-    # return Summary Name, Execute and Arguments of each root Task:
-    get-scheduledtask|?{$_.taskpath -eq '\'} | 
-    %{"`nTASK:`t$($_.taskname)`nEXEC:`t$($_.actions.execute)`nARGS: `t$($_.actions.Arguments)`n" } ; 
-    # output:
-    TASK:   choco-cleaner
-    EXEC:   cmd
-    ARGS:   /c powershell -NoProfile -ExecutionPolicy Bypass -Command %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
-    ...
+    PS> get-scheduledtask|?{$_.taskpath -eq '\'} | 
+        %{"`nTASK:`t$($_.taskname)`nEXEC:`t$($_.actions.execute)`nARGS: `t$($_.actions.Arguments)`n" } ; 
+    
+        TASK:   choco-cleaner
+        EXEC:   cmd
+        ARGS:   /c powershell -NoProfile -ExecutionPolicy Bypass -Command %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
+        
+    Return Summary Name, Execute and Arguments of each root Task:
     .LINK
     https://github.com/tostka/verb-IO
     #>

@@ -17,6 +17,7 @@ function remove-UnneededFileVariants {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 7:28 PM 11/6/2021 added missing $population = $population reassign post filtering (prevented filter reduction form occuring at all)
     * 9:58 AM 9/21/2021 rem'd retry loop
     * 12:34 PM 9/20/2021  init
@@ -27,19 +28,19 @@ function remove-UnneededFileVariants {
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $whatif=$true ;
-    $pltRGens =[ordered]@{
-        Path = 'C:\sc\verb-auth\' ;
-        Include ='process-NewModule-verb-auth-LOG-BATCH-EXEC-*-log.txt' ;
-        Pattern = 'verb-\w*\.ps(m|d)1_\d{8}-\d{3,4}(A|P)M' ;
-        FilterOn = 'CreationTime' ;
-        Keep = 2 ;
-        KeepToday = $true ;
-        verbose=$true ;
-        whatif=$($whatif) ;
-    } ; 
-    write-host -foregroundcolor green "remove-UnneededFileVariants w`n$(($pltRGens|out-string).trim())" ; 
-    remove-UnneededFileVariants @pltRGens ;
+    PS> $whatif=$true ;
+    PS> $pltRGens =[ordered]@{
+            Path = 'C:\sc\verb-auth\' ;
+            Include ='process-NewModule-verb-auth-LOG-BATCH-EXEC-*-log.txt' ;
+            Pattern = 'verb-\w*\.ps(m|d)1_\d{8}-\d{3,4}(A|P)M' ;
+            FilterOn = 'CreationTime' ;
+            Keep = 2 ;
+            KeepToday = $true ;
+            verbose=$true ;
+            whatif=$($whatif) ;
+        } ; 
+    PS> write-host -foregroundcolor green "remove-UnneededFileVariants w`n$(($pltRGens|out-string).trim())" ; 
+    PS> remove-UnneededFileVariants @pltRGens ;
     Splatted call example: remove all variant -include-named files in -Path, post-filtered matching -Pattern, retaining items with CreationTime after midnight today, and then retain most recent 2 files (net of prior filtering), as sorted on CreationTime.
     .LINK
     #>

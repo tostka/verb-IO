@@ -39,7 +39,7 @@ Function ConvertFrom-IniFile {
     [User]
     Name = Jeff
     Company = Globomantics
-    ```
+    ``` ;
     .PARAMETER Path
     The path to the INI file.
     .INPUTS
@@ -47,16 +47,16 @@ Function ConvertFrom-IniFile {
     .OUTPUTS
     [pscustomobject]
     .EXAMPLE
-    PS C:\> $sample = ConvertFrom-IniFile c:\scripts\sample.ini
-    PS C:\> $sample
-    General                           Application                      User                            
-    -------                           -----------                      ----                            
-    @{Directory=c:\work; ID=123ABC... @{Version=1.0; Name=foo.exe}     @{Name=Jeff; Company=Globoman...
-    PS C:\> $sample.general.action
-    Start
+    PS> $sample = ConvertFrom-IniFile c:\scripts\sample.ini
+    PS> $sample
+        General                           Application                      User                            
+        -------                           -----------                      ----                            
+        @{Directory=c:\work; ID=123ABC... @{Version=1.0; Name=foo.exe}     @{Name=Jeff; Company=Globoman...
+    PS> $sample.general.action
+        Start
     In this example, a sample ini file is converted to an object with each section a separate property.
     .EXAMPLE
-    PS C:\> ConvertFrom-IniFile c:\windows\system.ini | export-clixml c:\work\system.ini
+    PS> ConvertFrom-IniFile c:\windows\system.ini | export-clixml c:\work\system.ini
     Convert the System.ini file and export results to an XML format.
     .LINK
     Get-Content

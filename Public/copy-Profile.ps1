@@ -8,6 +8,7 @@ function copy-Profile {
     Website:	http://www.toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 9:47 AM 9/24/2020 updated CBH, copied to verb-IO mod; added -MinProfile to drive admin/svcacct copying 
     * 10:41 AM 3/26/2020 rewrote, added verbose support, condensed 
     8:07 AM 6/12/2015 - functionalize copy code from the EMS block
@@ -32,19 +33,19 @@ function copy-Profile {
     .OUTPUTS
     Returns an object with uptime data to the pipeline.
     .EXAMPLE
-    $Exs=(get-exchangeserver | ?{(($_.IsMailboxServer) -OR ($_.IsHubTransportServer))} )
-    if($Exs){
-        copy-Profile -ComputerName $Exs -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
-    } else {write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):No Mbx or HT servers found)"} ;
+    PS> $Exs=(get-exchangeserver | ?{(($_.IsMailboxServer) -OR ($_.IsHubTransportServer))} )
+    PS> if($Exs){
+    PS>     copy-Profile -ComputerName $Exs -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    PS> } else {write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):No Mbx or HT servers found)"} ;
     Copy targetprofile to all Exchange servers (leveraging ExchMgmtShell cmd)
     .EXAMPLE
-    if($AdminJumpBox ){
-        write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):AdminJumpBox..."
-        copy-Profile -ComputerName $AdminJumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -JumpBox -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
-    } ; 
+    PS> if($AdminJumpBox ){
+    PS>     write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):AdminJumpBox..."
+    PS>     copy-Profile -ComputerName $AdminJumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -JumpBox -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    PS> } ; 
     Perform a full 'admin' profile copy into target jumpbox (specifies -JumpBox param)
     .EXAMPLE
-    copy-Profile -ComputerName $JumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $SvcAcctProf -JumpBox -MinProfile -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    PS> copy-Profile -ComputerName $JumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $SvcAcctProf -JumpBox -MinProfile -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
     # Copy the minimum profile to specified Service Account Profile on jumpboxes
     #>
     [CmdletBinding()]

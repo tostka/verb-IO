@@ -18,6 +18,7 @@ function Format-Json {
     AddedWebsite: https://stackoverflow.com/users/9898643/theo
     AddedTwitter: 
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 9:09 AM 10/4/2021 minor reformatting, expansion of CBH
     * 5/27/2019 - Theo posted version (stackoverflow answer)
     .DESCRIPTION
@@ -66,10 +67,10 @@ function Format-Json {
     .EXAMPLE
     PS> $json | ConvertTo-Json  | Format-Json -Indentation 2
     .EXAMPLE
-    $json = Get-Content 'D:\script\test.json' -Encoding UTF8 | ConvertFrom-Json
-    $json.yura.ContentManager.branch = 'test'
+    PS> $json = Get-Content 'D:\script\test.json' -Encoding UTF8 | ConvertFrom-Json
+    PS> $json.yura.ContentManager.branch = 'test'
     # recreate the object as array, and use the -Depth parameter (your json needs 3 minimum)
-    ConvertTo-Json @($json) -Depth 3 | Format-Json | Set-Content "D:\script\test1.json" -Encoding UTF8
+    PS> ConvertTo-Json @($json) -Depth 3 | Format-Json | Set-Content "D:\script\test1.json" -Encoding UTF8
     # instead of using '@($json)' you can of course also recreate the array by adding the square brackets manually:
     # '[{0}{1}{0}]' -f [Environment]::NewLine, ($json | ConvertTo-Json -Depth 3) |
     #        Format-Json | Set-Content "D:\script\test1.json" -Encoding UTF8

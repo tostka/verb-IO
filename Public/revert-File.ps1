@@ -13,6 +13,7 @@
     Copyright   : (c) 2019 Todd Kadrie
     Github      : https://github.com/tostka
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 2:23 PM 12/29/2019 init
     .DESCRIPTION
     revert-File.ps1 - Revert a file to a prior backup of the file
@@ -25,8 +26,8 @@
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $bRet = revert-File -Source "C:\sc\verb-dev\verb-dev\verb-dev.psm1_20191229-0904AM" -Destination "C:\sc\verb-dev\verb-dev\verb-dev.psm1" -showdebug:$($showdebug) -whatif:$($whatif)
-    if (!$bRet) {throw "FAILURE" } ;
+    PS> $bRet = revert-File -Source "C:\sc\verb-dev\verb-dev\verb-dev.psm1_20191229-0904AM" -Destination "C:\sc\verb-dev\verb-dev\verb-dev.psm1" -showdebug:$($showdebug) -whatif:$($whatif)
+    PS> if (!$bRet) {throw "FAILURE" } ;
     Backup specified file
     .LINK
     #>

@@ -16,6 +16,7 @@
     AddedWebsite:
     AddedTwitter:
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:44 AM 12/11/2019 updated example
     * 8:28 PM 11/17/2019 INIT
     .DESCRIPTION
@@ -29,9 +30,10 @@
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $bRet = Set-FileContent -Text $updatedContent -Path $outfile -showdebug:$($showdebug) -whatif:$($whatif) ;
-    if (!$bRet) {throw "FAILURE" } ;
+    PS> $bRet = Set-FileContent -Text $updatedContent -Path $outfile -showdebug:$($showdebug) -whatif:$($whatif) ;
+    PS> if (!$bRet) {throw "FAILURE" } ;
     .LINK
+    https://github.com/tostka/verb-IO
     #>
 
     PARAM(

@@ -19,6 +19,7 @@ function get-LoremName {
     AddedTwitter:	@tostka / http://twitter.com/tostka
     Inspired to create by: https://twitter.com/MichaelBender/status/1101921078350413825?s=20
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     * 2019-03-03 
     .DESCRIPTION
@@ -26,31 +27,31 @@ function get-LoremName {
     .INPUTS
     Count: Number of names to return
     WithAccount: Return an account name.
-    .PARAMETER Path
-    Specifies the path to the VTT text file (mandatory).
-    .PARAMETER OutFile
-    Specifies the path to the output SRT text file (defaults to input file with .srt).
+    .PARAMETER Count 
+    Number of names to be returned
+    .PARAMETER WithAccount
+    Specifies to return a username with the fname/lname combo
     .EXAMPLE
-    Get-LoremName
-    FirstName LastName
-    --------- --------
-    Plane     Gloriosam
+    PS> Get-LoremName
+        FirstName LastName
+        --------- --------
+        Plane     Gloriosam
     Return a name.
     .EXAMPLE
-    Get-LoremName -Quantity 4
-    FirstName LastName
-    --------- --------
-    Obrutum   Peccata
-    Inermis   Uti
-    Epicuro   Quoddam
-    Quodam    Congruens
+    PS> Get-LoremName -Quantity 4
+        FirstName LastName
+        --------- --------
+        Obrutum   Peccata
+        Inermis   Uti
+        Epicuro   Quoddam
+        Quodam    Congruens
     Return 4 names.
     .EXAMPLE
-    Get-LoremName -Quantity 2 -WithAccount
-    FirstName  LastName UserName
-    ---------  -------- --------
-    Vitam      Saluto   Vitam.Saluto56
-    Intellegit Hoc      Intellegit.Hoc18
+    PS> Get-LoremName -Quantity 2 -WithAccount
+        FirstName  LastName UserName
+        ---------  -------- --------
+        Vitam      Saluto   Vitam.Saluto56
+        Intellegit Hoc      Intellegit.Hoc18
     Return 2 names with account name.
     .LINK
     https://github.com/tostka/verb-IO
@@ -62,18 +63,10 @@ function get-LoremName {
     (
         # Number of Names to return
         [Parameter(
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true,
-            ValueFromRemainingArguments = $false,
-            Position = 0)]
+            ValueFromPipeline = $true,ValueFromPipelineByPropertyName = $true,ValueFromRemainingArguments = $false,Position = 0)]
         [Alias("Quantity")]
-        [int]
-        $Count = 1,
-
-        # Include account name
-        [Parameter()]
-        [Switch]
-        $WithAccount
+        [int]$Count = 1,
+        [Parameter()][Switch]$WithAccount
     )
     Begin {
         $loremApi = 'https://loripsum.net/api/5/verylong/plaintext'

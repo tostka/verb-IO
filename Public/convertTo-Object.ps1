@@ -19,6 +19,7 @@ Function convertTo-Object {
     AddedWebsite:	https://community.idera.com/members/tobias-weltner
     AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 12:26 PM 10/17/2021 init vers
     * 11/17/2008 Tobias Weltner's thread post. 
     .DESCRIPTION
@@ -28,9 +29,10 @@ Function convertTo-Object {
     .OUTPUT
     System.Object
     .EXAMPLE
-    $hash1 = @{name='Melzer';firstname='Tim';age=68} ;
-    $hash2 = @{id=12;count=100;remark='Second Hash Table'} ;
-    $cobj = $hash1, $hash2 | ConvertTo-Object ;    
+    PS> $hash1 = @{name='Melzer';firstname='Tim';age=68} ;
+    PS> $hash2 = @{id=12;count=100;remark='Second Hash Table'} ;
+    PS> $cobj = $hash1, $hash2 | ConvertTo-Object ;  
+    Combine hash1 & 2 into cobj customobject.  
     .LINK
     https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/converting-hash-tables-to-objects
     .LINK

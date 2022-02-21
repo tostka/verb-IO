@@ -8,6 +8,7 @@ Function Get-FsoShortName {
     Website:	http://tinstoys.blogspot.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 7:40 AM 3/29/2016 - added string->path conversion
     * 2:16 PM 3/28/2016 - functional version, no param block
     .INPUTS
@@ -21,8 +22,8 @@ Function Get-FsoShortName {
     get-childitem ${env:ProgramFiles(x86)} | get-fsoshortname ;
     Retrieve Shortname for contents of the folder specified by the 'Program Files(x86)' environment variable
     .EXAMPLE
-    $blah="C:\Program Files (x86)\Log Parser 2.2","C:\Program Files (x86)\Log Parser 2.2\SyntaxerHighlightControl.dll" ;
-    $blah | get-fsoshortname ;
+    PS> $blah="C:\Program Files (x86)\Log Parser 2.2","C:\Program Files (x86)\Log Parser 2.2\SyntaxerHighlightControl.dll" ;
+    PS> $blah | get-fsoshortname ;
     Resolve path specification(s) into ShortNames
     .LINK
     https://blogs.technet.microsoft.com/heyscriptingguy/2013/08/01/use-powershell-to-display-short-file-and-folder-names/

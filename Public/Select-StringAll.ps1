@@ -19,6 +19,7 @@ Function Select-StringAll {
     AddedWebsite: http://www.toddomation.com
     AddedTwitter: @tostka / http://twitter.com/tostka
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:37 PM 10/25/2021 rem'd req version
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
@@ -105,8 +106,8 @@ When the context includes a match, the MatchInfo object for each match includes 
     .OUTPUT
     decimal size in converted decimal unit.
     .EXAMPLE
-    (Get-ChildItem -File -Filter *.abc -Recurse |
-    Select-StringAll -SimpleMatch word1, word2, word3).Count
+    PS> (Get-ChildItem -File -Filter *.abc -Recurse |
+        Select-StringAll -SimpleMatch word1, word2, word3).Count
     Example searching for files with extension .abc, recursively, with word1, word2, or word3, appearing in any order.
     .LINK
     Select-String

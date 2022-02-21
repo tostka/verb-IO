@@ -1,11 +1,25 @@
 #*------v Function Get-TimeStamp v------
 function Get-TimeStamp {
-    # vers: 8:43 AM 10/31/2014 - simple timestamp echo
-    # stock version
-    #Get-DateTime -Format 'yyyy-MM-dd HH:mm:ss'
-    # my version
-    #(get-date).ToString("HH:mm:ss")
-    #Get-DateTime -Format "HH:mm:ss"
-    # 2:11 PM 12/3/2014 no such cmd as get-datetime
+    <#
+    .SYNOPSIS
+    Get-TimeStamp - Generate and return to pipeline, a timestamp-format [datetime]
+    .NOTES
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    Github      : https://github.com/tostka/verb-XXX
+    REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
+    # 	# ren'd TimeStampNow to get-TimeStampNow
+    # vers: 20091002
+    .DESCRIPTION
+    Get-TimeStamp - Generate and return to pipeline, a timestamp-format [datetime]
+    .EXAMPLE
+    PS> $timest = get-TimeStamp
+    OPTSAMPLEOUTPUT
+    Assign a timestamp to $timest
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
     Get-Date -Format "HH:mm:ss"
 } #*------^ END Function Get-TimeStamp ^------

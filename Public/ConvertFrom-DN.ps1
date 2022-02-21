@@ -30,6 +30,9 @@ function ConvertFrom-DN {
     .OUTPUTS
     Canonical Name
     .EXAMPLE
+    PS> get-aduser SOMEUSER | select -expand distinguishedname |ConvertFrom-DN
+            sub.domain.com/SITE/Users/SomeOU/FName LName
+    Convert ADuser distinguishedname string to Canonical Name format.
     .LINK
     https://github.com/tostka/verb-IO
     #>

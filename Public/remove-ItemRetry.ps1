@@ -16,6 +16,7 @@
     AddedWebsite:
     AddedTwitter:
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 2:23 PM 4/21/2021 added -GracefulFail, to permit process-newmodule to process past failed existing content removals, to get the mod built (better than hard fails)
     * 1:37 PM 12/28/2019 removed spurious mand $Text param
     * 10:59 AM 12/28/2019 INIT
@@ -30,8 +31,8 @@
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $bRet = remove-ItemRetry -Path "$($env:userprofile)\Documents\WindowsPowerShell\Modules\$($ModuleName)\*.*" -Recurse -showdebug:$($showdebug) -whatif:$($whatif) ;
-    if (!$bRet) {throw "FAILURE" ; EXIT ; } ;
+    PS> $bRet = remove-ItemRetry -Path "$($env:userprofile)\Documents\WindowsPowerShell\Modules\$($ModuleName)\*.*" -Recurse -showdebug:$($showdebug) -whatif:$($whatif) ;
+    PS> if (!$bRet) {throw "FAILURE" ; EXIT ; } ;
     Recursively remove content specified, failures result in retry with -Force
     .LINK
     #>

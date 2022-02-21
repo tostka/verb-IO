@@ -7,6 +7,7 @@
     Website:	http://tinstoys.blogspot.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:21 AM 3/11/2020 recoded again, renamed Summarize-Shortcuts -> dump-Shortcuts, added -xml/-csv/-json export, quicklaunch param, and verbose support, -Path defaults to desktop 
     8:29 AM 4/28/2016 rewrote and expanded, based on MattG's orig concept
     2013-02-13 18:38:52 MattG posted version
@@ -33,8 +34,8 @@
     Summarize a single .lnk file.
     .EXAMPLE
     write-verbose -verbose:$verbose  "$((get-date).ToString('HH:mm:ss')):Desktop .lnks:" ;
-    $Output = dump-Shortcuts -path [Environment]::GetFolderPath('Desktop') ;
-    $Output | out-string ;
+    PS> $Output = dump-Shortcuts -path [Environment]::GetFolderPath('Desktop') ;
+    PS> $Output | out-string ;
     Summarize Desktop .lnk files.
     .EXAMPLE
     $Output = dump-Shortcuts -QL  ;

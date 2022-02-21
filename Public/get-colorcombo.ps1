@@ -8,6 +8,7 @@ function get-colorcombo {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 1:46 PM 3/5/2021 set DefaultParameterSetName='Random' to actually make 'no-params' default that way, also added $defaultPSCombo (DarkYellow:DarkMagenta), and added it as the 'last' combo in the combo array 
     * 3:15 PM 12/29/2020 fixed typo in scheme parse (quotes broke the hashing), pulled 4 low-contrast schemes out
     * 1:22 PM 5/10/2019 init version
@@ -23,23 +24,24 @@ function get-colorcombo {
     .OUTPUTS
     System.Collections.Hashtable
     .EXAMPLE
-    $plt=get-colorcombo 70 ;
-    write-host @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
+    PS> $plt=get-colorcombo 70 ;
+    PS> write-host @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
     Pull and use get-colorcombo 72 in a write-host ;
     .EXAMPLE
-    get-colorcombo -demo ;
+    PS> get-colorcombo -demo ;
+    Run a demo colortable output
     .EXAMPLE
-    write-host -foregroundcolor green "Pull & write-host a Random get-colorcombo" ;
-    $plt=get-colorcombo -Rand ; write-host  @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
-    Run a demo
+    PS> write-host -foregroundcolor green "Pull & write-host a Random get-colorcombo" ;
+    PS> $plt=get-colorcombo -Rand ; write-host  @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
+    Pull a random color combo into a splat, and use it in a write-host.
     .EXAMPLE
-    $plt=get-colorcombo -Rand ; 
-    $Host.UI.RawUI.BackgroundColor = $plt.BackgroundColor ; 
-    $Host.UI.RawUI.ForegroundColor = $plt.ForegroundColor ; 
+    PS> $plt=get-colorcombo -Rand ; 
+    PS> $Host.UI.RawUI.BackgroundColor = $plt.BackgroundColor ; 
+    PS> $Host.UI.RawUI.ForegroundColor = $plt.ForegroundColor ; 
     Set Console/$Host to a Random get-colorcombo
     .EXAMPLE
-    $plt=get-colorcombo -combo 69 ; 
-    set-consolecolors @plt ; 
+    PS> $plt=get-colorcombo -combo 69 ; 
+    PS> set-consolecolors @plt ; 
     Use verb-IO:set-consolecolors() function to set colorcombo 69.
     .LINK
     https://github.com/tostka/verb-IO

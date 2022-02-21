@@ -74,10 +74,10 @@ Function test-MediaFile {
     .OUTPUT
     None. Outputs summary to console. 
     .EXAMPLE
-    test-MediaFile -Path c:\pathto\video.mp4
+    PS> test-MediaFile -Path c:\pathto\video.mp4
     Example summarizing a video file
     .EXAMPLE
-    if(test-mediafile "C:\users\USER\Documents\Reflections Video.mp4"){write-host "Valid, meets specs"}else{write-warning "INVALID, DOES not meets specs" }  ;
+    PS> if(test-mediafile "C:\users\USER\Documents\Reflections Video.mp4"){write-host "Valid, meets specs"}else{write-warning "INVALID, DOES not meets specs" }  ;
         (writing metadata to matching -media.XML file)
         09:42:35:-----
         FileName
@@ -92,13 +92,13 @@ Function test-MediaFile {
         Valid, meets specs
     Example testing the validity of a video file, to output a descriptive output to console.
     .EXAMPLE
-    'c:\pathto\video.mp4'| test-MediaFile ; 
+    PS> 'c:\pathto\video.mp4'| test-MediaFile ; 
     Example using pipeline support
     .EXAMPLE
-    gci "c:\PathTo\*" -include *.mkv | select -expand fullname | test-MediaFile ; 
+    PS> gci "c:\PathTo\*" -include *.mkv | select -expand fullname | test-MediaFile ; 
     Bulk file pipeline example
     .EXAMPLE
-    gci "c:\pathto\*.mp4" | tmf ; 
+    PS> gci "c:\pathto\*.mp4" | tmf ; 
     Another simpler pipeline example, leveraging the native tmf alias.
     .LINK
     https://hexus.net/tech/tech-explained/storage/1376-gigabytes-gibibytes-what-need-know/

@@ -15,6 +15,7 @@ Function ConvertTo-HashIndexed {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:49 PM 11/17/2020 init using this alot, so port it to a func()
     .DESCRIPTION
     ConvertTo-HashIndexed.ps1 - Converts the inbound object/array/table into an indexed-hash on the specified key/property.
@@ -31,24 +32,25 @@ Function ConvertTo-HashIndexed {
     .OUTPUTS
     None. Returns no objects or output
     .EXAMPLE
-    ray/CSV/etc...
-    $Key = 'PrimarySmtpAddress' ; 
-    $Object = $AllEXOMbxs ; 
-    $Output  = ConvertTo-HashIndexed -Key $key -Object $Object -showprogress ;
-    $smsg = "ConvertTo-HashIndexed object type Changes:`n" ; 
-    $smsg += "original `$Object.type:$( $Object.GetType().FullName )`n" ; 
-    $smsg += "converted `$Output .type:$( $Output.GetType().FullName )`n" ; 
-    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
-    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-    #How to lookup objects in the Object
-    $searchvalue = 'email@domain.com' ; 
-    $output[$searchvalue] ;
-    #Or by property name
-    $output.'email@domain.com' ;
-    #Demo orig object props are still inteact in converted indexed-hashtable
-    $output[$lookupVal] | Get-Member ;
-    $output.Values | Get-Member ;
-    Convert specified $Object into an indexed hash and demo access, output object types, and converted properties
+    PS> $Key = 'PrimarySmtpAddress' ; 
+    PS> $Object = $AllEXOMbxs ; 
+    PS> $Output  = ConvertTo-HashIndexed -Key $key -Object $Object -showprogress ;
+    PS> $smsg = "ConvertTo-HashIndexed object type Changes:`n" ; 
+    PS> $smsg += "original `$Object.type:$( $Object.GetType().FullName )`n" ; 
+    PS> $smsg += "converted `$Output .type:$( $Output.GetType().FullName )`n" ; 
+    PS> if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }     else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    Convert specified ray/CSV/etc $Object into an indexed hash and demo access, output object types, and converted properties
+    .EXAMPLE
+    PS> $searchvalue = 'email@domain.com' ; 
+    PS> $output[$searchvalue] ;
+    Demo lookup objects in the Object
+    .EXAMPLE
+    PS> $output.'email@domain.com' ;
+    Demo alt lookup by property name
+    .EXAMPLE
+    PS> $output[$lookupVal] | Get-Member ;
+    PS> $output.Values | Get-Member ;
+    Demo orig object props are still inteact in converted indexed-hashtable
     .LINK
     https://github.com/tostka/verb-IO
     #>

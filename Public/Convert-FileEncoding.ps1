@@ -28,7 +28,6 @@
     None. Returns no objects or output.
     .EXAMPLE
     Convert-FileEncoding -Include *.js -Path scripts -Encoding UTF8 ;
-    .EXAMPLE
     .LINK
     https://gist.github.com/jpoehls/2406504
     #>

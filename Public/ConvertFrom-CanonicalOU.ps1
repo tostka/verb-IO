@@ -31,6 +31,9 @@ function ConvertFrom-CanonicalOU {
     .OUTPUTS
     DistinguishedName Name
     .EXAMPLE
+    PS> Get-OrganizationalUnit 'OU=Users,OU=SITE,DC=SUB,DC=SUB2,DC=DOMAIN,DC=com' | select -expand distinguishedname | ConvertTo-CanonicalName | ConvertFrom-CanonicalOU
+        OU=Users,OU=SITE,DC=SUB,DC=SUB2,DC=DOMAIN,DC=com
+    Convert OU distinguishedname to Canonical format, and back to OU DistinguishedName
     .LINK
     https://github.com/tostka/verb-IO
     #>

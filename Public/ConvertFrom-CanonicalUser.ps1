@@ -20,6 +20,7 @@ function ConvertFrom-CanonicalUser {
     AddedCredit : McMichael
     AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:26 PM 6/18/2021 added alias:ConvertTo-DNUser
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     .DESCRIPTION
@@ -31,6 +32,10 @@ function ConvertFrom-CanonicalUser {
     .OUTPUTS
     DistinguishedName Name
     .EXAMPLE
+    PS> get-aduser SOMEUSER | select -expand distinguishedname |
+        ConvertFrom-DN | ConvertFrom-CanonicalOU
+            OU=FName LName,OU=SomeOU,OU=Users,OU=SITE,DC=sub,DC=ad,DC=domain,DC=com
+    Convert ADuser distinguishedname string to Canonical Name format, and back to DistinguishedName
     .LINK
     https://github.com/tostka/verb-IO
     #>
