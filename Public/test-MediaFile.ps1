@@ -2,9 +2,9 @@
 Function test-MediaFile {
     <#
     .SYNOPSIS
-    test-MediaFile.ps1 - 1) Pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
-    2) Compares key A/V metrics against (my arbitrary) thresholds for suitability, 
-    and 3) outputs a summary report of the metrics. 
+    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
+    then compares key A/V metrics against (my arbitrary) thresholds for suitability, 
+    and finally outputs a summary report of the metrics. 
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -17,6 +17,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 10:25 AM 2/21/2022 updated CBH, added an example sample output. Not sure if worked before, but CBH currently doesn't seem to get-hepl correctly. Needs debugging, but can't determine issue source.
     * 8:08 PM 12/11/2021 added simpler pipeline example 
     * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
     * 8:15 PM 11/19/2021 added tmr alias
@@ -26,9 +27,9 @@ Function test-MediaFile {
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
     * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
     .DESCRIPTION
-    test-MediaFile.ps1 - 1) Pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
-    2) Compares key A/V metrics against (my arbitrary) thresholds for suitability, 
-    and 3) outputs a summary report of the metrics. 
+    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
+    then compares key A/V metrics against (my arbitrary) thresholds for suitability, 
+    and finally outputs a summary report of the metrics. 
 
     This is a wrapper function for my Get-MediaINfoRaw() cmdlet, which is part of my [Get-MediaInfo](https://github.com/tostka/Get-MediaInfo)
     module, which is forked from Frank Skare/stax76's Get-MediaInfoSummary() function (part of his [get-MediaInfo module](https://github.com/stax76/Get-MediaInfo)).
@@ -76,14 +77,29 @@ Function test-MediaFile {
     test-MediaFile -Path c:\pathto\video.mp4
     Example summarizing a video file
     .EXAMPLE
-    'c:\pathto\video.mp4'| test-MediaFile 
+    if(test-mediafile "C:\users\USER\Documents\Reflections Video.mp4"){write-host "Valid, meets specs"}else{write-warning "INVALID, DOES not meets specs" }  ;
+        (writing metadata to matching -media.XML file)
+        09:42:35:-----
+        FileName
+        C:\users\USER\Documents\Reflections Video.mp4
+        FileMB | Mins | OBitRate  | Format      | Ext
+        70mb   | 9.3  | 1058 kbps | MPEG-4 kbps | .mp4
+        V-Fmt | V-Kbps | V-WxH:Ratio    | V-fps | V-Std | V-Encoder
+        AVC   | 881    | 1920x1080:16:9 | 30    |       |
+        A-Chnls   | A-Lang | A-Fmt  | A-BitRate | A-kHz
+        2 channel |        | AAC LC | 174 Kbps  | 48.0
+        -----
+        Valid, meets specs
+    Example testing the validity of a video file, to output a descriptive output to console.
+    .EXAMPLE
+    'c:\pathto\video.mp4'| test-MediaFile ; 
     Example using pipeline support
     .EXAMPLE
     gci "c:\PathTo\*" -include *.mkv | select -expand fullname | test-MediaFile ; 
-    Pipeline example
+    Bulk file pipeline example
     .EXAMPLE
-    gci "c:\pathto\*.mp4" | tmf; 
-    Another simpler pipeline example
+    gci "c:\pathto\*.mp4" | tmf ; 
+    Another simpler pipeline example, leveraging the native tmf alias.
     .LINK
     https://hexus.net/tech/tech-explained/storage/1376-gigabytes-gibibytes-what-need-know/
     .LINK
@@ -101,15 +117,10 @@ Function test-MediaFile {
             [int]$ThresholdMinVerticalRes=480,
             [Parameter(HelpMessage="Suppress all outputs but return pass status as`$true/`$false, to the pipeline[-Silent]")]
             [switch] $Silent,
-            [Parameter(HelpMessage="Switch to create a matching XML metadata export file (with -Path name/location and .xml         ext).[-ExportToFile]")]
+            [Parameter(HelpMessage="Switch to create a matching XML metadata export file (with -Path name/location and .xml ext).[-ExportToFile]")]
             [switch]$ExportMediaToFile=$true
         ) ;
         BEGIN{
-
-        #$propsGeneral1 = @{name="FileName";expression={$_.CompleteName}}, @{name="FileMB";expression={"$($_.FileSize_MB)mb"}}
-        #$propsGeneral2 = @{name="FileMB";expression={"$($_.FileSize_MB)mb"}},@{name="Mins";expression={[math]::round($_.Duration_Mins,1)}},@{name="OBitRate";expression={"$($_.OverallBitRate_kbps) kbps"}} ; 
-        #$propsAudio = @{name="Chnls";expression={$_.Channel_s__String.replace('annels','')}},@{name="Lang";expression={$_.Language_String}},@{name="Fmt";expression={$_.Format_String}},@{name="BitRate";expression={$_.BitRate_String}},@{name="kHz";expression={$_.SamplingRate_bit}}; 
-        #$propsVideo = 'Format_String','BitRate_Mode_String','BitRate_kbps','Width_Pixels','Height_Pixels','DisplayAspectRatio_String','FrameRate_fps','Standard','Encoded_Library_String' ; 
 
         $propsGeneral1 = @{name="FileName";expression={$_.CompleteName}}
                         
@@ -212,7 +223,6 @@ Function test-MediaFile {
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ; 
                         $smsg = $null ; 
-                        # ($mediameta.video.Format_String -AND $mediameta.video.CodecID -AND $mediameta.video.Duration_Mins -AND $mediameta.video.BitRate_kbps -AND $mediameta.video.FrameRate_fps)
                         if(-not $mediameta.video.Format_String ){
                             $smsg = "`n(missing video.Format_String)" ; 
                         }
@@ -239,7 +249,6 @@ Function test-MediaFile {
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ;
                         $smsg = $null ; 
-                        # ($mediameta.audio.Format_String -AND $mediameta.audio.CodecID -AND $mediameta.audio.SamplingRate_bit )
                         if(-not $mediameta.audio.Format_String ){
                             $smsg = "`n(missing audio.Format_String)" ; 
                         }
