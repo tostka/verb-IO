@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.5.0.0.0
+Version     : 1.6.3.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -4160,6 +4160,110 @@ function get-colorcombo {
 }
 
 #*------^ get-colorcombo.ps1 ^------
+
+#*------v get-ConsoleText.ps1 v------
+Function get-ConsoleText {
+    <#
+    .SYNOPSIS
+    get-ConsoleText.ps1 - Copies current powershell console buffer to the clipboard
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    AddedCredit : AutomatedLab:Raimund AndrÃ©e [MSFT],Jan-Hendrik Peters [MSFT]
+    AddedWebsite:	https://github.com/AutomatedLab/AutomatedLab.Common/blob/develop/AutomatedLab.Common/Common/Public/Get-ConsoleText.ps1
+    AddedGithub : https://github.com/AutomatedLab/AutomatedLab
+    AddedTwitter:	@raimundandree,@nyanhp
+    CreatedDate : 2022-02-02
+    FileName    : get-ConsoleText.ps1
+    License     : https://github.com/AutomatedLab/AutomatedLab/blob/develop/LICENSE
+    Copyright   : Copyright (c) 2022 Raimund AndrÃ©e, Jan-Hendrik Peters
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : PowershellConsole,Clipboard,Text
+    REVISIONS
+    * 9:27 AM 2/2/2022 added -topipeline switch & post-split code (pipeline return returns text block, not lines, and os-agnostic split pads with spaces between lines unless explicitly supressed); fixed output: was just dumping console text to pipeline (and back into console buffer), piped it into set-clipboard ; minor tweaks OTB fmt, added CBH ; added else clause to echo non-support of VsCode.
+    * 6/5/2019 posted AutomatedLab revision (non-functional, doesn't copy to cb)
+    .DESCRIPTION
+    get-ConsoleText.ps1 - Copies current powershell console buffer to the clipboard
+    .PARAMETER toPipeline
+    switch to return the text to the pipeline (rather than default 'copy to clipboard' behavior)[-toPipeline]
+    .OUTPUT
+    None. Outputs console text to clipboard.
+    .EXAMPLE
+    get-ConsoleText ;
+    get-clipboard |  measure | select -expand count ;
+    Copy console text to clipboard, then output the number of lines returned.
+    .EXAMPLE
+    $content = get-ConsoleText -toPipeline ;
+    $content.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) |  measure | select -expand count ; 
+    $content.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries)) | select -first 15 ; 
+    Demonstrate assign console text to a variable, and resplit (suppressing empty lines), and output the first 15 lines returned.
+    .LINK
+    https://github.com/AutomatedLab/AutomatedLab.Common/blob/develop/AutomatedLab.Common/Common/Public/Get-ConsoleText.ps1
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [Alias('tmf')]
+    PARAM(
+        [Parameter(HelpMessage="switch to return the text to the pipeline (rather than default 'copy to clipboard' behavior)[-toPipeline]")]
+        [switch] $toPipeline
+    ) ;
+    
+    # Check the host name and exit if the host is not the Windows PowerShell console host.
+    if ($host.Name -eq 'Windows PowerShell ISE Host') {
+        write-verbose "(`$host.Name:Windows PowerShell ISE Host detected)" ;
+        write-verbose "(copying to cb...)" ;
+        $return = $psISE.CurrentPowerShellTab.ConsolePane.Text ; 
+    } elseif ($host.Name -eq 'ConsoleHost') {
+        write-verbose "(`$host.Name:ConsoleHost detected)" ;
+        $textBuilderConsole = New-Object System.Text.StringBuilder ;
+        $textBuilderLine = New-Object System.Text.StringBuilder ;
+
+        # Grab the console screen buffer contents using the Host console API.
+        $bufferWidth = $host.UI.RawUI.BufferSize.Width ;
+        $bufferHeight = $host.UI.RawUI.CursorPosition.Y  ;
+        $rec = New-Object System.Management.Automation.Host.Rectangle(0, 0, ($bufferWidth), $bufferHeight) ;
+        $buffer = $host.UI.RawUI.GetBufferContents($rec)  ;
+
+        #Console buffer actually stores console formatting, along with characters
+        # getting text out requires some processing of the raw content
+        # Iterate through the lines in the console buffer.
+        write-verbose  "(processing buffer)" ; 
+        for ($i = 0; $i -lt $bufferHeight; $i++) {
+            for ($j = 0; $j -lt $bufferWidth; $j++) {
+                $cell = $buffer[$i, $j]  ;
+                $null = $textBuilderLine.Append($cell.Character) ;
+            } ;
+            $null = $textBuilderConsole.AppendLine($textBuilderLine.ToString().TrimEnd()) ;
+            $textBuilderLine = New-Object System.Text.StringBuilder ;
+        } ;
+        # original code was dropping into pipeline, not copying to clipboard (as per echos). 
+        $return = $textBuilderConsole.ToString() ;
+        Write-Verbose "$bufferHeight lines have been processed" ;
+    } elseif( $env:TERM_PROGRAM -eq 'vscode' ){
+        write-warning "(VSCode detected: unsupported)" ; 
+        BREAK ;
+    } else {
+        write-warning "(unrecognized `$host.Name:$($host.name))" ; 
+        BREAK ;
+    } ; 
+    if($return -AND -not $toPipeline){
+        write-verbose "(copied content to clipboard)" ; 
+        # $content 
+        $return | set-clipboard
+    } else { 
+        write-verbose "(returning content to pipeline)" ; 
+        # this writes everyting as a single text block, unsplit
+        #$return | write-output ; 
+        # split before returning - this natively suppresses emtpy lines
+        #$return.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) | write-output ; 
+        # variant, OS agnostic, requires removeemptyentries or it leaves gaps (inflates a 3k line console to 6k lines). 
+        $return.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ;
+    } ; 
+}
+
+#*------^ get-ConsoleText.ps1 ^------
 
 #*------v Get-CountItems.ps1 v------
 function Get-CountItems {
@@ -9581,14 +9685,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,mount-UnavailableMappedDrives,move-FileOnReboot,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-MediaFile,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,mount-UnavailableMappedDrives,move-FileOnReboot,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-MediaFile,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUFECFS2jDp9l3vWF9YW4uAB3R
-# XSagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUMy2jJDeokIVVF4OzaFrA9tZw
+# pEmgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -9603,9 +9707,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQhbEtW
-# hyPZ5LeYuiLXqJu7FWKTYjANBgkqhkiG9w0BAQEFAASBgJV+ClozbqkTRhAry0iV
-# 81rUtssak2i+kO5SG+94e+EaOSBaJdDvJ7s/IJ/PTlBVyEW8uqZNJYwPlkRdDPRw
-# 4S3MRUpXm7cYtgca0xksBet24aXjmC7UlpkrXBTUIJiFCYiwqNLf6B9VHEMIWHSg
-# S8o6/1lR3Vxioh/pqmCaBAXv
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT801cf
+# jZjWuAAFXjxEDUUmXODLEzANBgkqhkiG9w0BAQEFAASBgCErTADH8VTVzp9Dm12Z
+# dPlOXdniEDmbIRP3PNu2xvrFw9pBK1PBTzisdgyYqtFh4Z8oltR6rCoYkWeYag+x
+# Xh2spzs/m0oA+fxt5cKme0FIbLK9dw3Nk/lWfoEQ2JXHqxKCHQ5XleLDiVu6b3ED
+# JsZzZOPyNMtsOBdCj24irCTt
 # SIG # End signature block
