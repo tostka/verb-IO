@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.7.0.0.0
+Version     : 1.7.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -946,7 +946,7 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
 Function convert-DehydratedBytesToGB {
     <#
     .SYNOPSIS
-    convert-DehydratedBytesToGB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal gigabytes.
+    convert-DehydratedBytesToGB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal gigabytes.
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -956,45 +956,54 @@ Function convert-DehydratedBytesToGB {
     FileName    : convert-DehydratedBytesToGB.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : PowershellConsole
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Conversion,Storage,Unit
     REVISIONS
+    * 1:34 PM 2/25/2022 refactored CBH (was broken, non-parsing), renamed -data -> -string, retained prior name as a parameter alias
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
-    convert-DehydratedBytesToGB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal gigabytes.
-    .PARAMETER Data
+    convert-DehydratedBytesToGB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal gigabytes.
+    .PARAMETER String
     Array of Dehydrated byte sizes to be converted
     .PARAMETER Decimals
     Number of decimal places to return on results
-    .OUTPUT
-    System.Object[] 
+    .OUTPUTS
+    System.String
     .EXAMPLE
-     (get-mailbox | get-mailboxstatistics).totalitemsize.value | convert-DehydratedBytesToGB ;
-    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values
+    PS> (get-mailbox -id hoffmjj | get-mailboxstatistics).totalitemsize | convert-DehydratedBytesToGB ;
+    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values.
     .LINK
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-Data `$array]")]
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-String `$array]")]
         [ValidateNotNullOrEmpty()]
-        [array]$Data,
+        [Alias('Data')]
+        [string[]]$String,
         [Parameter(HelpMessage="Number of decimal places to return on results[-Decimals 3]")]
         [int] $Decimals=3
     )
-    
     BEGIN{
         $FmtCode = "{0:N$($Decimals)}" ; 
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+
     } 
     PROCESS{
-        If($Data -match '.*\s\(.*\sbytes\)'){ # test for inbound data in expected text format
-            foreach($item in $Data){
-                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb decimal places 
+        $Error.Clear() ; 
+        If($String -match '.*\s\(.*\sbytes\)'){ 
+            foreach($item in $String){
+                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb or mb decimal places (depending on tomb or togb variant of the function)
                 $item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1GB)} | write-output ;
                 # sole difference between GB & MB funcs is the 1GB/1MB above
             } ; 
         } else { 
-            throw "unrecoginzed data series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format"
+            throw "unrecoginzed String series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format" ; 
             Continue ; 
         } ; 
     } ; 
@@ -1007,7 +1016,7 @@ Function convert-DehydratedBytesToGB {
 Function convert-DehydratedBytesToMB {
     <#
     .SYNOPSIS
-    convert-DehydratedBytesToMB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal megabytes.
+    convert-DehydratedBytesToMB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal megabytes.
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -1017,45 +1026,54 @@ Function convert-DehydratedBytesToMB {
     FileName    : convert-DehydratedBytesToMB.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : PowershellConsole
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Conversion,Storage,Unit
     REVISIONS
+    * 1:34 PM 2/25/2022 refactored CBH (was broken, non-parsing), renamed -data -> -string, retained prior name as a parameter alias
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
-    convert-DehydratedBytesToMB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal megabytes.
-    .PARAMETER Data
+    convert-DehydratedBytesToMB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal megabytes.
+    .PARAMETER String
     Array of Dehydrated byte sizes to be converted
     .PARAMETER Decimals
     Number of decimal places to return on results
-    .OUTPUT
-    System.Object[] 
+    .OUTPUTS
+    System.String
     .EXAMPLE
-     (get-mailbox | get-mailboxstatistics).totalitemsize.value | convert-DehydratedBytesToMB ;
-    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values
+    PS> (get-mailbox -id hoffmjj | get-mailboxstatistics).totalitemsize | convert-DehydratedBytesToMB ;
+    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values.
     .LINK
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-Data `$array]")]
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-String `$array]")]
         [ValidateNotNullOrEmpty()]
-        [array]$Data,
+        [Alias('Data')]
+        [string[]]$String,
         [Parameter(HelpMessage="Number of decimal places to return on results[-Decimals 3]")]
         [int] $Decimals=3
     )
-    
     BEGIN{
         $FmtCode = "{0:N$($Decimals)}" ; 
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+
     } 
     PROCESS{
-        If($Data -match '.*\s\(.*\sbytes\)'){ # test for inbound data in expected text format
-            foreach($item in $Data){
-                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb decimal places 
+        $Error.Clear() ; 
+        If($String -match '.*\s\(.*\sbytes\)'){ 
+            foreach($item in $String){
+                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb or mb decimal places (depending on tomb or togb variant of the function)
                 $item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1MB)} | write-output ;
                 # sole difference between GB & MB funcs is the 1GB/1MB above
             } ; 
         } else { 
-            throw "unrecoginzed data series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format"
+            throw "unrecoginzed String series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format" ; 
             Continue ; 
         } ; 
     } ; 
@@ -9759,8 +9777,8 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUDfp32j2z5hN7c4LQ2H0TV5bJ
-# r7OgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUv6U3qo2NNcuacpDemNFA0itE
+# 1xWgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -9775,9 +9793,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTGNGjq
-# ikely1M8OukbzgNnOQOQkjANBgkqhkiG9w0BAQEFAASBgKE/gF6+g/pQ752Is33H
-# T0c1hMaNxFwlwRXGCZM+/FdBpL8um+lXly1L2rv9tbv5Pz+pvCTinb/6wLAcz5RI
-# AmZKCqozsvcTpgbMBt61b9nQm3UY5itT8WnDueAozlwK0QiZuCDt958qShaZ+GBm
-# al0gSv7ksPLB3GfiENzNh0Jn
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSFyNI/
+# 9XQwd4BzXuiYWO3ym9EHVzANBgkqhkiG9w0BAQEFAASBgC4x9Bm/J1BUN19a3/Q6
+# NaeEDOzllO48TF6YIUiJNWZ/uEB1DD+/KIT/E28V0PEzyj2AIJJ7rsnN08lsJw6E
+# 4oeeYDXDRkplcbtB18WnrMJQztaFvdt+HYoTe921IkhPCQtyGOFhnjcRMmJVSeCn
+# UCxNm6sK3a5zr5SugP/QAvA6
 # SIG # End signature block
