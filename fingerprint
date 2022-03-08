@@ -242,6 +242,7 @@ convert-ColorHexCodeToWindowsMediaColorsName:OutBuffer
 convert-ColorHexCodeToWindowsMediaColorsName:ob
 convert-ColorHexCodeToWindowsMediaColorsName:PipelineVariable
 convert-ColorHexCodeToWindowsMediaColorsName:pv
+convert-DehydratedBytesToGB:String
 convert-DehydratedBytesToGB:Data
 convert-DehydratedBytesToGB:Decimals
 convert-DehydratedBytesToGB:Verbose
@@ -266,6 +267,7 @@ convert-DehydratedBytesToGB:OutBuffer
 convert-DehydratedBytesToGB:ob
 convert-DehydratedBytesToGB:PipelineVariable
 convert-DehydratedBytesToGB:pv
+convert-DehydratedBytesToMB:String
 convert-DehydratedBytesToMB:Data
 convert-DehydratedBytesToMB:Decimals
 convert-DehydratedBytesToMB:Verbose

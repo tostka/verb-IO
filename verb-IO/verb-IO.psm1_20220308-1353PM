@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.6.1.0.0
+Version     : 1.7.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -215,6 +215,7 @@ function backup-File {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 9:12 AM 12/29/2019 switch output to being the backupfile name ($pltBu.destination ), or $false for fail
     * 9:34 AM 12/11/2019 added dyanamic recycle of existing ext (got out of hardcoded .ps1)
     * 1:43 PM 11/16/2019 init
@@ -227,8 +228,8 @@ function backup-File {
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $bRet = backup-File -path $oSrc.FullName -showdebug:$($showdebug) -whatif:$($whatif)
-    if (!$bRet) {throw "FAILURE" } ;
+    PS> $bRet = backup-File -path $oSrc.FullName -showdebug:$($showdebug) -whatif:$($whatif)
+    PS> if (!$bRet) {throw "FAILURE" } ;
     Backup specified file
     .LINK
     #>
@@ -497,6 +498,7 @@ function Compare-ObjectsSideBySide{
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 fixed typo in params, moved to full param block, and added lhs/rhs as aliases; expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
     * 10:18 AM 11/2/2018 reformatted, tightened up, shifted params to body, added pshelp
@@ -514,19 +516,19 @@ function Compare-ObjectsSideBySide{
     .OUTPUTS
     Outputs specified object side-by-side on console
     .EXAMPLE
-    $object1 = New-Object PSObject -Property @{
-      'Forename' = 'Richard';
-      'Surname' = 'Slater';
-      'Company' = 'Amido';
-      'SelfEmployed' = $true;
-    } ;
-    $object2 = New-Object PSObject -Property @{
-      'Forename' = 'Jane';
-      'Surname' = 'Smith';
-      'Company' = 'Google';
-      'MaidenName' = 'Jones' ;
-    } ;
-    Compare-ObjectsSideBySide $object1 $object2 | Format-Table Property, col1, col2;
+    PS> $object1 = New-Object PSObject -Property @{
+          'Forename' = 'Richard';
+          'Surname' = 'Slater';
+          'Company' = 'Amido';
+          'SelfEmployed' = $true;
+        } ;
+    PS> $object2 = New-Object PSObject -Property @{
+          'Forename' = 'Jane';
+          'Surname' = 'Smith';
+          'Company' = 'Google';
+          'MaidenName' = 'Jones' ;
+        } ;
+    PS> Compare-ObjectsSideBySide $object1 $object2 | Format-Table Property, col1, col2;
     Display $object1 & $object2 in comparative side-by-side columns
     .LINK
     https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
@@ -572,6 +574,7 @@ function Compare-ObjectsSideBySide4 {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Compare
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
     * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
@@ -593,31 +596,31 @@ function Compare-ObjectsSideBySide4 {
     .OUTPUTS
     Outputs specified object side-by-side on console
     .EXAMPLE
-    $object1 = New-Object PSObject -Property @{
-      'Forename' = 'Richard';
-      'Surname' = 'Slater';
-      'Company' = 'Amido';
-      'SelfEmployed' = $true;
-    } ;
-    $object2 = New-Object PSObject -Property @{
-      'Forename' = 'Jane';
-      'Surname' = 'Smith';
-      'Company' = 'Google';
-      'MaidenName' = 'Jones' ;
-    } ;
-    $object3 = New-Object PSObject -Property @{
-      'Forename' = 'Zhe';
-      'Surname' = 'Person';
-      'Company' = 'Apfel';
-      'MaidenName' = 'NunaUBusiness' ;
-    } ;
-    $object4 = New-Object PSObject -Property @{
-      'Forename' = 'Zir';
-      'Surname' = 'NPC';
-      'Company' = 'Facemook';
-      'MaidenName' = 'Not!' ;
-    } ;
-    Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
+    PS> $object1 = New-Object PSObject -Property @{
+          'Forename' = 'Richard';
+          'Surname' = 'Slater';
+          'Company' = 'Amido';
+          'SelfEmployed' = $true;
+        } ;
+    PS> $object2 = New-Object PSObject -Property @{
+          'Forename' = 'Jane';
+          'Surname' = 'Smith';
+          'Company' = 'Google';
+          'MaidenName' = 'Jones' ;
+        } ;
+    PS> $object3 = New-Object PSObject -Property @{
+          'Forename' = 'Zhe';
+          'Surname' = 'Person';
+          'Company' = 'Apfel';
+          'MaidenName' = 'NunaUBusiness' ;
+        } ;
+    PS> $object4 = New-Object PSObject -Property @{
+          'Forename' = 'Zir';
+          'Surname' = 'NPC';
+          'Company' = 'Facemook';
+          'MaidenName' = 'Not!' ;
+        } ;
+    PS> Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
     Display $object1,2,3 & 4 in comparative side-by-side columns
     .LINK
     https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
@@ -671,6 +674,7 @@ function Compare-ObjectsSideBySide4 {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Compare
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
     * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
@@ -690,31 +694,31 @@ function Compare-ObjectsSideBySide4 {
     .OUTPUTS
     Outputs specified object side-by-side on console
     .EXAMPLE
-    $object1 = New-Object PSObject -Property @{
-      'Forename' = 'Richard';
-      'Surname' = 'Slater';
-      'Company' = 'Amido';
-      'SelfEmployed' = $true;
-    } ;
-    $object2 = New-Object PSObject -Property @{
-      'Forename' = 'Jane';
-      'Surname' = 'Smith';
-      'Company' = 'Google';
-      'MaidenName' = 'Jones' ;
-    } ;
-    $object3 = New-Object PSObject -Property @{
-      'Forename' = 'Zhe';
-      'Surname' = 'Person';
-      'Company' = 'Apfel';
-      'MaidenName' = 'NunaUBusiness' ;
-    } ;
-    $object4 = New-Object PSObject -Property @{
-      'Forename' = 'Zir';
-      'Surname' = 'NPC';
-      'Company' = 'Facemook';
-      'MaidenName' = 'Not!' ;
-    } ;
-    Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
+    PS> $object1 = New-Object PSObject -Property @{
+          'Forename' = 'Richard';
+          'Surname' = 'Slater';
+          'Company' = 'Amido';
+          'SelfEmployed' = $true;
+        } ;
+    PS> $object2 = New-Object PSObject -Property @{
+          'Forename' = 'Jane';
+          'Surname' = 'Smith';
+          'Company' = 'Google';
+          'MaidenName' = 'Jones' ;
+        } ;
+    PS> $object3 = New-Object PSObject -Property @{
+          'Forename' = 'Zhe';
+          'Surname' = 'Person';
+          'Company' = 'Apfel';
+          'MaidenName' = 'NunaUBusiness' ;
+        } ;
+    PS> $object4 = New-Object PSObject -Property @{
+          'Forename' = 'Zir';
+          'Surname' = 'NPC';
+          'Company' = 'Facemook';
+          'MaidenName' = 'Not!' ;
+        } ;
+    PS> Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
     Display $object1,2,3 & 4 in comparative side-by-side columns
     .LINK
     https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
@@ -942,7 +946,7 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
 Function convert-DehydratedBytesToGB {
     <#
     .SYNOPSIS
-    convert-DehydratedBytesToGB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal gigabytes.
+    convert-DehydratedBytesToGB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal gigabytes.
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -952,45 +956,54 @@ Function convert-DehydratedBytesToGB {
     FileName    : convert-DehydratedBytesToGB.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : PowershellConsole
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Conversion,Storage,Unit
     REVISIONS
+    * 1:34 PM 2/25/2022 refactored CBH (was broken, non-parsing), renamed -data -> -string, retained prior name as a parameter alias
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
-    convert-DehydratedBytesToGB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal gigabytes.
-    .PARAMETER Data
+    convert-DehydratedBytesToGB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal gigabytes.
+    .PARAMETER String
     Array of Dehydrated byte sizes to be converted
     .PARAMETER Decimals
     Number of decimal places to return on results
-    .OUTPUT
-    System.Object[] 
+    .OUTPUTS
+    System.String
     .EXAMPLE
-     (get-mailbox | get-mailboxstatistics).totalitemsize.value | convert-DehydratedBytesToGB ;
-    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values
+    PS> (get-mailbox -id hoffmjj | get-mailboxstatistics).totalitemsize | convert-DehydratedBytesToGB ;
+    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values.
     .LINK
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-Data `$array]")]
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-String `$array]")]
         [ValidateNotNullOrEmpty()]
-        [array]$Data,
+        [Alias('Data')]
+        [string[]]$String,
         [Parameter(HelpMessage="Number of decimal places to return on results[-Decimals 3]")]
         [int] $Decimals=3
     )
-    
     BEGIN{
         $FmtCode = "{0:N$($Decimals)}" ; 
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+
     } 
     PROCESS{
-        If($Data -match '.*\s\(.*\sbytes\)'){ # test for inbound data in expected text format
-            foreach($item in $Data){
-                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb decimal places 
+        $Error.Clear() ; 
+        If($String -match '.*\s\(.*\sbytes\)'){ 
+            foreach($item in $String){
+                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb or mb decimal places (depending on tomb or togb variant of the function)
                 $item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1GB)} | write-output ;
                 # sole difference between GB & MB funcs is the 1GB/1MB above
             } ; 
         } else { 
-            throw "unrecoginzed data series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format"
+            throw "unrecoginzed String series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format" ; 
             Continue ; 
         } ; 
     } ; 
@@ -1003,7 +1016,7 @@ Function convert-DehydratedBytesToGB {
 Function convert-DehydratedBytesToMB {
     <#
     .SYNOPSIS
-    convert-DehydratedBytesToMB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal megabytes.
+    convert-DehydratedBytesToMB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal megabytes.
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -1013,45 +1026,54 @@ Function convert-DehydratedBytesToMB {
     FileName    : convert-DehydratedBytesToMB.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : PowershellConsole
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Conversion,Storage,Unit
     REVISIONS
+    * 1:34 PM 2/25/2022 refactored CBH (was broken, non-parsing), renamed -data -> -string, retained prior name as a parameter alias
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
-    convert-DehydratedBytesToMB.ps1 - Convert MS Dehydrated byte sizes - 102.8 MB (107,808,015 bytes) - into equivelent decimal megabytes.
-    .PARAMETER Data
+    convert-DehydratedBytesToMB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal megabytes.
+    .PARAMETER String
     Array of Dehydrated byte sizes to be converted
     .PARAMETER Decimals
     Number of decimal places to return on results
-    .OUTPUT
-    System.Object[] 
+    .OUTPUTS
+    System.String
     .EXAMPLE
-     (get-mailbox | get-mailboxstatistics).totalitemsize.value | convert-DehydratedBytesToMB ;
-    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values
+    PS> (get-mailbox -id hoffmjj | get-mailboxstatistics).totalitemsize | convert-DehydratedBytesToMB ;
+    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values.
     .LINK
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-Data `$array]")]
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of Dehydrated byte sizes to be converted[-String `$array]")]
         [ValidateNotNullOrEmpty()]
-        [array]$Data,
+        [Alias('Data')]
+        [string[]]$String,
         [Parameter(HelpMessage="Number of decimal places to return on results[-Decimals 3]")]
         [int] $Decimals=3
     )
-    
     BEGIN{
         $FmtCode = "{0:N$($Decimals)}" ; 
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+
     } 
     PROCESS{
-        If($Data -match '.*\s\(.*\sbytes\)'){ # test for inbound data in expected text format
-            foreach($item in $Data){
-                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb decimal places 
+        $Error.Clear() ; 
+        If($String -match '.*\s\(.*\sbytes\)'){ 
+            foreach($item in $String){
+                # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb or mb decimal places (depending on tomb or togb variant of the function)
                 $item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1MB)} | write-output ;
                 # sole difference between GB & MB funcs is the 1GB/1MB above
             } ; 
         } else { 
-            throw "unrecoginzed data series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format"
+            throw "unrecoginzed String series:Does not match 'nnnnnn.n MB (nnn,nnn,nnn bytes)' text format" ; 
             Continue ; 
         } ; 
     } ; 
@@ -1091,7 +1113,6 @@ function Convert-FileEncoding {
     None. Returns no objects or output.
     .EXAMPLE
     Convert-FileEncoding -Include *.js -Path scripts -Encoding UTF8 ;
-    .EXAMPLE
     .LINK
     https://gist.github.com/jpoehls/2406504
     #>
@@ -1156,6 +1177,9 @@ function ConvertFrom-CanonicalOU {
     .OUTPUTS
     DistinguishedName Name
     .EXAMPLE
+    PS> Get-OrganizationalUnit 'OU=Users,OU=SITE,DC=SUB,DC=SUB2,DC=DOMAIN,DC=com' | select -expand distinguishedname | ConvertTo-CanonicalName | ConvertFrom-CanonicalOU
+        OU=Users,OU=SITE,DC=SUB,DC=SUB2,DC=DOMAIN,DC=com
+    Convert OU distinguishedname to Canonical format, and back to OU DistinguishedName
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -1199,6 +1223,7 @@ function ConvertFrom-CanonicalUser {
     AddedCredit : McMichael
     AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:26 PM 6/18/2021 added alias:ConvertTo-DNUser
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     .DESCRIPTION
@@ -1210,6 +1235,10 @@ function ConvertFrom-CanonicalUser {
     .OUTPUTS
     DistinguishedName Name
     .EXAMPLE
+    PS> get-aduser SOMEUSER | select -expand distinguishedname |
+        ConvertFrom-DN | ConvertFrom-CanonicalOU
+            OU=FName LName,OU=SomeOU,OU=Users,OU=SITE,DC=sub,DC=ad,DC=domain,DC=com
+    Convert ADuser distinguishedname string to Canonical Name format, and back to DistinguishedName
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -1310,6 +1339,9 @@ function ConvertFrom-DN {
     .OUTPUTS
     Canonical Name
     .EXAMPLE
+    PS> get-aduser SOMEUSER | select -expand distinguishedname |ConvertFrom-DN
+            sub.domain.com/SITE/Users/SomeOU/FName LName
+    Convert ADuser distinguishedname string to Canonical Name format.
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -1397,7 +1429,7 @@ Function ConvertFrom-IniFile {
     [User]
     Name = Jeff
     Company = Globomantics
-    ```
+    ``` ;
     .PARAMETER Path
     The path to the INI file.
     .INPUTS
@@ -1405,16 +1437,16 @@ Function ConvertFrom-IniFile {
     .OUTPUTS
     [pscustomobject]
     .EXAMPLE
-    PS C:\> $sample = ConvertFrom-IniFile c:\scripts\sample.ini
-    PS C:\> $sample
-    General                           Application                      User                            
-    -------                           -----------                      ----                            
-    @{Directory=c:\work; ID=123ABC... @{Version=1.0; Name=foo.exe}     @{Name=Jeff; Company=Globoman...
-    PS C:\> $sample.general.action
-    Start
+    PS> $sample = ConvertFrom-IniFile c:\scripts\sample.ini
+    PS> $sample
+        General                           Application                      User                            
+        -------                           -----------                      ----                            
+        @{Directory=c:\work; ID=123ABC... @{Version=1.0; Name=foo.exe}     @{Name=Jeff; Company=Globoman...
+    PS> $sample.general.action
+        Start
     In this example, a sample ini file is converted to an object with each section a separate property.
     .EXAMPLE
-    PS C:\> ConvertFrom-IniFile c:\windows\system.ini | export-clixml c:\work\system.ini
+    PS> ConvertFrom-IniFile c:\windows\system.ini | export-clixml c:\work\system.ini
     Convert the System.ini file and export results to an XML format.
     .LINK
     Get-Content
@@ -1506,6 +1538,7 @@ Function convertFrom-MarkdownTable {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:42 PM 6/22/2021 bug workaround: empty fields in source md table (|data||data|) cause later (export-csv|convertto-csv) to create a csv with *missing* delimiting comma on the problem field ;  added trim of each field content, and CBH example for creation of a csv from mdtable input; added aliases
     * 5:40 PM 6/21/2021 init
     .DESCRIPTION
@@ -1519,26 +1552,26 @@ Function convertFrom-MarkdownTable {
     .OUTPUTS
     System.Object[]
    .EXAMPLE
-   PS> $svcs = Get-Service Bits,Winrm | select status,name,displayname | convertTo-MarkdownTable -border | ConvertFrom-MarkDownTable ;  
+   PS> $svcs = Get-Service Bits,Winrm | select status,name,displayname | 
+      convertTo-MarkdownTable -border | ConvertFrom-MarkDownTable ;  
    Convert Service listing to and back from MD table, demo's working around border md table syntax (outter pipe-wrapped lines)
-   .EXAMPLE
-   -EmailAddress david.hiltzman@ditchwitch.com -groups LYN-DL-TorowideSourcing@toro.com -Ticket 999999 -verbose -whatif
    PS> $mdtable = @"
 |EmailAddress|DisplayName|Groups|Ticket|
 |---|---|---|---|
 |da.pope@vatican.org||CardinalDL@vatican.org|999999|
 |bozo@clown.com|Bozo Clown|SillyDL;SmartDL|000001|
 "@ ; 
-    $of = ".\out-csv-$(get-date -format 'yyyyMMdd-HHmmtt').csv" ; 
-    $mdtable | convertfrom-markdowntable | export-csv -path $of -notype ;
-    cat $of ;
-    output:
-    "EmailAddress","DisplayName","Groups","Ticket"
-"da.pope@vatican.org","","CardinalDL@vatican.org","999999"
-"bozo@clown.com","Bozo Clown","SillyDL;SmartDL","000001"
+      $of = ".\out-csv-$(get-date -format 'yyyyMMdd-HHmmtt').csv" ; 
+      $mdtable | convertfrom-markdowntable | export-csv -path $of -notype ;
+      cat $of ;
+
+        "EmailAddress","DisplayName","Groups","Ticket"
+        "da.pope@vatican.org","","CardinalDL@vatican.org","999999"
+        "bozo@clown.com","Bozo Clown","SillyDL;SmartDL","000001"
+
     Example simpler method for building csv input files fr mdtable syntax, without PSCustomObjects, hashes, or invoked object creation.
     .EXAMPLE
-    $mdtable | convertFrom-MarkdownTable | convertTo-MarkdownTable -border
+    PS> $mdtable | convertFrom-MarkdownTable | convertTo-MarkdownTable -border ; 
     Example to expand and dress up a simple md table, leveraging both convertfrom-mtd and convertto-mtd (which performs space padding to align pipe columns)
     .LINK
     https://github.com/tostka/verb-IO
@@ -1588,6 +1621,7 @@ Function ConvertFrom-SourceTable {
   Github      : https://github.com/iRon7/ConvertFrom-SourceTable
   Tags        : Powershell,Conversion,Text
   REVISIONS
+  * 10:35 AM 2/21/2022 CBH example ps> adds 
   0.3.11 2020-03-27 Added -Omit parameter (Each omitted character will be replaced with a space)
   .DESCRIPTION
   The ConvertFrom-SourceTable cmdlet creates objects from a fixed column
@@ -1618,19 +1652,17 @@ Function ConvertFrom-SourceTable {
   defined by the first and last character or space of the header and
   the ruler of the outlined column.
 
-  .PARAMETER InputObject
+.PARAMETER InputObject
   Specifies the source table strings to be converted to objects.
   Enter a variable that contains the source table strings or type a
   command or expression that gets the source table strings.
   You can also pipe the source table strings to ConvertFrom-SourceTable.
-
   Note that streamed table rows are intermediately processed and
   released for the next cmdlet. In this mode, there is a higher
   possibility that floating tables or column data cannot be determined
   to be part of a specific column (as there is no overview of the table
   data that follows). To resolve this, use one of the folowing ruler or
   header specific parameters.
-
   .PARAMETER Header
   A string that defines the header line of an headless table or a multiple
   strings where each item represents the column name.
@@ -1641,12 +1673,10 @@ Function ConvertFrom-SourceTable {
   If the header contains multiple strings, each string will be used to
   define the property names of each object. In this case, column alignment
   is based on the rest of the data and possible ruler.
-
   .PARAMETER Ruler
   A string that replaces any (horizontal) ruler in the input table which
   helps to define character columns in occasions where the table column
   margins are indefinable.
-
   .PARAMETER HorizontalDash
   This parameter (Alias -HDash) defines the horizontal ruler character.
   By default, each streamed table row (or a total raw table) will be
@@ -1659,7 +1689,6 @@ Function ConvertFrom-SourceTable {
   searched for a matching ruler.
   If -HorizontalDash is set to `$Null`, the first data line is presumed
   the header line (unless the -VerticalDash parameter is set).
-
   .PARAMETER VerticalDash
   This parameter (Alias -VDash) defines the vertical ruler character.
   By default, each streamed table row (or a total raw table) will be
@@ -1670,94 +1699,84 @@ Function ConvertFrom-SourceTable {
   searched for a header with a vertical dash character.
   If -VerticalDash is set to `$Null`, the first data line is presumed
   the header line (unless the -HorizontalDash parameter is set).
-
   .PARAMETER Junction
   The -Junction parameter (default: "+") defines the character used for
   the junction between the horizontal ruler and vertical ruler.
-
   .PARAMETER Anchor
   The -Anchor parameter (default: ":") defines the character used for
   the alignedment anchor. If used in the header row, it will be used to
   define the default alignment, meaning that justified (full width)
   values will be evaluted.
-
   .PARAMETER Omit
   A string of characters to omit from the header and data. Each omitted
   character will be replaced with a space.
-
   .PARAMETER Literal
   The -Literal parameter will prevent any right aligned data to be
   evaluated.
+  .EXAMPLE
+  PS> $Colors = ConvertFrom-SourceTable '
+Name       Value         RGB
+----       -----         ---
+Black   0x000000       0,0,0
+White   0xFFFFFF 255,255,255
+Red     0xFF0000     255,0,0
+Lime    0x00FF00     0,255,0
+Blue    0x0000FF     0,0,255
+Yellow  0xFFFF00   255,255,0
+Cyan    0x00FFFF   0,255,255
+Magenta 0xFF00FF   255,0,255
+Silver  0xC0C0C0 192,192,192
+Gray    0x808080 128,128,128
+Maroon  0x800000     128,0,0
+Olive   0x808000   128,128,0
+Green   0x008000     0,128,0
+Purple  0x800080   128,0,128
+Teal    0x008080   0,128,128
+Navy    0x000080     0,0,128
+' ;
+
+  PS> $Colors | Where {$_.Name -eq "Red"} ; 
+
+    Name    Value RGB
+    ----    ----- ---
+    Red  16711680 {255, 0, 0}
 
   .EXAMPLE
-
-  $Colors = ConvertFrom-SourceTable '
-  Name       Value         RGB
-  ----       -----         ---
-  Black   0x000000       0,0,0
-  White   0xFFFFFF 255,255,255
-  Red     0xFF0000     255,0,0
-  Lime    0x00FF00     0,255,0
-  Blue    0x0000FF     0,0,255
-  Yellow  0xFFFF00   255,255,0
-  Cyan    0x00FFFF   0,255,255
-  Magenta 0xFF00FF   255,0,255
-  Silver  0xC0C0C0 192,192,192
-  Gray    0x808080 128,128,128
-  Maroon  0x800000     128,0,0
-  Olive   0x808000   128,128,0
-  Green   0x008000     0,128,0
-  Purple  0x800080   128,0,128
-  Teal    0x008080   0,128,128
-  Navy    0x000080     0,0,128
-  '
-
-  PS C:\> $Colors | Where {$_.Name -eq "Red"}
-
-  Name    Value RGB
-  ----    ----- ---
-  Red  16711680 {255, 0, 0}
+  PS> $Employees = ConvertFrom-SourceTable '
+| Department  | Name    | Country |
+| ----------- | ------- | ------- |
+| Sales       | Aerts   | Belgium |
+| Engineering | Bauer   | Germany |
+| Sales       | Cook    | England |
+| Engineering | Duval   | France  |
+| Marketing   | Evans   | England |
+| Engineering | Fischer | Germany |
+' ;
 
   .EXAMPLE
-
-  $Employees = ConvertFrom-SourceTable '
-  | Department  | Name    | Country |
-  | ----------- | ------- | ------- |
-  | Sales       | Aerts   | Belgium |
-  | Engineering | Bauer   | Germany |
-  | Sales       | Cook    | England |
-  | Engineering | Duval   | France  |
-  | Marketing   | Evans   | England |
-  | Engineering | Fischer | Germany |
-  '
-
-  .EXAMPLE
-
-  $ChangeLog = ConvertFrom-SourceTable '
-  [Version] [DateTime]Date Author      Comments
-  --------- -------------- ------      --------
-  0.0.10    2018-05-03     Ronald Bode First design
-  0.0.20    2018-05-09     Ronald Bode Pester ready version
-  0.0.21    2018-05-09     Ronald Bode removed support for String[] types
-  0.0.22    2018-05-24     Ronald Bode Better "right aligned" definition
-  0.0.23    2018-05-25     Ronald Bode Resolved single column bug
-  0.0.24    2018-05-26     Ronald Bode Treating markdown table input as an option
-  0.0.25    2018-05-27     Ronald Bode Resolved error due to blank top lines
-  '
+  PS> $ChangeLog = ConvertFrom-SourceTable '
+[Version] [DateTime]Date Author      Comments
+--------- -------------- ------      --------
+0.0.10    2018-05-03     Ronald Bode First design
+0.0.20    2018-05-09     Ronald Bode Pester ready version
+0.0.21    2018-05-09     Ronald Bode removed support for String[] types
+0.0.22    2018-05-24     Ronald Bode Better "right aligned" definition
+0.0.23    2018-05-25     Ronald Bode Resolved single column bug
+0.0.24    2018-05-26     Ronald Bode Treating markdown table input as an option
+0.0.25    2018-05-27     Ronald Bode Resolved error due to blank top lines
+' ;
 
   .EXAMPLE
-
-  $Files = ConvertFrom-SourceTable -Literal '
-  Mode                LastWriteTime         Length Name
-  ----                -------------         ------ ----
-  d----l       11/16/2018   8:30 PM                Archive
-  -a---l        5/22/2018  12:05 PM          (726) Build-Expression.ps1
-  -a---l       11/16/2018   7:38 PM           2143 CHANGELOG
-  -a---l       11/17/2018  10:42 AM          14728 ConvertFrom-SourceTable.ps1
-  -a---l       11/17/2018  11:04 AM          23909 ConvertFrom-SourceTable.Tests.ps1
-  -a---l         8/4/2018  11:04 AM         (6237) Import-SourceTable.ps1
-  '
-
+  PS> $Files = ConvertFrom-SourceTable -Literal '
+Mode                LastWriteTime         Length Name
+----                -------------         ------ ----
+d----l       11/16/2018   8:30 PM                Archive
+-a---l        5/22/2018  12:05 PM          (726) Build-Expression.ps1
+-a---l       11/16/2018   7:38 PM           2143 CHANGELOG
+-a---l       11/17/2018  10:42 AM          14728 ConvertFrom-SourceTable.ps1
+-a---l       11/17/2018  11:04 AM          23909 ConvertFrom-SourceTable.Tests.ps1
+-a---l         8/4/2018  11:04 AM         (6237) Import-SourceTable.ps1
+  ' ;
   .LINK
   Online Version: https://github.com/iRon7/ConvertFrom-SourceTable
   #>
@@ -2337,6 +2356,7 @@ Function ConvertTo-HashIndexed {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:49 PM 11/17/2020 init using this alot, so port it to a func()
     .DESCRIPTION
     ConvertTo-HashIndexed.ps1 - Converts the inbound object/array/table into an indexed-hash on the specified key/property.
@@ -2353,24 +2373,25 @@ Function ConvertTo-HashIndexed {
     .OUTPUTS
     None. Returns no objects or output
     .EXAMPLE
-    ray/CSV/etc...
-    $Key = 'PrimarySmtpAddress' ; 
-    $Object = $AllEXOMbxs ; 
-    $Output  = ConvertTo-HashIndexed -Key $key -Object $Object -showprogress ;
-    $smsg = "ConvertTo-HashIndexed object type Changes:`n" ; 
-    $smsg += "original `$Object.type:$( $Object.GetType().FullName )`n" ; 
-    $smsg += "converted `$Output .type:$( $Output.GetType().FullName )`n" ; 
-    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
-    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-    #How to lookup objects in the Object
-    $searchvalue = 'email@domain.com' ; 
-    $output[$searchvalue] ;
-    #Or by property name
-    $output.'email@domain.com' ;
-    #Demo orig object props are still inteact in converted indexed-hashtable
-    $output[$lookupVal] | Get-Member ;
-    $output.Values | Get-Member ;
-    Convert specified $Object into an indexed hash and demo access, output object types, and converted properties
+    PS> $Key = 'PrimarySmtpAddress' ; 
+    PS> $Object = $AllEXOMbxs ; 
+    PS> $Output  = ConvertTo-HashIndexed -Key $key -Object $Object -showprogress ;
+    PS> $smsg = "ConvertTo-HashIndexed object type Changes:`n" ; 
+    PS> $smsg += "original `$Object.type:$( $Object.GetType().FullName )`n" ; 
+    PS> $smsg += "converted `$Output .type:$( $Output.GetType().FullName )`n" ; 
+    PS> if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }     else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    Convert specified ray/CSV/etc $Object into an indexed hash and demo access, output object types, and converted properties
+    .EXAMPLE
+    PS> $searchvalue = 'email@domain.com' ; 
+    PS> $output[$searchvalue] ;
+    Demo lookup objects in the Object
+    .EXAMPLE
+    PS> $output.'email@domain.com' ;
+    Demo alt lookup by property name
+    .EXAMPLE
+    PS> $output[$lookupVal] | Get-Member ;
+    PS> $output.Values | Get-Member ;
+    Demo orig object props are still inteact in converted indexed-hashtable
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -2437,6 +2458,7 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 4:04 PM 9/16/2021 coded around legacy code issue, when using [ordered] hash - need it or it randomizes column positions. Also added -NoDashRow param (breaks md rendering, but useful if using this to dump delimited output to console, for readability)
     * 10:51 AM 6/22/2021 added convertfrom-mdt alias
     * 4:49 PM 6/21/2021 pretest $thing.value: suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
@@ -2469,47 +2491,47 @@ Function convertTo-MarkdownTable {
     .EXAMPLE
     convertTo-MarkdownTable($data) ;
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable ;
-    Status  | Name  | DisplayName
-    ------- | ----- | -----------------------------------------
-    Running | Bits  | Background Intelligent Transfer Service
-    Running | Winrm | Windows Remote Management (WS-Management)
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable ;
+        Status  | Name  | DisplayName
+        ------- | ----- | -----------------------------------------
+        Running | Bits  | Background Intelligent Transfer Service
+        Running | Winrm | Windows Remote Management (WS-Management)
     Demo of stock use, with a select to spec properties (this cmdlet doesn't observer cmdlet default properties for display, must be manually selected)
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -border ; 
-    | Status  | Name  | DisplayName                               |
-    | ------- | ----- | ----------------------------------------- |
-    | Running | Bits  | Background Intelligent Transfer Service   |
-    | Running | Winrm | Windows Remote Management (WS-Management) |
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -border ; 
+        | Status  | Name  | DisplayName                               |
+        | ------- | ----- | ----------------------------------------- |
+        | Running | Bits  | Background Intelligent Transfer Service   |
+        | Running | Winrm | Windows Remote Management (WS-Management) |
     Demo effect of the -Border param.
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -tight ;
-    Status |Name |DisplayName
-    -------|-----|-----------------------------------------
-    Running|Bits |Background Intelligent Transfer Service
-    Running|Winrm|Windows Remote Management (WS-Management)
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -tight ;
+        Status |Name |DisplayName
+        -------|-----|-----------------------------------------
+        Running|Bits |Background Intelligent Transfer Service
+        Running|Winrm|Windows Remote Management (WS-Management)
     Demo effect of the -Tight param.
     .EXAMPLE
-    Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
-    ConvertTo-Markdown | Out-File C:\MyScript.ps1.md
+    PS> Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
+        ConvertTo-Markdown | Out-File C:\MyScript.ps1.md ; 
     Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*'
+    PS> Get-Service Bits,Winrm | select status,name,displayname | 
+        Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
     Demo use of -title, -precontent & -postcontent params:
     .EXAMPLE
-    $pltcMT=[ordered]@{
-        Title='This is Title' ;
-        PreContent='A little something *before*' ;
-        PostContent='A little something *after*'
-    } ;
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
+    PS> $pltcMT=[ordered]@{
+            Title='This is Title' ;
+            PreContent='A little something *before*' ;
+            PostContent='A little something *after*'
+        } ;
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
     Same as prior example, but leveraging more readable splatting
     .EXAMPLE
-    Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
-    output:
-    Status  | Name  | DisplayName                              
-    Stopped | Bits  | Background Intelligent Transfer Service  
-    Running | Winrm | Windows Remote Management (WS-Management)
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
+        Status  | Name  | DisplayName                              
+        Stopped | Bits  | Background Intelligent Transfer Service  
+        Running | Winrm | Windows Remote Management (WS-Management)
     Demo effect of -NoDashRow param (drops header-seperator line)
     .LINK
     https://github.com/tostka/verb-IO
@@ -2659,6 +2681,7 @@ Function convertTo-Object {
     AddedWebsite:	https://community.idera.com/members/tobias-weltner
     AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 12:26 PM 10/17/2021 init vers
     * 11/17/2008 Tobias Weltner's thread post. 
     .DESCRIPTION
@@ -2668,9 +2691,10 @@ Function convertTo-Object {
     .OUTPUT
     System.Object
     .EXAMPLE
-    $hash1 = @{name='Melzer';firstname='Tim';age=68} ;
-    $hash2 = @{id=12;count=100;remark='Second Hash Table'} ;
-    $cobj = $hash1, $hash2 | ConvertTo-Object ;    
+    PS> $hash1 = @{name='Melzer';firstname='Tim';age=68} ;
+    PS> $hash2 = @{id=12;count=100;remark='Second Hash Table'} ;
+    PS> $cobj = $hash1, $hash2 | ConvertTo-Object ;  
+    Combine hash1 & 2 into cobj customobject.  
     .LINK
     https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/converting-hash-tables-to-objects
     .LINK
@@ -2799,6 +2823,7 @@ function convert-VideoToMp3 {
     Website:	http://tinstoys.blogspot.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 5:26 PM 10/5/2021 ren, and alias orig: convert-tomp3 -> convert-VideoToMp3 (added alias:convertto-mp3); also build into freestanding function in verb-IO
     # 12:02 PM 4/1/2017 convert-ToMp3: if it's a string, it's not going to have a fullname prop - it's a full path string
     # 7:03 PM 11/8/2016 code in exception for directory objects, ren the new instead of the original, add -ea 0 to suppress $cf test not found failures, finding that renames fail if there's an existing fn clash -> ren the clash
@@ -2830,6 +2855,7 @@ function convert-VideoToMp3 {
     Returns an object with uptime data to the pipeline.
     .EXAMPLE
     $bRet=convert-VideoToMp3 -InputObject "C:\video.mkv" ;
+    Convert Specified video file to mp3.
     #>
     [CmdletBinding()]
     [Aliases('convert-ToMp3','convert-VideoToMp3')]
@@ -3144,6 +3170,7 @@ function copy-Profile {
     Website:	http://www.toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 9:47 AM 9/24/2020 updated CBH, copied to verb-IO mod; added -MinProfile to drive admin/svcacct copying 
     * 10:41 AM 3/26/2020 rewrote, added verbose support, condensed 
     8:07 AM 6/12/2015 - functionalize copy code from the EMS block
@@ -3168,19 +3195,19 @@ function copy-Profile {
     .OUTPUTS
     Returns an object with uptime data to the pipeline.
     .EXAMPLE
-    $Exs=(get-exchangeserver | ?{(($_.IsMailboxServer) -OR ($_.IsHubTransportServer))} )
-    if($Exs){
-        copy-Profile -ComputerName $Exs -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
-    } else {write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):No Mbx or HT servers found)"} ;
+    PS> $Exs=(get-exchangeserver | ?{(($_.IsMailboxServer) -OR ($_.IsHubTransportServer))} )
+    PS> if($Exs){
+    PS>     copy-Profile -ComputerName $Exs -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    PS> } else {write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):No Mbx or HT servers found)"} ;
     Copy targetprofile to all Exchange servers (leveraging ExchMgmtShell cmd)
     .EXAMPLE
-    if($AdminJumpBox ){
-        write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):AdminJumpBox..."
-        copy-Profile -ComputerName $AdminJumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -JumpBox -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
-    } ; 
+    PS> if($AdminJumpBox ){
+    PS>     write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):AdminJumpBox..."
+    PS>     copy-Profile -ComputerName $AdminJumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -JumpBox -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    PS> } ; 
     Perform a full 'admin' profile copy into target jumpbox (specifies -JumpBox param)
     .EXAMPLE
-    copy-Profile -ComputerName $JumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $SvcAcctProf -JumpBox -MinProfile -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    PS> copy-Profile -ComputerName $JumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $SvcAcctProf -JumpBox -MinProfile -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
     # Copy the minimum profile to specified Service Account Profile on jumpboxes
     #>
     [CmdletBinding()]
@@ -3413,6 +3440,7 @@ function dump-Shortcuts {
     Website:	http://tinstoys.blogspot.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:21 AM 3/11/2020 recoded again, renamed Summarize-Shortcuts -> dump-Shortcuts, added -xml/-csv/-json export, quicklaunch param, and verbose support, -Path defaults to desktop 
     8:29 AM 4/28/2016 rewrote and expanded, based on MattG's orig concept
     2013-02-13 18:38:52 MattG posted version
@@ -3439,8 +3467,8 @@ function dump-Shortcuts {
     Summarize a single .lnk file.
     .EXAMPLE
     write-verbose -verbose:$verbose  "$((get-date).ToString('HH:mm:ss')):Desktop .lnks:" ;
-    $Output = dump-Shortcuts -path [Environment]::GetFolderPath('Desktop') ;
-    $Output | out-string ;
+    PS> $Output = dump-Shortcuts -path [Environment]::GetFolderPath('Desktop') ;
+    PS> $Output | out-string ;
     Summarize Desktop .lnk files.
     .EXAMPLE
     $Output = dump-Shortcuts -QL  ;
@@ -3563,19 +3591,18 @@ Function Echo-Finish {
     Copyright   : (c) 2020 Todd Kadrie
     Github      : https://github.com/tostka
     Tags        : Powershell
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 3:21 PM 4/17/2020 added cbh
     # 8:51 AM 10/31/2014 ren'd EchoXXX to Echo-XXX
     .DESCRIPTION
     Echo-Finish - Opening Banner with Elapsed Timer (used with Echo-Finish or Echo-ScriptEnd)
     .EXAMPLE
-    Echo-Finish ; 
-    gci c:\windows\ | out-null ; 
+    PS> Echo-Finish ; 
+    PS> gci c:\windows\ | out-null ; 
     Echo-Finish ; 
     .LINK
+    https://github.com/tostka/verb-IO
     #>
     [cmdletbinding()]
     Param()
@@ -3609,15 +3636,17 @@ Function Echo-ScriptEnd {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 8:51 AM 10/31/2014 ren'd EchoXXX to Echo-XXX
     # 11/6/2013
     .DESCRIPTION
-    Echo-ScriptEnd - Opening Banner with Elapsed Timer (used with Echo-ScriptEnd or Echo-ScriptEnd)
     .EXAMPLE
-    Echo-ScriptEnd ; 
-    gci c:\windows\ | out-null ; 
-    Echo-ScriptEnd ; 
+    PS> Echo-ScriptEnd ; 
+    PS> gci c:\windows\ | out-null ; 
+    PS> Echo-ScriptEnd ; 
+    Echo-ScriptEnd - Opening Banner with Elapsed Timer (used with Echo-ScriptEnd or Echo-ScriptEnd)
     .LINK
+    https://github.com/tostka/verb-IO
     #>
     [cmdletbinding()]
     Param()
@@ -3644,19 +3673,19 @@ Function Echo-Start {
     Copyright   : (c) 2020 Todd Kadrie
     Github      : https://github.com/tostka
     Tags        : Powershell
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 3:21 PM 4/17/2020 added cbh
     # 8:51 AM 10/31/2014 ren'd EchoXXX to Echo-XXX
     .DESCRIPTION
     Echo-Start - Opening Banner with Elapsed Timer (used with Echo-Finish or Echo-ScriptEnd)
     .EXAMPLE
-    Echo-Start ; 
-    gci c:\windows\ | out-null ; 
-    Echo-Finish ; 
+    PS> Echo-Start ; 
+    PS> gci c:\windows\ | out-null ; 
+    PS> Echo-Finish ; 
+    Echo bracketing banners around a command
     .LINK
+    https://github.com/tostka/verb-IO
     #>
     [cmdletbinding()]
     Param()
@@ -3931,6 +3960,7 @@ function Format-Json {
     AddedWebsite: https://stackoverflow.com/users/9898643/theo
     AddedTwitter: 
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 9:09 AM 10/4/2021 minor reformatting, expansion of CBH
     * 5/27/2019 - Theo posted version (stackoverflow answer)
     .DESCRIPTION
@@ -3979,10 +4009,10 @@ function Format-Json {
     .EXAMPLE
     PS> $json | ConvertTo-Json  | Format-Json -Indentation 2
     .EXAMPLE
-    $json = Get-Content 'D:\script\test.json' -Encoding UTF8 | ConvertFrom-Json
-    $json.yura.ContentManager.branch = 'test'
+    PS> $json = Get-Content 'D:\script\test.json' -Encoding UTF8 | ConvertFrom-Json
+    PS> $json.yura.ContentManager.branch = 'test'
     # recreate the object as array, and use the -Depth parameter (your json needs 3 minimum)
-    ConvertTo-Json @($json) -Depth 3 | Format-Json | Set-Content "D:\script\test1.json" -Encoding UTF8
+    PS> ConvertTo-Json @($json) -Depth 3 | Format-Json | Set-Content "D:\script\test1.json" -Encoding UTF8
     # instead of using '@($json)' you can of course also recreate the array by adding the square brackets manually:
     # '[{0}{1}{0}]' -f [Environment]::NewLine, ($json | ConvertTo-Json -Depth 3) |
     #        Format-Json | Set-Content "D:\script\test1.json" -Encoding UTF8
@@ -4081,6 +4111,7 @@ function get-colorcombo {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 1:46 PM 3/5/2021 set DefaultParameterSetName='Random' to actually make 'no-params' default that way, also added $defaultPSCombo (DarkYellow:DarkMagenta), and added it as the 'last' combo in the combo array 
     * 3:15 PM 12/29/2020 fixed typo in scheme parse (quotes broke the hashing), pulled 4 low-contrast schemes out
     * 1:22 PM 5/10/2019 init version
@@ -4096,23 +4127,24 @@ function get-colorcombo {
     .OUTPUTS
     System.Collections.Hashtable
     .EXAMPLE
-    $plt=get-colorcombo 70 ;
-    write-host @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
+    PS> $plt=get-colorcombo 70 ;
+    PS> write-host @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
     Pull and use get-colorcombo 72 in a write-host ;
     .EXAMPLE
-    get-colorcombo -demo ;
+    PS> get-colorcombo -demo ;
+    Run a demo colortable output
     .EXAMPLE
-    write-host -foregroundcolor green "Pull & write-host a Random get-colorcombo" ;
-    $plt=get-colorcombo -Rand ; write-host  @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
-    Run a demo
+    PS> write-host -foregroundcolor green "Pull & write-host a Random get-colorcombo" ;
+    PS> $plt=get-colorcombo -Rand ; write-host  @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
+    Pull a random color combo into a splat, and use it in a write-host.
     .EXAMPLE
-    $plt=get-colorcombo -Rand ; 
-    $Host.UI.RawUI.BackgroundColor = $plt.BackgroundColor ; 
-    $Host.UI.RawUI.ForegroundColor = $plt.ForegroundColor ; 
+    PS> $plt=get-colorcombo -Rand ; 
+    PS> $Host.UI.RawUI.BackgroundColor = $plt.BackgroundColor ; 
+    PS> $Host.UI.RawUI.ForegroundColor = $plt.ForegroundColor ; 
     Set Console/$Host to a Random get-colorcombo
     .EXAMPLE
-    $plt=get-colorcombo -combo 69 ; 
-    set-consolecolors @plt ; 
+    PS> $plt=get-colorcombo -combo 69 ; 
+    PS> set-consolecolors @plt ; 
     Use verb-IO:set-consolecolors() function to set colorcombo 69.
     .LINK
     https://github.com/tostka/verb-IO
@@ -4160,6 +4192,111 @@ function get-colorcombo {
 }
 
 #*------^ get-colorcombo.ps1 ^------
+
+#*------v get-ConsoleText.ps1 v------
+Function get-ConsoleText {
+    <#
+    .SYNOPSIS
+    get-ConsoleText.ps1 - Copies current powershell console buffer to the clipboard
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    AddedCredit : AutomatedLab:Raimund AndrÃ©e [MSFT],Jan-Hendrik Peters [MSFT]
+    AddedWebsite:	https://github.com/AutomatedLab/AutomatedLab.Common/blob/develop/AutomatedLab.Common/Common/Public/Get-ConsoleText.ps1
+    AddedGithub : https://github.com/AutomatedLab/AutomatedLab
+    AddedTwitter:	@raimundandree,@nyanhp
+    CreatedDate : 2022-02-02
+    FileName    : get-ConsoleText.ps1
+    License     : https://github.com/AutomatedLab/AutomatedLab/blob/develop/LICENSE
+    Copyright   : Copyright (c) 2022 Raimund AndrÃ©e, Jan-Hendrik Peters
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : PowershellConsole,Clipboard,Text
+    REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds
+    * 9:27 AM 2/2/2022 added -topipeline switch & post-split code (pipeline return returns text block, not lines, and os-agnostic split pads with spaces between lines unless explicitly supressed); fixed output: was just dumping console text to pipeline (and back into console buffer), piped it into set-clipboard ; minor tweaks OTB fmt, added CBH ; added else clause to echo non-support of VsCode.
+    * 6/5/2019 posted AutomatedLab revision (non-functional, doesn't copy to cb)
+    .DESCRIPTION
+    get-ConsoleText.ps1 - Copies current powershell console buffer to the clipboard
+    .PARAMETER toPipeline
+    switch to return the text to the pipeline (rather than default 'copy to clipboard' behavior)[-toPipeline]
+    .OUTPUT
+    None. Outputs console text to clipboard.
+    .EXAMPLE
+    PS> get-ConsoleText ;
+    PS> get-clipboard |  measure | select -expand count ;
+    Copy console text to clipboard, then output the number of lines returned.
+    .EXAMPLE
+    PS> $content = get-ConsoleText -toPipeline ;
+    PS> $content.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) |  measure | select -expand count ; 
+    PS> $content.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries)) | select -first 15 ; 
+    Demonstrate assign console text to a variable, and resplit (suppressing empty lines), and output the first 15 lines returned.
+    .LINK
+    https://github.com/AutomatedLab/AutomatedLab.Common/blob/develop/AutomatedLab.Common/Common/Public/Get-ConsoleText.ps1
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [Alias('tmf')]
+    PARAM(
+        [Parameter(HelpMessage="switch to return the text to the pipeline (rather than default 'copy to clipboard' behavior)[-toPipeline]")]
+        [switch] $toPipeline
+    ) ;
+    
+    # Check the host name and exit if the host is not the Windows PowerShell console host.
+    if ($host.Name -eq 'Windows PowerShell ISE Host') {
+        write-verbose "(`$host.Name:Windows PowerShell ISE Host detected)" ;
+        write-verbose "(copying to cb...)" ;
+        $return = $psISE.CurrentPowerShellTab.ConsolePane.Text ; 
+    } elseif ($host.Name -eq 'ConsoleHost') {
+        write-verbose "(`$host.Name:ConsoleHost detected)" ;
+        $textBuilderConsole = New-Object System.Text.StringBuilder ;
+        $textBuilderLine = New-Object System.Text.StringBuilder ;
+
+        # Grab the console screen buffer contents using the Host console API.
+        $bufferWidth = $host.UI.RawUI.BufferSize.Width ;
+        $bufferHeight = $host.UI.RawUI.CursorPosition.Y  ;
+        $rec = New-Object System.Management.Automation.Host.Rectangle(0, 0, ($bufferWidth), $bufferHeight) ;
+        $buffer = $host.UI.RawUI.GetBufferContents($rec)  ;
+
+        #Console buffer actually stores console formatting, along with characters
+        # getting text out requires some processing of the raw content
+        # Iterate through the lines in the console buffer.
+        write-verbose  "(processing buffer)" ; 
+        for ($i = 0; $i -lt $bufferHeight; $i++) {
+            for ($j = 0; $j -lt $bufferWidth; $j++) {
+                $cell = $buffer[$i, $j]  ;
+                $null = $textBuilderLine.Append($cell.Character) ;
+            } ;
+            $null = $textBuilderConsole.AppendLine($textBuilderLine.ToString().TrimEnd()) ;
+            $textBuilderLine = New-Object System.Text.StringBuilder ;
+        } ;
+        # original code was dropping into pipeline, not copying to clipboard (as per echos). 
+        $return = $textBuilderConsole.ToString() ;
+        Write-Verbose "$bufferHeight lines have been processed" ;
+    } elseif( $env:TERM_PROGRAM -eq 'vscode' ){
+        write-warning "(VSCode detected: unsupported)" ; 
+        BREAK ;
+    } else {
+        write-warning "(unrecognized `$host.Name:$($host.name))" ; 
+        BREAK ;
+    } ; 
+    if($return -AND -not $toPipeline){
+        write-verbose "(copied content to clipboard)" ; 
+        # $content 
+        $return | set-clipboard
+    } else { 
+        write-verbose "(returning content to pipeline)" ; 
+        # this writes everyting as a single text block, unsplit
+        #$return | write-output ; 
+        # split before returning - this natively suppresses emtpy lines
+        #$return.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) | write-output ; 
+        # variant, OS agnostic, requires removeemptyentries or it leaves gaps (inflates a 3k line console to 6k lines). 
+        $return.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ;
+    } ; 
+}
+
+#*------^ get-ConsoleText.ps1 ^------
 
 #*------v Get-CountItems.ps1 v------
 function Get-CountItems {
@@ -4568,6 +4705,7 @@ Function Get-FsoShortName {
     Website:	http://tinstoys.blogspot.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 7:40 AM 3/29/2016 - added string->path conversion
     * 2:16 PM 3/28/2016 - functional version, no param block
     .INPUTS
@@ -4581,8 +4719,8 @@ Function Get-FsoShortName {
     get-childitem ${env:ProgramFiles(x86)} | get-fsoshortname ;
     Retrieve Shortname for contents of the folder specified by the 'Program Files(x86)' environment variable
     .EXAMPLE
-    $blah="C:\Program Files (x86)\Log Parser 2.2","C:\Program Files (x86)\Log Parser 2.2\SyntaxerHighlightControl.dll" ;
-    $blah | get-fsoshortname ;
+    PS> $blah="C:\Program Files (x86)\Log Parser 2.2","C:\Program Files (x86)\Log Parser 2.2\SyntaxerHighlightControl.dll" ;
+    PS> $blah | get-fsoshortname ;
     Resolve path specification(s) into ShortNames
     .LINK
     https://blogs.technet.microsoft.com/heyscriptingguy/2013/08/01/use-powershell-to-display-short-file-and-folder-names/
@@ -4795,6 +4933,7 @@ function get-LoremName {
     AddedTwitter:	@tostka / http://twitter.com/tostka
     Inspired to create by: https://twitter.com/MichaelBender/status/1101921078350413825?s=20
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     * 2019-03-03 
     .DESCRIPTION
@@ -4802,31 +4941,31 @@ function get-LoremName {
     .INPUTS
     Count: Number of names to return
     WithAccount: Return an account name.
-    .PARAMETER Path
-    Specifies the path to the VTT text file (mandatory).
-    .PARAMETER OutFile
-    Specifies the path to the output SRT text file (defaults to input file with .srt).
+    .PARAMETER Count 
+    Number of names to be returned
+    .PARAMETER WithAccount
+    Specifies to return a username with the fname/lname combo
     .EXAMPLE
-    Get-LoremName
-    FirstName LastName
-    --------- --------
-    Plane     Gloriosam
+    PS> Get-LoremName
+        FirstName LastName
+        --------- --------
+        Plane     Gloriosam
     Return a name.
     .EXAMPLE
-    Get-LoremName -Quantity 4
-    FirstName LastName
-    --------- --------
-    Obrutum   Peccata
-    Inermis   Uti
-    Epicuro   Quoddam
-    Quodam    Congruens
+    PS> Get-LoremName -Quantity 4
+        FirstName LastName
+        --------- --------
+        Obrutum   Peccata
+        Inermis   Uti
+        Epicuro   Quoddam
+        Quodam    Congruens
     Return 4 names.
     .EXAMPLE
-    Get-LoremName -Quantity 2 -WithAccount
-    FirstName  LastName UserName
-    ---------  -------- --------
-    Vitam      Saluto   Vitam.Saluto56
-    Intellegit Hoc      Intellegit.Hoc18
+    PS> Get-LoremName -Quantity 2 -WithAccount
+        FirstName  LastName UserName
+        ---------  -------- --------
+        Vitam      Saluto   Vitam.Saluto56
+        Intellegit Hoc      Intellegit.Hoc18
     Return 2 names with account name.
     .LINK
     https://github.com/tostka/verb-IO
@@ -4838,18 +4977,10 @@ function get-LoremName {
     (
         # Number of Names to return
         [Parameter(
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true,
-            ValueFromRemainingArguments = $false,
-            Position = 0)]
+            ValueFromPipeline = $true,ValueFromPipelineByPropertyName = $true,ValueFromRemainingArguments = $false,Position = 0)]
         [Alias("Quantity")]
-        [int]
-        $Count = 1,
-
-        # Include account name
-        [Parameter()]
-        [Switch]
-        $WithAccount
+        [int]$Count = 1,
+        [Parameter()][Switch]$WithAccount
     )
     Begin {
         $loremApi = 'https://loripsum.net/api/5/verylong/plaintext'
@@ -5140,6 +5271,7 @@ function get-TaskReport {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:49 AM 1/8/2021 added extended get-scheduledtask examples to CBH ; repl wh's with a herestring at top ; fixed typo in initial !$Taskname output (extraneous `) 
     * 8:08 AM 12/2/2020 added function alias: get-ScheduledTaskReport (couldn't remember this vers didn't use 'sched', had to hunt it up in the module, by name)
     * 7:24 AM 11/24/2020 expanded no -Task echo to include get-scheduledtasks syntax, added it to CBH example
@@ -5161,37 +5293,35 @@ function get-TaskReport {
     # report on an array of tasks
     get-taskreport -TaskName 'monitor-ADAccountLock',"choco-cleaner","maintain-ExoUsrMbxFreeBusyDetails.ps1"
     .EXAMPLE
-    # Examples for use of ScheduledTask module get-ScheduledTasks cmdlet 
-     to work with Tasks as objects (Psv3+)
-    # pull the target task into a variable 
-    $task = get-scheduledtask choco-cleaner
+    PS> $task = get-scheduledtask choco-cleaner
     # Return Triggers
-    $task.triggers ;
-    # output:
-    Id               :
-    Arguments        : /c powershell -NoProfile -ExecutionPolicy Bypass -Command
-                       %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
-    Execute          : cmd
-    WorkingDirectory :
-    PSComputerName   :
+    PS> $task.triggers ;
+    PS> $task.actions ; 
     
-    # Return Actions 
-    $task.actions ; 
-    Id               :
-    Arguments        : /c powershell -NoProfile -ExecutionPolicy Bypass -Command
+        Id               :
+        Arguments        : /c powershell -NoProfile -ExecutionPolicy Bypass -Command
+                           %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
+        Execute          : cmd
+        WorkingDirectory :
+        PSComputerName   :
+    
+        # Return Actions 
+        Id               :
+        Arguments        : /c powershell -NoProfile -ExecutionPolicy Bypass -Command
                        %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
-    Execute          : cmd
-    WorkingDirectory :
-    PSComputerName   :
+        Execute          : cmd
+        WorkingDirectory :
+        PSComputerName   :
+    Examples for use of ScheduledTask module get-ScheduledTasks cmdlet to work with Tasks as objects (Psv3+)
     .EXAMPLE
-    # return Summary Name, Execute and Arguments of each root Task:
-    get-scheduledtask|?{$_.taskpath -eq '\'} | 
-    %{"`nTASK:`t$($_.taskname)`nEXEC:`t$($_.actions.execute)`nARGS: `t$($_.actions.Arguments)`n" } ; 
-    # output:
-    TASK:   choco-cleaner
-    EXEC:   cmd
-    ARGS:   /c powershell -NoProfile -ExecutionPolicy Bypass -Command %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
-    ...
+    PS> get-scheduledtask|?{$_.taskpath -eq '\'} | 
+        %{"`nTASK:`t$($_.taskname)`nEXEC:`t$($_.actions.execute)`nARGS: `t$($_.actions.Arguments)`n" } ; 
+    
+        TASK:   choco-cleaner
+        EXEC:   cmd
+        ARGS:   /c powershell -NoProfile -ExecutionPolicy Bypass -Command %ChocolateyToolsLocation%\BCURRAN3\choco-cleaner.ps1
+        
+    Return Summary Name, Execute and Arguments of each root Task:
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -5286,13 +5416,27 @@ function Get-Time {
 
 #*------v Get-TimeStamp.ps1 v------
 function Get-TimeStamp {
-    # vers: 8:43 AM 10/31/2014 - simple timestamp echo
-    # stock version
-    #Get-DateTime -Format 'yyyy-MM-dd HH:mm:ss'
-    # my version
-    #(get-date).ToString("HH:mm:ss")
-    #Get-DateTime -Format "HH:mm:ss"
-    # 2:11 PM 12/3/2014 no such cmd as get-datetime
+    <#
+    .SYNOPSIS
+    Get-TimeStamp - Generate and return to pipeline, a timestamp-format [datetime]
+    .NOTES
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    Github      : https://github.com/tostka/verb-XXX
+    REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
+    # 	# ren'd TimeStampNow to get-TimeStampNow
+    # vers: 20091002
+    .DESCRIPTION
+    Get-TimeStamp - Generate and return to pipeline, a timestamp-format [datetime]
+    .EXAMPLE
+    PS> $timest = get-TimeStamp
+    OPTSAMPLEOUTPUT
+    Assign a timestamp to $timest
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
     Get-Date -Format "HH:mm:ss"
 }
 
@@ -5300,8 +5444,27 @@ function Get-TimeStamp {
 
 #*------v get-TimeStampNow.ps1 v------
 Function get-TimeStampNow () {
+    <#
+    .SYNOPSIS
+    get-TimeStampNow - Generate and return to pipeline, a timestamp-format [datetime]
+    .NOTES
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    Github      : https://github.com/tostka/verb-XXX
+    REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 	# ren'd TimeStampNow to get-TimeStampNow
     # vers: 20091002
+    .DESCRIPTION
+    get-TimeStampNow.ps1 - Generate and return to pipeline, a timestamp-format [datetime]
+    .EXAMPLE
+    PS> $timest = get-TimeStampNow
+    OPTSAMPLEOUTPUT
+    Assign a timestamp to $timest
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
     $TimeStampNow = get-date -uformat "%Y%m%d-%H%M"
     return $TimeStampNow
 }
@@ -5796,6 +5959,7 @@ function new-Shortcut {
     AddedCredit : GodHand
     AddedWebsite: https://forums.mydigitallife.net/threads/create-shortcuts-with-powershell-new-shortcut.78748/
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 7:56 AM 4/15/2021 moved Elevated rewrite into non-whatif; added -ea 0 to the variable checks
     * 8:18 AM 4/13/2021 minor updates, added whatif support ; revised param names to match my set-shortcut (which uses the underlying call argument names) ; put into otb format, tightened up layout.
     * 1/5/2019 GodHand's posted vers
@@ -5838,10 +6002,10 @@ function new-Shortcut {
     .OUTPUTS
     PSCustomObject
     .EXAMPLE
-    PS C:\> New-Shortcut -TargetPath "C:\Tools and Utilities\Registry Workshop\RegWorkshop64.exe" -OutputDirectory "$HOME\Desktop" -Name "Registry Workshop" -Description "An advanced registry editor." -Elevated
-    PS C:\> New-Shortcut -TargetPath "C:\Tools and Utilities\Notepad++\notepad++.exe" -HotKey Ctrl+Alt+N
-    PS C:\> "D:\Imaging Tools\Deployment\imagex.exe | New-Shortcut
-    New-Shortcut -TargetPath 'C:\usr\local\bin\Admin-W10Home-TINSTOY-1280x768-TSK.RDP' -OutputDirectory "$HOME\Desktop" -Name "Tinstoy-RDP" -Description "RDP to Tinstoy." -Elevated -verbose #-whatif ;
+    PS> New-Shortcut -TargetPath "C:\Tools and Utilities\Registry Workshop\RegWorkshop64.exe" -OutputDirectory "$HOME\Desktop" -Name "Registry Workshop" -Description "An advanced registry editor." -Elevated
+    PS> New-Shortcut -TargetPath "C:\Tools and Utilities\Notepad++\notepad++.exe" -HotKey Ctrl+Alt+N
+    PS> "D:\Imaging Tools\Deployment\imagex.exe | New-Shortcut
+    PS> New-Shortcut -TargetPath 'C:\usr\local\bin\Admin-W10Home-TINSTOY-1280x768-TSK.RDP' -OutputDirectory "$HOME\Desktop" -Name "Tinstoy-RDP" -Description "RDP to Tinstoy." -Elevated -verbose #-whatif ;
     Examples using -OutputDirectory & -Name and a mix of parameters, included -Elevated & -Hotkey
     .EXAMPLE
     New-Shortcut -TargetPath "$($env:SystemRoot)\system32\WindowsPowerShell\v1.0\powershell.exe" -OutputDirectory "$HOME\Desktop" -Name "Powershell (Elevated)" -Description "Performs object-based (command-line) functions" -Elevated -verbose -whatif ;
@@ -6629,6 +6793,7 @@ function remove-ItemRetry {
     AddedWebsite:
     AddedTwitter:
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 2:23 PM 4/21/2021 added -GracefulFail, to permit process-newmodule to process past failed existing content removals, to get the mod built (better than hard fails)
     * 1:37 PM 12/28/2019 removed spurious mand $Text param
     * 10:59 AM 12/28/2019 INIT
@@ -6643,8 +6808,8 @@ function remove-ItemRetry {
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $bRet = remove-ItemRetry -Path "$($env:userprofile)\Documents\WindowsPowerShell\Modules\$($ModuleName)\*.*" -Recurse -showdebug:$($showdebug) -whatif:$($whatif) ;
-    if (!$bRet) {throw "FAILURE" ; EXIT ; } ;
+    PS> $bRet = remove-ItemRetry -Path "$($env:userprofile)\Documents\WindowsPowerShell\Modules\$($ModuleName)\*.*" -Recurse -showdebug:$($showdebug) -whatif:$($whatif) ;
+    PS> if (!$bRet) {throw "FAILURE" ; EXIT ; } ;
     Recursively remove content specified, failures result in retry with -Force
     .LINK
     #>
@@ -6929,6 +7094,7 @@ function remove-UnneededFileVariants {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 7:28 PM 11/6/2021 added missing $population = $population reassign post filtering (prevented filter reduction form occuring at all)
     * 9:58 AM 9/21/2021 rem'd retry loop
     * 12:34 PM 9/20/2021  init
@@ -6939,19 +7105,19 @@ function remove-UnneededFileVariants {
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $whatif=$true ;
-    $pltRGens =[ordered]@{
-        Path = 'C:\sc\verb-auth\' ;
-        Include ='process-NewModule-verb-auth-LOG-BATCH-EXEC-*-log.txt' ;
-        Pattern = 'verb-\w*\.ps(m|d)1_\d{8}-\d{3,4}(A|P)M' ;
-        FilterOn = 'CreationTime' ;
-        Keep = 2 ;
-        KeepToday = $true ;
-        verbose=$true ;
-        whatif=$($whatif) ;
-    } ; 
-    write-host -foregroundcolor green "remove-UnneededFileVariants w`n$(($pltRGens|out-string).trim())" ; 
-    remove-UnneededFileVariants @pltRGens ;
+    PS> $whatif=$true ;
+    PS> $pltRGens =[ordered]@{
+            Path = 'C:\sc\verb-auth\' ;
+            Include ='process-NewModule-verb-auth-LOG-BATCH-EXEC-*-log.txt' ;
+            Pattern = 'verb-\w*\.ps(m|d)1_\d{8}-\d{3,4}(A|P)M' ;
+            FilterOn = 'CreationTime' ;
+            Keep = 2 ;
+            KeepToday = $true ;
+            verbose=$true ;
+            whatif=$($whatif) ;
+        } ; 
+    PS> write-host -foregroundcolor green "remove-UnneededFileVariants w`n$(($pltRGens|out-string).trim())" ; 
+    PS> remove-UnneededFileVariants @pltRGens ;
     Splatted call example: remove all variant -include-named files in -Path, post-filtered matching -Pattern, retaining items with CreationTime after midnight today, and then retain most recent 2 files (net of prior filtering), as sorted on CreationTime.
     .LINK
     #>
@@ -7257,6 +7423,7 @@ function revert-File {
     Copyright   : (c) 2019 Todd Kadrie
     Github      : https://github.com/tostka
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 2:23 PM 12/29/2019 init
     .DESCRIPTION
     revert-File.ps1 - Revert a file to a prior backup of the file
@@ -7269,8 +7436,8 @@ function revert-File {
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $bRet = revert-File -Source "C:\sc\verb-dev\verb-dev\verb-dev.psm1_20191229-0904AM" -Destination "C:\sc\verb-dev\verb-dev\verb-dev.psm1" -showdebug:$($showdebug) -whatif:$($whatif)
-    if (!$bRet) {throw "FAILURE" } ;
+    PS> $bRet = revert-File -Source "C:\sc\verb-dev\verb-dev\verb-dev.psm1_20191229-0904AM" -Destination "C:\sc\verb-dev\verb-dev\verb-dev.psm1" -showdebug:$($showdebug) -whatif:$($whatif)
+    PS> if (!$bRet) {throw "FAILURE" } ;
     Backup specified file
     .LINK
     #>
@@ -7404,6 +7571,7 @@ function Save-ConsoleOutputToClipBoard {
     Website:	http://www.adamtheautomator.com/
     Twitter:	@adbertram
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 5/14/2019 posted version
     .DESCRIPTION
     .INPUTS
@@ -7411,7 +7579,8 @@ function Save-ConsoleOutputToClipBoard {
     .OUTPUTS
     None. Returns no objects or output.
     .EXAMPLE
-    .EXAMPLE
+    Save-ConsoleOutputToClipBoard.ps1 
+    Save current console output to clipboard.
     .LINK
     https://gist.github.com/adbertram/4e4bf0ba5f876ed474f90534520cf2e2
     #>
@@ -7419,7 +7588,6 @@ function Save-ConsoleOutputToClipBoard {
     [OutputType('string')]
     [CmdletBinding()]
     param () ;
-
     <#if ($host.Name -ne -ConsoleHost-) {
         write-host -ForegroundColor Red "This script runs only in the console host. You cannot run this script in $($host.Name)." ;
     } ;#>
@@ -7569,6 +7737,7 @@ Function Select-StringAll {
     AddedWebsite: http://www.toddomation.com
     AddedTwitter: @tostka / http://twitter.com/tostka
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:37 PM 10/25/2021 rem'd req version
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
@@ -7655,8 +7824,8 @@ When the context includes a match, the MatchInfo object for each match includes 
     .OUTPUT
     decimal size in converted decimal unit.
     .EXAMPLE
-    (Get-ChildItem -File -Filter *.abc -Recurse |
-    Select-StringAll -SimpleMatch word1, word2, word3).Count
+    PS> (Get-ChildItem -File -Filter *.abc -Recurse |
+        Select-StringAll -SimpleMatch word1, word2, word3).Count
     Example searching for files with extension .abc, recursively, with word1, word2, or word3, appearing in any order.
     .LINK
     Select-String
@@ -7768,6 +7937,7 @@ Function set-ConsoleColors {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Output
     REVISION
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 11:41 AM 9/16/2021 string
     * 1:25 PM 3/5/2021 init ; added support for both ISE & powershell console
     .DESCRIPTION
@@ -7786,8 +7956,8 @@ Function set-ConsoleColors {
     set-ConsoleColors -BackgroundColor DarkMagenta -ForegroundColor DarkYellow
     Set console/host color scheme to match the default Powershell colors
     .EXAMPLE
-    $colors = get-colorcombo -Combo 69 ; 
-    set-ConsoleColors @colors -verbose ; 
+    PS> $colors = get-colorcombo -Combo 69 ; 
+    PS> set-ConsoleColors @colors -verbose ; 
     Leverage the verb-IO:get-colorcombo() to pull & set the default scheme
     .LINK
     https://github.com/tostka/verb-IO
@@ -8053,6 +8223,7 @@ function Set-FileContent {
     AddedWebsite:
     AddedTwitter:
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:44 AM 12/11/2019 updated example
     * 8:28 PM 11/17/2019 INIT
     .DESCRIPTION
@@ -8066,9 +8237,10 @@ function Set-FileContent {
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    $bRet = Set-FileContent -Text $updatedContent -Path $outfile -showdebug:$($showdebug) -whatif:$($whatif) ;
-    if (!$bRet) {throw "FAILURE" } ;
+    PS> $bRet = Set-FileContent -Text $updatedContent -Path $outfile -showdebug:$($showdebug) -whatif:$($whatif) ;
+    PS> if (!$bRet) {throw "FAILURE" } ;
     .LINK
+    https://github.com/tostka/verb-IO
     #>
 
     PARAM(
@@ -8546,9 +8718,9 @@ Function stop-driveburn {
 Function test-MediaFile {
     <#
     .SYNOPSIS
-    test-MediaFile.ps1 - 1) Pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
-    2) Compares key A/V metrics against (my arbitrary) thresholds for suitability, 
-    and 3) outputs a summary report of the metrics. 
+    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
+    then compares key A/V metrics against (my arbitrary) thresholds for suitability, 
+    and finally outputs a summary report of the metrics. 
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -8561,6 +8733,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 10:25 AM 2/21/2022 updated CBH, added an example sample output. Not sure if worked before, but CBH currently doesn't seem to get-hepl correctly. Needs debugging, but can't determine issue source.
     * 8:08 PM 12/11/2021 added simpler pipeline example 
     * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
     * 8:15 PM 11/19/2021 added tmr alias
@@ -8570,9 +8743,9 @@ Function test-MediaFile {
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
     * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
     .DESCRIPTION
-    test-MediaFile.ps1 - 1) Pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
-    2) Compares key A/V metrics against (my arbitrary) thresholds for suitability, 
-    and 3) outputs a summary report of the metrics. 
+    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
+    then compares key A/V metrics against (my arbitrary) thresholds for suitability, 
+    and finally outputs a summary report of the metrics. 
 
     This is a wrapper function for my Get-MediaINfoRaw() cmdlet, which is part of my [Get-MediaInfo](https://github.com/tostka/Get-MediaInfo)
     module, which is forked from Frank Skare/stax76's Get-MediaInfoSummary() function (part of his [get-MediaInfo module](https://github.com/stax76/Get-MediaInfo)).
@@ -8617,17 +8790,32 @@ Function test-MediaFile {
     .OUTPUT
     None. Outputs summary to console. 
     .EXAMPLE
-    test-MediaFile -Path c:\pathto\video.mp4
+    PS> test-MediaFile -Path c:\pathto\video.mp4
     Example summarizing a video file
     .EXAMPLE
-    'c:\pathto\video.mp4'| test-MediaFile 
+    PS> if(test-mediafile "C:\users\USER\Documents\Reflections Video.mp4"){write-host "Valid, meets specs"}else{write-warning "INVALID, DOES not meets specs" }  ;
+        (writing metadata to matching -media.XML file)
+        09:42:35:-----
+        FileName
+        C:\users\USER\Documents\Reflections Video.mp4
+        FileMB | Mins | OBitRate  | Format      | Ext
+        70mb   | 9.3  | 1058 kbps | MPEG-4 kbps | .mp4
+        V-Fmt | V-Kbps | V-WxH:Ratio    | V-fps | V-Std | V-Encoder
+        AVC   | 881    | 1920x1080:16:9 | 30    |       |
+        A-Chnls   | A-Lang | A-Fmt  | A-BitRate | A-kHz
+        2 channel |        | AAC LC | 174 Kbps  | 48.0
+        -----
+        Valid, meets specs
+    Example testing the validity of a video file, to output a descriptive output to console.
+    .EXAMPLE
+    PS> 'c:\pathto\video.mp4'| test-MediaFile ; 
     Example using pipeline support
     .EXAMPLE
-    gci "c:\PathTo\*" -include *.mkv | select -expand fullname | test-MediaFile ; 
-    Pipeline example
+    PS> gci "c:\PathTo\*" -include *.mkv | select -expand fullname | test-MediaFile ; 
+    Bulk file pipeline example
     .EXAMPLE
-    gci "c:\pathto\*.mp4" | tmf; 
-    Another simpler pipeline example
+    PS> gci "c:\pathto\*.mp4" | tmf ; 
+    Another simpler pipeline example, leveraging the native tmf alias.
     .LINK
     https://hexus.net/tech/tech-explained/storage/1376-gigabytes-gibibytes-what-need-know/
     .LINK
@@ -8645,15 +8833,10 @@ Function test-MediaFile {
             [int]$ThresholdMinVerticalRes=480,
             [Parameter(HelpMessage="Suppress all outputs but return pass status as`$true/`$false, to the pipeline[-Silent]")]
             [switch] $Silent,
-            [Parameter(HelpMessage="Switch to create a matching XML metadata export file (with -Path name/location and .xml         ext).[-ExportToFile]")]
+            [Parameter(HelpMessage="Switch to create a matching XML metadata export file (with -Path name/location and .xml ext).[-ExportToFile]")]
             [switch]$ExportMediaToFile=$true
         ) ;
         BEGIN{
-
-        #$propsGeneral1 = @{name="FileName";expression={$_.CompleteName}}, @{name="FileMB";expression={"$($_.FileSize_MB)mb"}}
-        #$propsGeneral2 = @{name="FileMB";expression={"$($_.FileSize_MB)mb"}},@{name="Mins";expression={[math]::round($_.Duration_Mins,1)}},@{name="OBitRate";expression={"$($_.OverallBitRate_kbps) kbps"}} ; 
-        #$propsAudio = @{name="Chnls";expression={$_.Channel_s__String.replace('annels','')}},@{name="Lang";expression={$_.Language_String}},@{name="Fmt";expression={$_.Format_String}},@{name="BitRate";expression={$_.BitRate_String}},@{name="kHz";expression={$_.SamplingRate_bit}}; 
-        #$propsVideo = 'Format_String','BitRate_Mode_String','BitRate_kbps','Width_Pixels','Height_Pixels','DisplayAspectRatio_String','FrameRate_fps','Standard','Encoded_Library_String' ; 
 
         $propsGeneral1 = @{name="FileName";expression={$_.CompleteName}}
                         
@@ -8756,7 +8939,6 @@ Function test-MediaFile {
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ; 
                         $smsg = $null ; 
-                        # ($mediameta.video.Format_String -AND $mediameta.video.CodecID -AND $mediameta.video.Duration_Mins -AND $mediameta.video.BitRate_kbps -AND $mediameta.video.FrameRate_fps)
                         if(-not $mediameta.video.Format_String ){
                             $smsg = "`n(missing video.Format_String)" ; 
                         }
@@ -8783,7 +8965,6 @@ Function test-MediaFile {
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ;
                         $smsg = $null ; 
-                        # ($mediameta.audio.Format_String -AND $mediameta.audio.CodecID -AND $mediameta.audio.SamplingRate_bit )
                         if(-not $mediameta.audio.Format_String ){
                             $smsg = "`n(missing audio.Format_String)" ; 
                         }
@@ -9269,7 +9450,6 @@ Function Touch-File {
     .EXAMPLE
     touch-file -file c:\tmp.txt ;
     Create a new file, or update timestamp of exising file
-    .EXAMPLE
     .LINK
     https://superuser.com/questions/502374/equivalent-of-linux-touch-to-create-an-empty-file-with-powershell#
     #>
@@ -9298,6 +9478,7 @@ function trim-FileList {
     Github      : https://github.com/tostka
     Tags        : Powershell
     REVISIONS
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 6:53 AM 2/21/2020 init
     .DESCRIPTION
     .PARAMETER  Files
@@ -9311,8 +9492,8 @@ function trim-FileList {
     .OUTPUTS
     None. Returns no objects or output
     .EXAMPLE
-    $tfiles = @(gci C:\sc\powershell\_key-admin-scripts-*.txt -recur |select -expand fullname )  ;
-    trim-FileList.ps1 -files $tfiles -verbose -whatif ; 
+    PS> $tfiles = @(gci C:\sc\powershell\_key-admin-scripts-*.txt -recur |select -expand fullname )  ;
+    PS> trim-FileList.ps1 -files $tfiles -verbose -whatif ; 
     Process all targeted files in the tree, verbose output, whatif pass
     .EXAMPLE
     trim-FileList -files x:\path-to\somefile.txt -verbose -whatif
@@ -9391,10 +9572,20 @@ function unless {
     Website:	https://powershell.org/wp/2013/05/21/validatescript-for-beginners/
 
     REVISIONS   :
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
     8:32 AM 9/2/2015 reformatted, added help
     20130521 - web version
     .DESCRIPTION
     use the Unless (condition) -fail "message" pattern to provide a human-friendly fail response
+    
+    Sample using the unless function call, with the validation expression, and a pre-specified friendly failure message.
+    ```powershell
+    [CmdletBinding()]
+    param(
+      [ValidateScript({unless ($_ -gt 100 ) -fail "needs to be greater than 100"})]
+      [int] $a
+    ) ;
+    ```
     .PARAMETER  expressionResultOrScriptBlock
     (Auto-populated by call)
     .PARAMETER  failmessage
@@ -9538,17 +9729,16 @@ function Write-ProgressHelper {
     .OUTPUTS
     None. 
     .EXAMPLE
-    # dyn tally # of write-prog instances in curr $MyInvocation
-    $script:steps = ([System.Management.Automation.PsParser]::Tokenize((gc "$PSScriptRoot\$($MyInvocation.MyCommand.Name)"), [ref]$null) | where { $_.Type -eq 'Command' -and $_.Content -eq 'Write-ProgressHelper' }).Count ; 
+    PS> $script:steps = ([System.Management.Automation.PsParser]::Tokenize((gc "$PSScriptRoot\$($MyInvocation.MyCommand.Name)"), [ref]$null) | where { $_.Type -eq 'Command' -and $_.Content -eq 'Write-ProgressHelper' }).Count ; 
     # splat to hold the static write-progress params
-    $pltWPH=@{
-        Activity = "BROAD ACTIVITY" ;
-        CurrentOperation = "Querying..." ;
-    };
-    $iStep = 0 ; # counter to be incremented ea write-progress exec
-    Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING' -StepNumber ($iStep++) ;
+    PS> $pltWPH=@{
+            Activity = "BROAD ACTIVITY" ;
+            CurrentOperation = "Querying..." ;
+        };
+    PS> $iStep = 0 ; # counter to be incremented ea write-progress exec
+    PS> Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING' -StepNumber ($iStep++) ;
     ## SOME PROCESS HERE
-    Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING2' -StepNumber ($iStep++) ;
+    PS> Write-ProgressHelper @pltWPH -Status 'DOING SOMETHING2' -StepNumber ($iStep++) ;
     Above displays a two-step Write-Progress bar, dynamically scaling the progress & total around the number of 'write-progress' cmdlets present in the $MyInvocation
     .LINK
     https://adamtheautomator.com/building-progress-bar-powershell-scripts/
@@ -9581,14 +9771,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,mount-UnavailableMappedDrives,move-FileOnReboot,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-MediaFile,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,mount-UnavailableMappedDrives,move-FileOnReboot,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-MediaFile,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUcoDC5CrYWwbHqRLjrOkdax3f
-# vv6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUv6U3qo2NNcuacpDemNFA0itE
+# 1xWgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -9603,9 +9793,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTVWm/C
-# OULpekakNRroaBAuTEi09zANBgkqhkiG9w0BAQEFAASBgHqsJMWaWD7wfjoW8DbW
-# RoEG9IxYKJV2mMnG6Gqe0reh+3A3ukFXvf0laDUnCvtEr9iJOINhvpxyZJyRMiKI
-# 48QqYHP91aLMMJzy2ccr2X6W1ikj3dBweqvmJ02bjEnFbmSpwqfIuYEJbjhHjuMC
-# fUCuFhXg4YW2MkW9rdrGF85r
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSFyNI/
+# 9XQwd4BzXuiYWO3ym9EHVzANBgkqhkiG9w0BAQEFAASBgC4x9Bm/J1BUN19a3/Q6
+# NaeEDOzllO48TF6YIUiJNWZ/uEB1DD+/KIT/E28V0PEzyj2AIJJ7rsnN08lsJw6E
+# 4oeeYDXDRkplcbtB18WnrMJQztaFvdt+HYoTe921IkhPCQtyGOFhnjcRMmJVSeCn
+# UCxNm6sK3a5zr5SugP/QAvA6
 # SIG # End signature block
