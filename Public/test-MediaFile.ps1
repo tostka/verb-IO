@@ -17,6 +17,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 8:43 AM 3/9/2022 fixed consecutive $smsg's wo += to trigger string addition.
     * 10:25 AM 2/21/2022 updated CBH, added an example sample output. Not sure if worked before, but CBH currently doesn't seem to get-hepl correctly. Needs debugging, but can't determine issue source.
     * 8:08 PM 12/11/2021 added simpler pipeline example 
     * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
@@ -204,69 +205,69 @@ Function test-MediaFile {
                         }
                         $smsg = $null ; 
                         if(-not $mediaMeta.general.CompleteName){
-                            $smsg = "`n(missing general.CompleteName)" ; 
+                            $smsg += "`n(missing general.CompleteName)" ; 
                         }
                         if(-not $mediaMeta.general.OverallBitRate_String){
-                            $smsg = "`n(missing general.OverallBitRate_String)" ; 
+                            $smsg += "`n(missing general.OverallBitRate_String)" ; 
                         } 
                         if(-not $mediaMeta.general.OverallBitRate_kbps){
-                            $smsg = "`n(missing general.OverallBitRate_kbps)" ; 
+                            $smsg += "`n(missing general.OverallBitRate_kbps)" ; 
                         } ; 
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                         else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                     } ;
                     if(-not $hasVidProps){
                         $smsg = "-LACKS key video meta props!:" ; 
-                        $smsg = "`n$(($mediaMeta.video| fl $propsVidTest|out-string).trim())" ; 
+                        $smsg += "`n$(($mediaMeta.video| fl $propsVidTest|out-string).trim())" ; 
                         if(-not$Silent){
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ; 
                         $smsg = $null ; 
                         if(-not $mediameta.video.Format_String ){
-                            $smsg = "`n(missing video.Format_String)" ; 
+                            $smsg += "`n(missing video.Format_String)" ; 
                         }
                         if(-not $mediameta.video.CodecID){
-                            $smsg = "`n(missing video.CodecID)" ; 
+                            $smsg += "`n(missing video.CodecID)" ; 
                         } 
                         if(-not $mediameta.video.Duration_Mins){
-                            $smsg = "`n(missing video.Duration_Mins)" ; 
+                            $smsg += "`n(missing video.Duration_Mins)" ; 
                         } ; 
                         if(-not $mediameta.video.BitRate_kbps){
-                            $smsg = "`n(missing video.BitRate_kbps)" ; 
+                            $smsg += "`n(missing video.BitRate_kbps)" ; 
                         } ; 
                         if(-not $mediameta.video.FrameRate_fps){
-                            $smsg = "`n(missing video.FrameRate_fps)" ; 
+                            $smsg += "`n(missing video.FrameRate_fps)" ; 
                         } ;   
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                         else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;                       
                     } ;
                     if(-not $hasAudioProps){
                         $smsg = "-LACKS key audio meta props!:" ; 
-                        $smsg = "`n$(($mediaMeta.audio| fl $propsVidTest|out-string).trim())" ; 
+                        $smsg += "`n$(($mediaMeta.audio| fl $propsVidTest|out-string).trim())" ; 
                         if(-not$Silent){
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ;
-                        $smsg = $null ; 
+                        $smsg += $null ; 
                         if(-not $mediameta.audio.Format_String ){
-                            $smsg = "`n(missing audio.Format_String)" ; 
+                            $smsg += "`n(missing audio.Format_String)" ; 
                         }
                         if(-not $mediameta.audio.CodecID){
-                            $smsg = "`n(missing audio.CodecID)" ; 
+                            $smsg += "`n(missing audio.CodecID)" ; 
                         } 
                         if(-not $mediameta.audio.SamplingRate_bit){
-                            $smsg = "`n(missing audio.SamplingRate_bit)" ; 
+                            $smsg += "`n(missing audio.SamplingRate_bit)" ; 
                         } ; 
                         if(-not $mediameta.video.BitRate_kbps){
-                            $smsg = "`n(missing video.BitRate_kbps)" ; 
+                            $smsg += "`n(missing video.BitRate_kbps)" ; 
                         } ;                        
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                         else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;                      
                     } ;
                     if(-not $hasMbps){
                         $smsg = "-has a VERY LOW MB/SEC spec! ($($mediaMeta.general.FileSize_MB/$mediaMeta.general.Duration_Mins) vs min:$($ThresholdMbPerMin))!:" ; 
-                        $smsg = "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
+                        $smsg += "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
                         if(-not$Silent){
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
@@ -274,7 +275,7 @@ Function test-MediaFile {
                     } ;
                     if(-not $hasVRes){
                         $smsg = "-is a VERY LOW RES! ($($mediaMeta.video.Height_Pixels) vs min:$($ThreshVRes))!:" ; 
-                        $smsg = "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
+                        $smsg += "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
                         if(-not$Silent){
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
