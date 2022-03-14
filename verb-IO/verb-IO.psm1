@@ -1,11 +1,11 @@
-﻿# verb-IO.psm1
+﻿# verb-io.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 1.8.0.0.0
+Version     : 2.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -9101,6 +9101,7 @@ Function test-MediaFile {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
     REVISIONS
+    * 8:43 AM 3/9/2022 fixed consecutive $smsg's wo += to trigger string addition.
     * 10:25 AM 2/21/2022 updated CBH, added an example sample output. Not sure if worked before, but CBH currently doesn't seem to get-hepl correctly. Needs debugging, but can't determine issue source.
     * 8:08 PM 12/11/2021 added simpler pipeline example 
     * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
@@ -9288,69 +9289,69 @@ Function test-MediaFile {
                         }
                         $smsg = $null ; 
                         if(-not $mediaMeta.general.CompleteName){
-                            $smsg = "`n(missing general.CompleteName)" ; 
+                            $smsg += "`n(missing general.CompleteName)" ; 
                         }
                         if(-not $mediaMeta.general.OverallBitRate_String){
-                            $smsg = "`n(missing general.OverallBitRate_String)" ; 
+                            $smsg += "`n(missing general.OverallBitRate_String)" ; 
                         } 
                         if(-not $mediaMeta.general.OverallBitRate_kbps){
-                            $smsg = "`n(missing general.OverallBitRate_kbps)" ; 
+                            $smsg += "`n(missing general.OverallBitRate_kbps)" ; 
                         } ; 
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                         else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                     } ;
                     if(-not $hasVidProps){
                         $smsg = "-LACKS key video meta props!:" ; 
-                        $smsg = "`n$(($mediaMeta.video| fl $propsVidTest|out-string).trim())" ; 
+                        $smsg += "`n$(($mediaMeta.video| fl $propsVidTest|out-string).trim())" ; 
                         if(-not$Silent){
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ; 
                         $smsg = $null ; 
                         if(-not $mediameta.video.Format_String ){
-                            $smsg = "`n(missing video.Format_String)" ; 
+                            $smsg += "`n(missing video.Format_String)" ; 
                         }
                         if(-not $mediameta.video.CodecID){
-                            $smsg = "`n(missing video.CodecID)" ; 
+                            $smsg += "`n(missing video.CodecID)" ; 
                         } 
                         if(-not $mediameta.video.Duration_Mins){
-                            $smsg = "`n(missing video.Duration_Mins)" ; 
+                            $smsg += "`n(missing video.Duration_Mins)" ; 
                         } ; 
                         if(-not $mediameta.video.BitRate_kbps){
-                            $smsg = "`n(missing video.BitRate_kbps)" ; 
+                            $smsg += "`n(missing video.BitRate_kbps)" ; 
                         } ; 
                         if(-not $mediameta.video.FrameRate_fps){
-                            $smsg = "`n(missing video.FrameRate_fps)" ; 
+                            $smsg += "`n(missing video.FrameRate_fps)" ; 
                         } ;   
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                         else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;                       
                     } ;
                     if(-not $hasAudioProps){
                         $smsg = "-LACKS key audio meta props!:" ; 
-                        $smsg = "`n$(($mediaMeta.audio| fl $propsVidTest|out-string).trim())" ; 
+                        $smsg += "`n$(($mediaMeta.audio| fl $propsVidTest|out-string).trim())" ; 
                         if(-not$Silent){
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         } ;
-                        $smsg = $null ; 
+                        $smsg += $null ; 
                         if(-not $mediameta.audio.Format_String ){
-                            $smsg = "`n(missing audio.Format_String)" ; 
+                            $smsg += "`n(missing audio.Format_String)" ; 
                         }
                         if(-not $mediameta.audio.CodecID){
-                            $smsg = "`n(missing audio.CodecID)" ; 
+                            $smsg += "`n(missing audio.CodecID)" ; 
                         } 
                         if(-not $mediameta.audio.SamplingRate_bit){
-                            $smsg = "`n(missing audio.SamplingRate_bit)" ; 
+                            $smsg += "`n(missing audio.SamplingRate_bit)" ; 
                         } ; 
                         if(-not $mediameta.video.BitRate_kbps){
-                            $smsg = "`n(missing video.BitRate_kbps)" ; 
+                            $smsg += "`n(missing video.BitRate_kbps)" ; 
                         } ;                        
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                         else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;                      
                     } ;
                     if(-not $hasMbps){
                         $smsg = "-has a VERY LOW MB/SEC spec! ($($mediaMeta.general.FileSize_MB/$mediaMeta.general.Duration_Mins) vs min:$($ThresholdMbPerMin))!:" ; 
-                        $smsg = "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
+                        $smsg += "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
                         if(-not$Silent){
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
@@ -9358,7 +9359,7 @@ Function test-MediaFile {
                     } ;
                     if(-not $hasVRes){
                         $smsg = "-is a VERY LOW RES! ($($mediaMeta.video.Height_Pixels) vs min:$($ThreshVRes))!:" ; 
-                        $smsg = "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
+                        $smsg += "`nPOTENTIALLY UNDERSIZED/NON-VIDEO FILE!" ; 
                         if(-not$Silent){
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
                             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
@@ -9376,6 +9377,75 @@ Function test-MediaFile {
 }
 
 #*------^ test-MediaFile.ps1 ^------
+
+#*------v test-MissingMediaSummary.ps1 v------
+Function test-MissingMediaSummary {
+    <#
+    .SYNOPSIS
+    test-MissingMediaSummary.ps1 - Checks specified path for supported video files, foreach tests for presence of a like-named -media.xml media summary file, and runs verb-io:test-mediafile for media files missing summaries.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-03-07
+    FileName    : test-MissingMediaSummary.ps1
+    License     : MIT License
+    Copyright   : (c) 2021 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : PowershellConsole,Media,Metadata,Video,Audio
+    REVISIONS
+    * 10:35 AM 3/14/2022 yanked [hash]Requires -Modules Get-MediaInfo: I don't want to install gmi on servers, at all. So we drop the coverage.
+    * 8:34 AM 3/9/2022 set gci to recurse whole tree (span season dirs, save re-run needs); added w-v at a few useful points; expanded some alias use; duped rgx from profile into func.
+    * 8:25 PM 3/7/2022init vers
+    .DESCRIPTION
+    test-MissingMediaSummary.ps1 - Checks specified path for supported video files, foreach tests for presence of a like-named -media.xml media summary file, and runs verb-io:test-mediafile for media files missing summaries.
+    .PARAMETER Path
+    Path to a media directory of files to be check.[-Path D:\path-to\]
+    .OUTPUT
+    None. Outputs summary to console. 
+    .EXAMPLE
+    PS> test-MissingMediaSummary -Path c:\pathto\
+    Example scanning the c:\pathto\ dir for missing media summary ([name]-media.xml) files, for each discovered media file
+    .EXAMPLE
+    PS> vmf c:\pathto\
+    Example using 'vmf' alias and default path param
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    
+    [Alias('vmf')]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
+        [ValidateScript({Test-Path $_ -PathType 'Container'})]
+        [string[]] $Path,
+        [Parameter(HelpMessage="Suppress all outputs but return pass status as`$true/`$false, to the pipeline[-Silent]")]
+        [switch] $Silent
+    ) ;
+    BEGIN{
+      if(-not $rgxVideoExts){$rgxVideoExts = '\.(MPEG|AVI|ASF|WMV|MP4|MOV|3GP|OGM|MKV|WEBM|MXF)' } ;
+    }
+    PROCESS{
+        foreach($p in $Path){
+            write-verbose "checking path $($p)\*)" ; 
+            $vfiles = get-childitem "$($p)\*" -recurse | ? { $_.extension -match $rgxVideoExts } ;
+            $ttl = ($vfiles|measure).count ; $procd = 0; 
+             foreach ($vf in $vfiles) {
+                $procd++ ; 
+               write-host "($($procd)/$($ttl))checking for missing -media.xml for:$($vf.fullname)" ; 
+               if (-not (test-path -path (join-path -path $vf.DirectoryName -childpath "$($vf.basename)-media.xml"))) {
+                  write-verbose "test-MediaFile -path $($vf.fullname) -Verbose:$($VerbosePreference -eq 'Continue'))" ;
+                   test-MediaFile -path "$($vf.fullname)" -Verbose:($VerbosePreference -eq 'Continue') ;  
+               } else {
+                   write-verbose "(convirmed present:$($vf.basename)-media.xml)"
+               };  
+           } ;  # loop-E
+        }  # loop-E
+    }  # PROC-E
+    END{};
+}
+
+#*------^ test-MissingMediaSummary.ps1 ^------
 
 #*------v Test-PendingReboot.ps1 v------
 function Test-PendingReboot {
@@ -10139,14 +10209,14 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-MediaFile,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUYJQAPXf0ypGaqwKQhpxe89Vk
-# W6agggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUDS6ut8ByaEl+01E3sL8A7BQ5
+# azqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -10161,9 +10231,9 @@ Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSHwiAf
-# ecinEdayvxclIOaLyLShjTANBgkqhkiG9w0BAQEFAASBgKnoSd0JJgnw2Hx/Csbe
-# UzwtZuzF4adQ2JKB2cqopEiCwTkPUdIVGQ0cPljVr/DaSFcXAGfgVOw+5D3MavCf
-# FXTsxPtdjXJiMui4+heMNesG803OqJ4KslE9nxGiLJkKGJJWNc6elrh4DVIhGR8n
-# P4ouA0FfB4AZXX3PvtyXvTiK
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR/efPW
+# SYqy1iFNHzR3jlBhemm3uzANBgkqhkiG9w0BAQEFAASBgGtYoq1kNYDu7yb4dLO+
+# Qmdc85OL3NoxbB/Lgs4+x3lgMOSmOBGoQ1HX01QQjSLEXr9BGlm8uSLk2KPTOXsb
+# QPwVVCAAi+B9gQ5w9u1JiRDxcYwbYmxgtfHJyPuVMVYjGI/x0rz8xRI2b/rQEWnC
+# GPxP7hWNtdanLMe/GLWmf/Ky
 # SIG # End signature block

@@ -1,4 +1,4 @@
-# verb-io.psm1
+﻿# verb-io.psm1
 
 
 <#
@@ -920,7 +920,7 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
     Param ([parameter(Mandatory = $true,Position=0,HelpMessage="Colorhex code to be converted to [windows.media.colors] name value [-colorcode '#FF9ACD32'")][String]$ColorCode)
     BEGIN{
         # build indexed hash of media colors keyed on hexcodes
-        Add-Type �assemblyName PresentationFramework
+        Add-Type –assemblyName PresentationFramework
         $colors = [windows.media.colors] | Get-Member -static -Type Property |  Select -Expand Name ;
         $ISEColors = @{} ;
         $colors| foreach {
@@ -2878,7 +2878,7 @@ function convert-VideoToMp3 {
     ) ; # PARAM-E
 
     <# input formats supported by VLC
-        MPEG (ES,PS,TS,PVA,MP3), AVI, ASF |WMV |WMA, MP4 |MOV |3GP, OGG |OGM |Annodex, Matroska (MKV), Real, WAV (including DTS), Raw Audio: DTS, AAC, AC3/A52, Raw DV, FLAC, FLV (Flash), MXF, Nut, Standard MIDI |SMF, Creative� Voice.
+        MPEG (ES,PS,TS,PVA,MP3), AVI, ASF |WMV |WMA, MP4 |MOV |3GP, OGG |OGM |Annodex, Matroska (MKV), Real, WAV (including DTS), Raw Audio: DTS, AAC, AC3/A52, Raw DV, FLAC, FLV (Flash), MXF, Nut, Standard MIDI |SMF, Creative™ Voice.
     #>
 
     BEGIN {
@@ -4203,14 +4203,14 @@ Function get-ConsoleText {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    AddedCredit : AutomatedLab:Raimund Andrée [MSFT],Jan-Hendrik Peters [MSFT]
+    AddedCredit : AutomatedLab:Raimund AndrÃ©e [MSFT],Jan-Hendrik Peters [MSFT]
     AddedWebsite:	https://github.com/AutomatedLab/AutomatedLab.Common/blob/develop/AutomatedLab.Common/Common/Public/Get-ConsoleText.ps1
     AddedGithub : https://github.com/AutomatedLab/AutomatedLab
     AddedTwitter:	@raimundandree,@nyanhp
     CreatedDate : 2022-02-02
     FileName    : get-ConsoleText.ps1
     License     : https://github.com/AutomatedLab/AutomatedLab/blob/develop/LICENSE
-    Copyright   : Copyright (c) 2022 Raimund Andrée, Jan-Hendrik Peters
+    Copyright   : Copyright (c) 2022 Raimund AndrÃ©e, Jan-Hendrik Peters
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Clipboard,Text
     REVISIONS
@@ -8379,7 +8379,7 @@ Function set-ConsoleColors {
                         ShowToolTips                           : False
                         DingTone                               : 1221
                         CompletionQueryItems                   : 100
-                        WordDelimiters                         : ;:,.[]{}()/\|^&*-=+'"–—―
+                        WordDelimiters                         : ;:,.[]{}()/\|^&*-=+'"â€“â€”â€•
                         DingDuration                           : 50
                         BellStyle                              : Audible
                         HistorySearchCaseSensitive             : False
@@ -9395,7 +9395,6 @@ Function test-MissingMediaSummary {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio
     REVISIONS
-    * 10:35 AM 3/14/2022 yanked [hash]Requires -Modules Get-MediaInfo: I don't want to install gmi on servers, at all. So we drop the coverage.
     * 8:34 AM 3/9/2022 set gci to recurse whole tree (span season dirs, save re-run needs); added w-v at a few useful points; expanded some alias use; duped rgx from profile into func.
     * 8:25 PM 3/7/2022init vers
     .DESCRIPTION
@@ -9413,7 +9412,7 @@ Function test-MissingMediaSummary {
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    
+    #Requires -Modules Get-MediaInfo
     [Alias('vmf')]
     PARAM(
         [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
@@ -10211,3 +10210,29 @@ function Write-ProgressHelper {
 
 Export-ModuleMember -Function Add-PSTitleBar,Authenticate-File,backup-File,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide4,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,Debug-Column,Mask,Slice,TypeName,ErrorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,revert-File,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-FileContent,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkn345h0Kdr17kx350surk4hN
+# ZpmgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQVvczM
+# EGN6XJc6x0KZ/WownwprWTANBgkqhkiG9w0BAQEFAASBgDovzL4A3VQg7F7Hz7Zp
+# FQwXOr4ffm3YyuCPDCk526S8uUiZ3OWu9ouFm2ZiCbm6xlLiLiVlrAqFtpNJPw2B
+# C7kC/hWP3gYEVx+MhrlnnU/LzI2JTnsOM2L6Y9cEG81BqT4ejkLPqBN3t9xbJddb
+# W7w08pe71J7qVPz/2wDdTvU3
+# SIG # End signature block
