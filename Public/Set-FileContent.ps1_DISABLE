@@ -16,6 +16,7 @@
     AddedWebsite:
     AddedTwitter:
     REVISIONS
+    * 2:12 PM 5/4/2022 disabled in favor of set-ContentFixEncoding with an alias to this name added
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:44 AM 12/11/2019 updated example
     * 8:28 PM 11/17/2019 INIT
