@@ -16,6 +16,7 @@ function Compare-ObjectsSideBySide4 {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Compare
     REVISIONS   :
+    * 10:32 AM 4/25/2022 fix typo, fixed pos param specs (uniqued); included output in exmplt
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
@@ -29,7 +30,7 @@ function Compare-ObjectsSideBySide4 {
     Object to compare in 2nd column[-col2 `$PsObject1]
     PARAMETER col3
     Object to compare in 3rd column[-col3 `$PsObject1]
-    PARAMETER col3
+    PARAMETER col4
     Object to compare in 4th column[-col4 `$PsObject1]
     .INPUTS
     Acceptes piped input.
@@ -61,6 +62,13 @@ function Compare-ObjectsSideBySide4 {
           'MaidenName' = 'Not!' ;
         } ;
     PS> Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
+    Property     Col1    Col2   Col3          col4
+    --------     ----    ----   ----          ----
+    Company      Amido   Google Apfel         Facemook
+    Forename     Richard Jane   Zhe           Zir
+    MaidenName           Jones  NunaUBusiness Not!
+    SelfEmployed True
+    Surname      Slater  Smith  Person        NPC
     Display $object1,2,3 & 4 in comparative side-by-side columns
     .LINK
     https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
@@ -72,10 +80,10 @@ function Compare-ObjectsSideBySide4 {
         [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 2nd column[-col1 `$PsObject1]")]
         #[Alias('rhs')]        
         $col2,
-        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 3rd column[-col1 `$PsObject1]")]
+        [Parameter(Position=2,Mandatory=$True,HelpMessage="Object to compare in 3rd column[-col1 `$PsObject1]")]
         #[Alias('rhs')]        
         $col3,
-        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 4th column[-col1 `$PsObject1]")]
+        [Parameter(Position=3,Mandatory=$True,HelpMessage="Object to compare in 4th column[-col1 `$PsObject1]")]
         #[Alias('rhs')]        
         $col4
     ) ;
@@ -83,7 +91,7 @@ function Compare-ObjectsSideBySide4 {
     $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
     $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
     $col4Members = $col4 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $combinedMembers = ($col1Members + $col2Members + $col3Members + $col4Members) | Sort-Object -COque ;
+    $combinedMembers = ($col1Members + $col2Members + $col3Members + $col4Members) | Sort-Object -Unique ;
     $combinedMembers | ForEach-Object {
         $properties = @{'Property' = $_} ;
         if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
