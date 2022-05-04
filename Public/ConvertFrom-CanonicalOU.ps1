@@ -1,4 +1,4 @@
-#*----------v Function ConvertFrom-CanonicalOU() v----------
+#*------v ConvertFrom-CanonicalOU.ps1 v------
 function ConvertFrom-CanonicalOU {
     <#
     .SYNOPSIS
@@ -9,7 +9,7 @@ function ConvertFrom-CanonicalOU {
     Website     :	https://gist.github.com/joegasper/3fafa5750261d96d5e6edf112414ae18
     Twitter     :	@tostka / http://twitter.com/tostka
     CreatedDate : 2020-12-15
-    FileName    : 
+    FileName    :
     License     : (not specified)
     Copyright   : (not specified)
     Github      : https://github.com/tostka/verb-IO
@@ -20,8 +20,9 @@ function ConvertFrom-CanonicalOU {
     AddedCredit : McMichael
     AddedWebsite:	https://github.com/timmcmic/DLConversion/blob/master/src/DLConversion.ps1
     REVISIONS
+    * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes. 
     * 12:26 PM 6/18/2021 added alias:ConvertTo-DNOU
-    * 4:30 PM 12/15/2020 TSK: expanded CBH, 
+    * 4:30 PM 12/15/2020 TSK: expanded CBH,
     .DESCRIPTION
     ConvertFrom-CanonicalOU.ps1 - This function takes a canonical OU path and converts it to a distinguished name.
     .PARAMETER  CanonicalName
@@ -40,8 +41,8 @@ function ConvertFrom-CanonicalOU {
     [Alias('ConvertTo-DNOU')]
     [cmdletbinding()]
     param(
-        [Parameter(Mandatory,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)] 
-        [ValidateNotNullOrEmpty()] 
+        [Parameter(Mandatory=$true,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
+        [ValidateNotNullOrEmpty()]
         [string]$CanonicalName
     )
     process {
@@ -52,4 +53,5 @@ function ConvertFrom-CanonicalOU {
         return $DN
     }
 }
-#*------^ END Function ConvertFrom-CanonicalOU ^------
+
+#*------^ ConvertFrom-CanonicalOU.ps1 ^------
