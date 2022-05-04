@@ -1,4 +1,4 @@
-#*----------v Function ConvertTo-SRT() v----------
+#*------v ConvertTo-SRT.ps1 v------
 function ConvertTo-SRT {
     <#
     .SYNOPSIS
@@ -9,7 +9,7 @@ function ConvertTo-SRT {
     Website     :	https://gist.github.com/joegasper/3fafa5750261d96d5e6edf112414ae18
     Twitter     :	@tostka / http://twitter.com/tostka
     CreatedDate : 2020-12-15
-    FileName    : 
+    FileName    :
     License     : (not specified)
     Copyright   : (not specified)
     Github      : https://github.com/tostka/verb-IO
@@ -23,7 +23,8 @@ Takes a 3.5 minute process for 17K row VTT to 3.5 seconds
 https://github.com/joegasper
 https://gist.github.com/joegasper/e862f71b5a2658fae21fd36f7231b33c
     REVISIONS
-    * 4:30 PM 12/15/2020 TSK: expanded CBH, 
+    * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
+    * 4:30 PM 12/15/2020 TSK: expanded CBH,
     .DESCRIPTION
     Uses select-string instead of get-content to improve speed 2 magnitudes.
     .PARAMETER Path
@@ -47,7 +48,7 @@ https://gist.github.com/joegasper/e862f71b5a2658fae21fd36f7231b33c
     param (
         [Parameter(Mandatory = $true,
             Position = 0,
-            ValueFromPipeline,
+            ValueFromPipeline=$true,
             ValueFromPipelineByPropertyName = $true,
             HelpMessage = "Path to VTT file.")]
         [Alias("PSPath")]
@@ -92,4 +93,5 @@ https://gist.github.com/joegasper/e862f71b5a2658fae21fd36f7231b33c
         }
     }
 }
-#*------^ END Function ConvertTo-SRT ^------
+
+#*------^ ConvertTo-SRT.ps1 ^------

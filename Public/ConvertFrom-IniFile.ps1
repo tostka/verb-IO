@@ -1,4 +1,4 @@
-#*------v Function ConvertFrom-IniFile v------
+#*------v ConvertFrom-IniFile.ps1 v------
 Function ConvertFrom-IniFile {
     <#
     .Synopsis
@@ -10,21 +10,22 @@ Function ConvertFrom-IniFile {
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
     CreatedDate : 2020-
-    FileName    : 
+    FileName    :
     License     : (none asserted)
     Copyright   : (none asserted)
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell
     AddedCredit : Jeff Hicks
     AddedWebsite: https://www.petri.com/managing-ini-files-with-powershell
-    AddedTwitter: 
+    AddedTwitter:
     Learn more about PowerShell:
     http://jdhitsolutions.com/blog/essential-powershell-resources/
     REVISIONS
+    * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
     * 12:46 PM 6/29/2021 minor vervisions & syntax tightening; expanded CBH; added delimiting to unexpected line dump
     * posted rev 1/29/2015 (June 5, 2015)
     .Description
-    Use this command to convert a legacy INI file into a PowerShell custom object. Each INI section will become a property name. Then each section setting will become a nested object. Blank lines and comments starting with ; will be ignored. 
+    Use this command to convert a legacy INI file into a PowerShell custom object. Each INI section will become a property name. Then each section setting will become a nested object. Blank lines and comments starting with ; will be ignored.
     It is assumed that your ini file follows a typical layout like this:
     ```text
     ;This is a sample ini
@@ -49,8 +50,8 @@ Function ConvertFrom-IniFile {
     .EXAMPLE
     PS> $sample = ConvertFrom-IniFile c:\scripts\sample.ini
     PS> $sample
-        General                           Application                      User                            
-        -------                           -----------                      ----                            
+        General                           Application                      User
+        -------                           -----------                      ----
         @{Directory=c:\work; ID=123ABC... @{Version=1.0; Name=foo.exe}     @{Name=Jeff; Company=Globoman...
     PS> $sample.general.action
         Start
@@ -65,12 +66,12 @@ Function ConvertFrom-IniFile {
     #>
     [cmdletbinding()]
     Param(
-        [Parameter(Position=0,Mandatory,HelpMessage="Enter the path to an INI file",
-        ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Parameter(Position=0,Mandatory=$true,HelpMessage="Enter the path to an INI file",
+        ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [Alias("fullname","pspath")]
         [ValidateScript({
         if (Test-Path $_) {$True}else {Throw "Cannot validate path $_"}
-        })]     
+        })]
         [string]$Path
     )
     Begin {
@@ -78,9 +79,9 @@ Function ConvertFrom-IniFile {
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
         # Get parameters this function was invoked with
         $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-        $Verbose = ($VerbosePreference -eq 'Continue') ; 
-        Write-Verbose "Starting $($MyInvocation.Mycommand)" ; 
-    } 
+        $Verbose = ($VerbosePreference -eq 'Continue') ;
+        Write-Verbose "Starting $($MyInvocation.Mycommand)" ;
+    }
     Process {
         Write-Verbose "Getting content from $(Resolve-Path $path)"
         #strip out comments that start with ; and blank lines
@@ -88,44 +89,45 @@ Function ConvertFrom-IniFile {
         $obj = New-Object -TypeName PSObject -Property @{}
         $hash = [ordered]@{}
         foreach ($line in $all) {
-            Write-Verbose "Processing $line" ; 
+            Write-Verbose "Processing $line" ;
             if ($line -match "^\[.*\]$" -AND $hash.count -gt 0) {
                 #has a hash count and is the next setting
                 #add the section as a property
-                write-Verbose "Creating section $section" ; 
-                Write-verbose ([pscustomobject]$hash | out-string) ; 
-                $obj | Add-Member -MemberType Noteproperty -Name $Section -Value $([pscustomobject]$Hash) -Force ; 
+                write-Verbose "Creating section $section" ;
+                Write-verbose ([pscustomobject]$hash | out-string) ;
+                $obj | Add-Member -MemberType Noteproperty -Name $Section -Value $([pscustomobject]$Hash) -Force ;
                 #reset hash
-                Write-Verbose "Resetting hashtable" ; 
-                $hash=[ordered]@{} ; 
+                Write-Verbose "Resetting hashtable" ;
+                $hash=[ordered]@{} ;
                 #define the next section
-                $section = $line -replace "\[|\]","" ; 
-                Write-Verbose "Next section $section" ; 
+                $section = $line -replace "\[|\]","" ;
+                Write-Verbose "Next section $section" ;
             } elseif ($line -match "^\[.*\]$") {
                 #Get section name. This will only run for the first section heading
-                $section = $line -replace "\[|\]","" ; 
+                $section = $line -replace "\[|\]","" ;
                 Write-Verbose "New section $section"
             } elseif ($line -match "=") {
                 #parse data
-                $data = $line.split("=").trim() ; 
-                $hash.add($data[0],$data[1]) ; 
+                $data = $line.split("=").trim() ;
+                $hash.add($data[0],$data[1]) ;
             } else {
                 #this should probably never happen
-                Write-Warning "Unexpected line:`n'$($line|out-string)'" ; 
-            } ; 
+                Write-Warning "Unexpected line:`n'$($line|out-string)'" ;
+            } ;
         }  ;  # loop-E
         #get last section
         If ($hash.count -gt 0) {
-            Write-Verbose "Creating final section $section" ; 
-            Write-Verbose ([pscustomobject]$hash | Out-String) ; 
+            Write-Verbose "Creating final section $section" ;
+            Write-Verbose ([pscustomobject]$hash | Out-String) ;
             #add the section as a property
-            $obj | Add-Member -MemberType Noteproperty -Name $Section -Value $([pscustomobject]$Hash) -Force ; 
+            $obj | Add-Member -MemberType Noteproperty -Name $Section -Value $([pscustomobject]$Hash) -Force ;
         }
         #write the result to the pipeline
         $obj | write-output ;
     } ;
     End {
-        Write-Verbose "Ending $($MyInvocation.Mycommand)" ; 
+        Write-Verbose "Ending $($MyInvocation.Mycommand)" ;
     } ;
-} ;
-#*------^ END Function ConvertFrom-IniFile ^------
+}
+
+#*------^ ConvertFrom-IniFile.ps1 ^------
