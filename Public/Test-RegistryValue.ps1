@@ -1,4 +1,4 @@
-#*------v Function Test-RegistryValue v------
+#*------v Test-RegistryValue.ps1 v------
 function Test-RegistryValue {
     <#
     .SYNOPSIS
@@ -18,6 +18,7 @@ function Test-RegistryValue {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
+    * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
     * 5:03 PM 1/14/2021 init, minor CBH mods
     * 7/29/19 AB's posted version
     .DESCRIPTION
@@ -36,14 +37,15 @@ function Test-RegistryValue {
     [CmdletBinding()]
     #[Alias('get-ScheduledTaskReport')]
     PARAM(
-        [Parameter(Mandatory)][ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
         [string]$Key,
-        [Parameter(Mandatory)][ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
         [string]$Value
     ) ;
     $ErrorActionPreference = 'Stop' ;
     if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
-        $true | write-output ; 
+        $true | write-output ;
     } ;
-} ; 
-#*------^ END Function Test-RegistryValue ^------
+}
+
+#*------^ Test-RegistryValue.ps1 ^------

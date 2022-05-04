@@ -1,4 +1,4 @@
-#*------v Function Test-RegistryKey v------
+#*------v Test-RegistryKey.ps1 v------
 function Test-RegistryKey {
     <#
     .SYNOPSIS
@@ -18,6 +18,7 @@ function Test-RegistryKey {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
+    * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
     * 5:03 PM 1/14/2021 init, minor CBH mods
     * 7/29/19 AB's posted version
     .DESCRIPTION
@@ -25,7 +26,7 @@ function Test-RegistryKey {
     .PARAMETER  Key
     Full registkey to be tested [-Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending']
     .EXAMPLE
-    Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' ; 
+    Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' ;
     Tests one of the Pending Reboot keys
     .LINK
     https://github.com/tostka/verb-IO
@@ -34,13 +35,14 @@ function Test-RegistryKey {
     [CmdletBinding()]
     #[Alias('get-ScheduledTaskReport')]
     PARAM(
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$Key
     ) ;
-    $ErrorActionPreference = 'Stop' ; 
+    $ErrorActionPreference = 'Stop' ;
     if (Get-Item -Path $Key -ErrorAction Ignore) {
-        $true | write-output ; 
-    } ; 
-} ; 
-#*------^ END Function Test-RegistryKey ^------
+        $true | write-output ;
+    } ;
+}
+
+#*------^ Test-RegistryKey.ps1 ^------

@@ -1,4 +1,4 @@
-#*------v Function Test-RegistryValueNotNull v------
+#*------v Test-RegistryValueNotNull.ps1 v------
 function Test-RegistryValueNotNull {
     <#
     .SYNOPSIS
@@ -18,6 +18,7 @@ function Test-RegistryValueNotNull {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
+    * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
     * 5:03 PM 1/14/2021 init, minor CBH mods
     * 7/29/19 AB's posted version
     .DESCRIPTION
@@ -28,7 +29,7 @@ function Test-RegistryValueNotNull {
     Value to be compared to
     .EXAMPLE
     Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations2'
-    Tests value of the specified key is NotNull 
+    Tests value of the specified key is NotNull
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -36,14 +37,15 @@ function Test-RegistryValueNotNull {
     [CmdletBinding()]
     #[Alias('get-ScheduledTaskReport')]
     PARAM(
-        [Parameter(Mandatory)][ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
         [string]$Key,
-        [Parameter(Mandatory)][ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]
         [string]$Value
     ) ;
     $ErrorActionPreference = 'Stop'
     if (($regVal = Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) -and $regVal.($Value)) {
-        $true| write-output  ; 
-    } ; 
-} ; 
-#*------^ END Function Test-RegistryValueNotNull ^------
+        $true| write-output  ;
+    } ;
+}
+
+#*------^ Test-RegistryValueNotNull.ps1 ^------

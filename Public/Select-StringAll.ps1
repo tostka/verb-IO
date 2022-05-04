@@ -8,7 +8,7 @@ Function Select-StringAll {
     Version     : 1.0.0
     Author      : Michael Klement <mklement0@gmail.com>
     Website     :	https://github.com/mklement0/
-    Twitter     :	
+    Twitter     :
     CreatedDate : 2021-10-12
     FileName    : Select-StringAll.ps1
     License     : MIT License
@@ -19,7 +19,8 @@ Function Select-StringAll {
     AddedWebsite: http://www.toddomation.com
     AddedTwitter: @tostka / http://twitter.com/tostka
     REVISIONS
-    * 10:35 AM 2/21/2022 CBH example ps> adds 
+    * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
+    * 10:35 AM 2/21/2022 CBH example ps> adds
     * 12:37 PM 10/25/2021 rem'd req version
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
@@ -120,16 +121,16 @@ When the context includes a match, the MatchInfo object for each match includes 
     #[Alias('convert-
     [CmdletBinding(DefaultParameterSetName='File')]
   param(
-      [Parameter(ParameterSetName='Object', Mandatory, ValueFromPipeline)]
+      [Parameter(ParameterSetName='Object', Mandatory=$true, ValueFromPipeline=$true)]
       [psobject] ${InputObject},
 
-      [Parameter(Mandatory, Position=0)]
+      [Parameter(Mandatory=$true, Position=0)]
       [string[]] ${Pattern},
 
-      [Parameter(ParameterSetName='File', Mandatory, Position=1, ValueFromPipelineByPropertyName)]
+      [Parameter(ParameterSetName='File', Mandatory=$true, Position=1, ValueFromPipelineByPropertyName=$true)]
       [string[]] ${Path},
 
-      [Parameter(ParameterSetName='LiteralFile', Mandatory, ValueFromPipelineByPropertyName)]
+      [Parameter(ParameterSetName='LiteralFile', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
       [Alias('PSPath')]
       [string[]] ${LiteralPath},
 
@@ -165,39 +166,39 @@ When the context includes a match, the MatchInfo object for each match includes 
           if ($SimpleMatch) {
             # If the patterns are literals, we must escape them for use
             # as such in a regex.
-            $regexes = $Pattern.ForEach({ [regex]::Escape($_) }) ; 
+            $regexes = $Pattern.ForEach({ [regex]::Escape($_) }) ;
             # Remove the -SimpleMatch switch, because we're translating
             # the patterns into a regex.
-            $null = $PSBoundParameters.Remove('SimpleMatch') ; 
+            $null = $PSBoundParameters.Remove('SimpleMatch') ;
           } else {
             # Patterns are already regexes? Use them as-is.
-            $regexes = $Pattern ; 
-          } ; 
-        
+            $regexes = $Pattern ;
+          } ;
+
           # To apply conjunctive logic, juxtapose lookahead assertions for
           # all patterns and make the expression match the whole line.
-          # (While that's not strictly necessary, given that we're 
+          # (While that's not strictly necessary, given that we're
           # precluding -AllMatches, it makes for more predictable outcome,
           # because the '.*$' part then captures the entire line and reflects
           # it in the output objects' .Matches property.)
-          $PSBoundParameters['Pattern'] = (-join $regexes.ForEach({ '(?=.*?' + $_ + ')' })) ; 
+          $PSBoundParameters['Pattern'] = (-join $regexes.ForEach({ '(?=.*?' + $_ + ')' })) ;
 
-          Write-Verbose "Conjunctive compound regex: $($PSBoundParameters['Pattern'])" ; 
+          Write-Verbose "Conjunctive compound regex: $($PSBoundParameters['Pattern'])" ;
 
-          $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Select-String', [System.Management.Automation.CommandTypes]::Cmdlet) ; 
-          $scriptCmd = {& $wrappedCmd @PSBoundParameters } ; 
-          $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin) ; 
-          $steppablePipeline.Begin($PSCmdlet) ; 
+          $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Select-String', [System.Management.Automation.CommandTypes]::Cmdlet) ;
+          $scriptCmd = {& $wrappedCmd @PSBoundParameters } ;
+          $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin) ;
+          $steppablePipeline.Begin($PSCmdlet) ;
       } CATCH {
-          $PSCmdlet.ThrowTerminatingError($_) ; 
-      } ; 
+          $PSCmdlet.ThrowTerminatingError($_) ;
+      } ;
   } # BEG-E
   PROCESS{
-    $steppablePipeline.Process($_) ; 
-  } ; 
+    $steppablePipeline.Process($_) ;
+  } ;
   END{
-    $steppablePipeline.End() ; 
-  } ; 
+    $steppablePipeline.End() ;
+  } ;
 }
 
 #*------^ Select-StringAll.ps1 ^------
