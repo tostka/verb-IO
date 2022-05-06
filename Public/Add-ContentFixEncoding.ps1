@@ -84,6 +84,10 @@ function Add-ContentFixEncoding {
             } ; # force damaged/ascii to UTF8
             $pltSetCon = @{ Path=$Item.FullName ; ErrorAction = 'STOP' ; PassThru = $($PassThru); whatif=$($whatif) ;  } ;
             if($enc){$pltSetCon.add('encoding',$enc) } ;
+            $smsg = "Set-Content w`n$(($pltSetCon|out-string).trim())" ; 
+            $smsg += "`n-Value[0,2]:`n$(($value | out-string).Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries)| select -first 2|out-string)" ; 
+            if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
+            else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;
             $Exit = 0 ;
             Do {
                 Try{
