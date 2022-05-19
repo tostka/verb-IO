@@ -1,0 +1,97 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.LineBreakpoint</T>
+      <T>System.Management.Automation.Breakpoint</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>Line breakpoint on 'C:\sc\verb-IO\Public\restore-FileTDO.ps1:52'</ToString>
+    <Props>
+      <I32 N="Column">0</I32>
+      <I32 N="Line">52</I32>
+      <Nil N="Action" />
+      <B N="Enabled">true</B>
+      <I32 N="HitCount">6</I32>
+      <I32 N="Id">729</I32>
+      <S N="Script">C:\sc\verb-IO\Public\restore-FileTDO.ps1</S>
+    </Props>
+  </Obj>
+  <Obj RefId="1">
+    <TNRef RefId="0" />
+    <ToString>Line breakpoint on 'C:\sc\verb-IO\Public\restore-FileTDO.ps1:61'</ToString>
+    <Props>
+      <I32 N="Column">0</I32>
+      <I32 N="Line">61</I32>
+      <Nil N="Action" />
+      <B N="Enabled">true</B>
+      <I32 N="HitCount">5</I32>
+      <I32 N="Id">732</I32>
+      <S N="Script">C:\sc\verb-IO\Public\restore-FileTDO.ps1</S>
+    </Props>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <ToString>Line breakpoint on 'C:\sc\verb-IO\Public\restore-FileTDO.ps1:84'</ToString>
+    <Props>
+      <I32 N="Column">0</I32>
+      <I32 N="Line">84</I32>
+      <Nil N="Action" />
+      <B N="Enabled">true</B>
+      <I32 N="HitCount">0</I32>
+      <I32 N="Id">736</I32>
+      <S N="Script">C:\sc\verb-IO\Public\restore-FileTDO.ps1</S>
+    </Props>
+  </Obj>
+  <Obj RefId="3">
+    <TNRef RefId="0" />
+    <ToString>Line breakpoint on 'C:\sc\verb-IO\Public\restore-FileTDO.ps1:98'</ToString>
+    <Props>
+      <I32 N="Column">0</I32>
+      <I32 N="Line">98</I32>
+      <Nil N="Action" />
+      <B N="Enabled">true</B>
+      <I32 N="HitCount">0</I32>
+      <I32 N="Id">737</I32>
+      <S N="Script">C:\sc\verb-IO\Public\restore-FileTDO.ps1</S>
+    </Props>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <ToString>Line breakpoint on 'C:\sc\verb-IO\Public\restore-FileTDO.ps1:106'</ToString>
+    <Props>
+      <I32 N="Column">0</I32>
+      <I32 N="Line">106</I32>
+      <Nil N="Action" />
+      <B N="Enabled">true</B>
+      <I32 N="HitCount">0</I32>
+      <I32 N="Id">738</I32>
+      <S N="Script">C:\sc\verb-IO\Public\restore-FileTDO.ps1</S>
+    </Props>
+  </Obj>
+  <Obj RefId="5">
+    <TNRef RefId="0" />
+    <ToString>Line breakpoint on 'C:\sc\verb-IO\Public\restore-FileTDO.ps1:121'</ToString>
+    <Props>
+      <I32 N="Column">0</I32>
+      <I32 N="Line">121</I32>
+      <Nil N="Action" />
+      <B N="Enabled">true</B>
+      <I32 N="HitCount">0</I32>
+      <I32 N="Id">739</I32>
+      <S N="Script">C:\sc\verb-IO\Public\restore-FileTDO.ps1</S>
+    </Props>
+  </Obj>
+  <Obj RefId="6">
+    <TNRef RefId="0" />
+    <ToString>Line breakpoint on 'C:\sc\verb-IO\Public\restore-FileTDO.ps1:155'</ToString>
+    <Props>
+      <I32 N="Column">0</I32>
+      <I32 N="Line">155</I32>
+      <Nil N="Action" />
+      <B N="Enabled">true</B>
+      <I32 N="HitCount">0</I32>
+      <I32 N="Id">741</I32>
+      <S N="Script">C:\sc\verb-IO\Public\restore-FileTDO.ps1</S>
+    </Props>
+  </Obj>
+</Objs>
