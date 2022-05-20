@@ -14,7 +14,7 @@ function restore-FileTDO {
     Copyright   : (c) 2019 Todd Kadrie
     Github      : https://github.com/tostka/verb-io
     REVISIONS
-    * 8:27 AM 5/20/2022 recoding unset IsReadOnly where restore source is RO'd (leverage new 'set-ItemReadOnly() -clear')
+    * 8:27 AM 5/20/2022 recoding unset IsReadOnly where restore source is RO'd (leverage new 'set-ItemReadOnly() -clear'); fixed missing trailing "
     * 11:52 AM 5/19/2022 typo fix
     * 8:51 AM 5/16/2022 ren revert-File -> restore-file (stock verb, add my uniquing suffix); add orig to alias; added pipeline handling;
     * 10:35 AM 2/21/2022 CBH example ps> adds
@@ -166,7 +166,7 @@ function restore-FileTDO {
                 Try {
                     copy-item @pltCpy ;
                     if($bIsReadOnly -AND $NoReadOnly){
-                        write-verbose "(-NoReadOnly:clearing restored IsReadOnly:`$true)
+                        write-verbose "(-NoReadOnly:clearing restored IsReadOnly:`$true)"
                         Set-ItemReadOnlyTDO -Clear -Verbose:$($verbose) -whatif:$($whatif) ;
                     } ; 
                     $Exit = $Retries ;
