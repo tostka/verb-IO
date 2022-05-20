@@ -18,6 +18,8 @@ function Remove-AuthenticodeSignature {
     AddedWebsite:	https://psrdrgz.github.io/RemoveAuthenticodeSignature/
     AddedTwitter:	@psrdgz
     REVISIONS   :
+    * 10:39 AM 5/13/2022 removed 'requires -modules', to fix nesting limit error loading verb-io
+    * 9:56 AM 5/12/2022 add: incrementing counter
     * 4:54 PM 5/3/2022 init vers
     .PARAMETER Path
     file name(s) to appl authenticode signature into.
@@ -35,7 +37,6 @@ function Remove-AuthenticodeSignature {
     get-childitem c:\usr\local\bin\*.ps1 | Remove-AuthenticodeSignature
     Pipeline example
     #>
-    #Requires -Modules verb-Text, verb-logging
     [CmdletBinding()]
     ###[Alias('Alias','Alias2')]
     Param(
@@ -52,12 +53,14 @@ function Remove-AuthenticodeSignature {
         $verbose = ($VerbosePreference -eq "Continue") ;
     } ;
     PROCESS {
+        $ttl = ($Path|measure).count ; $proc=0 ; 
         $Path | ForEach-Object -Process {
+            $proc++ ; 
             $Item = $_ ; 
 			If($Item.Extension -match $rgxSignFiles){
                 # sls for sig marker, (plan to dump large numbers at it from modules, to strip sigs, when rebuilding into monolithic .psm1s)
                 if(select-string -Path  $Item -Pattern $rgxSigStart){
-                    $smsg = "(Remove-Sig:$($Item.FullName))" ;
+                    $smsg = "(($($proc)/$($ttl)):Remove-Sig:$($Item.FullName))" ;
                     if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
                     else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;
 
@@ -73,7 +76,7 @@ function Remove-AuthenticodeSignature {
 
                         if(get-command set-ContentFixEncoding){
                             $pltSCFE=[ordered]@{  Path =$Item.FullName  ;  Value = $updatedContent ;  verbose =$($verbose) ;  errorAction = 'STOP' ;  whatif=$($whatif) } ; 
-                            $smsg = "Set-ContentFixEncoding  w`n$(($pltSCFE|out-string).trim())" ; 
+                            $smsg = "($($proc)/$($ttl)):Set-ContentFixEncoding  w`n$(($pltSCFE|out-string).trim())" ; 
                             if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
                             else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;
                             Set-ContentFixEncoding @pltSCFE ; 
@@ -82,7 +85,7 @@ function Remove-AuthenticodeSignature {
                             $enc=$null ; $enc=get-FileEncoding -path $Item.FullName ;
                             if($enc -eq 'ASCII') {
                                 $enc = 'UTF8' ;
-                                $smsg = "(ASCI encoding detected, converting to UTF8)" ;
+                                $smsg = "(($($proc)/$($ttl)):ASCI encoding detected, converting to UTF8)" ;
                                 if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
                                 else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;
                             } ; # force damaged/ascii to UTF8
@@ -103,7 +106,7 @@ function Remove-AuthenticodeSignature {
                         Break #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
                     } ;
                 } else { 
-                    $smsg = "($($item):has no existing Authenticode signature)" ; 
+                    $smsg = "(($($proc)/$($ttl)):$($item):has no existing Authenticode signature)" ; 
                     if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
                     else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;
                 };
