@@ -15,6 +15,7 @@ function Pop-LocationFirst {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,File,FileSystem
     REVISIONS   :
+    * 10:13 AM 5/20/2022 updated the logic, added write-host  dot crawl, vs verbose detailed echos.
     * 3:20 PM 5/6/2022 init
     .PARAMETER PassThru <System.Management.Automation.SwitchParameter>
     Passes an object that represents the location to the pipeline. By default, this cmdlet does not generate any output.
@@ -25,11 +26,12 @@ function Pop-LocationFirst {
     .DESCRIPTION
     Pop-LocationFirst - Pop-Location to the 'first'/'oldest'/'original' item in the stack (which in a normal (Get-Location -stack).path, is actually the _bottom_ entry in the stack ;P)
     .EXAMPLE
+    PS> pushd c:\usr\local\bin\ ; pushd c:\usr\sbin\ ; pushd C:\temp\ ; 
     PS> Pop-LocationFirst -verbose ;
-    Set-Location to the first/lowest location in the stack
+    Push-location three locations into the stack, then Set-Location to the first/lowest location in the stack
     .EXAMPLE
-    $currdir = popd1 -verbose -passthru ;
-    Set-Location to the first/lowest location in the stack, and assign the resulting location system.object to the $currDir variable; with verbose output.
+    $finalPwd = popd1 -verbose -passthru ;
+    Set-Location to the first/lowest location in the stack, and assign the resulting location system.object to the $currDir variable; with verbose output (emulates pop-location/popd -passthru behavior)
     .LINK
     https://github.com/tostka/verb-io
     #>    
@@ -43,8 +45,15 @@ function Pop-LocationFirst {
     write-verbose "pop-location to first/bottom stack entry:$($nwd)" ;
     # could directly cd to the target dir
     # set-location $nwd ; 
-    # but if you want to increment the pointer to the matching location (esp if depicting the depth in primpt), you need to popd your way back out.
-    1..((get-location -stack).path.count + 1) | foreach-object {write-verbose 'pop-location' ; popd } ; 
+    # but if you want to increment the pointer to the matching location (esp if depicting the depth in prompt), you need to popd your way back out.
+    #1..((get-location -stack).path.count + 1) | foreach-object {write-verbose 'pop-location' ; Pop-Location  } ; 
+    if($n = (get-location -Stack).count){ 
+        1..$($n) |foreach-object {
+            if($VerbosePreference -eq "Continue"){write-verbose 'pop-location'}
+            else {write-host '.' -nonewline } ; 
+            Pop-Location  ; 
+        } 
+    } ;
     if($PassThru){
         write-verbose "(returning pwd object to pipeline)" ; 
         Get-Location |write-output ; 
