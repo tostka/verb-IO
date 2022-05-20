@@ -16,6 +16,7 @@
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 1:35 PM 5/20/2022 flipped echos w-h -> w-v
     * 11:53 AM 5/19/2022 ren: $pltBU -> $pltCpy
     * 8:58 AM 5/16/2022 added pipeline handling; ren backup-file -> backup-fileTDO (and alias orig name)
     * 10:35 AM 2/21/2022 CBH example ps> adds
@@ -59,7 +60,7 @@
         $Verbose = ($VerbosePreference -eq 'Continue') ;
         $smsg = $sBnr = "#*======v $(${CmdletName}): v======" ;
         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
-        else { write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        else { write-verbose $smsg } ;
 
         if ($PSCmdlet.MyInvocation.ExpectingInput) {
             write-verbose "Data received from pipeline input: '$($InputObject)'" ;
@@ -82,7 +83,7 @@
                 $sBnrS = "`n#*------v ($($Procd)):$($item.fullname) v------" ;
                 $smsg = "$($sBnrS)" ;
                 if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
-                else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;
+                else{ write-verbose $smsg } ; } ;
 
                 $pltCpy = [ordered]@{
                     path        = $item.fullname ;
@@ -102,13 +103,12 @@
                 } ; 
             } Catch {
                 $ErrorTrapped = $Error[0] ;
-                Write-Verbose "Failed to exec cmd because: $($ErrorTrapped)" ;
-                Break ; 
+                Write-WARNING "Failed to exec cmd because: $($ErrorTrapped)" ;
             }  ;
 
             $smsg = "BACKUP:copy-item w`n$(($pltCpy|out-string).trim())" ;
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
-            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            else{ write-verbose $smsg } ;
             $Exit = 0 ;
             Do {
                 Try {
@@ -116,10 +116,10 @@
                     $Exit = $Retries ;
                 } Catch {
                     $ErrorTrapped = $Error[0] ;
-                    Write-Verbose "Failed to exec cmd because: $($ErrorTrapped)" ;
+                    Write-WARNING "Failed to exec cmd because: $($ErrorTrapped)" ;
                     Start-Sleep -Seconds $RetrySleep ;
                     $Exit ++ ;
-                    Write-Verbose "Try #: $Exit" ;
+                    Write-WARNING "Try #: $Exit" ;
                     If ($Exit -eq $Retries) { Write-Warning "Unable to exec cmd!" } ;
                 }  ;
             } Until ($Exit -eq $Retries) ;
@@ -129,13 +129,13 @@
                 if (Compare-Object -ReferenceObject $(Get-Content $pltCpy.path) -DifferenceObject $(Get-Content $pltCpy.destination)) {
                     $smsg = "BAD COPY!`n$pltCpy.path`nIS DIFFERENT FROM`n$pltCpy.destination!`nEXITING!";
                     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Error }  #Error|Warn|Debug
-                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    else{ write-verbose $smsg } ;
                     $false | write-output ;
                 } Else {
                     if ($showDebug) {
                         $smsg = "Validated Copy:`n$($pltCpy.path)`n*matches*`n$($pltCpy.destination)"; ;
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
-                        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                        else{ write-verbose $smsg } ;
                     } ;
                     #$true | write-output ;
                     $pltCpy.destination | write-output ;
@@ -146,13 +146,13 @@
             };
             $smsg = "$($sBnrS.replace('-v','-^').replace('v-','^-'))" ;
             if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
-            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;
+            else{ write-verbose $smsg } ; } ;
         }  # loop-E
     } ;  # E PROC
     END{
         $smsg = $sBnr.replace('=v','=^').replace('v=','^=') ;
         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
-        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        else{ write-verbose $smsg } ;
     }
 } ;
 #*------^ END Function backup-FileTDO ^------

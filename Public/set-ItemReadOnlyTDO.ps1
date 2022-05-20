@@ -14,6 +14,7 @@ function set-ItemReadOnlyTDO {
     Copyright   : (c) 2019 Todd Kadrie
     Github      : https://github.com/tostka/verb-io
     REVISIONS
+    * 1:25 PM 5/20/2022 flipped echos w-h -> w-v
     * 3:43 PM 5/19/2022 init
     .DESCRIPTION
     set-ItemReadOnlyTDO.ps1 - Set an item Readonly
@@ -124,12 +125,12 @@ function set-ItemReadOnlyTDO {
             if($pltSIp.Value -eq $null ){
                 # no action
                 if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
-                else{ write-host -foregroundcolor green $smsg } ;
+                else{ write-verbose $smsg } ;
             } else {
                 # if value $true|$false: update the value
                 $smsg = "IsREADONLY:Set-ItemProperty w`n$(($pltSIp|out-string).trim())" ;
                 if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
-                else{ write-host -foregroundcolor green $smsg } ;
+                else{ write-verbose $smsg } ;
                 $Exit = 0 ;
                 Do {
                     $error.clear() ;

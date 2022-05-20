@@ -14,7 +14,7 @@ function restore-FileTDO {
     Copyright   : (c) 2019 Todd Kadrie
     Github      : https://github.com/tostka/verb-io
     REVISIONS
-    * 8:27 AM 5/20/2022 catpure set-itemReadOnly return; recoding unset IsReadOnly where restore source is RO'd (leverage new 'set-ItemReadOnly() -clear'); fixed missing trailing "
+    * 8:27 AM 5/20/2022 flipped echos w-h -> w-v; catpure set-itemReadOnly return; recoding unset IsReadOnly where restore source is RO'd (leverage new 'set-ItemReadOnly() -clear'); fixed missing trailing "
     * 11:52 AM 5/19/2022 typo fix
     * 8:51 AM 5/16/2022 ren revert-File -> restore-file (stock verb, add my uniquing suffix); add orig to alias; added pipeline handling;
     * 10:35 AM 2/21/2022 CBH example ps> adds
@@ -59,7 +59,7 @@ function restore-FileTDO {
         $rgxExtensionTimeStamp = '(_\d{8}-\d{4}(A|P)M)$' ;
         $smsg = $sBnr="#*======v $(${CmdletName}): v======" ;
         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
-        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        else{ write-verbose $smsg } ;
 
         if ($Destination -AND ($path -is [system.array])){
             $smsg = "An Array of paths was used, with explicit -Destination:" ;
@@ -91,7 +91,7 @@ function restore-FileTDO {
                 $sBnrS = "`n#*------v ($($Procd)):$($item.fullname) v------" ;
                 $smsg = "$($sBnrS)" ;
                 if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
-                else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;
+                else{ write-verbose $smsg } ; } ;
 
                 $pltCpy = [ordered]@{
                     path        = $item.fullname ;
@@ -105,12 +105,12 @@ function restore-FileTDO {
                         if($ExtTstamp = [regex]::match($item.Extension, $rgxExtensionTimeStamp).captures[0].groups[0].value){
                             $smsg = "(No -Destination specified: Trimming Timestamp $($ExtTstamp) (from existing Extension:$($item.extension))" ;
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
-                            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                            else{ write-verbose $smsg } ;
 
                             if($item.extension.split('_')[0] -eq '.'){
                                 $smsg = "(original file was extensionless: restoring basename to 'name')" ; 
                                 if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
-                                else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                                else{ write-verbose $smsg } ;
                             } else {
                                 if($item.extension.replace($ExtTstamp,'') -eq '.'){
                                     $smsg = "(net extension would be blank: dropping extension)" ; 
@@ -145,8 +145,7 @@ function restore-FileTDO {
                 } ;
             } Catch {
                 $ErrorTrapped = $Error[0] ;
-                Write-Verbose "Failed to exec cmd because: $($ErrorTrapped)" ;
-                Break ; 
+                Write-WARNING "Failed to exec cmd because: $($ErrorTrapped)" ;
             }  ;
 
             if($NoReadOnly){
@@ -159,29 +158,30 @@ function restore-FileTDO {
 
             $smsg = "RESTORE:copy-item w`n$(($pltCpy|out-string).trim())" ;
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
-            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            else{ write-verbose $smsg } ;
             $Exit = 0 ;
             Do {
                 $error.clear() ;
                 Try {
                     copy-item @pltCpy ;
                     if($bIsReadOnly -AND $NoReadOnly){
-                        write-verbose "(-NoReadOnly:clearing restored IsReadOnly:`$true)"
+                        $smsg = "(-NoReadOnly:clearing source file, restored IsReadOnly to :`$False)"
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+                        else{ write-host -foregroundcolor gray "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
                         $pltIRO=[ordered]@{Clear = $true ;Path =$pltCpy.Destination ;Verbose =$($verbose) ;whatif =$($whatif) ;} 
                         $smsg = "NoReadOnly:Set-ItemReadOnlyTDO w`n$(($pltIRO|out-string).trim())" ;
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
-                        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                        else{ write-verbose $smsg } ;
                         # capture emitted pipe output
                         $bRet = Set-ItemReadOnlyTDO @pltIRO ; 
                     } ; 
                     $Exit = $Retries ;
                 } Catch {
                     $ErrorTrapped = $Error[0] ;
-                    Write-Verbose "Failed to exec cmd because: $($ErrorTrapped)" ;
+                    Write-WARNING "Failed to exec cmd because: $($ErrorTrapped)" ;
                     Start-Sleep -Seconds $RetrySleep ;
-                    # reconnect-exo/reconnect-ex2010
                     $Exit ++ ;
-                    Write-Verbose "Try #: $Exit" ;
+                    Write-WARNING "Try #: $Exit" ;
                     If ($Exit -eq $Retries) { Write-Warning "Unable to exec cmd!" } ;
                 }  ;
             } Until ($Exit -eq $Retries) ;
@@ -208,13 +208,13 @@ function restore-FileTDO {
             };
             $smsg = "$($sBnrS.replace('-v','-^').replace('v-','^-'))" ;
             if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
-            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;
+            else{ write-verbose $smsg } ; } ;
         }   # loop-E
     } ;  # E PROC
     END{
          $smsg = $sBnr.replace('=v','=^').replace('v=','^=') ;
         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
-        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        else{ write-verbose $smsg } ;
     }
 } ;
 #*------^ END Function restore-FileTDO ^------
