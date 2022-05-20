@@ -14,6 +14,7 @@ function restore-FileTDO {
     Copyright   : (c) 2019 Todd Kadrie
     Github      : https://github.com/tostka/verb-io
     REVISIONS
+    * 8:27 AM 5/20/2022 recoding unset IsReadOnly where restore source is RO'd (leverage new 'set-ItemReadOnly() -clear')
     * 11:52 AM 5/19/2022 typo fix
     * 8:51 AM 5/16/2022 ren revert-File -> restore-file (stock verb, add my uniquing suffix); add orig to alias; added pipeline handling;
     * 10:35 AM 2/21/2022 CBH example ps> adds
@@ -43,6 +44,8 @@ function restore-FileTDO {
         [Alias('Source')]$Path,
         [Parameter(Position = 0, Mandatory = $False, HelpMessage = "Optional explicit fullpath file specified as 'source' should be copied to (default behavior i8s to trim the extension of the trailing time stamp)[-Dest path-to\script.ps1]")]
         $Destination,
+        [Parameter(HelpMessage = "Switch to remove any Readonly setting on source file, on the destionation copy[-NoReadOnly]")]
+        [switch] $NoReadOnly,
         [Parameter(HelpMessage = "Debugging Flag [-showDebug]")]
         [switch] $showDebug,
         [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
@@ -80,6 +83,7 @@ function restore-FileTDO {
         foreach($item in $path) {
             $Procd++ ;
             $fnparts = @() ; $ExtTstamp = $null ; 
+            $bIsReadOnly = $false ; 
             Try {
                 if ($item.GetType().FullName -ne 'System.IO.FileInfo') {
                     $item = get-childitem -path $item ;
@@ -145,6 +149,14 @@ function restore-FileTDO {
                 Break ; 
             }  ;
 
+            if($NoReadOnly){
+                write-verbose "(checking Source for ReadOnly property)" ; 
+                if((get-itemproperty -Path $pltCpy.path).IsReadOnly){
+                    WRITE-VERBOSE "(IsReadOnly detected)" ; 
+                    $bIsReadOnly = $true ; 
+                } ; 
+            } ; 
+
             $smsg = "RESTORE:copy-item w`n$(($pltCpy|out-string).trim())" ;
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }  #Error|Warn|Debug
             else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
@@ -153,6 +165,10 @@ function restore-FileTDO {
                 $error.clear() ;
                 Try {
                     copy-item @pltCpy ;
+                    if($bIsReadOnly -AND $NoReadOnly){
+                        write-verbose "(-NoReadOnly:clearing restored IsReadOnly:`$true)
+                        Set-ItemReadOnlyTDO -Clear -Verbose:$($verbose) -whatif:$($whatif) ;
+                    } ; 
                     $Exit = $Retries ;
                 } Catch {
                     $ErrorTrapped = $Error[0] ;
