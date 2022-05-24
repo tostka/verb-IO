@@ -17,6 +17,7 @@ function remove-UnneededFileVariants {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 12:52 PM 5/23/2022 flip rm catch to Continue, and add ea continue to the splat, Break aborts what is really only a maint task, not a critical path step ; added variant catch for perms/read-only error: catch[System.IO.IOException]{
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 7:28 PM 11/6/2021 added missing $population = $population reassign post filtering (prevented filter reduction form occuring at all)
     * 9:58 AM 9/21/2021 rem'd retry loop
@@ -153,8 +154,11 @@ function remove-UnneededFileVariants {
 
     if($population){
     
+        # add ea cont, to permit it to survive read-only files wo errors.
         $pltRItm = [ordered]@{
             path=$population.fullname ; 
+            #ErrorAction =  'Continue' ; 
+            ErrorAction =  'STOP' ; 
             whatif=$($whatif) ;
         } ; 
         
@@ -164,6 +168,20 @@ function remove-UnneededFileVariants {
         TRY {
             Remove-Item @pltRItm ;
             $true | write-output ; 
+        } CATCH [System.IO.IOException]{
+            $ErrTrapd=$Error[0] ;
+            $smsg = "File permissions/read-only issue (SKIPPING:$pltRItm.path)..."
+            $smsg += "`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: $($ErrTrapd)" ;
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+            else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            #-=-record a STATUSWARN=-=-=-=-=-=-=
+            $statusdelta = ";WARN"; # CHANGE|INCOMPLETE|ERROR|WARN|FAIL ;
+            if(gv passstatus -scope Script -ea 0){$script:PassStatus += $statusdelta } ;
+            if(gv -Name PassStatus_$($tenorg) -scope Script -ea 0){set-Variable -Name PassStatus_$($tenorg) -scope Script -Value ((get-Variable -Name PassStatus_$($tenorg)).value + $statusdelta)} ; 
+            #-=-=-=-=-=-=-=-=
+            $false | write-output ; 
+
+            Continue  ; 
         } CATCH {
             $ErrTrapd=$Error[0] ;
             $smsg = "Failed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: $($ErrTrapd)" ;
@@ -179,8 +197,8 @@ function remove-UnneededFileVariants {
             else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
 
             $false | write-output ; 
-
-            Break #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
+            # flip it to Continue, Break aborts what is really only a maint task, not a critical path step
+            Continue #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
         } ; 
     } else { 
         $smsg = "There are *no* files to be removed, as per the specified inputs. (`$population:$(($population|measure).count))" ; 
