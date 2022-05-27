@@ -15,6 +15,7 @@ function Set-ContentFixEncoding {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,File,Encoding,Management
     REVISIONS   :
+    *4:26 PM 5/27/2022 fixed typo in doloop #98: $Retries => $DoRetries (loop went full dist before exiting, even if successful 1st attempt)
     * 10:01 AM 5/17/2022 updated CBH exmple
     * 10:39 AM 5/13/2022 removed 'requires -modules', to fix nesting limit error loading verb-io
     * 2:37 PM 5/10/2022 add array back to $value, saw signs it was flattening systemobjects coming in as an array of lines, and only writing the last line to the -path.
@@ -95,7 +96,7 @@ function Set-ContentFixEncoding {
         Try{
             $Returned = Set-Content @pltSetCon -Value $Value ;
             $Returned | write-output ;
-            $Exit = $Retries ;
+            $Exit = $DoRetries ;
         }Catch{
             #Write-Error -Message $_.Exception.Message ;
             $ErrTrapd=$Error[0] ;
