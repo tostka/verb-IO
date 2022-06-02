@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 2.0.3.0.0
+Version     : 3.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -38,10 +38,11 @@ https://github.com/tostka/verb-IO
     $script:ModuleRoot = $PSScriptRoot ;
     $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ;
     $runningInVsCode = $env:TERM_PROGRAM -eq 'vscode' ;
-        $Psv2PublicExcl = @() ;
-        $Psv2PrivateExcl = @() ;
+            $Psv2PublicExcl = @() ;
+            $Psv2PrivateExcl = @() ;
 
 #*======v FUNCTIONS v======
+
 
 
 
@@ -62,6 +63,7 @@ function Add-ContentFixEncoding {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,File,Encoding,Management
     REVISIONS   :
+    *4:26 PM 5/27/2022 fixed typo in doloop #98: $Retries => $DoRetries (loop went full dist before exiting, even if successful 1st attempt)
     * 10:01 AM 5/17/2022 updated CBH exmple
     * 10:39 AM 5/13/2022 removed 'requires -modules', to fix nesting limit error loading verb-io
     * 3:35 PM 5/10/2022 typo, fixed non capture & return of -passthru to pipeline ; add array back to $value, saw signs it was flattening systemobjects coming in as an array of lines, and only writing the last line to the -path.
@@ -150,7 +152,7 @@ function Add-ContentFixEncoding {
         Try{
             $Returned = Add-Content @pltSetCon -Value $Value ;
             $Returned | write-output ;
-            $Exit = $Retries ;
+            $Exit = $DoRetries ;
         }Catch{
             #Write-Error -Message $_.Exception.Message ;
             $ErrTrapd=$Error[0] ;
@@ -170,6 +172,7 @@ function Add-ContentFixEncoding {
 }
 
 #*------^ Add-ContentFixEncoding.ps1 ^------
+
 
 #*------v Add-PSTitleBar.ps1 v------
 Function Add-PSTitleBar {
@@ -272,6 +275,7 @@ Function Add-PSTitleBar {
 
 #*------^ Add-PSTitleBar.ps1 ^------
 
+
 #*------v Authenticate-File.ps1 v------
 function Authenticate-File {
     <#
@@ -324,6 +328,7 @@ function Authenticate-File {
 }
 
 #*------^ Authenticate-File.ps1 ^------
+
 
 #*------v backup-FileTDO.ps1 v------
 function backup-FileTDO {
@@ -486,6 +491,7 @@ function backup-FileTDO {
 
 #*------^ backup-FileTDO.ps1 ^------
 
+
 #*------v check-FileLock.ps1 v------
 function check-FileLock {
     <#
@@ -544,6 +550,7 @@ function check-FileLock {
 }
 
 #*------^ check-FileLock.ps1 ^------
+
 
 #*------v Close-IfAlreadyRunning.ps1 v------
 Function Close-IfAlreadyRunning {
@@ -605,6 +612,7 @@ Function Close-IfAlreadyRunning {
 }
 
 #*------^ Close-IfAlreadyRunning.ps1 ^------
+
 
 #*------v ColorMatch.ps1 v------
 function ColorMatch {
@@ -668,6 +676,7 @@ function ColorMatch {
 }
 
 #*------^ ColorMatch.ps1 ^------
+
 
 #*------v Compare-ObjectsSideBySide.ps1 v------
 function Compare-ObjectsSideBySide{
@@ -768,6 +777,7 @@ function Compare-ObjectsSideBySide{
 
 #*------^ Compare-ObjectsSideBySide.ps1 ^------
 
+
 #*------v Compare-ObjectsSideBySide3.ps1 v------
 function Compare-ObjectsSideBySide3 {
     <#
@@ -862,6 +872,7 @@ function Compare-ObjectsSideBySide3 {
 }
 
 #*------^ Compare-ObjectsSideBySide3.ps1 ^------
+
 
 #*------v Compare-ObjectsSideBySide4.ps1 v------
 function Compare-ObjectsSideBySide4 {
@@ -968,6 +979,7 @@ function Compare-ObjectsSideBySide4 {
 }
 
 #*------^ Compare-ObjectsSideBySide4.ps1 ^------
+
 
 #*------v convert-BinaryToDecimalStorageUnits.ps1 v------
 Function convert-BinaryToDecimalStorageUnits {
@@ -1084,6 +1096,7 @@ For small values, it's a rounding error difference between GB\GiB. But as the va
 
 #*------^ convert-BinaryToDecimalStorageUnits.ps1 ^------
 
+
 #*------v convert-ColorHexCodeToWindowsMediaColorsName.ps1 v------
 Function convert-ColorHexCodeToWindowsMediaColorsName {
     <#
@@ -1158,6 +1171,7 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
 
 #*------^ convert-ColorHexCodeToWindowsMediaColorsName.ps1 ^------
 
+
 #*------v convert-DehydratedBytesToGB.ps1 v------
 Function convert-DehydratedBytesToGB {
     <#
@@ -1175,19 +1189,38 @@ Function convert-DehydratedBytesToGB {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Conversion,Storage,Unit
     REVISIONS
+    * 3:08 PM 5/27/2022 CBH added example for select property expression; strongly typed output as double
     * 1:34 PM 2/25/2022 refactored CBH (was broken, non-parsing), renamed -data -> -string, retained prior name as a parameter alias
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
-    convert-DehydratedBytesToGB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal gigabytes.
+    convert-DehydratedBytesToGB - Convert MS Dehydrated byte sizes string - 'NN.NN MB (nnn,nnn,nnn bytes)' string returned - into equivelent decimal gigabytes.
+    Microsoft routinely returns storage values as space/parenthese-delimited string in units value, and a parenthetical comma'd bytes value. Neither of which is usable for comparison or sorting, unless converted to a single underlying unit of value. This does that conversion. 
     .PARAMETER String
     Array of Dehydrated byte sizes to be converted
     .PARAMETER Decimals
     Number of decimal places to return on results
+    .INPUTS
+    Accepts pipeline input. 
     .OUTPUTS
-    System.String
+    System.Double
     .EXAMPLE
     PS> (get-mailbox -id hoffmjj | get-mailboxstatistics).totalitemsize | convert-DehydratedBytesToGB ;
     Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values.
+    .EXAMPLE
+    PS> $propsFldr = 'Name','ItemsInFolder', @{Name='FolderSizeGB';Expression={$_.FolderSize | convert-DehydratedBytesToGB -decimals 5 }},@{Name='TopSubjectSizeGB';Expression={$_.TopSubjectSize | convert-DehydratedBytesToGB -decimals 5 }},'TopSubject','TopSubjectCount','TopSubjectClass' ; 
+    PS> Connect-ExchangeOnline ; 
+    PS> $fldrstats = Get-XOMailboxFolderStatistics -Identity user@domain.com  -IncludeAnalysis -FolderScope RecoverableItems ; 
+    PS>  $fldrstats | select $propsFldr |?{$_.TopSubjectSizeGB -gt 1}
+    
+    Name             : DiscoveryHolds
+    ItemsInFolder    : 291212
+    FolderSizeGB     : 98.03443
+    TopSubjectSizeGB : 49.32737
+    TopSubject       : Subject Meeting
+    TopSubjectCount  : 29154
+    TopSubjectClass  : IPM.Appointment
+    
+    Demo construction of a select-object properties array that includes expressions leveraging convert-DehydratedBytesToGB to produce decimal gigabyte sizes for EXO two dehydrated byte sizes properties (with 5-digit decimal values), and then postfiltering that value for oversize mailbox folders (with ExchangeOnlineManagement module)
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -1215,7 +1248,7 @@ Function convert-DehydratedBytesToGB {
         If($String -match '.*\s\(.*\sbytes\)'){ 
             foreach($item in $String){
                 # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb or mb decimal places (depending on tomb or togb variant of the function)
-                $item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1GB)} | write-output ;
+                [double]($item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1GB)}) | write-output ;
                 # sole difference between GB & MB funcs is the 1GB/1MB above
             } ; 
         } else { 
@@ -1228,11 +1261,12 @@ Function convert-DehydratedBytesToGB {
 
 #*------^ convert-DehydratedBytesToGB.ps1 ^------
 
+
 #*------v convert-DehydratedBytesToMB.ps1 v------
 Function convert-DehydratedBytesToMB {
     <#
     .SYNOPSIS
-    convert-DehydratedBytesToMB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal megabytes.
+    convert-DehydratedBytesToMB - Convert MS Dehydrated byte sizes string returned - 'NN.NN MB (nnn,nnn,nnn bytes)' - into equivelent decimal megabytes.
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -1245,19 +1279,27 @@ Function convert-DehydratedBytesToMB {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Conversion,Storage,Unit
     REVISIONS
+    * 3:08 PM 5/27/2022 CBH added example for select property expression; strongly typed output as double
     * 1:34 PM 2/25/2022 refactored CBH (was broken, non-parsing), renamed -data -> -string, retained prior name as a parameter alias
     * 5:19 PM 7/20/2021 init vers
     .DESCRIPTION
-    convert-DehydratedBytesToMB - Convert MS Dehydrated byte sizes string - NN.NN MB (nnn,nnn,nnn bytes) - into equivelent decimal megabytes.
+    convert-DehydratedBytesToMB - Convert MS Dehydrated byte sizes string returned - 'NN.NN MB (nnn,nnn,nnn bytes)' - into equivelent decimal megabytes.
     .PARAMETER String
     Array of Dehydrated byte sizes to be converted
     .PARAMETER Decimals
     Number of decimal places to return on results
+    .INPUTS
+    Accepts pipeline input. 
     .OUTPUTS
-    System.String
+    System.Double
     .EXAMPLE
     PS> (get-mailbox -id hoffmjj | get-mailboxstatistics).totalitemsize | convert-DehydratedBytesToMB ;
-    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal gigabyte values.
+    Convert a series of get-MailboxStatistics.totalitemsize.values ("102.8 MB (107,808,015 bytes)") into decimal megabyte values.
+    .EXAMPLE
+    PS> $propsFldr = 'Name','ItemsInFolder', @{Name='FolderSizeMB';Expression={$_.FolderSize | convert-DehydratedBytesToMB -decimals 5 }},@{Name='TopSubjectSizeGB';Expression={$_.TopSubjectSize | convert-DehydratedBytesToGB -decimals 5 }},'TopSubject','TopSubjectCount','TopSubjectClass' ; 
+    PS> Connect-ExchangeOnline ; 
+    PS> $fldrstats = Get-XOMailboxFolderStatistics -Identity user@domain.com  -IncludeAnalysis -FolderScope RecoverableItems ; 
+    PS>  $fldrstats | select $propsFldr |?{$_.TopSubjectSizeMB -gt 1}
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -1285,7 +1327,7 @@ Function convert-DehydratedBytesToMB {
         If($String -match '.*\s\(.*\sbytes\)'){ 
             foreach($item in $String){
                 # replace ".*(" OR "\sbytes\).*" OR "," (with nothing, results in the raw bytes numeric value), then foreach and format to gb or mb decimal places (depending on tomb or togb variant of the function)
-                $item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1MB)} | write-output ;
+                [double]($item -replace '.*\(| bytes\).*|,' |foreach-object {$FmtCode  -f ($_ / 1MB)}) | write-output ;
                 # sole difference between GB & MB funcs is the 1GB/1MB above
             } ; 
         } else { 
@@ -1297,6 +1339,7 @@ Function convert-DehydratedBytesToMB {
 }
 
 #*------^ convert-DehydratedBytesToMB.ps1 ^------
+
 
 #*------v Convert-FileEncoding.ps1 v------
 function Convert-FileEncoding {
@@ -1360,6 +1403,7 @@ function Convert-FileEncoding {
 
 #*------^ Convert-FileEncoding.ps1 ^------
 
+
 #*------v ConvertFrom-CanonicalOU.ps1 v------
 function ConvertFrom-CanonicalOU {
     <#
@@ -1417,6 +1461,7 @@ function ConvertFrom-CanonicalOU {
 }
 
 #*------^ ConvertFrom-CanonicalOU.ps1 ^------
+
 
 #*------v ConvertFrom-CanonicalUser.ps1 v------
 function ConvertFrom-CanonicalUser {
@@ -1478,6 +1523,7 @@ function ConvertFrom-CanonicalUser {
 
 #*------^ ConvertFrom-CanonicalUser.ps1 ^------
 
+
 #*------v ConvertFrom-CmdList.ps1 v------
 filter ConvertFrom-CmdList {
     <#
@@ -1524,6 +1570,7 @@ filter ConvertFrom-CmdList {
 }
 
 #*------^ ConvertFrom-CmdList.ps1 ^------
+
 
 #*------v ConvertFrom-DN.ps1 v------
 function ConvertFrom-DN {
@@ -1593,6 +1640,7 @@ function ConvertFrom-DN {
 }
 
 #*------^ ConvertFrom-DN.ps1 ^------
+
 
 #*------v ConvertFrom-IniFile.ps1 v------
 Function ConvertFrom-IniFile {
@@ -1728,6 +1776,7 @@ Function ConvertFrom-IniFile {
 
 #*------^ ConvertFrom-IniFile.ps1 ^------
 
+
 #*------v convertFrom-MarkdownTable.ps1 v------
 Function convertFrom-MarkdownTable {
     <#
@@ -1807,6 +1856,7 @@ Function convertFrom-MarkdownTable {
 }
 
 #*------^ convertFrom-MarkdownTable.ps1 ^------
+
 
 #*------v ConvertFrom-SourceTable.ps1 v------
 if($host.version.major -gt 2){
@@ -2354,6 +2404,7 @@ $Message
 
 #*------^ ConvertFrom-SourceTable.ps1 ^------
 
+
 #*------v convert-HelpToMarkdown.ps1 v------
 Function convert-HelpToMarkdown {
     <#
@@ -2597,6 +2648,7 @@ $(_getRemark $example)
 
 #*------^ convert-HelpToMarkdown.ps1 ^------
 
+
 #*------v ConvertTo-HashIndexed.ps1 v------
 Function ConvertTo-HashIndexed {
     <#
@@ -2689,6 +2741,7 @@ Function ConvertTo-HashIndexed {
 }
 
 #*------^ ConvertTo-HashIndexed.ps1 ^------
+
 
 #*------v convertto-MarkdownTable.ps1 v------
 Function convertTo-MarkdownTable {
@@ -2918,6 +2971,7 @@ Function convertTo-MarkdownTable {
 
 #*------^ convertto-MarkdownTable.ps1 ^------
 
+
 #*------v convertTo-Object.ps1 v------
 Function convertTo-Object {
 
@@ -2973,6 +3027,7 @@ Function convertTo-Object {
 }
 
 #*------^ convertTo-Object.ps1 ^------
+
 
 #*------v ConvertTo-SRT.ps1 v------
 function ConvertTo-SRT {
@@ -3071,6 +3126,7 @@ https://gist.github.com/joegasper/e862f71b5a2658fae21fd36f7231b33c
 }
 
 #*------^ ConvertTo-SRT.ps1 ^------
+
 
 #*------v convert-VideoToMp3.ps1 v------
 function convert-VideoToMp3 {
@@ -3419,6 +3475,7 @@ function convert-VideoToMp3 {
 
 #*------^ convert-VideoToMp3.ps1 ^------
 
+
 #*------v copy-Profile.ps1 v------
 function copy-Profile {
     <#
@@ -3566,6 +3623,7 @@ function copy-Profile {
 
 #*------^ copy-Profile.ps1 ^------
 
+
 #*------v count-object.ps1 v------
 function Count-Object {
     <#
@@ -3613,6 +3671,7 @@ function Count-Object {
 }
 
 #*------^ count-object.ps1 ^------
+
 
 #*------v Create-ScheduledTaskLegacy.ps1 v------
 Function Create-ScheduledTaskLegacy {
@@ -3688,6 +3747,7 @@ Function Create-ScheduledTaskLegacy {
 }
 
 #*------^ Create-ScheduledTaskLegacy.ps1 ^------
+
 
 #*------v dump-Shortcuts.ps1 v------
 function dump-Shortcuts {
@@ -3834,6 +3894,7 @@ function dump-Shortcuts {
 
 #*------^ dump-Shortcuts.ps1 ^------
 
+
 #*------v Echo-Finish.ps1 v------
 Function Echo-Finish {
     <#
@@ -3875,6 +3936,7 @@ Function Echo-Finish {
 
 #*------^ Echo-Finish.ps1 ^------
 
+
 #*------v Echo-ScriptEnd.ps1 v------
 Function Echo-ScriptEnd {
     <#
@@ -3915,6 +3977,7 @@ Function Echo-ScriptEnd {
 }
 
 #*------^ Echo-ScriptEnd.ps1 ^------
+
 
 #*------v Echo-Start.ps1 v------
 Function Echo-Start {
@@ -3960,6 +4023,7 @@ Function Echo-Start {
 }
 
 #*------^ Echo-Start.ps1 ^------
+
 
 #*------v Expand-ZIPFile.ps1 v------
 function Expand-ZIPFile {
@@ -4010,6 +4074,7 @@ function Expand-ZIPFile {
 }
 
 #*------^ Expand-ZIPFile.ps1 ^------
+
 
 #*------v extract-Icon.ps1 v------
 Function extract-Icon {
@@ -4157,6 +4222,7 @@ public class IconExtractor
 
 #*------^ extract-Icon.ps1 ^------
 
+
 #*------v Find-LockedFileProcess.ps1 v------
 function Find-LockedFileProcess {
     <#
@@ -4199,6 +4265,7 @@ function Find-LockedFileProcess {
 }
 
 #*------^ Find-LockedFileProcess.ps1 ^------
+
 
 #*------v Format-Json.ps1 v------
 function Format-Json {
@@ -4325,6 +4392,7 @@ function Format-Json {
 
 #*------^ Format-Json.ps1 ^------
 
+
 #*------v get-AliasDefinition.ps1 v------
 Function get-AliasDefinition {
     <#
@@ -4372,6 +4440,7 @@ Function get-AliasDefinition {
 
 #*------^ get-AliasDefinition.ps1 ^------
 
+
 #*------v Get-AverageItems.ps1 v------
 function Get-AverageItems {
     <#
@@ -4407,6 +4476,7 @@ function Get-AverageItems {
 }
 
 #*------^ Get-AverageItems.ps1 ^------
+
 
 #*------v get-colorcombo.ps1 v------
 function get-colorcombo {
@@ -4506,6 +4576,7 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
 }
 
 #*------^ get-colorcombo.ps1 ^------
+
 
 #*------v get-ConsoleText.ps1 v------
 Function get-ConsoleText {
@@ -4612,6 +4683,7 @@ Function get-ConsoleText {
 
 #*------^ get-ConsoleText.ps1 ^------
 
+
 #*------v Get-CountItems.ps1 v------
 function Get-CountItems {
     <#
@@ -4645,6 +4717,7 @@ function Get-CountItems {
 }
 
 #*------^ Get-CountItems.ps1 ^------
+
 
 #*------v Get-FileEncoding.ps1 v------
 function Get-FileEncoding {
@@ -4731,6 +4804,7 @@ function Get-FileEncoding {
 }
 
 #*------^ Get-FileEncoding.ps1 ^------
+
 
 #*------v Get-FileEncodingExtended.ps1 v------
 function Get-FileEncodingExtended {
@@ -4827,6 +4901,7 @@ function Get-FileEncodingExtended {
 }
 
 #*------^ Get-FileEncodingExtended.ps1 ^------
+
 
 #*------v Get-FolderSize.ps1 v------
 function Get-FolderSize {
@@ -4971,6 +5046,7 @@ function Get-FolderSize {
 
 #*------^ Get-FolderSize.ps1 ^------
 
+
 #*------v Get-FolderSize2.ps1 v------
 Function Get-FolderSize2 {
     <#
@@ -5008,6 +5084,7 @@ Function Get-FolderSize2 {
 }
 
 #*------^ Get-FolderSize2.ps1 ^------
+
 
 #*------v Get-FsoShortName.ps1 v------
 Function Get-FsoShortName {
@@ -5060,6 +5137,7 @@ Function Get-FsoShortName {
 
 #*------^ Get-FsoShortName.ps1 ^------
 
+
 #*------v Get-FsoShortPath.ps1 v------
 Function Get-FsoShortPath {
         <#
@@ -5110,6 +5188,7 @@ Function Get-FsoShortPath {
     }
 
 #*------^ Get-FsoShortPath.ps1 ^------
+
 
 #*------v Get-FsoTypeObj.ps1 v------
 Function Get-FsoTypeObj {
@@ -5164,6 +5243,7 @@ Function Get-FsoTypeObj {
 }
 
 #*------^ Get-FsoTypeObj.ps1 ^------
+
 
 #*------v get-InstalledApplication.ps1 v------
 Function get-InstalledApplication {
@@ -5225,6 +5305,7 @@ Function get-InstalledApplication {
 }
 
 #*------^ get-InstalledApplication.ps1 ^------
+
 
 #*------v get-LoremName.ps1 v------
 function get-LoremName {
@@ -5327,6 +5408,7 @@ function get-LoremName {
 
 #*------^ get-LoremName.ps1 ^------
 
+
 #*------v Get-ProductItems.ps1 v------
 function Get-ProductItems {
     <#
@@ -5359,6 +5441,7 @@ function Get-ProductItems {
 }
 
 #*------^ Get-ProductItems.ps1 ^------
+
 
 #*------v get-RegistryProperty.ps1 v------
 function get-RegistryProperty {
@@ -5433,6 +5516,7 @@ function get-RegistryProperty {
 
 #*------^ get-RegistryProperty.ps1 ^------
 
+
 #*------v Get-ScheduledTaskLegacy.ps1 v------
 Function Get-ScheduledTaskLegacy {
     <#
@@ -5482,6 +5566,7 @@ Function Get-ScheduledTaskLegacy {
 
 #*------^ Get-ScheduledTaskLegacy.ps1 ^------
 
+
 #*------v Get-Shortcut.ps1 v------
 function Get-Shortcut {
     <#
@@ -5530,6 +5615,7 @@ function Get-Shortcut {
 
 #*------^ Get-Shortcut.ps1 ^------
 
+
 #*------v Get-SumItems.ps1 v------
 function Get-SumItems {
     <#
@@ -5567,6 +5653,7 @@ function Get-SumItems {
 }
 
 #*------^ Get-SumItems.ps1 ^------
+
 
 #*------v get-TaskReport.ps1 v------
 function get-TaskReport {
@@ -5713,6 +5800,7 @@ $((get-scheduledtask|?{$_.taskpath -eq '\'} | ft -auto |out-string).trim()) ;
 
 #*------^ get-TaskReport.ps1 ^------
 
+
 #*------v Get-Time.ps1 v------
 function Get-Time {
     <#
@@ -5727,6 +5815,7 @@ function Get-Time {
 }
 
 #*------^ Get-Time.ps1 ^------
+
 
 #*------v Get-TimeStamp.ps1 v------
 function Get-TimeStamp {
@@ -5756,6 +5845,7 @@ function Get-TimeStamp {
 
 #*------^ Get-TimeStamp.ps1 ^------
 
+
 #*------v get-TimeStampNow.ps1 v------
 Function get-TimeStampNow () {
     <#
@@ -5784,6 +5874,7 @@ Function get-TimeStampNow () {
 }
 
 #*------^ get-TimeStampNow.ps1 ^------
+
 
 #*------v get-Uptime.ps1 v------
 function get-Uptime {
@@ -5880,6 +5971,7 @@ function get-Uptime {
 
 #*------^ get-Uptime.ps1 ^------
 
+
 #*------v Invoke-Flasher.ps1 v------
 Function Invoke-Flasher {
     <#
@@ -5955,6 +6047,7 @@ Function Invoke-Flasher {
 
 #*------^ Invoke-Flasher.ps1 ^------
 
+
 #*------v Invoke-Pause.ps1 v------
 Function Invoke-Pause() {
     <#
@@ -6005,6 +6098,7 @@ Function Invoke-Pause() {
 }
 
 #*------^ Invoke-Pause.ps1 ^------
+
 
 #*------v Invoke-Pause2.ps1 v------
 Function Invoke-Pause2() {
@@ -6057,6 +6151,7 @@ Function Invoke-Pause2() {
 }
 
 #*------^ Invoke-Pause2.ps1 ^------
+
 
 #*------v invoke-SoundCue.ps1 v------
 function invoke-SoundCue{
@@ -6438,6 +6533,7 @@ function invoke-SoundCue{
 
 #*------^ invoke-SoundCue.ps1 ^------
 
+
 #*------v mount-UnavailableMappedDrives.ps1 v------
 Function mount-UnavailableMappedDrives{
     <#
@@ -6568,6 +6664,7 @@ Function mount-UnavailableMappedDrives{
 
 #*------^ mount-UnavailableMappedDrives.ps1 ^------
 
+
 #*------v move-FileOnReboot.ps1 v------
 function move-FileOnReboot {
     <#
@@ -6633,6 +6730,7 @@ public static extern bool MoveFileEx(string lpExistingFileName, string lpNewFile
 }
 
 #*------^ move-FileOnReboot.ps1 ^------
+
 
 #*------v new-Shortcut.ps1 v------
 function new-Shortcut {
@@ -6834,6 +6932,7 @@ function new-Shortcut {
 
 #*------^ new-Shortcut.ps1 ^------
 
+
 #*------v out-Clipboard.ps1 v------
 Function out-Clipboard {
     <#
@@ -6906,6 +7005,7 @@ Function out-Clipboard {
 
 #*------^ out-Clipboard.ps1 ^------
 
+
 #*------v Out-Excel.ps1 v------
 function Out-Excel {
     <#
@@ -6942,6 +7042,7 @@ function Out-Excel {
 }
 
 #*------^ Out-Excel.ps1 ^------
+
 
 #*------v Out-Excel-Events.ps1 v------
 function Out-Excel-Events {
@@ -6981,6 +7082,7 @@ https://github.com/tostka/verb-IO
 }
 
 #*------^ Out-Excel-Events.ps1 ^------
+
 
 #*------v parse-PSTitleBar.ps1 v------
 Function parse-PSTitleBar {
@@ -7074,6 +7176,7 @@ Function parse-PSTitleBar {
 
 #*------^ parse-PSTitleBar.ps1 ^------
 
+
 #*------v play-beep.ps1 v------
 function play-beep {
     <#
@@ -7102,6 +7205,7 @@ function play-beep {
 }
 
 #*------^ play-beep.ps1 ^------
+
 
 #*------v Pop-LocationFirst.ps1 v------
 function Pop-LocationFirst {
@@ -7173,6 +7277,7 @@ function Pop-LocationFirst {
 
 #*------^ Pop-LocationFirst.ps1 ^------
 
+
 #*------v prompt-Continue.ps1 v------
 Function prompt-Continue {
     <#
@@ -7236,6 +7341,7 @@ Function prompt-Continue {
 
 #*------^ prompt-Continue.ps1 ^------
 
+
 #*------v read-Host2.ps1 v------
 Function Read-Host2 {
     <#
@@ -7277,7 +7383,7 @@ Function Read-Host2 {
       20,480      0 OverwriteAsNeeded          12 Lenovo-Customer Feedback
          128      0 OverwriteAsNeeded         455 OAlerts
          512      7 OverwriteOlder              0 PreEmptive
-      20,480      0 OverwriteAsNeeded      32,013 Security
+      20,480      0 OverwriteAsNeeded      33.0.0 Security
       20,480      0 OverwriteAsNeeded      26,475 System
       15,360      0 OverwriteAsNeeded      17,715 Windows PowerShell
      This is an example of how you might use the command in a script. The prompt will keep flashing until you press Enter.
@@ -7387,6 +7493,7 @@ Function Read-Host2 {
 
 #*------^ read-Host2.ps1 ^------
 
+
 #*------v rebuild-PSTitleBar.ps1 v------
 Function rebuild-PSTitleBar {
     <#
@@ -7474,6 +7581,7 @@ Function rebuild-PSTitleBar {
 }
 
 #*------^ rebuild-PSTitleBar.ps1 ^------
+
 
 #*------v Remove-AuthenticodeSignature.ps1 v------
 function Remove-AuthenticodeSignature {
@@ -7594,6 +7702,7 @@ function Remove-AuthenticodeSignature {
 
 #*------^ Remove-AuthenticodeSignature.ps1 ^------
 
+
 #*------v Remove-InvalidFileNameChars.ps1 v------
 Function Remove-InvalidFileNameChars {
   <#
@@ -7656,6 +7765,7 @@ Function Remove-InvalidFileNameChars {
 }
 
 #*------^ Remove-InvalidFileNameChars.ps1 ^------
+
 
 #*------v remove-ItemRetry.ps1 v------
 function remove-ItemRetry {
@@ -7762,6 +7872,7 @@ function remove-ItemRetry {
 
 #*------^ remove-ItemRetry.ps1 ^------
 
+
 #*------v remove-JsonComments.ps1 v------
 Function Remove-JsonComments{ 
     <#
@@ -7808,6 +7919,7 @@ Function Remove-JsonComments{
 }
 
 #*------^ remove-JsonComments.ps1 ^------
+
 
 #*------v Remove-PSTitleBar.ps1 v------
 Function Remove-PSTitleBar {
@@ -7905,6 +8017,7 @@ Function Remove-PSTitleBar {
 
 #*------^ Remove-PSTitleBar.ps1 ^------
 
+
 #*------v Remove-ScheduledTaskLegacy.ps1 v------
 Function Remove-ScheduledTaskLegacy {
     <#
@@ -7957,6 +8070,7 @@ Function Remove-ScheduledTaskLegacy {
 }
 
 #*------^ Remove-ScheduledTaskLegacy.ps1 ^------
+
 
 #*------v remove-UnneededFileVariants.ps1 v------
 function remove-UnneededFileVariants {
@@ -8172,6 +8286,7 @@ function remove-UnneededFileVariants {
 
 #*------^ remove-UnneededFileVariants.ps1 ^------
 
+
 #*------v replace-PSTitleBarText.ps1 v------
 Function replace-PSTitleBarText {
     <#
@@ -8240,6 +8355,7 @@ Function replace-PSTitleBarText {
 
 #*------^ replace-PSTitleBarText.ps1 ^------
 
+
 #*------v reset-ConsoleColors.ps1 v------
 Function reset-ConsoleColors {
     <#
@@ -8307,6 +8423,7 @@ Function reset-ConsoleColors {
 }
 
 #*------^ reset-ConsoleColors.ps1 ^------
+
 
 #*------v restore-FileTDO.ps1 v------
 function restore-FileTDO {
@@ -8530,6 +8647,7 @@ function restore-FileTDO {
 
 #*------^ restore-FileTDO.ps1 ^------
 
+
 #*------v Run-ScheduledTaskLegacy.ps1 v------
 Function Run-ScheduledTaskLegacy {
     <#
@@ -8582,6 +8700,7 @@ Function Run-ScheduledTaskLegacy {
 }
 
 #*------^ Run-ScheduledTaskLegacy.ps1 ^------
+
 
 #*------v Save-ConsoleOutputToClipBoard.ps1 v------
 function Save-ConsoleOutputToClipBoard {
@@ -8645,6 +8764,7 @@ function Save-ConsoleOutputToClipBoard {
 
 #*------^ Save-ConsoleOutputToClipBoard.ps1 ^------
 
+
 #*------v select-first.ps1 v------
 function select-first {
     <#
@@ -8693,6 +8813,7 @@ function select-first {
 
 #*------^ select-first.ps1 ^------
 
+
 #*------v select-last.ps1 v------
 function Select-last {
     <#
@@ -8740,6 +8861,7 @@ function Select-last {
 }
 
 #*------^ select-last.ps1 ^------
+
 
 #*------v Select-StringAll.ps1 v------
 Function Select-StringAll {
@@ -8945,6 +9067,7 @@ When the context includes a match, the MatchInfo object for each match includes 
 }
 
 #*------^ Select-StringAll.ps1 ^------
+
 
 #*------v set-ConsoleColors.ps1 v------
 Function set-ConsoleColors {
@@ -9230,6 +9353,7 @@ Function set-ConsoleColors {
 
 #*------^ set-ConsoleColors.ps1 ^------
 
+
 #*------v Set-ContentFixEncoding.ps1 v------
 function Set-ContentFixEncoding {
     <#
@@ -9247,6 +9371,7 @@ function Set-ContentFixEncoding {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,File,Encoding,Management
     REVISIONS   :
+    *4:26 PM 5/27/2022 fixed typo in doloop #98: $Retries => $DoRetries (loop went full dist before exiting, even if successful 1st attempt)
     * 10:01 AM 5/17/2022 updated CBH exmple
     * 10:39 AM 5/13/2022 removed 'requires -modules', to fix nesting limit error loading verb-io
     * 2:37 PM 5/10/2022 add array back to $value, saw signs it was flattening systemobjects coming in as an array of lines, and only writing the last line to the -path.
@@ -9327,7 +9452,7 @@ function Set-ContentFixEncoding {
         Try{
             $Returned = Set-Content @pltSetCon -Value $Value ;
             $Returned | write-output ;
-            $Exit = $Retries ;
+            $Exit = $DoRetries ;
         }Catch{
             #Write-Error -Message $_.Exception.Message ;
             $ErrTrapd=$Error[0] ;
@@ -9345,6 +9470,7 @@ function Set-ContentFixEncoding {
 }
 
 #*------^ Set-ContentFixEncoding.ps1 ^------
+
 
 #*------v set-ItemReadOnlyTDO.ps1 v------
 function set-ItemReadOnlyTDO {
@@ -9511,6 +9637,7 @@ function set-ItemReadOnlyTDO {
 
 #*------^ set-ItemReadOnlyTDO.ps1 ^------
 
+
 #*------v set-PSTitleBar.ps1 v------
 Function set-PSTitleBar {
     <#
@@ -9586,6 +9713,7 @@ Function set-PSTitleBar {
 
 #*------^ set-PSTitleBar.ps1 ^------
 
+
 #*------v Set-Shortcut.ps1 v------
 function Set-Shortcut {
     <#
@@ -9654,6 +9782,7 @@ function Set-Shortcut {
 
 #*------^ Set-Shortcut.ps1 ^------
 
+
 #*------v Shorten-Path.ps1 v------
 function Shorten-Path([string] $path) {
         <#
@@ -9685,6 +9814,7 @@ function Shorten-Path([string] $path) {
     }
 
 #*------^ Shorten-Path.ps1 ^------
+
 
 #*------v Show-MsgBox.ps1 v------
 function Show-MsgBox {
@@ -9768,6 +9898,7 @@ function Show-MsgBox {
     }
 
 #*------^ Show-MsgBox.ps1 ^------
+
 
 #*------v Sign-File.ps1 v------
 function Sign-File {
@@ -9872,6 +10003,7 @@ function Sign-File {
 
 #*------^ Sign-File.ps1 ^------
 
+
 #*------v stop-driveburn.ps1 v------
 Function stop-driveburn {
     <#
@@ -9941,6 +10073,7 @@ Function stop-driveburn {
 
 #*------^ stop-driveburn.ps1 ^------
 
+
 #*------v test-IsUncPath.ps1 v------
 function test-IsUncPath {
     <#
@@ -10000,6 +10133,7 @@ function test-IsUncPath {
 }
 
 #*------^ test-IsUncPath.ps1 ^------
+
 
 #*------v test-MediaFile.ps1 v------
 Function test-MediaFile {
@@ -10297,6 +10431,7 @@ Function test-MediaFile {
 
 #*------^ test-MediaFile.ps1 ^------
 
+
 #*------v test-MissingMediaSummary.ps1 v------
 Function test-MissingMediaSummary {
     <#
@@ -10365,6 +10500,7 @@ Function test-MissingMediaSummary {
 }
 
 #*------^ test-MissingMediaSummary.ps1 ^------
+
 
 #*------v Test-PendingReboot.ps1 v------
 function Test-PendingReboot {
@@ -10542,6 +10678,7 @@ function Test-PendingReboot {
 
 #*------^ Test-PendingReboot.ps1 ^------
 
+
 #*------v test-PSTitleBar.ps1 v------
 Function test-PSTitleBar {
     <#
@@ -10635,6 +10772,7 @@ Function test-PSTitleBar {
 
 #*------^ test-PSTitleBar.ps1 ^------
 
+
 #*------v Test-RegistryKey.ps1 v------
 function Test-RegistryKey {
     <#
@@ -10683,6 +10821,7 @@ function Test-RegistryKey {
 }
 
 #*------^ Test-RegistryKey.ps1 ^------
+
 
 #*------v Test-RegistryValue.ps1 v------
 function Test-RegistryValue {
@@ -10736,6 +10875,7 @@ function Test-RegistryValue {
 
 #*------^ Test-RegistryValue.ps1 ^------
 
+
 #*------v Test-RegistryValueNotNull.ps1 v------
 function Test-RegistryValueNotNull {
     <#
@@ -10788,6 +10928,7 @@ function Test-RegistryValueNotNull {
 
 #*------^ Test-RegistryValueNotNull.ps1 ^------
 
+
 #*------v Touch-File.ps1 v------
 Function Touch-File {
     <#
@@ -10795,7 +10936,7 @@ Function Touch-File {
     Touch-File.ps1 - Approx *nix 'touch', create empty file if non-prexisting| update timestemp if exists.
     .NOTES
     Author: LittleBoyLost
-    Website:	https://superuser.com/users/210235/littleboylost
+    Website:	https://superuser.com/users/3.0.05/littleboylost
     REVISIONS   :
     * 3/25/13 - posted version
     .DESCRIPTION
@@ -10818,6 +10959,7 @@ Function Touch-File {
 }
 
 #*------^ Touch-File.ps1 ^------
+
 
 #*------v trim-FileList.ps1 v------
 function trim-FileList {
@@ -10920,6 +11062,7 @@ function trim-FileList {
 
 #*------^ trim-FileList.ps1 ^------
 
+
 #*------v unless.ps1 v------
 function unless {
     <#
@@ -10974,6 +11117,7 @@ function unless {
 }
 
 #*------^ unless.ps1 ^------
+
 
 #*------v update-RegistryProperty.ps1 v------
 function update-RegistryProperty {
@@ -11054,6 +11198,7 @@ function update-RegistryProperty {
 
 #*------^ update-RegistryProperty.ps1 ^------
 
+
 #*------v Write-ProgressHelper.ps1 v------
 function Write-ProgressHelper {
     <#
@@ -11127,16 +11272,19 @@ function Write-ProgressHelper {
 
 #*------^ Write-ProgressHelper.ps1 ^------
 
+
 #*======^ END FUNCTIONS ^======
 
 Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,Pop-LocationFirst,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-ItemReadOnlyTDO,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-IsUncPath,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
+
+
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUhellJTDyUCHtJid3B2vYJAED
-# Nk6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUKrFyYyQT58ihUy+cDuCaYBlq
+# PuegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -11151,9 +11299,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRv4ES6
-# K19QDJzfjuhiPbzraSZ8WDANBgkqhkiG9w0BAQEFAASBgHxYw4966Wccsek7o38M
-# nQZwisIhvJpgYVfL8kY7e0uqb/MO04UF9f7PO+NQyQ5aAS4uY7srk0sNfAwIlcIy
-# xFMKh8Uy2OAW2iX7avsZdBVQiqnZ5goTRw0/lGSiUdt3LB2JMAyH+m6HO5GlWcNn
-# jsBft0joB7CBoEL8quXg1LkW
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSa/6+B
+# NWZYEulK0NxC8wmyOv5k5zANBgkqhkiG9w0BAQEFAASBgCasdVKLtd2oqov4QA87
+# ZcGerF31nmbAI4+kWCaCxOwVzxGqYaN5hGaIu13Hiyi6Vq2XSfWwv456tQ1IqAqh
+# /fIKQKDkSmvJ1kFQJYzdWKgcxTVwcTtDd5qOGICIlTJ7AAqpWKsE1SYrtY8DzFGR
+# iGLxOZMkhyuejLNaTqDl1vcw
 # SIG # End signature block
