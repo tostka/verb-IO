@@ -1,4 +1,4 @@
-#*------v convertto-MarkdownTable.ps1 v------
+# #*------v convertto-MarkdownTable.ps1 v------
 Function convertTo-MarkdownTable {
     <#
     .SYNOPSIS
@@ -24,12 +24,13 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 10:58 AM 7/13/2022 added -NoPadding to suppress column alignment; added CBH examples: one that demos prettying up handbuilt md tables comboing convertfrom-md | convertto-mdt, and one that demos -NoPadding use with -Tight (produce tightest md tbl output)
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 4:04 PM 9/16/2021 coded around legacy code issue, when using [ordered] hash - need it or it randomizes column positions. Also added -NoDashRow param (breaks md rendering, but useful if using this to dump delimited output to console, for readability)
     * 10:51 AM 6/22/2021 added convertfrom-mdt alias
     * 4:49 PM 6/21/2021 pretest $thing.value: suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
     * 10:49 AM 2/18/2021 added default alias: out-markdowntable & out-mdt
-    8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
+    * 8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
     unknown - alexandrm's revision (undated)
     unknown - Guruant's source version (undated account deleted on github)
     .DESCRIPTION
@@ -42,6 +43,8 @@ Function convertTo-MarkdownTable {
     Switch to drop additional whitespace around border/column-delimiters [-Tight]
     .PARAMETER NoDashRow
     Switch to drop the Header-seperator row (Note:This breaks proper markdown-rendering-syntax, but useful for non-markdown use to create a tighter vertical output) [-NoDashRow]
+    .PARAMETER NoPadding
+    Switch to suppress column-width alignment via spaces (creates tightest md output)
     .PARAMETER Title
     String to be tagged as H1 [-Title 'title text']
     .PARAMETER PreContent
@@ -79,19 +82,21 @@ Function convertTo-MarkdownTable {
     Demo effect of the -Tight param.
     .EXAMPLE
     PS> Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
-        ConvertTo-Markdown | Out-File C:\MyScript.ps1.md ; 
+    PS> ConvertTo-Markdown | Out-File C:\MyScript.ps1.md ; 
     Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | 
         Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
     Demo use of -title, -precontent & -postcontent params:
     .EXAMPLE
-    PS> $pltcMT=[ordered]@{
-            Title='This is Title' ;
-            PreContent='A little something *before*' ;
-            PostContent='A little something *after*'
-        } ;
-    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
+    PS> 
+.EXAMPLE
+    PS>  $pltcMT=[ordered]@{
+    PS>      Title='This is Title' ;
+    PS>      PreContent='A little something *before*' ;
+    PS>      PostContent='A little something *after*'
+    PS>  } ;
+    PS>  Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
     Same as prior example, but leveraging more readable splatting
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
@@ -99,6 +104,25 @@ Function convertTo-MarkdownTable {
         Stopped | Bits  | Background Intelligent Transfer Service  
         Running | Winrm | Windows Remote Management (WS-Management)
     Demo effect of -NoDashRow param (drops header-seperator line)
+    .EXAMPLE
+    PS> gci d:\scripts\*_func.ps1 | select name,fullname,length | convertto-markdowntable -border -NoPadding -tight -verbose ;
+        |Name|FullName|Length|
+        |---|---|---|
+        |add-AADUserLicense_func.ps1|D:\scripts\add-AADUserLicense_func.ps1|17747|
+        |toggle-AADLicense_func.ps1|D:\scripts\toggle-AADLicense_func.ps1|26482|
+    Demo -NoPadding + -border + -tight , on 3 cols of file specs (tightest possible md table output)
+    .EXAMPLE
+    PS> @"
+    PS> |tag|ResourceString|
+    PS> |---|---|
+    PS> |aad_graph_api|https://graph.windows.net|
+    PS> |spacesapi|https://api.spaces.skype.com|
+    PS> "@ | convertfrom-markdowntable | convertto-markdowntable -border ;
+        | tag           | ResourceString               |
+        | ------------- | ---------------------------- |
+        | aad_graph_api | https://graph.windows.net    |
+        | spacesapi     | https://api.spaces.skype.com |
+    Pretty up a minimal hand-built mdtable (from herestring), into space-aligned using convertFrom-MarkdownTable | ConvertTo-MarkdownTable 
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -114,6 +138,8 @@ Function convertTo-MarkdownTable {
         [switch] $Tight,
         [Parameter(HelpMessage="Switch to drop the Header-seperator row (Note:This breaks proper markdown-rendering-syntax, but useful for non-markdown use to create a tighter vertical output) [-NoDashRow]")]
         [switch] $NoDashRow,
+        [Parameter(HelpMessage="Switch to suppress column-width alignment via spaces (creates tightest md output) [-NoPadding]")]
+        [switch] $NoPadding,
         [Parameter(HelpMessage="String to be tagged as H1 [-Title 'title text']")]
         [string] $Title,
         [Parameter(HelpMessage="String to be added above returned md table [-PreContent 'Preface']")]
@@ -181,7 +207,12 @@ Function convertTo-MarkdownTable {
         } ;
         $header = @() ;
         ForEach($key in $columns.Keys) {
-            $header += ('{0,-' + $columns[$key] + '}') -f $key ;
+            # this is doing the padding
+            if(-not $NoPadding){
+                $header += ('{0,-' + $columns[$key] + '}') -f $key ;
+            } else { 
+                $header += $key ;
+            } ; 
         } ;
         if(!$Border){
             $output += ($header -join $Delimiter) + "`n" ; 
@@ -190,7 +221,12 @@ Function convertTo-MarkdownTable {
         } ;
         $separator = @() ;
         ForEach($key in $columns.Keys) {
-            $separator += '-' * $columns[$key] ;
+            if(-not $NoPadding){
+                $separator += '-' * $columns[$key] ;
+            } else { 
+                # static md table min, 3 dashes
+                $separator += '-' * 3 ;
+            } ;
         } ;
         if($NoDashRow){
             write-verbose "(skipping Header-separator row - violates md syntax!)" ; 
@@ -205,7 +241,11 @@ Function convertTo-MarkdownTable {
         ForEach($item in $items) {
             $values = @() ;
             ForEach($key in $columns.Keys) {
-                $values += ('{0,-' + $columns[$key] + '}') -f $item.($key) ;
+                if(-not $NoPadding){
+                    $values += ('{0,-' + $columns[$key] + '}') -f $item.($key) ;
+                } else { 
+                    $values += $item.($key) ;
+                } ; 
             } ;
             if (!$Border) { 
                 $output += ($values -join $Delimiter) + "`n" ; 
