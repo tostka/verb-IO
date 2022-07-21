@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 3.0.0.0.0
+Version     : 3.0.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -38,8 +38,6 @@ https://github.com/tostka/verb-IO
     $script:ModuleRoot = $PSScriptRoot ;
     $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ;
     $runningInVsCode = $env:TERM_PROGRAM -eq 'vscode' ;
-            $Psv2PublicExcl = @() ;
-            $Psv2PrivateExcl = @() ;
 
 #*======v FUNCTIONS v======
 
@@ -2769,12 +2767,13 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 10:58 AM 7/13/2022 added -NoPadding to suppress column alignment; added CBH examples: one that demos prettying up handbuilt md tables comboing convertfrom-md | convertto-mdt, and one that demos -NoPadding use with -Tight (produce tightest md tbl output)
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 4:04 PM 9/16/2021 coded around legacy code issue, when using [ordered] hash - need it or it randomizes column positions. Also added -NoDashRow param (breaks md rendering, but useful if using this to dump delimited output to console, for readability)
     * 10:51 AM 6/22/2021 added convertfrom-mdt alias
     * 4:49 PM 6/21/2021 pretest $thing.value: suppress errors when $thing.value is $null (avoids:'You cannot call a method on a null-valued expression' trying to eval it's null value len).
     * 10:49 AM 2/18/2021 added default alias: out-markdowntable & out-mdt
-    8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
+    * 8:29 AM 1/20/2021 - ren'd convertto-Markdown -> convertTo-MarkdownTable (avoid conflict with PSScriptTools cmdlet, also more descriptive as this *soley* produces md tables from objects; spliced in -Title -PreContent -PostContent params ; added detect & flip hashtables to cobj: gets them through, but end up in ft -a layout ; updated CBH, added -Border & -Tight params, integrated *some* of forked fixes by Matticusau: A couple of aliases changed to full cmdlet name for best practices;Extra Example for how I use this with PSScriptAnalyzer;
     unknown - alexandrm's revision (undated)
     unknown - Guruant's source version (undated account deleted on github)
     .DESCRIPTION
@@ -2787,6 +2786,8 @@ Function convertTo-MarkdownTable {
     Switch to drop additional whitespace around border/column-delimiters [-Tight]
     .PARAMETER NoDashRow
     Switch to drop the Header-seperator row (Note:This breaks proper markdown-rendering-syntax, but useful for non-markdown use to create a tighter vertical output) [-NoDashRow]
+    .PARAMETER NoPadding
+    Switch to suppress column-width alignment via spaces (creates tightest md output)
     .PARAMETER Title
     String to be tagged as H1 [-Title 'title text']
     .PARAMETER PreContent
@@ -2824,19 +2825,21 @@ Function convertTo-MarkdownTable {
     Demo effect of the -Tight param.
     .EXAMPLE
     PS> Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
-        ConvertTo-Markdown | Out-File C:\MyScript.ps1.md ; 
+    PS> ConvertTo-Markdown | Out-File C:\MyScript.ps1.md ; 
     Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | 
         Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
     Demo use of -title, -precontent & -postcontent params:
     .EXAMPLE
-    PS> $pltcMT=[ordered]@{
-            Title='This is Title' ;
-            PreContent='A little something *before*' ;
-            PostContent='A little something *after*'
-        } ;
-    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
+    PS> 
+.EXAMPLE
+    PS>  $pltcMT=[ordered]@{
+    PS>      Title='This is Title' ;
+    PS>      PreContent='A little something *before*' ;
+    PS>      PostContent='A little something *after*'
+    PS>  } ;
+    PS>  Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable @pltcMT ; 
     Same as prior example, but leveraging more readable splatting
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
@@ -2844,6 +2847,25 @@ Function convertTo-MarkdownTable {
         Stopped | Bits  | Background Intelligent Transfer Service  
         Running | Winrm | Windows Remote Management (WS-Management)
     Demo effect of -NoDashRow param (drops header-seperator line)
+    .EXAMPLE
+    PS> gci d:\scripts\*_func.ps1 | select name,fullname,length | convertto-markdowntable -border -NoPadding -tight -verbose ;
+        |Name|FullName|Length|
+        |---|---|---|
+        |add-AADUserLicense_func.ps1|D:\scripts\add-AADUserLicense_func.ps1|17747|
+        |toggle-AADLicense_func.ps1|D:\scripts\toggle-AADLicense_func.ps1|26482|
+    Demo -NoPadding + -border + -tight , on 3 cols of file specs (tightest possible md table output)
+    .EXAMPLE
+    PS> @"
+    PS> |tag|ResourceString|
+    PS> |---|---|
+    PS> |aad_graph_api|https://graph.windows.net|
+    PS> |spacesapi|https://api.spaces.skype.com|
+    PS> "@ | convertfrom-markdowntable | convertto-markdowntable -border ;
+        | tag           | ResourceString               |
+        | ------------- | ---------------------------- |
+        | aad_graph_api | https://graph.windows.net    |
+        | spacesapi     | https://api.spaces.skype.com |
+    Pretty up a minimal hand-built mdtable (from herestring), into space-aligned using convertFrom-MarkdownTable | ConvertTo-MarkdownTable 
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -2859,6 +2881,8 @@ Function convertTo-MarkdownTable {
         [switch] $Tight,
         [Parameter(HelpMessage="Switch to drop the Header-seperator row (Note:This breaks proper markdown-rendering-syntax, but useful for non-markdown use to create a tighter vertical output) [-NoDashRow]")]
         [switch] $NoDashRow,
+        [Parameter(HelpMessage="Switch to suppress column-width alignment via spaces (creates tightest md output) [-NoPadding]")]
+        [switch] $NoPadding,
         [Parameter(HelpMessage="String to be tagged as H1 [-Title 'title text']")]
         [string] $Title,
         [Parameter(HelpMessage="String to be added above returned md table [-PreContent 'Preface']")]
@@ -2926,7 +2950,12 @@ Function convertTo-MarkdownTable {
         } ;
         $header = @() ;
         ForEach($key in $columns.Keys) {
-            $header += ('{0,-' + $columns[$key] + '}') -f $key ;
+            # this is doing the padding
+            if(-not $NoPadding){
+                $header += ('{0,-' + $columns[$key] + '}') -f $key ;
+            } else { 
+                $header += $key ;
+            } ; 
         } ;
         if(!$Border){
             $output += ($header -join $Delimiter) + "`n" ; 
@@ -2935,7 +2964,12 @@ Function convertTo-MarkdownTable {
         } ;
         $separator = @() ;
         ForEach($key in $columns.Keys) {
-            $separator += '-' * $columns[$key] ;
+            if(-not $NoPadding){
+                $separator += '-' * $columns[$key] ;
+            } else { 
+                # static md table min, 3 dashes
+                $separator += '-' * 3 ;
+            } ;
         } ;
         if($NoDashRow){
             write-verbose "(skipping Header-separator row - violates md syntax!)" ; 
@@ -2950,7 +2984,11 @@ Function convertTo-MarkdownTable {
         ForEach($item in $items) {
             $values = @() ;
             ForEach($key in $columns.Keys) {
-                $values += ('{0,-' + $columns[$key] + '}') -f $item.($key) ;
+                if(-not $NoPadding){
+                    $values += ('{0,-' + $columns[$key] + '}') -f $item.($key) ;
+                } else { 
+                    $values += $item.($key) ;
+                } ; 
             } ;
             if (!$Border) { 
                 $output += ($values -join $Delimiter) + "`n" ; 
@@ -6732,6 +6770,107 @@ public static extern bool MoveFileEx(string lpExistingFileName, string lpNewFile
 #*------^ move-FileOnReboot.ps1 ^------
 
 
+#*------v New-RandomFilename.ps1 v------
+function New-RandomFilename{
+    <#
+    SYNOPSIS
+    New-RandomFilename.ps1 - Create a RandomFilename
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-07-18
+    FileName    : New-RandomFilename.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell
+    AddedCredit : cybercastor
+    AddedWebsite:	https://www.reddit.com/user/cybercastor
+    AddedTwitter:	
+    REVISIONS
+    * 2:25 PM 7/20/2022 added/expanded CBH, spliced in his later posted new-RandomFilename dependant function ; subst ValidateRange for $maxlen tests ; subbed out missing show-exceptiondetails()
+    * 7/18/22 cybercastor posted rev
+    .DESCRIPTION
+    New-RandomFilename.ps1 - Create a new random filename
+
+    [Invoke-BypassPaywall](https://www.reddit.com/r/PowerShell/comments/w1ypp2/invokebypasspaywall_open_a_webpage_locally/)
+
+    .PARAMETER Path
+    Host directory for new file (defaults `$ENV:Temp)
+    .PARAMETER Extension
+    Extension for new file (defaults 'tmp')
+    .PARAMETER MaxLen
+    Length of new file name (defaults 6, 4-36 range)
+    .PARAMETER CreateFile
+    Switch to create new empty file matching the specification.
+    .PARAMETER CreateDirectory
+    Switch to create a new hosting directory below `$Path,  with a random (guid) name (which will be 36chars long).
+    .EXAMPLE
+    PS> $fn = New-RandomFilename -Extension 'html'
+    Create a new randomfilename with html ext
+    .EXAMPLE
+    PS> .Invoke-BypassPaywall 'https://www.theatlantic.com/ideas/archive/2022/07/russian-invasion-ukraine-democracy-changes/661451'
+    theatlantic.com demo
+    .LINK
+    https://github.com/tostka/verb-IO
+    https://www.reddit.com/r/PowerShell/comments/w1ypp2/invokebypasspaywall_open_a_webpage_locally/               
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory=$false)]
+        [string]$Path = "$ENV:Temp",
+        [Parameter(Mandatory=$false)]
+        [string]$Extension = 'tmp',
+        [Parameter(Mandatory=$false)]
+        [ValidateRange(4,36)]
+        [int]$MaxLen = 6,
+        [Parameter(Mandatory=$false)]
+        [switch]$CreateFile,
+        [Parameter(Mandatory=$false)]
+        [switch]$CreateDirectory
+    )    
+    TRY{
+        #if($MaxLen -lt 4){throw "MaxLen must be between 4 and 36"}
+        #if($MaxLen -gt 36){throw "MaxLen must be between 4 and 36"}
+        [string]$filepath = $Null
+        [string]$rname = (New-Guid).Guid
+        Write-Verbose "Generated Guid $rname"
+        [int]$rval = Get-Random -Minimum 0 -Maximum 9
+        Write-Verbose "Generated rval $rval"
+        [string]$rname = $rname.replace('-',"$rval")
+        Write-Verbose "replace rval $rname"
+        [string]$rname = $rname.SubString(0,$MaxLen) + '.' + $Extension
+        Write-Verbose "Generated file name $rname"
+        if($CreateDirectory -eq $true){
+            [string]$rdirname = (New-Guid).Guid
+            $newdir = Join-Path "$Path" $rdirname
+            Write-Verbose "CreateDirectory option: creating dir: $newdir"
+            $Null = New-Item -Path $newdir -ItemType "Directory" -Force -ErrorAction Ignore
+            $filepath = Join-Path "$newdir" "$rname"
+        }
+        $filepath = Join-Path "$Path" $rname
+        Write-Verbose "Generated filename: $filepath"
+
+        if($CreateFile -eq $true){
+            Write-Verbose "CreateFile option: creating file: $filepath"
+            $Null = New-Item -Path $filepath -ItemType "File" -Force -ErrorAction Ignore 
+        }
+        return $filepath
+    
+    } CATCH {
+        $ErrTrapd=$Error[0] ;
+        $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        Break #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
+    } ; 
+}
+
+#*------^ New-RandomFilename.ps1 ^------
+
+
 #*------v new-Shortcut.ps1 v------
 function new-Shortcut {
     <#
@@ -7383,7 +7522,7 @@ Function Read-Host2 {
       20,480      0 OverwriteAsNeeded          12 Lenovo-Customer Feedback
          128      0 OverwriteAsNeeded         455 OAlerts
          512      7 OverwriteOlder              0 PreEmptive
-      20,480      0 OverwriteAsNeeded      33.0.0 Security
+      20,480      0 OverwriteAsNeeded      32,013 Security
       20,480      0 OverwriteAsNeeded      26,475 System
       15,360      0 OverwriteAsNeeded      17,715 Windows PowerShell
      This is an example of how you might use the command in a script. The prompt will keep flashing until you press Enter.
@@ -10936,7 +11075,7 @@ Function Touch-File {
     Touch-File.ps1 - Approx *nix 'touch', create empty file if non-prexisting| update timestemp if exists.
     .NOTES
     Author: LittleBoyLost
-    Website:	https://superuser.com/users/3.0.05/littleboylost
+    Website:	https://superuser.com/users/210235/littleboylost
     REVISIONS   :
     * 3/25/13 - posted version
     .DESCRIPTION
@@ -11275,7 +11414,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,Pop-LocationFirst,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-ItemReadOnlyTDO,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-IsUncPath,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,Pop-LocationFirst,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-ItemReadOnlyTDO,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-IsUncPath,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 
