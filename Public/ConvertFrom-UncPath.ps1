@@ -3,7 +3,7 @@ Function ConvertFrom-UncPath {
 
   <#
     .SYNOPSIS
-    ConvertFrom-UncPath - Converts local UNC path to local path. Note it only works if the UNC path points to a local folder. 
+    ConvertFrom-UncPath - Converts local UNC path to local path. Note it only works if the UNC path points to a local folder. By default validates that the converted share existins on the specified host.
     .NOTES
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
@@ -17,7 +17,7 @@ Function ConvertFrom-UncPath {
     * 12:20 PM 8/4/2022 spliced in support for cim/smbshare, and rudimentary legacy net /use share checks ; added -NoValidate, just does a rote replace of :->$ on share segment. 
     * 9:48 AM 8/3/2022 init
     .DESCRIPTION
-    ConvertFrom-UncPath - Converts local UNC path to local path. Note it only works if the UNC path points to a local folder. 
+    ConvertFrom-UncPath - Converts local UNC path to local path. Note it only works if the UNC path points to a local folder. By default validates that the converted share existins on the specified host.
     .PARAMETER Path
     UNC path to map. 
     .PARAMETER NoValidate

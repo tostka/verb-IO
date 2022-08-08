@@ -3,7 +3,7 @@ Function ConvertTo-UncPath {
 
   <#
     .SYNOPSIS
-    ConvertTo-UncPath - Convert a local path to UNC format (using a matching local existing share, if found)
+    ConvertTo-UncPath - Convert a local path to UNC format (using a matching existing share on the host, if found)
     .NOTES
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
@@ -17,7 +17,7 @@ Function ConvertTo-UncPath {
     * 12:19 PM 8/4/2022 CBH add: object-reutnr eval ; added -Test, which validates result and returns an object with the path and a 'Valid' property;  spliced in support for cim/smbshare, and rudimentary legacy net /use share checks ; added -NoValidate, just does a rote replace of :->$ on share segment. ; added -Test to post-test functoin
     * 4:35 PM 8/3/2022 init
     .DESCRIPTION
-    ConvertTo-UncPath - Convert a local path to UNC format (using a matching local existing share, if found)
+    ConvertTo-UncPath - Convert a local path to UNC format (using a matching existing share on the host, if found)
     .PARAMETER Path
     Path string to be converted [-Path c:\pathto\file]   
     .PARAMETER ComputerName
