@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 3.0.1.0.0
+Version     : 3.1.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -977,6 +977,389 @@ function Compare-ObjectsSideBySide4 {
 }
 
 #*------^ Compare-ObjectsSideBySide4.ps1 ^------
+
+
+#*------v Compress-ArchiveFile.ps1 v------
+function Compress-ArchiveFile {
+    <#
+    .SYNOPSIS
+    Compress-ArchiveFile.ps1 - Creates a compressed archive, or zipped file, from specified files and directories (wraps Psv5+ native cmdlets, and matching legacy .net calls).
+    .NOTES
+    Author: Taylor Gibb
+    Website:	https://www.howtogeek.com/tips/how-to-extract-zip-files-using-powershell/
+    Tweaked By: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    Additional Credits:
+    REVISIONS   :
+    * 1:54 PM 8/30/2022 looks functionally equiv compress-archive & .net calls, at least in the three use cases in the example: they produce substantially similar content in the resultant zip; expanded echos;
+         emulated verbose 'splat' echos before the .net calls (aids spotting bad params); added boolean:false includerootdir on the createfromdir (avoids error if not spec'd at all); simplified all CATCH; 
+         added Psv5 -force support; added psColor BP & w-h use; ren prop in output from destination -> DestinationPath; fix CBH params
+    .DESCRIPTION
+    Compress-ArchiveFile.ps1 - Creates a compressed archive, or zipped file, from specified files and directories (wraps Psv5+ native cmdlets, and matching legacy .net calls).
+    Wrote to provide broadest support, switches bewtween:
+    - PSv5+ native expand-archive 
+    - .net 4.5 zipfile class support
+    Returns a summary object with the DestinationPath as a file system object, and the Contents 
+    Uses .net System.IO.Compression.FileSystem for legacy pre-PSv5 compression, and for all output reporting (as PSv5's native compress|expand-Archive commands don't
+    support dumping back reports of contents). 
+
+    -Path: Using wildcards with a root directory affects the archive's contents:
+
+        - To create an archive that includes the root directory, and all its files and subdirectories,  specify the root directory in the Path without wildcards. 
+            For example: `-Path C:\Reference` 
+        - To create an archive that excludes the root directory, but zips all its files and subdirectories, use the asterisk (*) wildcard. 
+            For example: `-Path C:\Reference\*
+        - To create an archive that only zips the files in the root directory, use the star-dot-star (*.*) wildcard. Subdirectories of the root aren't included in
+        the archive. 
+            For example:   -Path C:\Reference\*.*
+    .PARAMETER Path
+    Specifies the path or paths to the files that you want to add to the archive zipped file. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. [-Path c:\path-to\file.ext,c:\pathto\file2.ext]
+    .PARAMETER DestinationPath
+    This parameter is required and specifies the path to the archive output file. The DestinationPath should include the name of the zipped file, and either the absolute or relative path to the zipped file. [-DestinationPath c:\path-to\targetfile.zip]
+    .PARAMETER CompressionLevel
+    Specifies how much compression to apply when you're creating the archive file. Faster compression requires less time to create the file, but can result in larger file sizes. If this parameter isn't specified, the command uses the default value, Optimal (Fastest|NoCompression|Optimal)(only applies to PSv5+)[-CompressionLevel Optimal]
+    .PARAMETER Force
+    Force (overwrite existing) switch (only used with native psv5 cmdlets)[-force]
+    .PARAMETER useDotNet
+    Switch to use .dotNet call (force pre-Psv5 legacy support) [-useDotNet]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    Returns a PSCustomObject with the following properties:
+    - resolved DestinationPath as a System.IO.FileInfo object
+    - Contents as a System.Array object
+    .EXAMPLE
+    PS> $zipped = Compress-ArchiveFile -path 'c:\tmp\20170411-0706AM.ps1','c:\tmp\24SbP1B9.ics' -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip" -verbose  ;
+    PS> $zipped.Contents| ft -a ;
+
+        FullName            Length LastWriteTime              
+        --------            ------ -------------              
+        20170411-0706AM.ps1    846 4/11/2017 7:08:12 AM -05:00
+        24SbP1B9.ics          1514 4/6/2015 11:55:06 AM -05:00
+
+    Compress array of files to specified file (with a dynamic timestamped name)
+    .EXAMPLE
+    PS> $zipped = 'c:\tmp\20170411-0706AM.ps1','c:\tmp\24SbP1B9.ics' | Compress-ArchiveFile -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip"  -verbose ;
+    Pipeline example: Expand content of specified file to DestinationPath
+    .EXAMPLE
+    PS> $zipped = Compress-ArchiveFile -path C:\tmp\tmp\* -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip" -verbose  ;
+    PS> $zipped.DestinationPath ; 
+            Directory: C:\tmp
+
+        Mode                LastWriteTime         Length Name                                                                                                                                                         
+        ----                -------------         ------ ----                                                                                                                                                         
+        -a----        8/29/2022   4:24 PM           1763 test20220829-1624PM.zip            
+    PS> $zipped.contents | ft -a ; 
+        FullName               Length LastWriteTime                
+        --------               ------ -------------                
+        testsub\subfile1.txt        0 8/29/2022 3:56:46 PM -05:00  
+        testsub\subfile2.txt        0 8/29/2022 3:56:54 PM -05:00  
+        RDP Links mnu,expl.lnk   2252 11/18/2015 10:35:42 AM -06:00
+        txt.txt                   845 7/13/2017 6:37:26 PM -05:00  
+
+    Create archive that *excludes* the root directory, but zips all its files and subedirectories, 
+    by specifying -Path with trailing asterisk (*).
+    .EXAMPLE
+    PS> $zipped = Compress-ArchiveFile -Path C:\tmp\tmp\ -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip" -verbose  ;
+    PS> $zipped.DestinationPath ; 
+            Directory: C:\tmp
+            
+        Mode                LastWriteTime         Length Name                                                                                                                                                         
+        ----                -------------         ------ ----                                                                                                                                                         
+        -a----        8/29/2022   4:18 PM           1795 test20220829-1618PM.zip     
+    PS> $zipped.contents | ft -a ;
+    
+        FullName                   Length LastWriteTime                
+        --------                   ------ -------------                
+        tmp\RDP Links mnu,expl.lnk   2252 11/18/2015 10:35:42 AM -06:00
+        tmp\txt.txt                   845 7/13/2017 6:37:26 PM -05:00  
+        tmp\testsub\subfile1.txt        0 8/29/2022 3:56:46 PM -05:00  
+        tmp\testsub\subfile2.txt        0 8/29/2022 3:56:54 PM -05:00  
+
+    Create that *includes* root dir & all files and subdirs, by specifying root dir path *wo wildcard*.
+    .EXAMPLE
+    PS> $zipped = Compress-ArchiveFile -Path C:\tmp\tmp\*.* -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip" -verbose  ;
+    PS> $zipped.DestinationPath ; 
+            Directory: C:\tmp
+
+        Mode                LastWriteTime         Length Name                                                                                                                                                         
+        ----                -------------         ------ ----                                                                                                                                                         
+        -a----        8/29/2022   4:28 PM           1531 test20220829-1628PM.zip 
+
+    PS> $zipped.contents | ft -a ;
+        FullName               Length LastWriteTime                
+        --------               ------ -------------                
+        RDP Links mnu,expl.lnk   2252 11/18/2015 10:35:42 AM -06:00
+        txt.txt                   845 7/13/2017 6:37:26 PM -05:00  
+    Create an archive that only zips the files in the root directory, by specifying path with star-dot-start (*.*).
+    .LINK
+    https://github.com/tostka/verb-XXX
+    #>
+    [CmdletBinding()]
+    [Alias('Compress-ZipFile')]
+    Param(
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Specifies the path or paths to the files that you want to add to the archive zipped file. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. [-Path c:\path-to\file.ext,c:\pathto\file2.ext]")]
+        [ValidateScript( { Test-Path $_ })]
+        [Alias('File')]
+        [string[]]$Path,
+        [Parameter(Mandatory = $true,Position = 1,HelpMessage = "This parameter is required and specifies the path to the archive output file. The DestinationPath should include the name of the zipped file, and either the absolute or relative path to the zipped file. [-DestinationPath c:\path-to\targetfile.zip]")]
+        [string]$DestinationPath,
+        [Parameter(HelpMessage="Specifies how much compression to apply when you're creating the archive file. Faster compression requires less time to create the file, but can result in larger file sizes. If this parameter isn't specified, the command uses the default value, Optimal (Fastest|NoCompression|Optimal)(only applies to PSv5+)[-CompressionLevel Optimal]")]
+        #[ValidateNotNullOrEmpty()]
+        [ValidateSet("Fastest", "NoCompression", "Optimal", ignorecase=$True)]
+        [string]$CompressionLevel='Optimal',
+        [Parameter(HelpMessage = "Force (overwrite existing) switch (only used with native psv5 cmdlets)[-force]")]
+        [switch]$Force,        
+        [Parameter(HelpMessage = "Switch to use .dotNet call (force pre-Psv5 legacy support) [-useDotNet]")]
+        [switch]$useDotNet
+    ) ; 
+    BEGIN { 
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $whWarn =@{BackgroundColor = 'Yellow' ; ForegroundColor = 'Black' } ;
+        $whErr =@{BackgroundColor = 'Red' ; ForegroundColor = 'White' } ;
+        $whGood =@{BackgroundColor = 'DarkGreen' ; ForegroundColor = 'White' } ;
+        $whNote =@{BackgroundColor = 'White' ; ForegroundColor = 'Black' } ;
+        $whComment =@{BackgroundColor = 'Black' ; ForegroundColor = 'Gray' } ;
+        $whBnr =@{BackgroundColor = 'Magenta' ; ForegroundColor = 'Black' } ;
+        $whBnrS =@{BackgroundColor = 'Blue' ; ForegroundColor = 'Cyan' } ;
+
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            #write-verbose "Data received from parameter input: '$($InputObject)'" ; 
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+    } ;  # BEGIN-E
+    PROCESS {
+        $Error.Clear() ; 
+                
+        if($host.version.major -lt 5 -or $useDotNet){
+            # check for non-compatible params
+            
+            if($PSBoundParameters.ContainsKey('Force')){
+                write-host "Note: -Force specified, but will not be used with legacy dotNet cmds (which do not support it)" @whWarn ; 
+            } ;
+
+            TRY{
+                write-verbose "(Using .Net class [System.IO.Compression.FileSystem]...)" ; 
+                #Load the .NET 4.5 zip-assembly & the System.IO.Compression assembly too Note: Only necessary in *Windows PowerShell* (are automatically loaded on demand in PowerShell (Core) 7+.)
+                Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+
+                # Verify that types from both assemblies were loaded (with TRY, these will catch out).
+                [System.IO.Compression.ZipArchiveMode]| out-null; 
+                [IO.Compression.ZipFile] | out-null ; 
+                write-verbose "(convert compression level string to [System.IO.Compression.CompressionLevel])" ; 
+                [System.IO.Compression.CompressionLevel]$CompressionLevel = $CompressionLevel ;   
+            }CATCH{
+                Write-Warning -Message $_.Exception.Message ; 
+                BREAK ; 
+            } ; 
+        };         
+                
+        foreach ($item in $Path){
+                #if( ($host.version.major -lt 5) -OR $useShell ){
+                if($host.version.major -lt 5 -or $useDotNet){
+                    
+                    TRY{
+                        <# - To create an archive that includes the root directory, and all its files and subdirectories,  specify the root directory in the Path without wildcards. 
+                        For example: `-Path C:\Reference` 
+                        - To create an archive that excludes the root directory, but zips all its files and subdirectories, use the asterisk (*) wildcard. 
+                        For example: `-Path C:\Reference\*
+                        - To create an archive that only zips the files in the root directory, use the star-dot-star (*.*) wildcard. Subdirectories of the root aren't included in
+                        the archive. 
+                        For example:   -Path C:\Reference\*.*
+                        #>
+                        
+                        #detect & 'fake' the variants that compress-archive natively does as determined by input -Path spec:
+                        $Recurse = $InclRoot = $false ; 
+                        switch -regex ($item){
+                            #-Path C:\tmp\tmp\*.*
+                            '\\\*\.\*$' {
+                                $smsg = "(`n$($item):Create archive that only zips the files in the root directory" ; 
+                                $smsg += "`nget-childitem $($item)`n)" ; 
+                                write-verbose $smsg ; 
+                                $item = (get-childitem -path $item -ErrorAction STOP); 
+                            }  
+                            #-Path C:\tmp\tmp\ 
+                            '\\$' {
+                                $smsg = "(`n$($item):Create archive that *includes* root dir & all files and subdirs" ; 
+                                $smsg += "CreateFromDirectory($srcDir, $DestinationPath, $CompressionLevel,$includeBaseDir)`n)" ; 
+                                write-verbose $smsg ; 
+                                $Recurse  = $true ; 
+                                $InclRoot = $true ; 
+                                #$item = (get-childitem -path $item -recurse -ErrorAction STOP); 
+                            } 
+                            #-Path C:\tmp\tmp\*
+                            '\\\*$' {
+                                $smsg = "(`n$($item):Create archive that *excludes* the root directory, but zips all its files and subdirectories" ; 
+                                $smsg += "CreateFromDirectory($srcDir, $DestinationPath, $CompressionLevel)`n)" ; 
+                                write-verbose $smsg ; 
+                                $Recurse  = $true ; 
+                                $InclRoot = $false ; 
+                                #$item = (get-childitem -path $item -recurse -ErrorAction STOP); 
+                            } 
+                            default {
+                                $smsg = "(`n$($item):Create archive from specified file(s)`n" ; 
+                                $smsg += "get-childitem specified `$ite)`n)" ; 
+                                write-verbose $smsg ; 
+                                $item = (get-childitem -path $item -ErrorAction STOP); 
+                            }
+                        } ; 
+
+                        if($Recurse){
+                            write-verbose "(CreateFromDirectory:resolve `$srcDir absolute source directory)" ; 
+                            if($InclRoot){
+                                # x:\xx\
+                                $srcDir = (get-item -path $item -ErrorAction STOP).fullname; 
+                            } else { 
+                                # x:\xx\*
+                                $srcDir = (split-path $item -ErrorAction STOP); 
+                            } ; 
+                            if(test-path -path $DestinationPath){
+                                write-host "(removing conflicting existing file:`n$($DestinationPath)`n(CreateFromDirectory doesn't support 'Update', only 'Create')" @pltWarn ;  
+                                remove-item -path $DestinationPath -force ; 
+                            } ; 
+                        } ; 
+                        if($Recurse -AND $InclRoot ){
+                            # Create that *includes* root dir & all files and subdirs
+                            # $null = [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($ziparchive,$addFile,$entryName,$compressionLevel) ; 
+                            <# [ZipFile.CreateFromDirectory Method (System.IO.Compression) | Microsoft Docs - docs.microsoft.com/](https://docs.microsoft.com/en-us/dotnet/api/system.io.compression.zipfile.createfromdirectory?view=net-6.0)
+                                Parameters
+                                    sourceDirectoryName,String
+                                    The path to the directory to be archived, specified as a relative or absolute path. A relative path is interpreted as relative to the current working directory.
+                                    destinationArchiveFileName,String
+                                    The path of the archive to be created, specified as a relative or absolute path. A relative path is interpreted as relative to the current working directory.
+                                    compressionLevel,CompressionLevel
+                                    One of the enumeration values that indicates whether to emphasize speed or compression effectiveness when creating the entry.
+                                    includeBaseDirectory,Boolean
+                                    true to include the directory name from sourceDirectoryName at the root of the archive; false to include only the contents of the directory.
+                                public static void CreateFromDirectory (string sourceDirectoryName, string destinationArchiveFileName, System.IO.Compression.CompressionLevel compressionLevel, bool includeBaseDirectory);
+                            #>
+                            $includeBaseDir = $inclRoot ; 
+                            #$null = [System.IO.Compression.ZipFile]::CreateFromDirectory($Item, $DestinationPath, $CompressionLevel,$includeBaseDir)
+                            $smsg = "CreateFromDirectory w" ;
+                            $smsg += "`nsourceDirectoryName:$($srcDir)" ; 
+                            $smsg += "`ndestinationArchiveFileName:$($DestinationPath)" ;
+                            $smsg += "`ncompressionLevel:$($CompressionLevel)" ;
+                            $smsg += "`nincludeBaseDir:$($includeBaseDir)" ;
+                            write-verbose $smsg 
+                            $null = [System.IO.Compression.ZipFile]::CreateFromDirectory($srcDir, $DestinationPath, $CompressionLevel,$includeBaseDir) ; 
+                            # dest file can't prexist: throws: "The file 'c:\tmp\test20220829-1806PM.zip' already exists."
+                        }elseif($Recurse -AND -not($InclRoot) ){
+                            # Create archive that excludes the root directory, but zips all its files and subdirectories
+                            $includeBaseDir = $inclRoot ; 
+                            $smsg = "CreateFromDirectory w" ;
+                            $smsg += "`nsourceDirectoryName:$($srcDir)" ; 
+                            $smsg += "`ndestinationArchiveFileName:$($DestinationPath)" ;
+                            $smsg += "`ncompressionLevel:$($CompressionLevel)" ;
+                            $smsg += "`nincludeBaseDir:$($includeBaseDir)" ;
+                            write-verbose $smsg 
+                            #$null = [System.IO.Compression.ZipFile]::CreateFromDirectory($srcDir, $DestinationPath, $CompressionLevel) ; 
+                            # err: Cannot find an overload for "CreateFromDirectory" and the argument count: "3". add includeBaseDir (which is false)
+                            $null = [System.IO.Compression.ZipFile]::CreateFromDirectory($srcDir, $DestinationPath, $CompressionLevel,$includeBaseDir) ; 
+                        } else { 
+                            write-verbose "(create empty zipfile)" ; 
+                            if(-not (test-path -path $DestinationPath)){
+                                # create empty
+                                $smsg = "ZipFile::Open w" ;
+                                $smsg += "`narchiveFileName:$($DestinationPath)" ;
+                                $smsg += "`nmode:[System.IO.Compression.ZipArchiveMode]::Create)" ;
+                                write-verbose $smsg 
+                                [System.IO.Compression.ZipArchive]$ziparchive = [System.IO.Compression.ZipFile]::Open($DestinationPath,([System.IO.Compression.ZipArchiveMode]::Create)) ; 
+                                $ziparchive.dispose() ; # have to close or the open below fails "because it is being used by another process."
+                            } ;  
+                            write-verbose "(Access archive for Update)" ; 
+                            $smsg = "ZipFile::Open w" ;
+                            $smsg += "`narchiveFileName:$($DestinationPath)" ;
+                            $smsg += "`nmode:Update" ;
+                            write-verbose $smsg 
+                            $ziparchive = [System.IO.Compression.ZipFile]::Open( $DestinationPath, "Update" ) ; 
+                            write-verbose "add file:$($item.fullname -join ', ')" ; 
+                            # The compression function likes relative file paths...
+                            # $relativefilepath = (Resolve-Path $item.fullname -Relative).TrimStart(".\") ; 
+                            #[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($ziparchive, $item.fullname, (Split-Path $item.fullname -Leaf), $compressionLevel)
+                            #[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($ziparchive, $item.fullname, $relativefilepath, $compressionLevel)
+                            # loop the item if it's an array (acommodates singletons as well)
+                            $item | ForEach-Object {
+                                
+                                $addFile = $_.fullName ; 
+                                # typically would use releative paths... 
+                                # it's not equivelent: compress-archive doesn't use relative paths as the EntryNames, it uses the leafname
+                                $entryName = (Split-Path $addFile -Leaf) ; 
+                                    
+                                $smsg = "ZipFileExtensions::CreateEntryFromFile w" ;
+                                $smsg += "`ndestination:$($ziparchive)" ;
+                                $smsg += "`nsourceFileName:$($addFile)" ;
+                                $smsg += "`nentryName:$($entryName)" ;
+                                $smsg += "`ncompressionLevel:$($CompressionLevel)" ;
+                                write-verbose $smsg 
+                                $null = [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($ziparchive,$addFile,$entryName,$compressionLevel) ; 
+                            } ; 
+                        } ; 
+                        # createdir doesn't have a pre-loaded $ziparchive, only close if populated
+                        if($ziparchive){
+                            write-verbose "(dispose `$ziparchive object before moving on)" ; 
+                            $ziparchive.Dispose() ;
+                        } ;  
+                    }CATCH{
+                        Write-Warning -Message $_.Exception.Message ; 
+                    } ; 
+                    
+                } else { 
+                    write-verbose "(PSv5+ detected: using native Compress-Archive cmdlet)" ; 
+                    
+                    $pltCA=[ordered]@{
+                        Destination = $destinationpath ; 
+                        CompressionLevel = $CompressionLevel ; 
+                        erroraction = 'STOP' ;
+                        #whatif = $($whatif) ;
+                        verbose = $($VerbosePreference -eq "Continue") ;
+                    } ;
+                    if((test-path -path $DestinationPath) -AND -not($Force)){
+                        write-host "-DestinationPath: *exists* (and -force not specified): using -Update, to add specified -path to existing file" @whNote ; 
+                        $pltCA.Add('Update',$true) ; 
+                    } elseif((test-path -path $DestinationPath) -and $force){
+                        write-host "-DestinationPath: *exists*, and -force specified: Forcing overwrite of existing file" @whNote ; 
+                        $pltCA.Add('Force',$true) ; 
+                    } ; 
+                    if ($item -match '[*]+') {
+                        # literalpath doesn't support wildcard *. use -path
+                        $pltCA.Add('Path',$item) ; 
+                    }elseif ($item -match '[\[\]]+') {
+                        write-verbose "(angle bracket chars detected in -Path:switching to -LiteralPath support)" ; 
+                        $pltCA.Add('LiteralPath',$item) ; 
+                    } else {
+                        $pltCA.Add('LiteralPath',$item) ;
+                    } ; 
+                    $smsg = "Compress-Archive w`n$(($pltCA|out-string).trim())" ; 
+                    write-verbose $smsg ;
+                    TRY{
+                        Compress-Archive @pltCA
+                    }CATCH{
+                        Write-Warning -Message $_.Exception.Message
+                    } ; 
+                } ;  # if-E psv5
+        } ;  # loop-E
+    }  # if-E PROC
+    END{
+        write-verbose "(ensure System.IO.Compression.FileSystem is loaded...)" ; 
+        TRY{[System.IO.Compression.ZipArchiveMode]| out-null} CATCH{Add-Type -AssemblyName System.IO.Compression} ; 
+        TRY{[IO.Compression.ZipFile] | out-null} CATCH{Add-Type -AssemblyName System.IO.Compression.FileSystem} ; 
+        write-verbose "(preclose any open archive)" ; 
+        if($ziparchive){$ziparchive.Dispose() } ;  
+        write-verbose "(poll contents of -DestinationPath:$($destinationpath)...)" ;
+        $contents = [System.IO.Compression.ZipFile]::OpenRead($destinationpath).Entries ; 
+        $oReport = @{
+            DestinationPath = $DestinationPath | get-childitem ; 
+            Contents = $contents | select fullname,length,lastwritetime ; 
+        } ; 
+        write-verbose "(returning summary object to pipeline)" ; 
+        New-Object PSObject -Property $oReport | write-output ; 
+    } ; 
+}
+
+#*------^ Compress-ArchiveFile.ps1 ^------
 
 
 #*------v convert-BinaryToDecimalStorageUnits.ps1 v------
@@ -2403,6 +2786,146 @@ $Message
 #*------^ ConvertFrom-SourceTable.ps1 ^------
 
 
+#*------v ConvertFrom-UncPath.ps1 v------
+Function ConvertFrom-UncPath {
+
+  <#
+    .SYNOPSIS
+    ConvertFrom-UncPath - Converts local UNC path to local path. Note it only works if the UNC path points to a local folder. By default validates that the converted share existins on the specified host.
+    .NOTES
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-07-26
+    FileName    : ConvertFrom-UncPath.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Tags        : Powershell,FileSystem,Network
+    REVISIONS   :
+    * 12:20 PM 8/4/2022 spliced in support for cim/smbshare, and rudimentary legacy net /use share checks ; added -NoValidate, just does a rote replace of :->$ on share segment. 
+    * 9:48 AM 8/3/2022 init
+    .DESCRIPTION
+    ConvertFrom-UncPath - Converts local UNC path to local path. Note it only works if the UNC path points to a local folder. By default validates that the converted share existins on the specified host.
+    .PARAMETER Path
+    UNC path to map. 
+    .PARAMETER NoValidate
+    Switch to suppress explicit resolution of share (e.g. wrote conversion wo validation converted share exists on host)[-NoValidate]
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    PS> gci "$env:userprofile\documents" -file | 
+    PS>     select -first 1 | select -expand fullname |
+    PS>     ConvertTo-uncpath -verbose | 
+    PS>     ConvertFrom-UncPath -verbose ;
+    Get and convert a file (1st file in user profile documents folder), and Convert specified path to UNC, and back again.
+    .EXAMPLE
+    PS>  convertfrom-uncpath -Path '\\SERVER\C$\scripts\get-DAG-FreeSpace-Report.ps1' -verbose ;
+    Demo remote host conversion, verbose output
+    .LINK
+    https://github.com/tostka/verb-IO\
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    #[Alias('')]
+    Param(
+        [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage = 'Path string to be converted [-Path c:\pathto\file]   ')]
+        [ValidateNotNullOrEmpty()]
+        [String]$Path,
+        [Parameter(HelpMessage = 'Switch to suppress explicit resolution of share (e.g. wrote conversion wo validation converted share exists on host)[-NoValidate]')]
+        [switch] $NoValidate
+    )
+    BEGIN {
+        $verbose = ($VerbosePreference -eq "Continue") ; 
+        
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            #write-verbose "Data received from parameter input: '$($InputObject)'" ; 
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+
+    } ;  # BEGIN-E
+    PROCESS {
+        foreach($item in $Path) {
+            if (-not (([uri]$item).IsUnc)) {
+                $smsg = "Path:$($item) is not a valid UNC path" ; 
+                throw $smsg ; 
+            } ; 
+            $UncElems = ([uri]$item).AbsolutePath -split '/' ; 
+            if ( ($UncElems.Length -lt 2) -OR -not ($UncElems[1])) {
+                $smsg = "Unable to map UNC path $($item) to a local path: `nUNC path must contain two or more components (\\SERVER\SHARE)" ; 
+                write-warning $smsg ; 
+                throw $smsg ; 
+            }
+            if(-not $NoValidate){
+                $ComputerName  = ([uri]$item).Host ; 
+                if($ComputerName -ne $env:COMPUTERNAME){
+                    TRY{
+                        write-verbose "(Attempting New-CimSession -ComputerName $($computername)...)" ;
+                        $cim = New-CimSession -ComputerName $computername -ErrorAction 'STOP';
+                        $rshares = Get-SmbShare -CimSession $cim -ErrorAction 'STOP';
+                    }CATCH{
+                        write-warning "(New-CimSession/Get-SmbShare FAILED, reattempting legacy:net view \\$($computername)..."
+                        $rnshares = net view \\$computername /all | select -Skip 7 | ?{$_ -match 'disk*'} | %{$_ -match '^(.+?)\s+Disk*'|out-null;$matches[1]} ; 
+                    } 
+                } else { 
+                    TRY{
+                        write-verbose "(Attempting local Get-SmbShare...)" ;
+                        $lshares = Get-SmbShare -ErrorAction 'STOP';
+                    } CATCH{
+                        write-warning "(Get-SmbShare FAILED, reattempting Get-WmiObject -Class win32_share..."
+                        $lshares = Get-WmiObject -Class win32_share ; 
+                    }
+                } ; 
+            } else { 
+                write-verbose "(-NoValidate specified: doing rote unverified substitution on path-> share conversion)" ; 
+            } ; 
+
+            $shareName = $UncElems[1] ; 
+
+            if(-not $NoValidate){
+                if($lshares){
+                    $tShare = $lshares | ? { $_.Name.tolower() -eq $shareName.tolower() } ; 
+                } elseif($rshares){
+                    $tShare = $rshares | ? { $_.Name.tolower() -eq $shareName.tolower() }
+                } elseif($rnshares){
+                    # legacy net /view support, doesn't include path etc, have to interpolate
+                    $tshare = ($rnshares | ?{$_ -like $shareName.toupper()}).replace('$',':') ; 
+                } else { 
+                    $smsg = "Unable to resolve a suitable shares list!" ; 
+                    write-warning $smsg ; 
+                    throw $smsg ; 
+                } ; 
+            } else { 
+                write-verbose "(-NoValidate:doing rote $->: conversion on the specified path Share segment)" ; 
+                $tshare = $sharename.toupper().replace('$',':') ; 
+            } ; 
+
+            # resolve sharename to local shares
+            #$tShare = $lshares | ? { $_.Name.tolower() -eq $shareName.tolower() }
+            if($tShare){
+                if($tShare.Path){
+                    $UncElems[1] = $tShare.Path ; # use local existing share path
+                } else { 
+                    $UncElems[1] = $tShare ; # use local existing share path
+                } ; 
+                $localPath = (($uncElems[1..$($UncElems.Length-1)]) -join '\') -replace '\\\\','\' ; # append remaining elements, joined with \, and replace unc backslashes with singles
+                write-verbose "(returning converted local Path to pipeline:`n$($localPath)" ; 
+                $localPath | write-output ;    
+            } else { 
+                $smsg = "Unable to map UNC path $($item) to a local path: `ncould not match $($shareName) to local shares: {0}" -f (($lshares.name -join ',')) ; 
+                write-warning $smsg ; 
+                throw $smsg ; 
+            } ; 
+        } ; 
+    } ;  # PROC-E
+}
+
+#*------^ ConvertFrom-UncPath.ps1 ^------
+
+
 #*------v convert-HelpToMarkdown.ps1 v------
 Function convert-HelpToMarkdown {
     <#
@@ -3164,6 +3687,161 @@ https://gist.github.com/joegasper/e862f71b5a2658fae21fd36f7231b33c
 }
 
 #*------^ ConvertTo-SRT.ps1 ^------
+
+
+#*------v ConvertTo-UncPath.ps1 v------
+Function ConvertTo-UncPath {
+
+  <#
+    .SYNOPSIS
+    ConvertTo-UncPath - Convert a local path to UNC format (using a matching existing share on the host, if found)
+    .NOTES
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-07-26
+    FileName    : ConvertTo-UncPath.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Tags        : Powershell,FileSystem,Network
+    REVISIONS   :
+    * 12:19 PM 8/4/2022 CBH add: object-reutnr eval ; added -Test, which validates result and returns an object with the path and a 'Valid' property;  spliced in support for cim/smbshare, and rudimentary legacy net /use share checks ; added -NoValidate, just does a rote replace of :->$ on share segment. ; added -Test to post-test functoin
+    * 4:35 PM 8/3/2022 init
+    .DESCRIPTION
+    ConvertTo-UncPath - Convert a local path to UNC format (using a matching existing share on the host, if found)
+    .PARAMETER Path
+    Path string to be converted [-Path c:\pathto\file]   
+    .PARAMETER ComputerName
+    ComputerName to be used in constructed UNC path (defaults to local computername) [-Computer Somebox]
+    .PARAMETER NoValidate
+    Switch to suppress explicit resolution of share (e.g. wrote conversion wo validation converted share exists on host)[-NoValidate]
+    .PARAMETER Test
+    Switch to run a validation test-path on the result, prior to returning converted UNCpath to pipeline[-Test]
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    PS> gci "$env:userprofile\documents" -file | select -first 1 | select -expand fullname |
+    PS>     ConvertTo-uncpath -verbose | 
+    PS>     ConvertFrom-UncPath -verbose ;
+    Get and convert a file (1st file in user profile documents folder), and Convert specified path to UNC, and back again to local path with verbose outputs
+    .EXAMPLE
+    PS>  $results = convertto-uncpath -ComputerName 'SERVER' -Path 'c:\scripts\get-DAG-FreeSpace-Report.ps1' -verbose -test ; 
+    PS>  if($results.valid){write-host -foregroundcolor green "Successful UNC conversion:$($results.path)"} ;
+    Successful UNC conversion:\\SERVER\C$\scripts\get-DAG-FreeSpace-Report.ps1
+    Demo conversion of a remote UNC path, with -Test, and evaluate object return 
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    #[Alias('')]
+    Param(
+        [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage = 'Path string to be converted [-Path c:\pathto\file]   ')]
+        [ValidateNotNullOrEmpty()]
+        [String[]]$Path,
+        [Parameter(HelpMessage = 'ComputerName to be used in constructed UNC path (defaults to local computername) [-Computer Somebox]')]
+        [ValidateNotNullOrEmpty()]
+        [string[]] $ComputerName = $env:COMPUTERNAME,
+        [Parameter(HelpMessage = 'Switch to suppress explicit resolution of share (e.g. wrote conversion wo validation converted share exists on host)[-NoValidate]')]
+        [switch] $NoValidate,
+        [Parameter(HelpMessage = 'Switch to run a validation test-path on the result, prior to returning converted UNCpath to pipeline[-Test]')]
+        [switch] $Test
+    )
+    BEGIN {
+        $verbose = ($VerbosePreference -eq "Continue") ; 
+        if(-not $NoValidate){
+            if($ComputerName -ne $env:COMPUTERNAME){
+                TRY{
+                    write-verbose "(Attempting New-CimSession -ComputerName $($computername)...)" ;
+                    $cim = New-CimSession -ComputerName $computername -ErrorAction 'STOP';
+                    $rshares = Get-SmbShare -CimSession $cim -ErrorAction 'STOP';
+                }CATCH{
+                    write-warning "(New-CimSession/Get-SmbShare FAILED, reattempting legacy:net view \\$($computername)..."
+                    $rnshares = net view \\$computername /all | select -Skip 7 | ?{$_ -match 'disk*'} | %{$_ -match '^(.+?)\s+Disk*'|out-null;$matches[1]} ; 
+                } 
+            } else { 
+                TRY{
+                    write-verbose "(Attempting local Get-SmbShare...)" ;
+                    $lshares = Get-SmbShare -ErrorAction 'STOP';
+                } CATCH{
+                    write-warning "(Get-SmbShare FAILED, reattempting Get-WmiObject -Class win32_share..."
+                    $lshares = Get-WmiObject -Class win32_share ; 
+                }
+            } ; 
+        } else { 
+            write-verbose "(-NoValidate specified: doing rote unverified substitution on path-> share conversion)" ; 
+        } ; 
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            #write-verbose "Data received from parameter input: '$($InputObject)'" ; 
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+
+    } ;  # BEGIN-E
+    PROCESS {
+        foreach($item in $Path) {
+            
+            [array]$uncPath = @("\\$($computername)") ; 
+            # resolve a matching share
+            if(-not $NoValidate){
+                if($lshares){
+                    $tshare = ($lshares |? path -like "$(split-path $item -Qualifier)\")[0] ; # take first if a matched array returns
+                } elseif($rshares){
+                    $tshare = ($rshares |? path -like "$(split-path $item -Qualifier)\")[0] ; # take first if a matched array returns 
+                } elseif($rnshares){
+                    # legacy net /view support, doesn't include path etc, have to interpolate
+                    $tshare = $rnshares | ?{$_ -like (split-path $item -Qualifier).replace(':','$').toupper()} ; 
+                } else { 
+                    $smsg = "Unable to resolve a suitable shares list!" ; 
+                    write-warning $smsg ; 
+                    throw $smsg ; 
+                } ; 
+            } else { 
+                write-verbose "(-NoValidate:doing rote :->$ conversion on the specified path Qualifier)" ; 
+                $tshare = (split-path $item -Qualifier).replace(':','$').toupper()
+            } ; 
+            if($tshare){
+                $smsg = "(matched to existing $($computername) share:$(($tshare | ft -a Name,Path,Description|out-string).trim()))" ; 
+                write-verbose $smsg ; 
+                if($tshare.name){
+                    $uncPath += "$($tshare.name)" ; # add matched existing sharename
+                }else{
+                    $uncPath += "$($tshare)" ; # add matched existing sharename
+                } ; 
+                $uncPath += "$(($item | split-path -noqual ).TrimStart('\'))" ; # append path, with drive Qualifier removed, and leading \ trimmed
+                $uncPath = $uncPath -join '\' ; 
+                if($Test){
+                    $hReturn = @{
+                        Valid = $FALSE ; 
+                        Path = $uncPath ; 
+                    } ; 
+                    if($testResult = test-path -path $uncPath){
+                        $hReturn.Valid = $true ;
+                        write-host -foregroundcolor green "-Test:Validated: test-path -path $($uncPath)" ; 
+                    } else { 
+                        write-warning "-Test:FAILED TO VALIDATE: test-path -path $($uncPath)" ; 
+                        $hReturn.Valid = $false ;
+                    } ; 
+                    $oReturn = New-Object PSObject -Property $hReturn ; 
+                    $smsg = "(returning -Test object to pipeline:`n$(($oReturn|out-string).trim()))" ; 
+                    write-verbose $smsg ; 
+                    $oReturn | write-output ; 
+                    Break ; 
+                } ; 
+                write-verbose "(returning converted path to pipeline:`n$($uncPath))" ; 
+                $uncPath | write-output ; 
+            } else { 
+                $smsg = "Unable to map local path $($item) to an existing local share: `ncould not match $(split-path $item -Qualifier)\ to local shares: {0}" -f (($lshares.name -join ', ')) ; 
+                write-warning $smsg ; 
+                throw $smsg ; 
+            } ; 
+        } ; 
+    } ;  # PROC-E
+}
+
+#*------^ ConvertTo-UncPath.ps1 ^------
 
 
 #*------v convert-VideoToMp3.ps1 v------
@@ -4063,11 +4741,11 @@ Function Echo-Start {
 #*------^ Echo-Start.ps1 ^------
 
 
-#*------v Expand-ZIPFile.ps1 v------
-function Expand-ZIPFile {
+#*------v Expand-ArchiveFile.ps1 v------
+function Expand-ArchiveFile {
     <#
     .SYNOPSIS
-    VERB-NOUN.ps1 - 1LINEDESC
+    Expand-ArchiveFile.ps1 - Decompress all files in an archive file to a destination directory (wraps Psv5+ native cmdlets and matching legacy .net ZipFile & Shell.Application calls)
     .NOTES
     Author: Taylor Gibb
     Website:	https://www.howtogeek.com/tips/how-to-extract-zip-files-using-powershell/
@@ -4076,42 +4754,133 @@ function Expand-ZIPFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 4:23 PM 8/30/2022 simplified CATCH's; updated CBH; ren -Destination -> -DestinationPath (matches expand-archive, and compress-archivefile params)
+    * 1:28 PM 8/29/2022 ren Expand-ZIPFile -> Expand-ArchiveFile (alias orig name); ren source parameter File -> Path; add code to use native expand-archive on psv5+ ; 
+        added try/catch support; debugged on psv51 on mybox, pipeline & useshell (older revs untested).
     * 7:28 AM 3/14/2017 updated tsk: pshelp, param() block, OTB format
-    * 06/13/13 (posted version)
     .DESCRIPTION
-    .PARAMETER  Destination
-    Destination for zip file contents [-Destination c:\path-to\]
-    .PARAMETER  File
-    File [-file c:\path-to\file.zip]
+    Expand-ArchiveFile.ps1 - Decompress all files in an archive file to a destination directory (wraps Psv5+ native cmdlets, and matching legacy .net calls)
+    
+    Wrote to provide broadest support, switches bewtween:
+    - PSv5+ native expand-archive 
+    - .net 4.5 zipfile class support, 
+    - and even oldest legacy Shell.Application Object that can work on all versions of PowerShell starting from v2 (and has no dependencies on .Net Framework)
+    Note:, but this approach can be a little slower on when enumerating and copying a large number of files. 
+    .PARAMETER  Path
+    Source archive full path [-Path c:\path-to\Path.ext]
+    .PARAMETER  DestinationPath
+    Destination folder in which to expand all compressed files in the source archive [-DestinationPath c:\path-to\]
+    .PARAMETER  useShell
+    Switch to use shell.application COM object (broadest legacy compatibility, slower for large number of files) [-useShell]
+    .PARAMETER  Overwrite
+    Overwrite switch (only used pre-psv5 when not using -useShell)[-Overwrite]
     .INPUTS
     None. Does not accepted piped input.
     .OUTPUTS
     None. Returns no objects or output.
     .EXAMPLE
-    Expand-ZIPFile -File "C:\pathto\file.zip" -Destination "c:\pathdest\" ;
+    Expand-ArchiveFile -Path "C:\pathto\file.zip" -DestinationPath "c:\pathdest\" ;
+    Expand content of specified file to DestinationPath
+    .EXAMPLE
+    Expand-ArchiveFile -Path "C:\pathto\file.zip" -DestinationPath "c:\pathdest\" -useShell ;
+    Expand content of specified file to DestinationPath, fall back to legacy Shell.application support.
+    .EXAMPLE
+    'c:\tmp\test3.zip','c:\tmp\test2.zip' | Expand-ArchiveFile -DestinationPath "c:\pathdest\" -verbose ;
+    Pipeline example: Expand content of specified file to DestinationPath
     .LINK
-    https://www.howtogeek.com/tips/how-to-extract-zip-files-using-powershell/
+    https://github.com/tostka/verb-XXX
     #>
-
-    # ($file, $destination)
+    [CmdletBinding()]
+    [Alias('Expand-ZipFile')]
     Param(
-        [Parameter(HelpMessage = "Path [-Destination c:\path-to\]")]
-        [ValidateScript( { Test-Path $_ -PathType 'Container' })][string]$Destination,
-        [Parameter(HelpMessage = "File [-file c:\path-to\file.ext]")]
-        [ValidateScript( { Test-Path $_ })][string]$File,
-        [Parameter(HelpMessage = "Debugging Flag [-showDebug]")]
-        [switch] $showDebug,
-        [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
-        [switch] $whatIf
-    ) # PARAM BLOCK END
-    $shell = new-object -com shell.application ;
-    $zip = $shell.NameSpace($file) ;
-    foreach ($item in $zip.items()) {
-        $shell.Namespace($destination).copyhere($item) ;
-    } ;
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Source archive full path [-Path c:\path-to\Path.ext]")]
+        [ValidateScript( { Test-Path $_ })]
+        [Alias('File')]
+        [string[]]$Path,
+        [Parameter(Mandatory = $true,Position = 1,HelpMessage = "Destination folder in which to expand all compressed files in the source archive [-DestinationPath c:\path-to\]")]
+        #[ValidateScript( { Test-Path $_ -PathType 'Container' })]
+        [string]$DestinationPath,
+        [Parameter(HelpMessage = "Overwrite switch (only used pre-psv5 when not using -useShell)[-Overwrite]")]
+        [switch]$Overwrite,
+        [Parameter(HelpMessage = "Switch to use shell.application COM object (broadest legacy compatibility, slower for large number of files) [-useShell]")]
+        [switch]$useShell
+    ) ; 
+    BEGIN { 
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+         if ($PSCmdlet.MyInvocation.ExpectingInput) {
+                write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+            } else {
+                #write-verbose "Data received from parameter input: '$($InputObject)'" ; 
+                write-verbose "(non-pipeline - param - input)" ; 
+            } ; 
+    } ;  # BEGIN-E
+    PROCESS {
+        $Error.Clear() ; 
+        foreach ($item in $Path){
+                if( ($host.version.major -lt 5) -OR $useShell ){
+                    TRY{
+                        if($useShell){
+                            write-verbose "(-useShell:Using legacy native shell.application COM object support...)" ; 
+                            $shell = new-object -com shell.application ;
+                            $archive = $shell.NameSpace($item) ;
+                        } else { 
+                          write-verbose "(Using .Net class [System.IO.Compression.ZipFile]...)" ; 
+                          TRY{[System.IO.Compression.FileSystem]| out-null} CATCH{Add-Type -AssemblyName System.IO.Compression.FileSystem} ; 
+                          $item = get-childitem -path $item ; 
+                        } ; 
+                        if(-not (test-path -path $DestinationPath)){
+                            write-host "(atempting creation of missing -DestinationPath specified folder...)" ; 
+                            New-Item -Path (split-path $DestinationPath) -Name (split-path $DestinationPath -leaf) -ItemType "directory" -whatif:$($whatif) ; 
+                        } ; 
+                    }CATCH{
+                        Write-Warning -Message $_.Exception.Message; 
+                        BREAK ; 
+                    } ; 
+                    if($useShell){
+                        foreach ($item in $archive.items()) {
+                            TRY{  
+                                $shell.Namespace($DestinationPath).copyhere($item) ;
+                            }CATCH{
+                                Write-Warning -Message $_.Exception.Message ; 
+                                CONTINUE ; 
+                            } ;     
+                        } ;  # loop-E
+                    } else { 
+                        TRY{
+                            $entries = [IO.Compression.ZipFile]::OpenRead($item.FullName).Entries ; 
+                            $entries | ForEach-Object -Process {
+                                [IO.Compression.ZipFileExtensions]::ExtractToFile($_,"$($DestinationPath)\$($_)",$Overwrite) ; 
+                            } ; 
+                        }CATCH{
+                            Write-Warning -Message $_.Exception.Message ; 
+                        } ; 
+                    } ; 
+                } else { 
+                    write-verbose "(PSv5+: using native Expand-Archive)" ; 
+                    $pltEA=[ordered]@{
+                        DestinationPath = $DestinationPath ; 
+                        erroraction = 'STOP' ;
+                        #whatif = $($whatif) ;
+                    } ;
+                    if ($item -match "(\[|\])") {
+                        write-verbose "(angle bracket chars detected in -Path:switching to -LiteralPath support)" ; 
+                        $pltEA.Add('LiteralPath',$item) ; 
+                    } else {
+                        $pltEA.Add('Path',$item) ; 
+                    } ; 
+                    $smsg = "Expand-Archive w`n$(($pltEA|out-string).trim())" ; 
+                    write-host $smsg ;
+                    TRY{
+                        Expand-Archive @pltEA ; 
+                    }CATCH{
+                        Write-Warning -Message $_.Exception.Message
+                    } ; 
+                } ;  # if-E psv5
+        } ;  # loop-E
+    }  # E PROC
 }
 
-#*------^ Expand-ZIPFile.ps1 ^------
+#*------^ Expand-ArchiveFile.ps1 ^------
 
 
 #*------v extract-Icon.ps1 v------
@@ -5364,7 +6133,7 @@ function get-LoremName {
     AddedCredit : Todd Kadrie
     AddedWebsite:	http://www.toddomation.com
     AddedTwitter:	@tostka / http://twitter.com/tostka
-    Inspired to create by: https://twitter.com/MichaelBender/status/1101921078350413825?s=20
+    Inspired to create by: https://twitter.com/MichaelBender/status/11019210783.1.03825?s=20
     REVISIONS
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
@@ -7906,6 +8675,111 @@ Function Remove-InvalidFileNameChars {
 #*------^ Remove-InvalidFileNameChars.ps1 ^------
 
 
+#*------v Remove-InvalidVariableNameChars.ps1 v------
+Function Remove-InvalidVariableNameChars {
+
+  <#
+    .SYNOPSIS
+    Remove-InvalidVariableNameChars - Remove Powershell illegal Variable Name characters from the passed string. By default complies with about_Variables Best practice guidence: 'The best practice is that variable names include only alphanumeric characters and the underscore (_) character. Variable names that include spaces and other special characters, are difficult to use and should be avoided.'
+    .NOTES
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-07-26
+    FileName    : Remove-InvalidVariableNameChars.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Tags        : Powershell,Variable,NameStandard,BestPractice
+    REVISIONS   :
+    * 3:35 PM 7/26/2022 Cleans potential variable names, simple update to the regex.
+    .DESCRIPTION
+    Remove-InvalidVariableNameChars - Remove Powershell illegal Variable Name characters from the passed string. By default complies with about_Variables Best practice guidence: 'The best practice is that variable names include only alphanumeric characters and the underscore (_) character. Variable names that include spaces and other special characters, are difficult to use and should be avoided.'
+    I use this with dynamically-generated ticket-based variables for accumulating ticket data (traces, log parses etc), basing the dyn variable on ticket attribute, email address etc. 
+    MS docs on variable name restrictions: 
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    [about Variables - PowerShell | Microsoft Docs - docs.microsoft.com/](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_variables?view=powershell-7.2#variable-names-that-include-special-characters)
+
+    ## Variable names that include special characters
+
+    Variable names begin with a dollar ($) sign and can include alphanumeric characters and special characters. The variable name length is limited only by available memory.
+
+    The best practice is that variable names include only alphanumeric characters and the underscore (_) character. Variable names that include spaces and other special characters, are difficult to use and should be avoided.
+
+    Alphanumeric variable names can contain these characters:
+
+     - Unicode characters from these categories: Lu, Ll, Lt, Lm, Lo, or Nd.
+     - Underscore (_) character.
+     - Question mark (?) character.
+     
+    The following list contains the Unicode category descriptions. For more information, see UnicodeCategory.
+
+     - Lu - UppercaseLetter
+     - Ll - LowercaseLetter
+     - Lt - TitlecaseLetter
+     - Lm - ModifierLetter
+     - Lo - OtherLetter
+     - Nd - DecimalDigitNumber
+     - 
+    To create or display a variable name that includes spaces or special characters, enclose the variable name with the curly braces ({}) characters. The curly braces direct PowerShell to interpret the variable name's characters as literals.
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    
+    .PARAMETER Name
+    Potential variable 'name' string to have illegal variable name characters removed. 
+    .PARAMETER PermitSpecial
+    Switch to permit inclusion of Special characters in variable name (use requires wrapping name in curly-braces) [-PermitSpecial]
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    $Name = Remove-InvalidVariableNameChars -name $vname ; 
+    Remove OS-specific illegal characters from the sample filename in $ofile. 
+    .EXAMPLE
+    $Name = Remove-InvalidVariableNameChars -name $vname -PermitSpecial ; 
+    Demo use of -permitSpecial: Remove all but closing curly-brace } and backtick ` characters from name in $vname. 
+    .EXAMPLE
+    set-variable -name ($VName | Remove-InvalidVariableNameChars) -value 1 ; 
+    Demo pipeline use with set-variable.
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    #[Alias('')]
+    Param(
+        [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
+        [String[]]$Name,
+        [Parameter(HelpMessage = 'Switch to permit inclusion of Special characters in variable name (use requires wrapping name in curly-braces) [-PermitSpecial]')]
+        [switch]$PermitSpecial
+    )
+    BEGIN {
+        $verbose = ($VerbosePreference -eq "Continue") ; 
+        $rgxVariableNameBP = '[A-Za-z0-9_]' ; 
+        $rgxInvalidChars = "[\}`]" ; # all but closing curly brace (}) character (U+007D) and backtick (`) character (U+0060).
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            #write-verbose "Data received from parameter input: '$($InputObject)'" ; 
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+
+    } ;  # BEGIN-E
+    PROCESS {
+        foreach($item in $Name) {
+            If($PermitSpecial){
+                $uName = ($item -replace $rgxInvalidChars) 
+                write-verbose "(-PermitSpecial specified: returning cleaned name:'$($uname)' to pipeline)" ;
+            } else { 
+                $uName = ($item.tochararray() -match $rgxVariableNameBP) -join '' ;
+                write-verbose "(returning cleaned name:'$($uname)' to pipeline)" ; 
+            } ; 
+            $uName | write-output ; 
+        } ; 
+    } ;  # PROC-E
+}
+
+#*------^ Remove-InvalidVariableNameChars.ps1 ^------
+
+
 #*------v remove-ItemRetry.ps1 v------
 function remove-ItemRetry {
     <#
@@ -10213,6 +11087,168 @@ Function stop-driveburn {
 #*------^ stop-driveburn.ps1 ^------
 
 
+#*------v test-FileSysAutomaticVariables.ps1 v------
+function test-FileSysAutomaticVariables {
+    <#
+    .SYNOPSIS
+    test-FileSysAutomaticVariables.ps1 - Simply echos a report on current values within key Filesystem/Script/Function-related AutomaticVariables (Useful for determinging the extent to which you can depend on and *leverage* a given AVari, under a given specific OS/Host). 
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2022-
+    FileName    : test-FileSysAutomaticVariables.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell
+    REVISIONS
+    * 10:13 AM 7/28/2022 init
+    .DESCRIPTION
+    test-FileSysAutomaticVariables.ps1 - Simply echos a report on current values within key Filesystem/Script/Function-related AutomaticVariables (Useful for determinging the extent to which you can depend on and *leverage* a given AVari, under a given specific OS/Host). 
+    .INPUTS
+    None. Does not accepted piped input.(.NET types, can add description)
+    .OUTPUTS
+    None. Returns no objects or output (.NET types)    
+    .EXAMPLE
+    PS> .\test-FileSysAutomaticVariablesPS1.ps1
+    # psv2 ISE output from .ps1:
+        :==(20220729-0525AM)=Computername:SERVERNAME:PS1-CHECK
+        $host.version:	2.0
+        $IsCoreCLR:
+        $IsLinux:
+        $IsMacOS:
+        $IsWindows:
+        $PSCmdlet.MyInvocation.MyCommand.Name:decommission-Ex10Server.ps1
+        $PSScriptRoot:	
+        $PSCommandPath:	
+        (&{$myInvocation}).ScriptName):	C:\scripts\decommission-Ex10Server.ps1
+        $MyInvocation.InvocationName:	.\decommission-Ex10Server.ps1
+        $MyInvocation.PSScriptRoot (populated when called fr a script & is *caller*):
+
+        $MyInvocation.PSCommandPath (populated when called fr a script & is *caller*):
+
+        --Legacy Path resolutions:
+        $ScriptDir (fr $MyInvocation):	C:\scripts\
+        $ScriptBaseName (fr &{System.Management.Automation.InvocationInfo}).ScriptName):	decommission-Ex10Server.ps1
+        $ScriptNameNoExt (fr $MyInvocation.InvocationName):	decommission-Ex10Server
+        $MyInvocation.MyCommand.Path:	C:\scripts
+    Example run as a .ps1 script file. 
+    .LINK
+    https://github.com/tostka/verb-XXX
+    #>
+    [CmdletBinding()]
+    ###[Alias('Alias','Alias2')]
+    PARAM() ;
+    
+    ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+
+
+    Try {
+        $ScriptRoot = Get-Variable -Name PSScriptRoot -ValueOnly -ErrorAction Stop
+    }Catch{
+        $ScriptRoot = Split-Path $script:MyInvocation.MyCommand.Path
+    }
+
+    # legacy resolution methods: 
+    switch($pscmdlet.myinvocation.mycommand.CommandType){
+        'Function' {
+            $smsg = "CommandType:Function:Running context does not support populated `$MyInvocation.MyCommand.Definition|Path" ; 
+            $smsg += "(interpolating values from other configured sources)" ; 
+            write-host $smsg ; 
+            $ScriptDir= $ScriptRoot ; 
+            $ScriptBaseName = $pscmdlet.myinvocation.mycommand.Name ; 
+            $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($pscmdlet.myinvocation.mycommand.Name ) ; 
+            $smsg += "`n--Legacy Path resolutions:" ; 
+            $slmsg += "`n`$ScriptDir (fr `$PSScriptRoot):`t$($ScriptDir)" ; 
+            $slmsg += "`n`$ScriptBaseName (fr `$pscmdlet.myinvocation.mycommand.Name):`t$($ScriptBaseName)" ; 
+            $slmsg += "`n`$ScriptNameNoExt (fr `$pscmdlet.myinvocation.mycommand.Name):`t$($ScriptNameNoExt)" ;
+        }
+        'ExternalScript' {
+            $smsg = "CommandType:ExternalScript:.ps1" ; 
+            $smsg += "(determining values from legacy sources)" ;
+            write-host $smsg ; 
+            #$ScriptDir=(Split-Path -parent $MyInvocation.MyCommand.Definition) + "\" ;
+            TRY{
+                $ScriptDir=((Split-Path -parent $MyInvocation.MyCommand.Definition -ErrorAction STOP) + "\");
+                $ScriptBaseName = (Split-Path -Leaf ((&{$myInvocation}).ScriptName))  ; 
+                $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($MyInvocation.InvocationName) ; 
+
+                $smsg += "`n--Legacy Path resolutions:" ; 
+                $slmsg += "`n`$ScriptDir (fr `$MyInvocation):`t$($ScriptDir)" ; 
+                $slmsg += "`n`$ScriptBaseName (fr &{$myInvocation}).ScriptName):`t$($ScriptBaseName)" ; 
+                $slmsg += "`n`$ScriptNameNoExt (fr `$MyInvocation.InvocationName):`t$($ScriptNameNoExt)" ; 
+                $slmsg += "`n`$MyInvocation.MyCommand.Path:`t$((Split-Path -parent $MyInvocation.MyCommand.Path))" ; 
+            } CATCH {
+                $smsg = "Running context does not support populated `$MyInvocation.MyCommand.Definition|Path" ; 
+                $smsg += "(interpolating values from other configured sources)" ; 
+
+
+            } ; 
+        }
+        default {
+            write-warning "Unrecognized `$pscmdlet.myinvocation.mycommand.CommandType:$($pscmdlet.myinvocation.mycommand.CommandType)!" ; 
+
+        } ; 
+    } ; 
+
+     # patch in older non-supporting ISE
+    if(-not $ScriptDir -AND $psise){
+        write-host "Empty `$ScriptDir with ISE:Failing through to $PSISE obj space" ; 
+        $ScriptDir = Split-Path $psise.CurrentFile.FullPath ;
+        $ScriptBaseName = Split-Path $psise.CurrentFile.FullPath -leaf ; 
+        $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($ScriptBaseName ) ; 
+    } ; 
+            
+    <# Quibble with a potentially interesting aside: The closer v2- approximation of 
+    $PSScriptRoot is (Split-Path -Parent applied to) $MyInvocation.MyCommand.Path, 
+    not $MyInvocation.MyCommand.Definition, though in the top-level scope of a 
+    script they behave the same (which is the only sensible place to call from for 
+    this purpose). When called inside a function or script block, the former 
+    returns the empty string, whereas the latter returns the function body's / 
+    script block's definition as a string (a piece of PowerShell source code). â€"  
+    mklement0
+    Sep 4, 2019 at 14:24
+    #>
+              
+    $smsg = "==($(get-date -format 'yyyyMMdd-HHmmtt'))=Computername:$($env:computername):" ; 
+    switch($pscmdlet.myinvocation.mycommand.CommandType){
+        'Function' {
+            $smsg += "FUNCTION-CHECK" ;
+        }
+        'ExternalScript' {
+            $smsg += "PS1-CHECK" ;
+        }
+        default {
+            $smsg += "(UNKNOWN)" ;
+
+        } ; 
+    } ; 
+    $smsg += "`n`n`$host.version:`t$($host.version)" ; 
+    $smsg += "`n`$IsCoreCLR:$($IsCoreCLR)" ; 
+    $smsg += "`n`$IsLinux:$($IsLinux)" ; 
+    $smsg += "`n`$IsMacOS:$($IsMacOS)" ; 
+    $smsg += "`n`$IsWindows:$($IsWindows)" ; 
+    $smsg += "`n`$PSCmdlet.MyInvocation.MyCommand.Name:$($PSCmdlet.MyInvocation.MyCommand.Name)" ; 
+    #$smsg += "`nSplit-Path -parent $MyInvocation.MyCommand.Definition:$(Split-Path -parent $MyInvocation.MyCommand.Definition)" ;  
+    $smsg += "`n`$PSScriptRoot:`t$($PSScriptRoot)" ;
+    $smsg += "`n`$PSCommandPath:`t$($PSCommandPath)" ;
+    # def dumps back the source code, not much else useful. 
+    #$smsg += "`n`$MyInvocation.MyCommand.Definition:`t$($MyInvocation.MyCommand.Definition)" ;
+    $smsg += "`n`(&{`$myInvocation}).ScriptName):`t$((&{$myInvocation}).ScriptName)" ;
+    $smsg += "`n`$MyInvocation.InvocationName:`t$($MyInvocation.InvocationName)" ;
+    $smsg += "`n`$MyInvocation.PSScriptRoot (populated when called fr a script & is *caller*):`n$($MyInvocation.PSScriptRoot)" ; 
+    $smsg += "`n`$MyInvocation.PSCommandPath (populated when called fr a script & is *caller*):`n$($MyInvocation.PSCommandPath)" ; 
+    $smsg += "`n--Legacy Path resolutions:" ; 
+    $smsg += $slmsg ; 
+
+    write-host $smsg ; 
+}
+
+#*------^ test-FileSysAutomaticVariables.ps1 ^------
+
+
 #*------v test-IsUncPath.ps1 v------
 function test-IsUncPath {
     <#
@@ -11414,7 +12450,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ZIPFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,Pop-LocationFirst,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-ItemReadOnlyTDO,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-IsUncPath,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,Pop-LocationFirst,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-ItemReadOnlyTDO,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsUncPath,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 
@@ -11422,8 +12458,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUDw57iWW+6TKNA7UCJhHtChLK
-# r+ugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUuXOJvCBKcOUCE17FhLOFuP7S
+# ECygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -11438,9 +12474,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSmztpO
-# XefmlYG4xV64iMjlpiVAMjANBgkqhkiG9w0BAQEFAASBgBAs5Ijv92EXy0/Ij54S
-# QWMwsiID7UifAxzvKxz271EIT0pJxyl9we/+/n5IAoF1yqjFJTj14lQFWBnkQzUS
-# s2dKyrf3ipsW60UNubay9h9DyqIzJA+fak5LAKqBiVesgOw8Lc98hGrHsDivSQ9N
-# 59raDJR5N28UuWUT1CT0dqVw
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR5Vcp9
+# GPg3G1aoGoXr/t5w4tdpgDANBgkqhkiG9w0BAQEFAASBgHN1PELClSL8XqEIVNOl
+# jKXjwtuSVuTuyAZ+wrU4AZrRO9T5O6L8lL9x4VDmvfNxaB75hGm/IHTZ6zgXICul
+# sARUEn/fB/gDXr5BD5wGTVhDRh7qbLQJvGMbsUh8sa7W/muvJ7Kf2BnzkjPt8+ic
+# edq706ZTI58nt3eQIqJmQSUR
 # SIG # End signature block
