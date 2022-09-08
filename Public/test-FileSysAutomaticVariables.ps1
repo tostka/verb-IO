@@ -1,4 +1,4 @@
-# test-FileSysAutomaticVariables.ps1
+ï»¿# test-FileSysAutomaticVariables.ps1
 # rem'd function c
 #*------v Function test-FileSysAutomaticVariables.ps1 v------
 function test-FileSysAutomaticVariables {
@@ -120,7 +120,7 @@ function test-FileSysAutomaticVariables {
     script they behave the same (which is the only sensible place to call from for 
     this purpose). When called inside a function or script block, the former 
     returns the empty string, whereas the latter returns the function body's / 
-    script block's definition as a string (a piece of PowerShell source code). â€"  
+    script block's definition as a string (a piece of PowerShell source code). ï¿½"  
     mklement0
     Sep 4, 2019 at 14:24
     #>
