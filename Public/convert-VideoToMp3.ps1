@@ -43,7 +43,7 @@ function convert-VideoToMp3 {
     Convert Specified video file to mp3.
     #>
     [CmdletBinding()]
-    [Aliases('convert-ToMp3','convert-VideoToMp3')]
+    [Alias('convert-ToMp3','convert-VideoToMp3')]
     PARAM (
         [parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0, Mandatory = $True, HelpMessage = "File(s) to be transcoded")]
         $InputObject
