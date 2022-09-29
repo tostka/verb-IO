@@ -15,6 +15,7 @@ function Set-ContentFixEncoding {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,File,Encoding,Management
     REVISIONS   :
+    * 12:21 PM 9/26/2022 add back -showdebug with 'deprecated' tag (better to use verbose); i've got code out there trying to use it and throwing up.
     *4:26 PM 5/27/2022 fixed typo in doloop #98: $Retries => $DoRetries (loop went full dist before exiting, even if successful 1st attempt)
     * 10:01 AM 5/17/2022 updated CBH exmple
     * 10:39 AM 5/13/2022 removed 'requires -modules', to fix nesting limit error loading verb-io
@@ -31,6 +32,8 @@ function Set-ContentFixEncoding {
     Specifies the type of encoding for the target file. The default value is 'UTF8'.[-encoding Unicode]
     .PARAMETER PassThru
     Returns an object that represents the content. By default, this cmdlet does not generate any output [-PassThru]
+    .PARAMETER ShowDebug
+    Parameter to display Debugging messages (deprecated) [-ShowDebug switch]
     .PARAMETER whatIf
     Whatif switch [-whatIf]
     .INPUTS
@@ -72,6 +75,8 @@ function Set-ContentFixEncoding {
         [Microsoft.PowerShell.Commands.FileSystemCmdletProviderEncoding]$encoding='UTF8',
         [Parameter(HelpMessage = "Returns an object that represents the content. By default, this cmdlet does not generate any output [-PassThru]")]
         [switch] $PassThru,
+        [Parameter(HelpMessage = "Debugging Flag (deprecated) [-showDebug]")]
+        [switch] $showDebug,
         [Parameter(HelpMessage = "Whatif switch [-whatIf]")]
         [switch] $whatIf
     ) ;
