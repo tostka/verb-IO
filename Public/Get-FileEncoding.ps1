@@ -13,7 +13,7 @@
     Github      : 
     Tags        : Powershell,Filesystem,Encoding
     REVISIONS
-    * 2:08 PM 11/7/2022 updated CBH example3 to reset to UTF8 (vs prior Ascii)
+    * 2:08 PM 11/7/2022 updated CBH example3 to reset to UTF8 (vs prior Ascii); added examples for running the entire source tree recursive, and added example echos of the per-file processing.
     * 3:08 PM 2/25/2020 re-implemented orig code, need values that can be fed back into set-content -encoding, and .net encoding class doesn't map cleanly (needs endian etc, and there're a raft that aren't supported). Spliced in UTF8BOM byte entries from https://superuser.com/questions/418515/how-to-find-all-files-in-directory-that-contain-utf-8-bom-byte-order-mark/914116
     * 2/12/2012 posted vers
     .DESCRIPTION
@@ -47,11 +47,36 @@
     .OUTPUTS
     System.Text.Encoding
     .EXAMPLE
-    PS> Get-ChildItem  *.ps1 | select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | where {$_.Encoding -ne 'UTF8'} ;
-    This command gets ps1 files in current directory where encoding is not UTF8 ;
+    PS> Get-ChildItem  *.ps1 | ?{$_.length -gt 0} | select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | where {$_.Encoding -ne 'UTF8'} | ft -a ; 
+    This command gets ps1 files in current directory (with non-zero length) where encoding is not UTF8 ;
     .EXAMPLE
-    PS> Get-ChildItem  *.ps1 | select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | where {$_.Encoding -ne 'UTF8'} | foreach {(get-content $_.FullName) | set-content $_.FullName -Encoding UTF8} ;
-    Gets ps1 files in current directory where encoding is not UTF8 and then sets encoding to UTF8 using set-content ;
+    PS> $Encoding = 'UTF8' ; 
+    PS> Get-ChildItem  *.ps1 | ?{$_.length -gt 0} | 
+    PS>    select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | 
+    PS>    where {$_.Encoding -ne $Encoding} | foreach-object { 
+    PS>        write-host "==$($_.fullname):" ; 
+    PS>        (get-content $_.FullName) | set-content $_.FullName -Encoding $Encoding -whatif ;
+    PS>    } ;
+    Gets ps1 files in current directory (with non-zero length) where encoding is not UTF8, and then sets encoding to UTF8 using set-content ;
+    .EXAMPLE
+    PS> $Encoding = 'UTF8' ;
+    PS> Get-ChildItem  c:\sc\*.ps1 -recur | ?{$_.length -gt 0} |
+    PS>     select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} |
+    PS>     where {$_.Encoding -ne $Encoding}  | ft -a ; 
+        FullName                        Encoding
+        --------                        --------
+        C:\sc\AADInternals\MDM.ps1      ASCII
+        C:\sc\AADInternals\OneDrive.ps1 ASCII
+    Demo recursing down the entire c:\sc source tree, and reporting non-UTF8s
+    .EXAMPLE
+    PS> $Encoding = 'UTF8' ;
+    PS> Get-ChildItem  c:\sc\*.ps1 -recur | ?{$_.length -gt 0} |
+    PS>     select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} |
+    PS>     where {$_.Encoding -ne $Encoding} | foreach {
+    PS>         write-host "==$($_.fullname):" ;
+    PS>         (get-content $_.FullName) | set-content $_.FullName -Encoding $Encoding -whatif ;
+    PS>     } ;
+    Demo recursing source tree, and coercing non-UTF8 PS1's to UTF8.
     .LINK
     https://github.com/tostka/verb-io
     http://franckrichard.blogspot.com/2010/08/powershell-get-encoding-file-type.html
