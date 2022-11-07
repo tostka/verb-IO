@@ -1,4 +1,4 @@
-#*----------v Function stop-driveburn() v----------
+﻿#*----------v Function stop-driveburn() v----------
 Function stop-driveburn {
     <#
     .SYNOPSIS

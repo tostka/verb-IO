@@ -1,4 +1,4 @@
-#*----------v Function invoke-SoundCue() v----------
+﻿#*----------v Function invoke-SoundCue() v----------
 function invoke-SoundCue{
       <#
     .SYNOPSIS

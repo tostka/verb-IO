@@ -1,4 +1,4 @@
-#*------v Function move-FileOnReboot v------
+﻿#*------v Function move-FileOnReboot v------
 function move-FileOnReboot {
     <#
     .SYNOPSIS

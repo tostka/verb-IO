@@ -1,4 +1,4 @@
-#*------v Function get-TaskReport v------
+﻿#*------v Function get-TaskReport v------
 function get-TaskReport {
     <#
     .SYNOPSIS

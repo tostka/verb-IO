@@ -1,4 +1,4 @@
-#*------v Function Sign-File v------
+﻿#*------v Function Sign-File v------
 function Sign-File {
     <#
     .SYNOPSIS

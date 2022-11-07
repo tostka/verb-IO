@@ -1,4 +1,4 @@
-#*------v Function Remove-JsonComments v------
+﻿#*------v Function Remove-JsonComments v------
 Function Remove-JsonComments{ 
     <#
     .SYNOPSIS

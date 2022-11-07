@@ -1,4 +1,4 @@
-#*------v Function ConvertFrom-SourceTable v------
+﻿#*------v Function ConvertFrom-SourceTable v------
 if($host.version.major -gt 2){
     Function ConvertFrom-SourceTable {
         <#

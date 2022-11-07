@@ -1,4 +1,4 @@
-#*------v ConvertFrom-CanonicalOU.ps1 v------
+﻿#*------v ConvertFrom-CanonicalOU.ps1 v------
 function ConvertFrom-CanonicalOU {
     <#
     .SYNOPSIS

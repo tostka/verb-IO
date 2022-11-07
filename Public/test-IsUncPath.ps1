@@ -1,4 +1,4 @@
-#*------v Function test-IsUncPath v------
+﻿#*------v Function test-IsUncPath v------
 function test-IsUncPath {
     <#
     .SYNOPSIS

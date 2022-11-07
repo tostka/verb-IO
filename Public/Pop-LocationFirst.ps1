@@ -1,4 +1,4 @@
-#*------v Function Pop-LocationFirst v------
+﻿#*------v Function Pop-LocationFirst v------
 function Pop-LocationFirst {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v Function Get-FolderSize2 v------
+﻿#*------v Function Get-FolderSize2 v------
 Function Get-FolderSize2 {
     <#
     .SYNOPSIS

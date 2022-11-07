@@ -1,4 +1,4 @@
-#*------v Function Get-TimeStamp v------
+﻿#*------v Function Get-TimeStamp v------
 function Get-TimeStamp {
     <#
     .SYNOPSIS

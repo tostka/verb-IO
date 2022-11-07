@@ -1,4 +1,4 @@
-#*------v Function Get-CountItems v------
+﻿#*------v Function Get-CountItems v------
 function Get-CountItems {
     <#
     .SYNOPSIS

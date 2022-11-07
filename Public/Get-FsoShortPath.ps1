@@ -1,4 +1,4 @@
-#*------v Function Get-FsoShortPath v------
+﻿#*------v Function Get-FsoShortPath v------
     Function Get-FsoShortPath {
         <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v get-colorcombo.ps1 v------
+﻿#*------v get-colorcombo.ps1 v------
 function get-colorcombo {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v ConvertFrom-DN.ps1 v------
+﻿#*------v ConvertFrom-DN.ps1 v------
 function ConvertFrom-DN {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-##*------v Function Echo-Finish v------
+﻿##*------v Function Echo-Finish v------
 Function Echo-Finish {
     <#
     .SYNOPSIS

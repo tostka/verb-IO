@@ -1,4 +1,4 @@
-#*------v Function Shorten-Path v------
+﻿#*------v Function Shorten-Path v------
     function Shorten-Path([string] $path) {
         <#
     .SYNOPSIS

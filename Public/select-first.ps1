@@ -1,4 +1,4 @@
-#*------v Function select-first v------
+﻿#*------v Function select-first v------
 function select-first {
     <#
     .SYNOPSIS

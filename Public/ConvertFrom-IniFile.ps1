@@ -1,4 +1,4 @@
-#*------v ConvertFrom-IniFile.ps1 v------
+﻿#*------v ConvertFrom-IniFile.ps1 v------
 Function ConvertFrom-IniFile {
     <#
     .Synopsis

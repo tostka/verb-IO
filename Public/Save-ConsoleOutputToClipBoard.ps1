@@ -1,4 +1,4 @@
-#*------v Function Save-ConsoleOutputToClipBoard v------
+﻿#*------v Function Save-ConsoleOutputToClipBoard v------
 function Save-ConsoleOutputToClipBoard {
     <#
     .SYNOPSIS

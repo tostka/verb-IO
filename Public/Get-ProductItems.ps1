@@ -1,4 +1,4 @@
-#*------v Function Get-ProductItems v------
+﻿#*------v Function Get-ProductItems v------
 function Get-ProductItems {
     <#
     .SYNOPSIS

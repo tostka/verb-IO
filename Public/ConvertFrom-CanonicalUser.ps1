@@ -1,4 +1,4 @@
-#*------v ConvertFrom-CanonicalUser.ps1 v------
+﻿#*------v ConvertFrom-CanonicalUser.ps1 v------
 function ConvertFrom-CanonicalUser {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v Invoke-Pause.ps1 v------
+﻿#*------v Invoke-Pause.ps1 v------
 Function Invoke-Pause() {
     <#
     .SYNOPSIS

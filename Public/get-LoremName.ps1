@@ -1,4 +1,4 @@
-#*----------v Function get-LoremName() v----------
+﻿#*----------v Function get-LoremName() v----------
 function get-LoremName {
     <#
     .SYNOPSIS

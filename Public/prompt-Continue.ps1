@@ -1,4 +1,4 @@
-#------v Function prompt-Continue v------
+﻿#------v Function prompt-Continue v------
 Function prompt-Continue {
     <#
     .SYNOPSIS

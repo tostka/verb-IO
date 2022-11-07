@@ -1,4 +1,4 @@
-#*------v Select-StringAll.ps1 v------
+﻿#*------v Select-StringAll.ps1 v------
 Function Select-StringAll {
 
     <#

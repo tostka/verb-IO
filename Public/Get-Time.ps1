@@ -1,4 +1,4 @@
-#*------v Function Get-Time v------
+﻿#*------v Function Get-Time v------
 function Get-Time {
     <#
     .SYNOPSIS

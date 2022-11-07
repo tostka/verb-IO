@@ -1,4 +1,4 @@
-#*------v Function Set-ContentFixEncoding v------
+﻿#*------v Function Set-ContentFixEncoding v------
 function Set-ContentFixEncoding {
     <#
     .SYNOPSIS
@@ -25,6 +25,21 @@ function Set-ContentFixEncoding {
         yanked advfunc, and all looping other than retry. 
     * 9:25 AM 5/4/2022 add -passthru support, rather than true/false return ; add retry code & $DoRetries, $RetrySleep; alias 'Set-FileContent', retire the other function
     * 11:24 AM 5/3/2022 init
+    .DESCRIPTION
+    Set-ContentFixEncoding - Set-Content variant that auto-coerces the encoding to UTF8 
+    
+    NOTE: at the current time - 2:21 PM 11/7/2022 - do *not* use this with get-FileEncoding to update encoding (found it emptying target file, likely inbound pipeline issue for $Value)
+    Use set-Content as per the example from get-FileEncoding:
+    
+    PS> $Encoding = 'UTF8' ; 
+    PS> Get-ChildItem  *.ps1 | ?{$_.length -gt 0} | 
+    PS>    select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | 
+    PS>    where {$_.Encoding -ne $Encoding} | foreach-object { 
+    PS>        write-host "==$($_.fullname):" ; 
+    PS>        (get-content $_.FullName) | set-content $_.FullName -Encoding $Encoding -whatif ;
+    PS>    } ;
+    Gets ps1 files in current directory (with non-zero length) where encoding is not UTF8, and then sets encoding to UTF8 using set-content ;
+    
     .PARAMETER Path
     Specifies the path of the item that receives the content.[-Path c:\pathto\script.ps1]
     .PARAMETER Value

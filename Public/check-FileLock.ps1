@@ -1,4 +1,4 @@
-#*------v Function check-FileLock v------
+﻿#*------v Function check-FileLock v------
 function check-FileLock {
     <#
     .SYNOPSIS

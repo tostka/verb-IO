@@ -1,4 +1,4 @@
-#*------v Test-PendingReboot.ps1 v------
+﻿#*------v Test-PendingReboot.ps1 v------
 function Test-PendingReboot {
     <#
     .SYNOPSIS

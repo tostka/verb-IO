@@ -1,4 +1,4 @@
-#*------v out-Clipboard.ps1 v------
+﻿#*------v out-Clipboard.ps1 v------
 Function out-Clipboard {
     <#
     .SYNOPSIS

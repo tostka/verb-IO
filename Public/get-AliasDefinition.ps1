@@ -1,4 +1,4 @@
-#*------v get-AliasDefinition.ps1 v------
+﻿#*------v get-AliasDefinition.ps1 v------
 Function get-AliasDefinition {
     <#
     .SYNOPSIS

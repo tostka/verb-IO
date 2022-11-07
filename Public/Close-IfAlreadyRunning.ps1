@@ -1,4 +1,4 @@
-#*------v Function Close-IfAlreadyRunning v------
+﻿#*------v Function Close-IfAlreadyRunning v------
 Function Close-IfAlreadyRunning {
     <#
     .SYNOPSIS

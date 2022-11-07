@@ -1,4 +1,4 @@
-#*------v Function Add-ContentFixEncoding v------
+﻿#*------v Function Add-ContentFixEncoding v------
 function Add-ContentFixEncoding {
     <#
     .SYNOPSIS

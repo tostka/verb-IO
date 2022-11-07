@@ -1,4 +1,4 @@
-#*------v Function Select-last v------
+﻿#*------v Function Select-last v------
 function Select-last {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v Function get-RegistryProperty v------
+﻿#*------v Function get-RegistryProperty v------
 function get-RegistryProperty {
     <#
     .SYNOPSIS

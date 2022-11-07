@@ -1,4 +1,4 @@
-#*------v Function New-RandomFilename v------
+﻿#*------v Function New-RandomFilename v------
 function New-RandomFilename{
     <#
     SYNOPSIS

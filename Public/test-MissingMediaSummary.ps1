@@ -1,4 +1,4 @@
-#*------v test-MissingMediaSummary.ps1 v------
+﻿#*------v test-MissingMediaSummary.ps1 v------
 Function test-MissingMediaSummary {
     <#
     .SYNOPSIS

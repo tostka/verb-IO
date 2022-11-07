@@ -1,4 +1,4 @@
-#*------v get-ConsoleText.ps1 v------
+﻿#*------v get-ConsoleText.ps1 v------
 Function get-ConsoleText {
     <#
     .SYNOPSIS

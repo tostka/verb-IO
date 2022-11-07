@@ -1,4 +1,4 @@
-##*------v Function Read-Host2 v------
+﻿##*------v Function Read-Host2 v------
 Function Read-Host2 {
     <#
     .SYNOPSIS

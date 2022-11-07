@@ -1,4 +1,4 @@
-#*------v Function Remove-ScheduledTaskLegacy v------
+﻿#*------v Function Remove-ScheduledTaskLegacy v------
 Function Remove-ScheduledTaskLegacy {
     <#
     .SYNOPSIS

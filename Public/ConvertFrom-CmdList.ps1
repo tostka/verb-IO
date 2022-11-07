@@ -1,4 +1,4 @@
-#*------v Filter ConvertFrom-CmdList v------
+﻿#*------v Filter ConvertFrom-CmdList v------
 filter ConvertFrom-CmdList {
     <#
     .SYNOPSIS

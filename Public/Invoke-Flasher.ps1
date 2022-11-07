@@ -1,4 +1,4 @@
-#*------v Function Invoke-Flasher v------
+﻿#*------v Function Invoke-Flasher v------
 Function Invoke-Flasher {
     <#
     .SYNOPSIS

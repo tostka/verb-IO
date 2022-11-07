@@ -1,4 +1,4 @@
-#*------v Function Count-Object v------
+﻿#*------v Function Count-Object v------
 function Count-Object {
     <#
     .SYNOPSIS

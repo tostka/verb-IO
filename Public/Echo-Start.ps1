@@ -1,4 +1,4 @@
-##*------v Function Echo-Start v------
+﻿##*------v Function Echo-Start v------
 Function Echo-Start {
     <#
     .SYNOPSIS

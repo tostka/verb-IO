@@ -1,4 +1,4 @@
-#*------v Function Authenticate-File v------
+﻿#*------v Function Authenticate-File v------
 function Authenticate-File {
     <#
     .SYNOPSIS

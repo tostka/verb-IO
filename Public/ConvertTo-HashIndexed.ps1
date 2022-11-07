@@ -1,4 +1,4 @@
-#*------v Function ConvertTo-HashIndexed v------
+﻿#*------v Function ConvertTo-HashIndexed v------
 Function ConvertTo-HashIndexed {
     <#
     .SYNOPSIS

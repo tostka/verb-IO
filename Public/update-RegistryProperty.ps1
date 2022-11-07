@@ -1,4 +1,4 @@
-#*------v Function update-RegistryProperty v------
+﻿#*------v Function update-RegistryProperty v------
 function update-RegistryProperty {
     <#
     .SYNOPSIS

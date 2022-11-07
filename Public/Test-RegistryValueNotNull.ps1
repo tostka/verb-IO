@@ -1,4 +1,4 @@
-#*------v Test-RegistryValueNotNull.ps1 v------
+﻿#*------v Test-RegistryValueNotNull.ps1 v------
 function Test-RegistryValueNotNull {
     <#
     .SYNOPSIS

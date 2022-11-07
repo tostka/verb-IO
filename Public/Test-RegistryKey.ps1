@@ -1,4 +1,4 @@
-#*------v Test-RegistryKey.ps1 v------
+﻿#*------v Test-RegistryKey.ps1 v------
 function Test-RegistryKey {
     <#
     .SYNOPSIS

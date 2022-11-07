@@ -1,4 +1,4 @@
-#*------v test-MediaFile.ps1 v------
+﻿#*------v test-MediaFile.ps1 v------
 Function test-MediaFile {
     <#
     .SYNOPSIS

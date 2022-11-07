@@ -1,4 +1,4 @@
-#*------v Function new-Shortcut v------
+﻿#*------v Function new-Shortcut v------
 function new-Shortcut {
     <#
     .SYNOPSIS

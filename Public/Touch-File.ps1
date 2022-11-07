@@ -1,4 +1,4 @@
-#*------v Function Touch-File v------
+﻿#*------v Function Touch-File v------
 Function Touch-File {
     <#
     .SYNOPSIS

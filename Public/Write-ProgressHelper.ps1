@@ -1,4 +1,4 @@
-#*------v Write-ProgressHelper v------
+﻿#*------v Write-ProgressHelper v------
 function Write-ProgressHelper {
     <#
     .SYNOPSIS

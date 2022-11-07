@@ -1,4 +1,4 @@
-#*------v convert-BinaryToDecimalStorageUnits.ps1 v------
+﻿#*------v convert-BinaryToDecimalStorageUnits.ps1 v------
 Function convert-BinaryToDecimalStorageUnits {
     <#
     .SYNOPSIS

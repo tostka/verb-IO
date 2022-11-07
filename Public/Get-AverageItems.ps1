@@ -1,4 +1,4 @@
-#*------v Function Get-AverageItems v------
+﻿#*------v Function Get-AverageItems v------
 function Get-AverageItems {
     <#
     .SYNOPSIS

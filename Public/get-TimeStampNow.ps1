@@ -1,4 +1,4 @@
-#*------v Function get-TimeStampNow v------
+﻿#*------v Function get-TimeStampNow v------
 Function get-TimeStampNow () {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v Function Get-ScheduledTaskLegacy v------
+﻿#*------v Function Get-ScheduledTaskLegacy v------
 Function Get-ScheduledTaskLegacy {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v Function Remove-AuthenticodeSignature v------
+﻿#*------v Function Remove-AuthenticodeSignature v------
 function Remove-AuthenticodeSignature {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v Function Format-Json v------
+﻿#*------v Function Format-Json v------
 function Format-Json {
     <#
     .SYNOPSIS

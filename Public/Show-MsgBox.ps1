@@ -1,4 +1,4 @@
-    #*------v Function Show-MsgBox v------
+﻿    #*------v Function Show-MsgBox v------
     function Show-MsgBox {
         <#
         .SYNOPSIS

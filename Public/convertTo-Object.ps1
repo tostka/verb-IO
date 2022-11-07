@@ -1,4 +1,4 @@
-#*------v Function convertTo-Object v------
+﻿#*------v Function convertTo-Object v------
 Function convertTo-Object {
 
     <#

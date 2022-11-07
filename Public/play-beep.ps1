@@ -1,4 +1,4 @@
-#*------v Function play-beep v------
+﻿#*------v Function play-beep v------
 function play-beep {
     <#
     .SYNOPSIS

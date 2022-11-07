@@ -1,4 +1,4 @@
-#*------v ConvertTo-SRT.ps1 v------
+﻿#*------v ConvertTo-SRT.ps1 v------
 function ConvertTo-SRT {
     <#
     .SYNOPSIS

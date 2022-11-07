@@ -1,4 +1,4 @@
-#*----------------v Function copy-Profile v------
+﻿#*----------------v Function copy-Profile v------
 function copy-Profile {
     <#
     .SYNOPSIS

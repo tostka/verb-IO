@@ -1,4 +1,4 @@
-
+﻿
 #*------v Function set-ConsoleColors v------
 Function set-ConsoleColors {
     <#

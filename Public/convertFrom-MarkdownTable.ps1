@@ -1,4 +1,4 @@
-#*------v convertFrom-MarkdownTable.ps1 v------
+﻿#*------v convertFrom-MarkdownTable.ps1 v------
 Function convertFrom-MarkdownTable {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v Function get-Uptime v------
+﻿#*------v Function get-Uptime v------
 function get-Uptime {
     <#
     .SYNOPSIS

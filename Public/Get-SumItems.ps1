@@ -1,4 +1,4 @@
-#*------v Function Get-SumItems v------
+﻿#*------v Function Get-SumItems v------
 function Get-SumItems {
     <#
     .SYNOPSIS
