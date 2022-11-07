@@ -15,6 +15,7 @@ function Set-ContentFixEncoding {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,File,Encoding,Management
     REVISIONS   :
+    * 2:11 PM 11/7/2022 add missing [dot]example in CBH
     * 12:21 PM 9/26/2022 add back -showdebug with 'deprecated' tag (better to use verbose); i've got code out there trying to use it and throwing up.
     *4:26 PM 5/27/2022 fixed typo in doloop #98: $Retries => $DoRetries (loop went full dist before exiting, even if successful 1st attempt)
     * 10:01 AM 5/17/2022 updated CBH exmple
@@ -49,6 +50,7 @@ function Set-ContentFixEncoding {
     PS> $bRet = Set-ContentFixEncoding -Value $updatedContent -Path $outfile -PassThru -Verbose -whatif:$($whatif) ;
     PS> if (!$bRet) {throw "FAILURE" } ;
     Demo use of -PassThru to return the set Content, for validation
+    .EXAMPLE
     PS> $bRet = Set-ContentFixEncoding @pltSCFE -Value $newContent ; 
     PS> if(-not $bRet -AND -not $whatif){throw "Set-ContentFixEncoding $($tf)!" } ;
     PS> $PassStatus += ";Set-Content:UPDATED";     
