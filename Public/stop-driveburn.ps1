@@ -15,6 +15,7 @@ Function stop-driveburn {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,Performance,Workstation
     REVISIONS
+    * 9:00 AM 12/12/2022 fixed broken added logging (spliced over holistic intact, w looping timestamp exempt)
     * 10:50 AM 11/29/2022 added logging, to track how often landesk processes are impeding productive work.
     7:35 AM 10/5/2020 ported to verb-IO, updated tsksid/admin-incl-ServerCore.ps1
     * 8:48 AM 10/22/2019 added ldesk gatherproducts
@@ -44,74 +45,170 @@ Function stop-driveburn {
     Param([Parameter(HelpMessage="Whatif Flag  [-whatIf]")][switch] $whatIf) ; 
     
     #*======v SUB MAIN v======
-    # add logging support
-    #region INIT; # ------
-    # Get the name of this function
+    #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+    # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
     ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-    # Get parameters this function was invoked with
     $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-    $verbose = ($VerbosePreference -eq "Continue") ; 
-    $NoLoop = $true ; 
-    # SETUP CROSS-VERSION-COMPAT. $PS* VARIABLES
-    if($showDebug){write-debug -verbose:$true "`SHOWDEBUG: `$PSScriptRoot:$($PSScriptRoot)`n`$PSCommandPath:$($PSCommandPath)"} ;
-    if ($PSScriptRoot -eq "") {
-        if ($psISE){
-            $ScriptName = $psISE.CurrentFile.FullPath ;
-        } elseif ($context = $psEditor.GetEditorContext()) {
-            $ScriptName = $context.CurrentFile.Path ;
-        } elseif($host.version.major -lt 3){
+    write-verbose "`$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+    $Verbose = ($VerbosePreference -eq 'Continue') ; 
+    #if ($PSScriptRoot -eq "") {
+    if( -not (get-variable -name PSScriptRoot -ea 0) -OR ($PSScriptRoot -eq '')){
+        if ($psISE) { $ScriptName = $psISE.CurrentFile.FullPath } 
+        elseif($psEditor){
+            if ($context = $psEditor.GetEditorContext()) {$ScriptName = $context.CurrentFile.Path } 
+        } elseif ($host.version.major -lt 3) {
             $ScriptName = $MyInvocation.MyCommand.Path ;
             $PSScriptRoot = Split-Path $ScriptName -Parent ;
             $PSCommandPath = $ScriptName ;
         } else {
-            if($MyInvocation.MyCommand.Path) {
+            if ($MyInvocation.MyCommand.Path) {
                 $ScriptName = $MyInvocation.MyCommand.Path ;
                 $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent ;
-            } else {
-                throw "UNABLE TO POPULATE SCRIPT PATH, EVEN `$MyInvocation IS BLANK!" ;
-            } ;
+            } else {throw "UNABLE TO POPULATE SCRIPT PATH, EVEN `$MyInvocation IS BLANK!" } ;
         };
-        $ScriptDir = Split-Path -Parent $ScriptName ;
-        $ScriptBaseName = split-path -leaf $ScriptName ;
-        $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($ScriptName) ;
+        if($ScriptName){
+            $ScriptDir = Split-Path -Parent $ScriptName ;
+            $ScriptBaseName = split-path -leaf $ScriptName ;
+            $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($ScriptName) ;
+        } ; 
     } else {
-        $ScriptDir = $PSScriptRoot ;
-        if($PSCommandPath){
-            $ScriptName = $PSCommandPath ;
-        } else {
+        if($PSScriptRoot){$ScriptDir = $PSScriptRoot ;}
+        else{
+            write-warning "Unpopulated `$PSScriptRoot!" ; 
+            $ScriptDir=(Split-Path -parent $MyInvocation.MyCommand.Definition) + "\" ;
+        }
+        if ($PSCommandPath) {$ScriptName = $PSCommandPath } 
+        else {
             $ScriptName = $myInvocation.ScriptName
             $PSCommandPath = $ScriptName ;
         } ;
-        $ScriptBaseName = (Split-Path -Leaf ((&{$myInvocation}).ScriptName))  ;
+        $ScriptBaseName = (Split-Path -Leaf ((& { $myInvocation }).ScriptName))  ;
         $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($MyInvocation.InvocationName) ;
+    } ;
+    if(!$ScriptDir){
+        write-host "Failed `$ScriptDir resolution on PSv$($host.version.major): Falling back to $MyInvocation parsing..." ; 
+        $ScriptDir=(Split-Path -parent $MyInvocation.MyCommand.Definition) + "\" ;
+        $ScriptBaseName = (Split-Path -Leaf ((&{$myInvocation}).ScriptName))  ; 
+        $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($MyInvocation.InvocationName) ;     
+    } else {
+        if(-not $PSCommandPath ){
+            $PSCommandPath  = $ScriptName ; 
+            if($PSCommandPath){ write-host "(Derived missing `$PSCommandPath from `$ScriptName)" ; } ;
+        } ; 
+        if(-not $PSScriptRoot  ){
+            $PSScriptRoot   = $ScriptDir ; 
+            if($PSScriptRoot){ write-host "(Derived missing `$PSScriptRoot from `$ScriptDir)" ; } ;
+        } ; 
     } ; 
-    if($showDebug){write-debug -verbose:$true "`$ScriptDir:$($ScriptDir)`n`$ScriptBaseName:$($ScriptBaseName)`n`$ScriptNameNoExt:$($ScriptNameNoExt)`n`$PSScriptRoot:$($PSScriptRoot)`n`$PSCommandPath:$($PSCommandPath)" ; } ;
-    #-=-=-=-=-=-=-=-=
+    if(-not ($ScriptDir -AND $ScriptBaseName -AND $ScriptNameNoExt)){ 
+        throw "Invalid Invocation. Blank `$ScriptDir/`$ScriptBaseName/`ScriptNameNoExt" ; 
+        BREAK ; 
+    } ; 
 
-    $ParentPath = $MyInvocation.MyCommand.Definition ; 
-    if($ParentPath){
-        $rgxProfilePaths='(\\Documents\\WindowsPowerShell\\scripts|\\Program\sFiles\\windowspowershell\\scripts)' ; 
-        if($ParentPath -match $rgxProfilePaths){
-            $ParentPath = "$(join-path -path 'c:\scripts\' -ChildPath (split-path $ParentPath -leaf))" ; 
-        } ; 
-        if($NoLoop){
-            $logspec = start-Log -Path ($ParentPath) -showdebug:$($showdebug) -whatif:$($whatif) -NoTimestamp ;
-            $smsg = "-NoLoop specified:`$logspec returned:$(($logspec|out-string).trim())" ; 
-            if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
-            else{ write-host -foregroundcolor green "$((get-date).ToString('yyyyMMdd-HHmm')):$($smsg)" } ; } ; 
-        } else { 
-            $logspec = start-Log -Path ($ParentPath) -showdebug:$($showdebug) -whatif:$($whatif) ;
-            $smsg = "(Looping...):`$logspec returned:$(($logspec|out-string).trim())" ; 
-            if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
-            else{ write-host -foregroundcolor green "$((get-date).ToString('yyyyMMdd-HHmm')):$($smsg)" } ; } ; 
+    $smsg = "`$ScriptDir:$($ScriptDir)" ;
+    $smsg += "`n`$ScriptBaseName:$($ScriptBaseName)" ;
+    $smsg += "`n`$ScriptNameNoExt:$($ScriptNameNoExt)" ;
+    $smsg += "`n`$PSScriptRoot:$($PSScriptRoot)" ;
+    $smsg += "`n`$PSCommandPath:$($PSCommandPath)" ;  ;
+    write-host $smsg ; 
+    
+    $ComputerName = $env:COMPUTERNAME ;
+    $NoProf = [bool]([Environment]::GetCommandLineArgs() -like '-noprofile'); # if($NoProf){# do this};
+    #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
 
+    #region START-LOG #*======v START-LOG OPTIONS v======
+    #region START-LOG-HOLISTIC #*------v START-LOG-HOLISTIC v------
+    # Single log for script/function example that accomodates detect/redirect from AllUsers scope'd installed code, and hunts a series of drive letters to find an alternate logging dir (defers to profile variables)
+    #${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+    if(!(get-variable LogPathDrives -ea 0)){$LogPathDrives = 'd','c' };
+    foreach($budrv in $LogPathDrives){if(test-path -path "$($budrv):\scripts" -ea 0 ){break} } ;
+    if(!(get-variable rgxPSAllUsersScope -ea 0)){
+        $rgxPSAllUsersScope="^$([regex]::escape([environment]::getfolderpath('ProgramFiles')))\\((Windows)*)PowerShell\\(Scripts|Modules)\\.*\.(ps(((d|m))*)1|dll)$" ;
+    } ;
+    if(!(get-variable rgxPSCurrUserScope -ea 0)){
+        $rgxPSCurrUserScope="^$([regex]::escape([Environment]::GetFolderPath('MyDocuments')))\\((Windows)*)PowerShell\\(Scripts|Modules)\\.*\.(ps((d|m)*)1|dll)$" ;
+    } ;
+    $pltSL=[ordered]@{Path=$null ;NoTimeStamp=$false ;Tag=$null ;showdebug=$($showdebug) ; Verbose=$($VerbosePreference -eq 'Continue') ; whatif=$($whatif) ;} ;
+    #$pltSL.Tag = $ModuleName ; 
+    if($NoLoop){
+        $pltSL.NoTimestamp = $true ;
+        $smsg = "-NoLoop specified:"
+    } else { 
+        $smsg = "(Looping...):" ; 
+        $pltSL.NoTimestamp = $false ; 
+    } ; 
+    if($script:PSCommandPath){
+        if(($script:PSCommandPath -match $rgxPSAllUsersScope) -OR ($script:PSCommandPath -match $rgxPSCurrUserScope)){
+            $bDivertLog = $true ; 
+            switch -regex ($script:PSCommandPath){
+                $rgxPSAllUsersScope{$smsg = "AllUsers"} 
+                $rgxPSCurrUserScope{$smsg = "CurrentUser"}
+            } ;
+            $smsg += " context script/module, divert logging into [$budrv]:\scripts" 
+            write-verbose $smsg  ;
+            if($bDivertLog){
+                if((split-path $script:PSCommandPath -leaf) -ne $cmdletname){
+                    # function in a module/script installed to allusers|cu - defer name to Cmdlet/Function name
+                    $pltSL.Path = (join-path -Path "$($budrv):\scripts" -ChildPath "$($cmdletname).ps1") ;
+                } else {
+                    # installed allusers|CU script, use the hosting script name
+                    $pltSL.Path = (join-path -Path "$($budrv):\scripts" -ChildPath (split-path $script:PSCommandPath -leaf)) ;
+                }
+            } ;
+        } else {
+            $pltSL.Path = $script:PSCommandPath ;
+        } ;
+    } else {
+        if(($MyInvocation.MyCommand.Definition -match $rgxPSAllUsersScope) -OR ($MyInvocation.MyCommand.Definition -match $rgxPSCurrUserScope) ){
+             $pltSL.Path = (join-path -Path "$($budrv):\scripts" -ChildPath (split-path $script:PSCommandPath -leaf)) ;
+        } elseif(test-path $MyInvocation.MyCommand.Definition) {
+            $pltSL.Path = $MyInvocation.MyCommand.Definition ;
+        } elseif($cmdletname){
+            $pltSL.Path = (join-path -Path "$($budrv):\scripts" -ChildPath "$($cmdletname).ps1") ;
+        } else {
+            $smsg = "UNABLE TO RESOLVE A FUNCTIONAL `$CMDLETNAME, FROM WHICH TO BUILD A START-LOG.PATH!" ; 
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Warn } #Error|Warn|Debug 
+            else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            BREAK ;
         } ; 
+    } ;
+    write-verbose "start-Log w`n$(($pltSL|out-string).trim())" ; 
+    $logspec = start-Log @pltSL ;
+    $error.clear() ;
+    TRY {
         if($logspec){
             $logging=$logspec.logging ;
             $logfile=$logspec.logfile ;
             $transcript=$logspec.transcript ;
-        } else {$smsg = "Unable to configure logging!" ; write-warning "$((get-date).ToString('yyyyMMdd-HHmm')):$($sMsg)" ; Exit ;} ;
-    } else {$smsg = "No functional `$ParentPath found!" ; write-warning "$((get-date).ToString('yyyyMMdd-HHmm')):$($sMsg)" ;  Exit ;} ;
+            $stopResults = try {Stop-transcript -ErrorAction stop} catch {} ;
+            if($stopResults){
+                $smsg = "Stop-transcript:$($stopResults)" ; 
+                if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+                else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+            } ; 
+            $startResults = start-Transcript -path $transcript ;
+            if($startResults){
+                $smsg = "start-transcript:$($startResults)" ; 
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+                else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            } ; 
+        } else {throw "Unable to configure logging!" } ;
+    } CATCH [System.Management.Automation.PSNotSupportedException]{
+        if($host.name -eq 'Windows PowerShell ISE Host'){
+            $smsg = "This version of $($host.name):$($host.version) does *not* support native (start-)transcription" ; 
+        } else { 
+            $smsg = "This host does *not* support native (start-)transcription" ; 
+        } ; 
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    } CATCH {
+        $ErrTrapd=$Error[0] ;
+        $smsg = "Failed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: $($ErrTrapd)" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+        else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    } ;
+    #endregion START-LOG-HOLISTIC #*------^ END START-LOG-HOLISTIC ^------
+    #-=-=-=-=-=-=-=-=
 
     $smtpFrom = (($scriptBaseName.replace(".","-")) + "@toro.com") ; 
 

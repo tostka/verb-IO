@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 3.1.0.0.0
+Version     : 5.1.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -3889,7 +3889,7 @@ function convert-VideoToMp3 {
     Convert Specified video file to mp3.
     #>
     [CmdletBinding()]
-    [Aliases('convert-ToMp3','convert-VideoToMp3')]
+    [Alias('convert-ToMp3','convert-VideoToMp3')]
     PARAM (
         [parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0, Mandatory = $True, HelpMessage = "File(s) to be transcoded")]
         $InputObject
@@ -5395,14 +5395,14 @@ Function get-ConsoleText {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    AddedCredit : AutomatedLab:Raimund AndrÃ©e [MSFT],Jan-Hendrik Peters [MSFT]
+    AddedCredit : AutomatedLab:Raimund Andrée [MSFT],Jan-Hendrik Peters [MSFT]
     AddedWebsite:	https://github.com/AutomatedLab/AutomatedLab.Common/blob/develop/AutomatedLab.Common/Common/Public/Get-ConsoleText.ps1
     AddedGithub : https://github.com/AutomatedLab/AutomatedLab
     AddedTwitter:	@raimundandree,@nyanhp
     CreatedDate : 2022-02-02
     FileName    : get-ConsoleText.ps1
     License     : https://github.com/AutomatedLab/AutomatedLab/blob/develop/LICENSE
-    Copyright   : Copyright (c) 2022 Raimund AndrÃ©e, Jan-Hendrik Peters
+    Copyright   : Copyright (c) 2022 Raimund Andrée, Jan-Hendrik Peters
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Clipboard,Text
     REVISIONS
@@ -5542,6 +5542,7 @@ function Get-FileEncoding {
     Github      : 
     Tags        : Powershell,Filesystem,Encoding
     REVISIONS
+    * 2:08 PM 11/7/2022 updated CBH example3 to reset to UTF8 (vs prior Ascii); added examples for running the entire source tree recursive, and added example echos of the per-file processing.
     * 3:08 PM 2/25/2020 re-implemented orig code, need values that can be fed back into set-content -encoding, and .net encoding class doesn't map cleanly (needs endian etc, and there're a raft that aren't supported). Spliced in UTF8BOM byte entries from https://superuser.com/questions/418515/how-to-find-all-files-in-directory-that-contain-utf-8-bom-byte-order-mark/914116
     * 2/12/2012 posted vers
     .DESCRIPTION
@@ -5554,10 +5555,11 @@ function Get-FileEncoding {
     UTF8NoBOM: Encodes in UTF-8 format without Byte Order Mark (BOM)
     UTF32: Encodes in UTF-32 format.
     OEM: Uses the default encoding for MS-DOS and console programs.
-    # code to dump first 9 bytes of each:
-    #-=-=-=-=-=-=-=-=
+    ## code to dump first 9 bytes of each:
+    ```ps
     $encodingS = "unicode","bigendianunicode","utf8","utf7","utf32","ascii","default","oem" ;foreach($encoding in $encodings){    "`n==$($encoding):" ;    Get-Date | Out-File date.txt -Encoding $encoding ;    [byte[]] $x = get-content -encoding byte -path .\date.txt -totalcount 9 ;    $x | format-hex ;} ; 
-    #-=-=-=-=-=-=-=-=
+    ```
+    
     .PARAMETER Path
     The Path of the file that we want to check.
     .PARAMETER DefaultEncoding
@@ -5574,18 +5576,41 @@ function Get-FileEncoding {
     .OUTPUTS
     System.Text.Encoding
     .EXAMPLE
-    Get-ChildItem  *.ps1 | select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | where {$_.Encoding -ne 'ASCII'} ;
-    This command gets ps1 files in current directory where encoding is not ASCII ;
+    PS> Get-ChildItem  *.ps1 | ?{$_.length -gt 0} | select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | where {$_.Encoding -ne 'UTF8'} | ft -a ; 
+    This command gets ps1 files in current directory (with non-zero length) where encoding is not UTF8 ;
     .EXAMPLE
-    Get-ChildItem  *.ps1 | select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | where {$_.Encoding -ne 'ASCII'} | foreach {(get-content $_.FullName) | set-content $_.FullName -Encoding ASCII} ;
-    Same as previous example but fixes encoding using set-content ;
+    PS> $Encoding = 'UTF8' ; 
+    PS> Get-ChildItem  *.ps1 | ?{$_.length -gt 0} | 
+    PS>    select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | 
+    PS>    where {$_.Encoding -ne $Encoding} | foreach-object { 
+    PS>        write-host "==$($_.fullname):" ; 
+    PS>        (get-content $_.FullName) | set-content $_.FullName -Encoding $Encoding -whatif ;
+    PS>    } ;
+    Gets ps1 files in current directory (with non-zero length) where encoding is not UTF8, and then sets encoding to UTF8 using set-content ;
+    .EXAMPLE
+    PS> $Encoding = 'UTF8' ;
+    PS> Get-ChildItem  c:\sc\*.ps1 -recur | ?{$_.length -gt 0} |
+    PS>     select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} |
+    PS>     where {$_.Encoding -ne $Encoding}  | ft -a ; 
+        FullName                        Encoding
+        --------                        --------
+        C:\sc\AADInternals\MDM.ps1      ASCII
+        C:\sc\AADInternals\OneDrive.ps1 ASCII
+    Demo recursing down the entire c:\sc source tree, and reporting non-UTF8s
+    .EXAMPLE
+    PS> $Encoding = 'UTF8' ;
+    PS> Get-ChildItem  c:\sc\*.ps1 -recur | ?{$_.length -gt 0} |
+    PS>     select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} |
+    PS>     where {$_.Encoding -ne $Encoding} | foreach {
+    PS>         write-host "==$($_.fullname):" ;
+    PS>         (get-content $_.FullName) | set-content $_.FullName -Encoding $Encoding -whatif ;
+    PS>     } ;
+    Demo recursing source tree, and coercing non-UTF8 PS1's to UTF8.
     .LINK
+    https://github.com/tostka/verb-io
     http://franckrichard.blogspot.com/2010/08/powershell-get-encoding-file-type.html
-    .LINK
     https://gist.github.com/jpoehls/2406504
-    .LINK
     http://goo.gl/XQNeuc
-    .LINK
     http://poshcode.org/5724
     #>
     [CmdletBinding()]
@@ -6052,68 +6077,6 @@ Function Get-FsoTypeObj {
 #*------^ Get-FsoTypeObj.ps1 ^------
 
 
-#*------v get-InstalledApplication.ps1 v------
-Function get-InstalledApplication {
-    <#
-    .SYNOPSIS
-    get-InstalledApplication.ps1 - Check registry for Installed status of specified application (checks x86 & x64 Uninstall hives, for substring matches on Name)
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     : http://www.toddomation.com
-    Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20210415-0913AM
-    FileName    : get-InstalledApplication
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-XXX
-    Tags        : Powershell,Application,Install
-    REVISIONS
-    * 9:13 AM 4/15/2021 init vers
-    .DESCRIPTION
-    get-InstalledApplication.ps1 - Check registry for Installed status of specified application (checks x86 & x64 Uninstall hives, for substring matches on Name)
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    Returns either System.Boolean (default) or System.Object (-detail)
-    .EXAMPLE
-    if(get-InstalledApplication -name "powershell"){"yes"} else { "no"} ; 
-    Default boolean test
-    .EXAMPLE    
-    get-InstalledApplication -name "powershell" -detail -verbose; 
-    Example returning detail (DisplayName and InstallLocation)
-    .LINK
-    https://github.com/tostka/verb-ex2010
-    .LINK
-    #>
-    [CmdletBinding()]
-    PARAM(
-        [Parameter(Position=0,HelpMessage="Application Name substring[-Name Powershell]")]
-        $Name,
-        [Parameter(HelpMessage="Debugging Flag [-Return detailed object on match]")]
-        [switch] $Detail
-    ) ;
-    $x86Hive = Get-ChildItem 'HKLM:Software\Microsoft\Windows\CurrentVersion\Uninstall' |
-         % { Get-ItemProperty $_.PsPath } | ?{$_.displayname -like "*$($Name)*"} ;
-    if(Test-Path 'HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall'){
-        #$x64Hive = ((Get-ChildItem "HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall") |
-        #    Where-Object { $_.'Name' -like "*$($Name)*" } ).Length -gt 0;
-        $x64Hive = Get-ChildItem 'HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall' |
-            % { Get-ItemProperty $_.PsPath } | ?{$_.displayname -like "*$($Name)*"} ;
-    }
-    if(!$Detail){
-        # boolean return:
-        ($x86Hive -or $x64Hive) | write-output ; 
-    } else { 
-        $props = 'DisplayName','DisplayVersion','InstallLocation','Publisher' ;
-        $x86Hive | Select $props | write-output ; 
-        $x64Hive | Select $props | write-output ; 
-    } ; 
-}
-
-#*------^ get-InstalledApplication.ps1 ^------
-
-
 #*------v get-LoremName.ps1 v------
 function get-LoremName {
     <#
@@ -6133,7 +6096,7 @@ function get-LoremName {
     AddedCredit : Todd Kadrie
     AddedWebsite:	http://www.toddomation.com
     AddedTwitter:	@tostka / http://twitter.com/tostka
-    Inspired to create by: https://twitter.com/MichaelBender/status/11019210783.1.03825?s=20
+    Inspired to create by: https://twitter.com/MichaelBender/status/1101921078350413825?s=20
     REVISIONS
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
@@ -9300,6 +9263,384 @@ function remove-UnneededFileVariants {
 #*------^ remove-UnneededFileVariants.ps1 ^------
 
 
+#*------v repair-FileEncoding.ps1 v------
+function repair-FileEncoding {
+    <#
+    .SYNOPSIS
+    repair-FileEncoding.ps1 - Filter specified Path for risky high-ascii chars & Encoding conversion failure markers, replace each with a low-ascii equiv, (or dash for diamond questionmarks), and convert output file to UTF8
+    .NOTES
+    Version     : 1.6.2
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2019-02-06
+    FileName    :
+    License     : MIT License
+    Copyright   : (c) 2019 Todd Kadrie
+    Github      : https://github.com/tostka/powershell
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 10:11 AM 12/8/2022 pull *all* reqs; verb-logging is cross broken too; nested-limit triggering recursive req's verb-io
+    * 4:37 PM 11/22/2022 moved into verb-io; fixed typo utf8 spec (utf-8), flip into an adv function;refactored, added broader try/catch, handling for both 
+    file or dir path; simplified logic, does encoding repair always, always detects 
+    highascii chars, recommends fixes, but only runs fixes with -ReplaceChars param.
+    pulled -ConvertToUTF8Only param, it's the default purpose
+    * 1:06 PM 11/22/2022 added adv func/pipeline support; ren fix-encoding (& alias) ->  repair-FileEncoding
+    * 12:08 PM 4/21/2021 expanded ss aliases
+    * 1:09 PM 1/14/2020 added support for ahk .cbp files (spotted blkdiamonds in ghd), use explicit path to target ahk files. Probably should consider putting .ahk's in as well...
+    * 3:00 PM 1/2/2020 got through live pass using ConvertToUTF8Only, initial review of chgs in ghd appears to be functional
+    * 2:52 PM 1/2/2020 used a prior version of the replc spec successfully, now have written in the broad conversion, and debugged, but not run prod yet.
+    .DESCRIPTION
+    repair-FileEncoding.ps1 - Filter specified Path for risky high-ascii chars & Encoding conversion failure markers, replace each with a low-ascii equiv, (or dash for diamond questionmarks), and convert output file to UTF8. Processess all matching ps1, psm1 & psd1 files in the tree.
+    doesn't like it when you copy in a revised file from another box from debugging, and the encoding has changed: Tends to describe the file as 'This binary file has changed'. 
+    Fix requires flipping the encoding back. 
+    Underlying GIT issue documented here:
+    [Binary file has changed shows for normal text file · Issue #7857 · desktop/desktop · GitHub - github.com/](https://github.com/desktop/desktop/issues/7857)
+
+    Following high-ascii chars are replaced when -ReplaceChars is used:
+    | CharCode | Replacement | Note |
+    |---|---|---
+    | [Char]0x2013 | " -"  | en dash  |
+    | [Char]0x2014 | " -"  | em dash |
+    | [Char]0x2015 | " -"  | horizontal bar |
+    | [Char]0x2017 | " _"   | double low line |
+    | [Char]0x2018 | " `'"  | left single quotation mark |
+    | [Char]0x2019 | " `'"  | right single quotation mark |
+    | [Char]0x201a | " ,"  | single low-9 quotation mark |
+    | [Char]0x201b | " `'"  | single high-reversed-9 quotation mark |
+    | [Char]0x201c | " `""  | right double quotation mark |
+    | [Char]0x201d | " `""  | right double quotation mark |
+    | [Char]0x201e | " `""  | double low-9 quotation mark |
+    | [Char]0x2026 | " ..."  | horizontal ellipsis |
+    | [Char]0x2032 | " `""  | prime  |
+    | [Char]0x2033 | " `"" | double prime |
+    | [char]65533  | Unicode Replacement Character (black diamond questionmark) in hex: [char] 0xfffd|
+
+
+    .PARAMETER  Path
+    Path to a file or Directory to be checked for encoding or encoding-conversion damage [-Path C:\sc\powershell]
+    .PARAMETER EncodingTarget
+    Encoding to be coerced on targeted files (defaults to UTF8, supports:ASCII|BigEndianUnicode|BigEndianUTF32|Byte|Default (system active codepage, freq ANSI)|OEM|String|Unicode|UTF7|UTF8|UTF32)[-EncodingTarget ASCII]
+    .PARAMETER showDebug
+    Parameter to display Debugging messages [-ShowDebug switch]
+    .PARAMETER Whatif
+    Parameter to run a Test no-change pass [-Whatif switch]
+    .EXAMPLE
+    PS> repair-FileEncoding.ps1 -replaceChars
+    In files in default path (C:\sc\powershell), in files Where-Object high-ascii chars are found, replace the chars with matching low-bit chars (whatif is autoforced true to ensure no accidental runs)
+    .EXAMPLE
+    PS> repair-FileEncoding.ps1 -path C:\sc\verb-AAD -replacechars -whatif:$false ;
+    Exec-pass: problem char files, replacements, with explicit path and overridden whatif
+    .EXAMPLE
+    PS> gci c:\sc\ -recur| ?{$_.extension -match '\.ps((d|m)*)1' } | 
+    PS>     select -expand fullname | repair-FileEncoding -whatif ;
+    Recurse a sourcecode root, for ps-related files, expand the fullnames and run the set through repair-FileEncoding with whatif
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    # VALIDATORS: [ValidateNotNull()][ValidateNotNullOrEmpty()][ValidateLength(24,25)][ValidateLength(5)][ValidatePattern("some\sregex\sexpr")][ValidateSet("USEA","GBMK","AUSYD")][ValidateScript({Test-Path $_ -PathType 'Container'})][ValidateScript({Test-Path $_})][ValidateRange(21,65)][ValidateCount(1,3)]
+    [CmdletBinding()]
+    [Alias('fix-encoding')]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,HelpMessage="Path to a file or Directory to be checked for encoding or encoding-conversion damage [-Path C:\sc\powershell]")]
+        #[ValidateScript({Test-Path $_ -PathType 'Container'})]
+        [ValidateScript({Test-Path $_ })]
+        [string[]] $Path="C:\sc\powershell",
+        [Parameter(HelpMessage="Array of extensions to be included in checks of Containers (defaults to .ps1|.psm1|.psd1|.cbp) [-IncludeExtentions '.ps1','.psm1','.psd1']")]
+        [array]$IncludeExtentions = @('*.ps1','*.psm1','*.psd1','*.cbp'),
+        [Parameter(HelpMessage="Encoding to be coerced on targeted files (defaults to UTF8, supports:ASCII|BigEndianUnicode|BigEndianUTF32|Byte|Default|OEM|String|Unicode|UTF7|UTF8|UTF32)[-EncodingTarget ASCII]")]
+        [ValidateSet('ASCII','BigEndianUnicode','BigEndianUTF32','Byte','Default','OEM','String','Unicode','UTF7','UTF8','UTF32')]
+        [string]$EncodingTarget= 'UTF8',
+        [Parameter(HelpMessage="Switch that specifies to also update files with high ascii chars: All matches are reqplaced with the equiv low-asci equivs[-ReplaceChars]")]
+        [switch] $ReplaceChars,
+        [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
+        [switch] $showDebug,
+        [Parameter(HelpMessage="Whatif Flag  [-whatIf]")]
+        [switch] $whatIf=$true
+    ) ;
+    BEGIN{
+        #*======v SUB MAIN v======
+        #region INIT; # ------
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;
+        #region START-LOG-HOLISTIC #*------v START-LOG-HOLISTIC v------
+        # Single log for script/function example that accomodates detect/redirect from AllUsers scope'd installed code, and hunts a series of drive letters to find an alternate logging dir (defers to profile variables)
+        #${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        if(!(get-variable LogPathDrives -ea 0)){$LogPathDrives = 'd','c' };
+        foreach($budrv in $LogPathDrives){if(test-path -path "$($budrv):\scripts" -ea 0 ){break} } ;
+        if(!(get-variable rgxPSAllUsersScope -ea 0)){
+            $rgxPSAllUsersScope="^$([regex]::escape([environment]::getfolderpath('ProgramFiles')))\\((Windows)*)PowerShell\\(Scripts|Modules)\\.*\.(ps(((d|m))*)1|dll)$" ;
+        } ;
+        if(!(get-variable rgxPSCurrUserScope -ea 0)){
+            $rgxPSCurrUserScope="^$([regex]::escape([Environment]::GetFolderPath('MyDocuments')))\\((Windows)*)PowerShell\\(Scripts|Modules)\\.*\.(ps((d|m)*)1|dll)$" ;
+        } ;
+        $pltSL=[ordered]@{Path=$null ;NoTimeStamp=$false ;Tag=$null ;showdebug=$($showdebug) ; Verbose=$($VerbosePreference -eq 'Continue') ; whatif=$($whatif) ;} ;
+        $pltSL.Tag = $ModuleName ; 
+        if($script:PSCommandPath){
+            if(($script:PSCommandPath -match $rgxPSAllUsersScope) -OR ($script:PSCommandPath -match $rgxPSCurrUserScope)){
+                $bDivertLog = $true ; 
+                switch -regex ($script:PSCommandPath){
+                    $rgxPSAllUsersScope{$smsg = "AllUsers"} 
+                    $rgxPSCurrUserScope{$smsg = "CurrentUser"}
+                } ;
+                $smsg += " context script/module, divert logging into [$budrv]:\scripts" 
+                write-verbose $smsg  ;
+                if($bDivertLog){
+                    if((split-path $script:PSCommandPath -leaf) -ne $cmdletname){
+                        # function in a module/script installed to allusers|cu - defer name to Cmdlet/Function name
+                        $pltSL.Path = (join-path -Path "$($budrv):\scripts" -ChildPath "$($cmdletname).ps1") ;
+                    } else {
+                        # installed allusers|CU script, use the hosting script name
+                        $pltSL.Path = (join-path -Path "$($budrv):\scripts" -ChildPath (split-path $script:PSCommandPath -leaf)) ;
+                    }
+                } ;
+            } else {
+                $pltSL.Path = $script:PSCommandPath ;
+            } ;
+        } else {
+            if(($MyInvocation.MyCommand.Definition -match $rgxPSAllUsersScope) -OR ($MyInvocation.MyCommand.Definition -match $rgxPSCurrUserScope) ){
+                 $pltSL.Path = (join-path -Path "$($budrv):\scripts" -ChildPath (split-path $script:PSCommandPath -leaf)) ;
+            } elseif(test-path $MyInvocation.MyCommand.Definition) {
+                $pltSL.Path = $MyInvocation.MyCommand.Definition ;
+            } elseif($cmdletname){
+                $pltSL.Path = (join-path -Path "$($budrv):\scripts" -ChildPath "$($cmdletname).ps1") ;
+            } else {
+                $smsg = "UNABLE TO RESOLVE A FUNCTIONAL `$CMDLETNAME, FROM WHICH TO BUILD A START-LOG.PATH!" ; 
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Warn } #Error|Warn|Debug 
+                else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                BREAK ;
+            } ; 
+        } ;
+        write-verbose "start-Log w`n$(($pltSL|out-string).trim())" ; 
+        $logspec = start-Log @pltSL ;
+        $error.clear() ;
+        TRY {
+            if($logspec){
+                $logging=$logspec.logging ;
+                $logfile=$logspec.logfile ;
+                $transcript=$logspec.transcript ;
+                $stopResults = try {Stop-transcript -ErrorAction stop} catch {} ;
+                start-Transcript -path $transcript ;
+            } else {throw "Unable to configure logging!" } ;
+        } CATCH [System.Management.Automation.PSNotSupportedException]{
+            if($host.name -eq 'Windows PowerShell ISE Host'){
+                $smsg = "This version of $($host.name):$($host.version) does *not* support native (start-)transcription" ; 
+            } else { 
+                $smsg = "This host does *not* support native (start-)transcription" ; 
+            } ; 
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        } CATCH {
+            $ErrTrapd=$Error[0] ;
+            $smsg = "Failed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: $($ErrTrapd)" ;
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+            else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        } ;
+        #endregion START-LOG-HOLISTIC #*------^ END START-LOG-HOLISTIC ^------
+
+        #region BANNER ; #*------v BANNER v------
+        $sBnr="#*======v $(${CmdletName}): v======" ;
+        $smsg = $sBnr ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level H1 } #Error|Warn|Debug
+        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        #endregion BANNER ; #*------^ END BANNER ^------
+
+    
+        # Build a regex char set of chars to be detected and replaced (with the -replace block).
+        [array]$chars=@() ;
+        $chars+= [Char]0x2013; # en dash
+        $chars+= [Char]0x2014; # em dash
+        $chars+= [Char]0x2015; # horizontal bar
+        $chars+= [Char]0x2017; # double low line
+        $chars+= [Char]0x2018; # left single quotation mark
+        $chars+= [Char]0x2019; # right single quotation mark
+        $chars+= [Char]0x201a; # single low-9 quotation mark
+        $chars+= [Char]0x201b; # single high-reversed-9 quotation mark
+        $chars+= [Char]0x201c; # left double quotation mark
+        $chars+= [Char]0x201d; # right double quotation mark
+        $chars+= [Char]0x201e; # double low-9 quotation mark
+        $chars+= [Char]0x2026; # horizontal ellipsis
+        $chars+= [Char]0x2032; # prime
+        $chars+= [Char]0x2033; # double prime
+        $chars+= [char]65533;  # Unicode Replacement Character (black diamond questionmark) in hex: [char] 0xfffd
+        $chars | ForEach-Object -begin {[string]$rgxChars = $null } -process {$rgxChars+=$_} #-end {"`$rgxChars: $(($rgxChars|out-string).trim())"} ;
+        $regex = '[' + [regex]::escape($rgxChars) + ']' ;
+
+    } ;  # BEG-E
+    PROCESS{
+        $Error.Clear() ;
+
+        foreach($Pth in $Path) {
+            TRY{
+                switch( (get-item $Pth -ErrorAction STOP).psIsContainer){
+                    $true {
+                        write-host "Container path detected, recursing files..." ;
+                        $smsg = "Collecting matching files:`n$($Pth)..." ;
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+                        else { write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+
+                        # use select-string to do the regex search for problem chars
+                        #$files = Get-ChildItem $Pth\* -Include *.ps1,*.psm1,*.psd1 -recurse |
+                        # add ahk cdeblock file support
+                        $pltGci=[ordered]@{
+                            path="$($Pth)\*" ;
+                            #Include='*.ps1', '*.psm1', '*.psd1', '*.cbp' ;
+                            Include = $IncludeExtentions ; 
+                            recurse=$true ;
+                            erroraction = 'STOP' ;
+                        } ;
+                        $smsg = "Get-ChildItem w`n$(($pltGci|out-string).trim())" ; 
+                        if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+                        else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+                        $files = Get-ChildItem @pltGci | where-object { $_.length } ;
+                        if ($ReplaceChars) {
+                            $smsg = "-ReplaceChars specified: Pulling files with problematic high-ascii chars in specified Path`n$($Pth)" ;
+                            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+                            else { write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                            $smsg = "`$rgxChars: $(($rgxChars|out-string).trim())"
+                            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+                            else { write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                            $smsg = "`$regex:$($regex)" ;
+                            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+                            else { write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+
+                            #$files = $files | select-string $regex | select -unique Path ;
+                        } ;
+                
+                    }
+                    $false {
+                        $smsg = "Leaf File object path detected, handling single file:`n$($Pth)..." ;
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+                        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                        #Levels:Error|Warn|Info|H1|H2|H3|Debug|Verbose|Prompt
+                        $files = Get-ChildItem $Pth -ErrorAction STOP|
+                            where-object { $_.length } ;
+                        
+
+                    } ;
+                } ;
+
+ 
+                $rfiles = $files | select-string -pattern $regex | select -unique Path ;
+                if($rfiles){
+                    $smsg = "`nFiles with high-ascii chars detected (use -ReplaceChars to fix):`n$(($rfiles|out-string).trim())" ; 
+                    $smsg += "`n`n`$rgxChars: $(($rgxChars|out-string).trim())"
+                    $smsg +="`n`$regex:$($regex)" ;
+                    $smsg += "`n$(($rfiles | gci |  select-string -pattern $regex |  ft -a filename,linenumber,line|out-string).trim())`n" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } 
+                    else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                    #Levels:Error|Warn|Info|H1|H2|H3|Debug|Verbose|Prompt
+                } ; 
+
+                $cfiles = $files |
+                    select @{n='Path';e={$_.FullName}}, @{n='Encoding';e={Get-FileEncoding $_.FullName}} |
+                        Where-Object {$_.Encoding -ne $EncodingTarget} ;
+                    # below is no longer the output of get-fileencoding, it's just a string 'Encoding' 
+                    #Where-Object {$_.Encoding.HeaderName -ne $EncodingTarget} ;
+                $cfiles = $cfiles | select Path ;
+                if($cfiles){
+                    $smsg = "Files with bad encodings (will be re-encoded):`n$(($cfiles|out-string).trim())" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                } ; 
+
+                write-verbose "hybrid the two sets"
+                #$diff = Compare-Object -ReferenceObject $cfiles -DifferenceObject $rfiles -Property path ; 
+                # pull the Additions: entries with .SideIndicator -eq "=>" (present in right list but not in left)
+                # $result|?{$_.SideIndicator -eq "=>"}
+                # simpler to combo and select uniq
+                [array]$tfiles = @() ;
+                $tfiles += @($cfiles) ; 
+                if ($ReplaceChars){
+                    $tfiles += @($rfiles) ; 
+                } ; 
+                $tfiles = $tfiles.path | select -unique ;
+
+            } CATCH {
+                $ErrorTrapped = $Error[0] ;
+                #write-warning "$(get-date -format 'HH:mm:ss'): Failed processing $($ErrorTrapped.Exception.ItemName). `nError Message: $($ErrorTrapped.Exception.Message)`nError Details: $($ErrorTrapped)" ;
+                $PassStatus += ";ERROR";
+                $smsg= "Failed processing $($ErrorTrapped.Exception.ItemName). `nError Message: $($ErrorTrapped.Exception.Message)`nError Details: $($ErrorTrapped)" ;
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Error } #Error|Warn
+                else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" }
+                #Continue #STOP(debug)|EXIT(close)|Continue(move on in loop cycle) ;
+            } ;
+
+            $ttl=($tfiles|measure).count ;
+            $smsg="Processing $($ttl) matching files..." ;
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            $procd=0 ;
+            $tfiles | Foreach-Object {
+                $procd++ ;
+                TRY {
+                    #$ofile=$_.path;
+                    #$ofile = $_.fullname ; 
+                    $ofile = $_
+                    write-host -foregroundcolor green "=($($procd)/$($ttl)):$($ofile )" ;
+                    $content = (Get-Content -Raw -Encoding $EncodingTarget $ofile -ErrorAction STOP)  ;
+                    if ($content.Contains([char]0xfffd)) {
+                        $smsg= "--(UTF8 conversion fault)" ;
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+                        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                        $content = Get-Content -Raw $ofile -ErrorAction STOP ;
+                    } ;
+
+                    if ($ReplaceChars){
+                        if($content -match $regex){
+                            $content = $content -replace [Char]0x2013, "-" `
+                            -replace [Char]0x2014, "-" `
+                            -replace [Char]0x2015, "-" `
+                            -replace [Char]0x2017, "_" `
+                            -replace [Char]0x2018, "`'" `
+                            -replace [Char]0x2019, "`'" `
+                            -replace [Char]0x201a, "," `
+                            -replace [Char]0x201b, "`'" `
+                            -replace [Char]0x201c, "`"" `
+                            -replace [Char]0x201d, "`"" `
+                            -replace [Char]0x201e, "`"" `
+                            -replace [Char]0x2026, "..." `
+                            -replace [Char]0x2032, "`"" `
+                            -replace [Char]0x2033, "`"" ;
+                        } ;
+                        # finally rplc any remaining blackdiamond questionmarks with -
+                        $content = $content -replace [char]65533, "-" ;
+                    } ;
+                    
+                    $error.clear() ;
+                    #$smsg = "Conv:$((Get-FileEncoding -Path $ofile).headername.tostring())->$($EncodingTarget):$($ofile)" ;
+                    # above was working with output of select-string (path), below is gci output (fullname)
+                    $smsg = "Conv:$((Get-FileEncoding -Path $ofile).tostring())->$($EncodingTarget):$($ofile)"
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    $content | set-content -path $ofile  -Encoding $EncodingTarget  -ErrorAction STOP -whatif:$($whatif) ;
+                } CATCH {
+                    $ErrorTrapped = $Error[0] ;
+                    #write-warning "$(get-date -format 'HH:mm:ss'): Failed processing $($ErrorTrapped.Exception.ItemName). `nError Message: $($ErrorTrapped.Exception.Message)`nError Details: $($ErrorTrapped)" ;
+                    $PassStatus += ";ERROR";
+                    $smsg= "Failed processing $($ErrorTrapped.Exception.ItemName). `nError Message: $($ErrorTrapped.Exception.Message)`nError Details: $($ErrorTrapped)" ;
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Error } #Error|Warn
+                    else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" }
+                    #Continue #STOP(debug)|EXIT(close)|Continue(move on in loop cycle) ;
+                    Continue ; 
+                } ;
+            } ;   # foreach-object-E
+        } ;  # loop-E $item ;
+    } ; # PROC-E
+    END {
+        $smsg = "$($sBnr.replace('=v','=^').replace('v=','^='))" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level H1 } #Error|Warn|Debug
+        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        $stopResults = try {Stop-transcript -ErrorAction stop} catch {} ;
+        write-host $stopResults ; 
+    } ;  # END-E
+}
+
+#*------^ repair-FileEncoding.ps1 ^------
+
+
 #*------v replace-PSTitleBarText.ps1 v------
 Function replace-PSTitleBarText {
     <#
@@ -10173,7 +10514,7 @@ Function set-ConsoleColors {
                         ShowToolTips                           : False
                         DingTone                               : 1221
                         CompletionQueryItems                   : 100
-                        WordDelimiters                         : ;:,.[]{}()/\|^&*-=+'"â€“â€”â€•
+                        WordDelimiters                         : ;:,.[]{}()/\|^&*-=+'"–—―
                         DingDuration                           : 50
                         BellStyle                              : Audible
                         HistorySearchCaseSensitive             : False
@@ -10262,7 +10603,7 @@ Function set-ConsoleColors {
                       #"Error" = [ConsoleColor]::DarkRed
 
                       # A mustardy 24 bit color escape sequence
-                      #"String" = "$([char]0x1b)[38;5;100m"
+                      #"String" = "$([char]0x1b)[38;5.1.1m"
 
                       # A light slate blue RGB value
                       #"Command" = "#8470FF"
@@ -10384,6 +10725,8 @@ function Set-ContentFixEncoding {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,File,Encoding,Management
     REVISIONS   :
+    * 2:11 PM 11/7/2022 add missing [dot]example in CBH
+    * 12:21 PM 9/26/2022 add back -showdebug with 'deprecated' tag (better to use verbose); i've got code out there trying to use it and throwing up.
     *4:26 PM 5/27/2022 fixed typo in doloop #98: $Retries => $DoRetries (loop went full dist before exiting, even if successful 1st attempt)
     * 10:01 AM 5/17/2022 updated CBH exmple
     * 10:39 AM 5/13/2022 removed 'requires -modules', to fix nesting limit error loading verb-io
@@ -10392,6 +10735,21 @@ function Set-ContentFixEncoding {
         yanked advfunc, and all looping other than retry. 
     * 9:25 AM 5/4/2022 add -passthru support, rather than true/false return ; add retry code & $DoRetries, $RetrySleep; alias 'Set-FileContent', retire the other function
     * 11:24 AM 5/3/2022 init
+    .DESCRIPTION
+    Set-ContentFixEncoding - Set-Content variant that auto-coerces the encoding to UTF8 
+    
+    NOTE: at the current time - 2:21 PM 11/7/2022 - do *not* use this with get-FileEncoding to update encoding (found it emptying target file, likely inbound pipeline issue for $Value)
+    Use set-Content as per the example from get-FileEncoding:
+    
+    PS> $Encoding = 'UTF8' ; 
+    PS> Get-ChildItem  *.ps1 | ?{$_.length -gt 0} | 
+    PS>    select FullName, @{n='Encoding';e={Get-FileEncoding $_.FullName}} | 
+    PS>    where {$_.Encoding -ne $Encoding} | foreach-object { 
+    PS>        write-host "==$($_.fullname):" ; 
+    PS>        (get-content $_.FullName) | set-content $_.FullName -Encoding $Encoding -whatif ;
+    PS>    } ;
+    Gets ps1 files in current directory (with non-zero length) where encoding is not UTF8, and then sets encoding to UTF8 using set-content ;
+    
     .PARAMETER Path
     Specifies the path of the item that receives the content.[-Path c:\pathto\script.ps1]
     .PARAMETER Value
@@ -10400,6 +10758,8 @@ function Set-ContentFixEncoding {
     Specifies the type of encoding for the target file. The default value is 'UTF8'.[-encoding Unicode]
     .PARAMETER PassThru
     Returns an object that represents the content. By default, this cmdlet does not generate any output [-PassThru]
+    .PARAMETER ShowDebug
+    Parameter to display Debugging messages (deprecated) [-ShowDebug switch]
     .PARAMETER whatIf
     Whatif switch [-whatIf]
     .INPUTS
@@ -10415,6 +10775,7 @@ function Set-ContentFixEncoding {
     PS> $bRet = Set-ContentFixEncoding -Value $updatedContent -Path $outfile -PassThru -Verbose -whatif:$($whatif) ;
     PS> if (!$bRet) {throw "FAILURE" } ;
     Demo use of -PassThru to return the set Content, for validation
+    .EXAMPLE
     PS> $bRet = Set-ContentFixEncoding @pltSCFE -Value $newContent ; 
     PS> if(-not $bRet -AND -not $whatif){throw "Set-ContentFixEncoding $($tf)!" } ;
     PS> $PassStatus += ";Set-Content:UPDATED";     
@@ -10441,6 +10802,8 @@ function Set-ContentFixEncoding {
         [Microsoft.PowerShell.Commands.FileSystemCmdletProviderEncoding]$encoding='UTF8',
         [Parameter(HelpMessage = "Returns an object that represents the content. By default, this cmdlet does not generate any output [-PassThru]")]
         [switch] $PassThru,
+        [Parameter(HelpMessage = "Debugging Flag (deprecated) [-showDebug]")]
+        [switch] $showDebug,
         [Parameter(HelpMessage = "Whatif switch [-whatIf]")]
         [switch] $whatIf
     ) ;
@@ -11034,6 +11397,7 @@ Function stop-driveburn {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,Performance,Workstation
     REVISIONS
+    * 10:50 AM 11/29/2022 added logging, to track how often landesk processes are impeding productive work.
     7:35 AM 10/5/2020 ported to verb-IO, updated tsksid/admin-incl-ServerCore.ps1
     * 8:48 AM 10/22/2019 added ldesk gatherproducts
     *11:34 AM 4/16/2019 rearranging cmd order
@@ -11060,22 +11424,108 @@ Function stop-driveburn {
     [CmdletBinding()]
     [Alias('sdb')]
     Param([Parameter(HelpMessage="Whatif Flag  [-whatIf]")][switch] $whatIf) ; 
-    write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):KILLING DRIVE SUCKERS!`nQUIT READING BY THE HARDDRIVE LIGHT!" ; 
+    
+    #*======v SUB MAIN v======
+    # add logging support
+    #region INIT; # ------
+    # Get the name of this function
+    ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+    # Get parameters this function was invoked with
+    $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+    $verbose = ($VerbosePreference -eq "Continue") ; 
+    $NoLoop = $true ; 
+    # SETUP CROSS-VERSION-COMPAT. $PS* VARIABLES
+    if($showDebug){write-debug -verbose:$true "`SHOWDEBUG: `$PSScriptRoot:$($PSScriptRoot)`n`$PSCommandPath:$($PSCommandPath)"} ;
+    if ($PSScriptRoot -eq "") {
+        if ($psISE){
+            $ScriptName = $psISE.CurrentFile.FullPath ;
+        } elseif ($context = $psEditor.GetEditorContext()) {
+            $ScriptName = $context.CurrentFile.Path ;
+        } elseif($host.version.major -lt 3){
+            $ScriptName = $MyInvocation.MyCommand.Path ;
+            $PSScriptRoot = Split-Path $ScriptName -Parent ;
+            $PSCommandPath = $ScriptName ;
+        } else {
+            if($MyInvocation.MyCommand.Path) {
+                $ScriptName = $MyInvocation.MyCommand.Path ;
+                $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent ;
+            } else {
+                throw "UNABLE TO POPULATE SCRIPT PATH, EVEN `$MyInvocation IS BLANK!" ;
+            } ;
+        };
+        $ScriptDir = Split-Path -Parent $ScriptName ;
+        $ScriptBaseName = split-path -leaf $ScriptName ;
+        $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($ScriptName) ;
+    } else {
+        $ScriptDir = $PSScriptRoot ;
+        if($PSCommandPath){
+            $ScriptName = $PSCommandPath ;
+        } else {
+            $ScriptName = $myInvocation.ScriptName
+            $PSCommandPath = $ScriptName ;
+        } ;
+        $ScriptBaseName = (Split-Path -Leaf ((&{$myInvocation}).ScriptName))  ;
+        $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($MyInvocation.InvocationName) ;
+    } ; 
+    if($showDebug){write-debug -verbose:$true "`$ScriptDir:$($ScriptDir)`n`$ScriptBaseName:$($ScriptBaseName)`n`$ScriptNameNoExt:$($ScriptNameNoExt)`n`$PSScriptRoot:$($PSScriptRoot)`n`$PSCommandPath:$($PSCommandPath)" ; } ;
+    #-=-=-=-=-=-=-=-=
+
+    $ParentPath = $MyInvocation.MyCommand.Definition ; 
+    if($ParentPath){
+        $rgxProfilePaths='(\\Documents\\WindowsPowerShell\\scripts|\\Program\sFiles\\windowspowershell\\scripts)' ; 
+        if($ParentPath -match $rgxProfilePaths){
+            $ParentPath = "$(join-path -path 'c:\scripts\' -ChildPath (split-path $ParentPath -leaf))" ; 
+        } ; 
+        if($NoLoop){
+            $logspec = start-Log -Path ($ParentPath) -showdebug:$($showdebug) -whatif:$($whatif) -NoTimestamp ;
+            $smsg = "-NoLoop specified:`$logspec returned:$(($logspec|out-string).trim())" ; 
+            if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+            else{ write-host -foregroundcolor green "$((get-date).ToString('yyyyMMdd-HHmm')):$($smsg)" } ; } ; 
+        } else { 
+            $logspec = start-Log -Path ($ParentPath) -showdebug:$($showdebug) -whatif:$($whatif) ;
+            $smsg = "(Looping...):`$logspec returned:$(($logspec|out-string).trim())" ; 
+            if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+            else{ write-host -foregroundcolor green "$((get-date).ToString('yyyyMMdd-HHmm')):$($smsg)" } ; } ; 
+
+        } ; 
+        if($logspec){
+            $logging=$logspec.logging ;
+            $logfile=$logspec.logfile ;
+            $transcript=$logspec.transcript ;
+        } else {$smsg = "Unable to configure logging!" ; write-warning "$((get-date).ToString('yyyyMMdd-HHmm')):$($sMsg)" ; Exit ;} ;
+    } else {$smsg = "No functional `$ParentPath found!" ; write-warning "$((get-date).ToString('yyyyMMdd-HHmm')):$($sMsg)" ;  Exit ;} ;
+
+    $smtpFrom = (($scriptBaseName.replace(".","-")) + "@toro.com") ; 
+
+    #endregion INIT; # ------
+    
+    $smsg = "$((get-date).ToString('HH:mm:ss')):KILLING DRIVE SUCKERS!`nQUIT READING BY THE HARDDRIVE LIGHT!" ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    #Levels:Error|Warn|Info|H1|H2|H3|Debug|Verbose|Prompt
     "LDIScn32","Cagent32","gatherproducts" | foreach {
         #"==Checking for $($_)" ;
         if($gp=get-process "$($_)" -ea 0 ){
-            write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):PROCMATCH:Stopping proc:`n$(($gp | ft -auto ID,ProcessName|out-string).trim())" ; 
+            $smsg = "$((get-date).ToString('HH:mm:ss')):PROCMATCH:Stopping proc:`n$(($gp | ft -auto ID,ProcessName|out-string).trim())" ; 
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
             $gp | stop-process -force -whatif:$($whatif)
         } else {
-            write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):(no $($_) processes found)" ; 
+            $smsg = "$((get-date).ToString('HH:mm:ss')):(no $($_) processes found)" ; 
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
         } ; 
     } ; 
 
     #  tack index stop in here too
     $stat=(Get-Service -Name wsearch).status ; 
-    write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):===Windows Search:Status:$($stat)" ; 
+    $smsg = "$((get-date).ToString('HH:mm:ss')):===Windows Search:Status:$($stat)" ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
     if ($stat -eq 'Running') {
-        write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):STOPPING WSEARCH SVC" ; 
+        $smsg = "$((get-date).ToString('HH:mm:ss')):STOPPING WSEARCH SVC" ; 
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
         stop-Service -Name wsearch ; 
     } else { 
         write-verbose "$((get-date).ToString('HH:mm:ss')):(wsearch is *not* running)" ; 
@@ -11207,7 +11657,7 @@ function test-FileSysAutomaticVariables {
     script they behave the same (which is the only sensible place to call from for 
     this purpose). When called inside a function or script block, the former 
     returns the empty string, whereas the latter returns the function body's / 
-    script block's definition as a string (a piece of PowerShell source code). â€"  
+    script block's definition as a string (a piece of PowerShell source code). �"  
     mklement0
     Sep 4, 2019 at 14:24
     #>
@@ -11247,6 +11697,76 @@ function test-FileSysAutomaticVariables {
 }
 
 #*------^ test-FileSysAutomaticVariables.ps1 ^------
+
+
+#*------v test-InstalledApplication.ps1 v------
+Function test-InstalledApplication {
+    <#
+    .SYNOPSIS
+    test-InstalledApplication.ps1 - Check registry for Installed status of specified application (checks x86 & x64 Uninstall hives, for substring matches on Name)
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 20210415-0913AM
+    FileName    : test-InstalledApplication
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-XXX
+    Tags        : Powershell,Application,Install
+    REVISIONS
+    * 10:37 AM 11/11/2022 ren get-InstalledApplication -> test-InstalledApplication (better match for function, default is test -detailed triggers dump back); aliased orig name; also pulling in overlapping verb-desktop:check-ProgramInstalled(), aliased -Name with ported programNam ; CBH added expl output demo
+    * 9:13 AM 4/15/2021 init vers
+    .DESCRIPTION
+    test-InstalledApplication.ps1 - Check registry for Installed status of specified application (checks x86 & x64 Uninstall hives, for substring matches on Name)
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    Returns either System.Boolean (default) or System.Object (-detail)
+    .EXAMPLE
+    PS> if(test-InstalledApplication -name "powershell"){"yes"} else { "no"} ; 
+    yes
+    Default boolean test
+    .EXAMPLE    
+    PS> get-InstalledApplication -Name 'google drive' -detail
+    DisplayName  DisplayVersion InstallLocation                                                      Publisher
+    -----------  -------------- ---------------                                                      ---------
+    Google Drive 63.0.5.0       C:\Program Files\Google\Drive File Stream\63.0.5.0\GoogleDriveFS.exe Google LLC
+    Example returning detail (DisplayName and InstallLocation)
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    [Alias('check-ProgramInstalled','get-InstalledApplication')]
+    PARAM(
+        [Parameter(Position=0,HelpMessage="Application Name substring[-Name Powershell]")]
+        [Alias('programNam')]
+        $Name,
+        [Parameter(HelpMessage="Debugging Flag [-Return detailed object on match]")]
+        [switch] $Detail
+    ) ;
+    $x86Hive = Get-ChildItem 'HKLM:Software\Microsoft\Windows\CurrentVersion\Uninstall' |
+         % { Get-ItemProperty $_.PsPath } | ?{$_.displayname -like "*$($Name)*"} ;
+    write-verbose "`$x86Hive:$([boolean]$x86Hive)" ; 
+    if(Test-Path 'HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall'){
+        #$x64Hive = ((Get-ChildItem "HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall") |
+        #    Where-Object { $_.'Name' -like "*$($Name)*" } ).Length -gt 0;
+        $x64Hive = Get-ChildItem 'HKLM:Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall' |
+            % { Get-ItemProperty $_.PsPath } | ?{$_.displayname -like "*$($Name)*"} ;
+         write-verbose "`$x64Hive:$([boolean]$x64Hive)" ; 
+    }
+    if(!$Detail){
+        # boolean return:
+        ($x86Hive -or $x64Hive) | write-output ; 
+    } else { 
+        $props = 'DisplayName','DisplayVersion','InstallLocation','Publisher' ;
+        $x86Hive | Select $props | write-output ; 
+        $x64Hive | Select $props | write-output ; 
+    } ; 
+}
+
+#*------^ test-InstalledApplication.ps1 ^------
 
 
 #*------v test-IsUncPath.ps1 v------
@@ -11308,6 +11828,157 @@ function test-IsUncPath {
 }
 
 #*------^ test-IsUncPath.ps1 ^------
+
+
+#*------v test-LineEndings.ps1 v------
+function test-LineEndings {
+    <#
+    .SYNOPSIS
+    test-LineEndings.ps1 - Test path/file specified for inconsistent or 'mixed' LineEndings (suppress Pester complaints; general good idea).
+    .NOTES
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2022-09-08
+    FileName    : test-LineEndings.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : File,LineEndings
+    Additional Credits:
+    AddedCredit : JasonMArcher (simple native PS EOL detect code)
+    AddedWebsite: https://stackoverflow.com/users/64046/jasonmarcher
+    AddedTwitter: 
+    AddedCredit : phuclv (coerce EOL to CrLf sample code)
+    AddedWebsite: https://superuser.com/users/241386/phuclv
+    AddedTwitter: 
+    REVISIONS   :
+    1:20 PM 9/8/2022 expanded CBH examples suppresed noise outputs to w-v, only 
+        echos normally are w-w for mixed EOL files; revision to simple JasonMArcher 
+        sample: added CBH; swapped echo -> write-host; dumped tee output (declutters), 
+        simplified output, built in full function with pipeline path/file looping support.
+    * 3/20/22 phuclv pointed out that get-content|set-content autocleans & sample posted in StackEdit response 
+    * 4/7/2209 JasonMArcher sample code scrap in stackoverflow response.
+    .DESCRIPTION
+    test-LineEndings.ps1 - Test path/file specified for inconsistent or 'mixed' LineEndings (suppress Pester complaints; general good idea)
+
+    Examples demo use of get-content|Set-Content to coerce line endings to CrLf 
+    underlying mechanism: get-content splits on \n (& drops any existing \r) and set-content always writes \r\n as each EOL (including trailing line of file, if not already set).
+    
+    Pester has been twigging on mixed/inconsistent EOLs in files. So I wrote this to quickly eval & coerce them into shape (with the fix as a followup cmdblock in the examples).
+    
+    Examining mixed tagged files, I can see they're turning up as EOL on Example PS> code (other than the last trailing ps line of the block, which has CRLF): likely byproduct of my codeblock -> example conversion script? 
+    Yup it was in convertTo-PSHelpExample(), was writing scriptblock EOL as `n, rather than `r`n. Still should check for issue across all files.
+
+    .PARAMETER Path
+    Specifies the path or paths to the files that you want to test. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. [-Path c:\path-to\file.ext,c:\pathto\file2.ext]
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    write-warning to console for mixed CrLf (use verbose for echo on all tested files)
+    Returns fullname value for each mixed/inconsistent EOL file, to pipeline.
+    .EXAMPLE
+    PS> $mixedcrlf = test-LineEndings -path 'c:\tmp\20170411-0706AM.ps1','c:\tmp\24SbP1B9.ics' -verbose  ;
+    PS> $mixedcrlf | %{
+    PS>     write-host "==Fix LineEndings $($_)" ; 
+    PS>     $content = Get-Content $_ ; 
+    PS>     $content | Set-Content -Path $_ -encoding UTF8 -EA STOP -whatif ; 
+    PS> } ; 
+    Check array of files for mixed CRLF EOLs. Then run mixed returned, through process to output consistent CrLf lineendings (-remove whatif to execute).
+    .EXAMPLE
+    PS> $mixedcrlf = test-LineEndings -path 'c:\sc\verb-io\public\' -verbose  ;
+    PS> $mixedcrlf | %{
+    PS>     write-host "==Fix LineEndings $($_)" ; 
+    PS>     $content = Get-Content $_ ; 
+    PS>     $content | Set-Content -Path $_ -encoding UTF8 -EA STOP -whatif ; 
+    PS> } ; 
+    Check a folder path (auto-recursed into files), with followup fix.
+    .EXAMPLE
+    PS> $mixedcrlf = gci c:\sc\verb-dev\public\*  | select -expand fullname | test-lineendings -verbose ; 
+    PS> $mixedcrlf | %{
+    PS>     write-host "==Fix LineEndings $($_)" ; 
+    PS>     $content = Get-Content $_ ; 
+    PS>     $content | Set-Content -Path $_ -encoding UTF8 -EA STOP -whatif ; 
+    PS> } ; 
+    Pipeline demo with followup fix.
+    PS> $mixedcrlf = c:\sc\verb-*\public | select -expand path | test-lineendings -verbose ;
+        WARNING: ==>C:\sc\verb-IO\Public\test-LineEndings.ps1:has:MIXED CRLF eolS
+    PS> $mixedcrlf |?{$_ -notlike '*-log.txt'} | %{
+    PS>     write-host "==Fix LineEndings $($_)" ; 
+    PS>     $content = Get-Content $_ ; 
+    PS>     $content | Set-Content -Path $_ -encoding UTF8 -EA STOP -whatif ; 
+    PS> } ;  
+    Demo running against entire module set source Public subdirs, with postfiltered results to exclude logs, and trailing fix
+    .LINK
+    https://superuser.com/questions/460169/is-there-a-way-to-quickly-identify-files-with-windows-or-unix-line-termination
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    [Alias('Compress-ZipFile')]
+    Param(
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Specifies the path or paths to the files that you want to add to the archive zipped file. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. If a simple folder path is specified, the child files will be recursively checked[-Path c:\path-to\file.ext,c:\pathto\file2.ext]")]
+        [ValidateScript( { Test-Path $_ })]
+        [Alias('File')]
+        [string[]]$Path,
+        [Parameter(HelpMessage = "Regular Expression to be used to filter child files when a simple folder path is specified as -Path (defaults to ^\.(TXT|MD|PS1|PSD1|JSON|XML|PSXML|PSM1|CLASS|VBS|CMD|BAT|PY|AHK)$)[-RegexFileExtensions '^\.(TXT|MD|PS1|PSD1|JSON|XML|PSM1|CLASS|VBS|CMD|BAT|PY|AHK)$']")]
+        [regex]$RegexFileExtensions = '^\.(TXT|MD|PS1|PSD1|JSON|XML|PSXML|PSM1|CLASS|VBS|CMD|BAT|PY|AHK)$'  
+    ) ; 
+    BEGIN { 
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            #write-verbose "Data received from parameter input: '$($InputObject)'" ; 
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+        $bMixedFound = $false 
+    } ;  # BEGIN-E
+    PROCESS {
+        $Error.Clear() ; 
+                
+        foreach ($item in $Path){
+            write-verbose "==$($item):" ; 
+            TRY{
+                if(test-path $item -pathtype Container){
+                    write-host -foregroundcolor green "Container Path specified, recursing and post-filtering for extensions matching regex:`n$($RegexFileExtensions)" ; 
+                    $item = get-childitem -recurse -path $item | ?{$_.extension.toUpper() -match $RegexFileExtensions} ; 
+                    write-host -foregroundcolor green "(#Matches returned:$(((($item|measure).count)|out-string).trim()))" ; 
+                } else {
+                    write-verbose "gci non-container obj" ; 
+                    $item = gci $item ; 
+                }  ; 
+                foreach($f in $item){
+                    write-verbose "==$($f.fullname):" ; 
+                    $content = Get-Content -Raw $f.fullname ; 
+                    $newlines = [regex]::Matches($content, "\r?\n") | Group-Object -Property Length ;
+                    if ($newlines.Length -eq 2) {
+                        $bMixedFound = $true ; 
+                        write-WARNING "==>$($f.fullname):has:MIXED CRLF eolS" ; 
+                        $f.fullname | write-output ; 
+                    } else {
+                        if ($newlines[0].Group[0].Value.Length -eq 2) {
+                            write-verbose  "==>$($f.fullname):has:CRLF eolS" ; 
+                        } else {
+                            write-verbose  "==>$($f.fullname):has:LF eolS" ; 
+                        } ; 
+                    } ; 
+                } ; 
+            }CATCH{
+                Write-Warning -Message $_.Exception.Message ; 
+            } ; 
+               
+        } ;  # loop-E
+    }  # if-E PROC
+    END{
+        if($bMixedFound){
+            write-warning "Mixed LineEnd (CR|LF) found within files! Each pathed file has been returned to the pipeline (for post-processing)" ; 
+        } ; 
+        write-verbose "Processing ended" ; 
+    } ; 
+}
+
+#*------^ test-LineEndings.ps1 ^------
 
 
 #*------v test-MediaFile.ps1 v------
@@ -12450,7 +13121,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-InstalledApplication,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,Pop-LocationFirst,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,replace-PSTitleBarText,reset-ConsoleColors,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-ItemReadOnlyTDO,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsUncPath,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,Pop-LocationFirst,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-ItemReadOnlyTDO,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-InstalledApplication,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
 
 
 
@@ -12458,8 +13129,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUuXOJvCBKcOUCE17FhLOFuP7S
-# ECygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkr0Zb0UdZhmtPQ9G9UGmrH/i
+# xbygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -12474,9 +13145,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR5Vcp9
-# GPg3G1aoGoXr/t5w4tdpgDANBgkqhkiG9w0BAQEFAASBgHN1PELClSL8XqEIVNOl
-# jKXjwtuSVuTuyAZ+wrU4AZrRO9T5O6L8lL9x4VDmvfNxaB75hGm/IHTZ6zgXICul
-# sARUEn/fB/gDXr5BD5wGTVhDRh7qbLQJvGMbsUh8sa7W/muvJ7Kf2BnzkjPt8+ic
-# edq706ZTI58nt3eQIqJmQSUR
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTuOx5w
+# uer2X9+NZ6txFNU4Mdwa7TANBgkqhkiG9w0BAQEFAASBgFOe9LaACgDiCfI11eOY
+# rsBR+gUg0+pYsB9K0PkRG0okynE5+bth8k5rrJXn04lskMPdzvI7ylUONnkihuTV
+# l0opXnVC5xuQkjm7ufTv9Wc+GlrMulEjpGTMNZiJJkWOeZVN0qua6cgUPc4debZ4
+# IFTDtRNxLcXSHYv/L8lNHgN2
 # SIG # End signature block

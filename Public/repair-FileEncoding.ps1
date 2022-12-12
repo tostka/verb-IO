@@ -19,6 +19,7 @@ function repair-FileEncoding {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:11 AM 12/8/2022 pull *all* reqs; verb-logging is cross broken too; nested-limit triggering recursive req's verb-io
     * 4:37 PM 11/22/2022 moved into verb-io; fixed typo utf8 spec (utf-8), flip into an adv function;refactored, added broader try/catch, handling for both 
     file or dir path; simplified logic, does encoding repair always, always detects 
     highascii chars, recommends fixes, but only runs fixes with -ReplaceChars param.
@@ -76,7 +77,6 @@ function repair-FileEncoding {
     .LINK
     https://github.com/tostka/verb-io
     #>
-    #Requires -Modules verb-IO, verb-logging, verb-Text
     # VALIDATORS: [ValidateNotNull()][ValidateNotNullOrEmpty()][ValidateLength(24,25)][ValidateLength(5)][ValidatePattern("some\sregex\sexpr")][ValidateSet("USEA","GBMK","AUSYD")][ValidateScript({Test-Path $_ -PathType 'Container'})][ValidateScript({Test-Path $_})][ValidateRange(21,65)][ValidateCount(1,3)]
     [CmdletBinding()]
     [Alias('fix-encoding')]
