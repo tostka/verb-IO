@@ -11,6 +11,7 @@ function Compress-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 12:36 PM 12/15/2022: add: BH example wrapping up a ticket's output files.
     * 1:54 PM 8/30/2022 looks functionally equiv compress-archive & .net calls, at least in the three use cases in the example: they produce substantially similar content in the resultant zip; expanded echos;
          emulated verbose 'splat' echos before the .net calls (aids spotting bad params); added boolean:false includerootdir on the createfromdir (avoids error if not spec'd at all); simplified all CATCH; 
          added Psv5 -force support; added psColor BP & w-h use; ren prop in output from destination -> DestinationPath; fix CBH params
@@ -112,6 +113,18 @@ function Compress-ArchiveFile {
         RDP Links mnu,expl.lnk   2252 11/18/2015 10:35:42 AM -06:00
         txt.txt                   845 7/13/2017 6:37:26 PM -05:00  
     Create an archive that only zips the files in the root directory, by specifying path with star-dot-start (*.*).
+    .EXAMPLE
+    PS>  $ticket = '733043' ; 
+    PS>  gci "d:\scripts\logs\$($ticket)*" | 
+    PS>      Compress-ArchiveFile -DestinationPath "d:\scripts\$($ticket)-work-files-$(get-date -format 'yyyyMMdd-HHmmtt').zip" ; 
+
+      -DestinationPath: *exists* (and -force not specified): using -Update, to add specified -path to existing file
+      ...
+      DestinationPath                                  Contents
+      ---------------                                  --------
+      D:\scripts\733043-work-files-20221215-1228PM.zip {@{FullName=733043-MsgTrkDetail-08dad667e195-20221206-1733PM.csv; Length=2705; LastWriteTime=12/6/2022 5:33:16 PM -06:00}, @{Fu...
+    
+    Demo grabbing all files in a dir with prefix, and zip down the content in a prefix-named, and timestamped zip file (wrap up ticket handling). 
     .LINK
     https://github.com/tostka/verb-XXX
     #>
