@@ -15,6 +15,7 @@ Function stop-driveburn {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,Performance,Workstation
     REVISIONS
+    * 9:00 AM 12/22/2022 flipped start-log -notimestamp:$true
     * 9:00 AM 12/12/2022 fixed broken added logging (spliced over holistic intact, w looping timestamp exempt)
     * 10:50 AM 11/29/2022 added logging, to track how often landesk processes are impeding productive work.
     7:35 AM 10/5/2020 ported to verb-IO, updated tsksid/admin-incl-ServerCore.ps1
@@ -128,7 +129,7 @@ Function stop-driveburn {
     if(!(get-variable rgxPSCurrUserScope -ea 0)){
         $rgxPSCurrUserScope="^$([regex]::escape([Environment]::GetFolderPath('MyDocuments')))\\((Windows)*)PowerShell\\(Scripts|Modules)\\.*\.(ps((d|m)*)1|dll)$" ;
     } ;
-    $pltSL=[ordered]@{Path=$null ;NoTimeStamp=$false ;Tag=$null ;showdebug=$($showdebug) ; Verbose=$($VerbosePreference -eq 'Continue') ; whatif=$($whatif) ;} ;
+    $pltSL=[ordered]@{Path=$null ;NoTimeStamp=$true ;Tag=$null ;showdebug=$($showdebug) ; Verbose=$($VerbosePreference -eq 'Continue') ; whatif=$($whatif) ;} ;
     #$pltSL.Tag = $ModuleName ; 
     if($NoLoop){
         $pltSL.NoTimestamp = $true ;
