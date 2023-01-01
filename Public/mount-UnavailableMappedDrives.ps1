@@ -18,6 +18,7 @@ Function mount-UnavailableMappedDrives{
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 4:43 PM 1/1/2023 fixed on TINKERTOY debugging (was missing returned obj props etc)
     * 11:07 AM 1/19/2022 swapped in $hommeta.rgxMapsUNCs for hard-coded rgx ; added test for value, pre-run
     *2:51 PM 12/5/2021 init
     .DESCRIPTION
@@ -49,8 +50,12 @@ Function mount-UnavailableMappedDrives{
             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
             throw $smsg ;
         } ; 
-        $unavdrvs = Get-SMBMapping -verbose:$($VerbosePreference -eq "Continue") | ?{$_.RemotePath -match $rgxRemoteHosts -AND $_.status -eq 'Unavailable'} ; 
-        $psdrvs = Get-psdrive -verbose:$($VerbosePreference -eq "Continue") | ?{$_.remotepath -match $rgxRemoteHosts } ; 
+        #$unavdrvs = Get-SMBMapping -verbose:$($VerbosePreference -eq "Continue") | ?{$_.RemotePath -match $rgxRemoteHosts -AND $_.status -eq 'Unavailable'} ; 
+        # flip it to generic detect of unc RemotePath (supports fqdn, over nbnames, wo customized rgx)
+        $unavdrvs = Get-SMBMapping -verbose:$($VerbosePreference -eq "Continue") | ?{([system.uri]$_.RemotePath).isUnc -AND $_.status -eq 'Unavailable'} ;
+        #$psdrvs = Get-psdrive -verbose:$($VerbosePreference -eq "Continue") | ?{$_.remotepath -match $rgxRemoteHosts } ; 
+        # flip it to generic detect of unc RemotePath (supports fqdn, over nbnames, wo customized rgx)
+        $psdrvs = Get-psdrive -verbose:$($VerbosePreference -eq "Continue") | ? {$_.provider.name -eq 'Filesystem'} | ?{ ([system.uri]$_.displayroot).isUnc} ;
         if($unavdrvs){
             $smsg = "Unavailable mapped drives:`n$(($unavdrvs|ft -a $propsSDrv | out-string).trim())" ; 
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
@@ -68,9 +73,11 @@ Function mount-UnavailableMappedDrives{
         # New-PSDrive -Name "S" -Root "\\Server01\Scripts" -Persist -PSProvider "FileSystem" -Credential $cred ;      
         $netDrvs = @() ;    
         foreach($drv in $unavdrvs){
-            $pltNPSD.Name = [regex]::match($drv.localpath.tostring(),"([A-Z]):").captures[0].groups[1].value; 
+            #$pltNPSD.Name = [regex]::match($drv.localpath.tostring(),"([A-Z]):").captures[0].groups[1].value; 
+            $pltNPSD.Name = $drv.localpath.tostring().split(':')[0]
             $pltNPSD.Root = $drv.remotepath; 
-            if($psdrvs |?{($_.Root -eq $drv.remotepath) -AND $_.name -eq $pltNPSD.Name}){
+            #if($psdrvs |?{($_.Root -eq $drv.remotepath) -AND $_.name -eq $pltNPSD.Name}){
+            if( ($psdrvs |?{$_.displayroot -eq $drv.RemotePath}) -AND ($psdrvs |?{$_.name -eq $pltNPSD.Name}) ) {
                 $smsg = "(existing psDrive for " ; 
                 if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
                 else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
