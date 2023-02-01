@@ -19,6 +19,7 @@ function get-ColorNames {
 	AddedWebsite: URL
 	AddedTwitter: URL
     REVISIONS
+    * 4:24 PM 2/1/2023 typo, trailing missing }
     * 4:24 PM 1/30/2023 flipped freeshtanding script to function in verb-io 
     .DESCRIPTION
     get-ColorNames - Outputs a color-chart grid of all write-host -backgroundcolor & -foregroundcolors comboos, for easy selection of suitable combos for output. 
@@ -58,4 +59,5 @@ function get-ColorNames {
 		Foreach ($foregroundcolor in $ConsoleColors) {Write-Host -ForegroundColor $foregroundcolor -BackgroundColor $backgroundcolor "$($foregroundcolor)|" -NoNewLine } ;
 		Write-Host " on $backgroundcolor" ;
 	} ;
+} ; 
 #*------^ END Function get-ColorNames ^------
