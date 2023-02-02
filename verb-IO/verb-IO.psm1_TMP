@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 5.2.0.0.0
+Version     : 5.2.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -550,6 +550,266 @@ function check-FileLock {
 #*------^ check-FileLock.ps1 ^------
 
 
+#*------v clear-HostIndent.ps1 v------
+function pop-HostIndent {
+    <#
+    .SYNOPSIS
+    pop-HostIndent - Utility cmdlet that decrements/pops the $env:HostIndentSpaces by 4 (or the configured `$PadIncrement)
+    .NOTES
+    Version     : 0.0.5
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-01-12
+    FileName    : pop-HostIndent.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Host,Console,Output,Formatting
+    AddedCredit : L5257
+    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedTwitter: URL
+    REVISIONS
+    * 2:01 PM 2/1/2023 add: -PID param
+    * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
+    * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
+    * 4:39 PM 1/11/2023 init
+    .DESCRIPTION
+    pop-HostIndent - Utility cmdlet that decrements/pops the $env:HostIndentSpaces by 4 (or the configured `$PadIncrement)
+
+    If it doesn't find a preexisting $IndentHostSpaces in 'private','local','script','global'
+    it throws an error
+
+    Part of the verb-HostIndent set:
+    write-HostIndent # write-host wrapper that indents/pads each line of output a fixed amount (driven by $env:HostIndentSpaces common variable). 
+    reset-HostIndent # $env:HostIndentSpaces = 0 ; 
+    push-HostIndent   # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    pop-HostIndent # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    set-HostIndent # explicit set to multiples of 4
+            
+    .PARAMETER PadIncrement
+    Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]
+    .PARAMETER usePID
+    Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]
+    .EXAMPLE
+    PS> pop-HostIndent ;
+    PS> $env:HostIndentSpaces ; 
+    Simple indented text demo
+    .EXAMPLE
+    PS>  $domain = 'somedomain.com' ; 
+    PS>  write-verbose "Top of code, establish 0 Indent" ;
+    PS>  $env:HostIndentSpaces = 0 ;
+    PS>  #...
+    PS>  # indent & do nested thing
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  pop-HostIndent "Spf Version: $($spfElement)" -verbose ;
+    PS>  # nested another level
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: += 4 Net:$($env:HostIndentSpaces)" ;
+    PS>  pop-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  pop-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    SAMPLEOUTPUT
+    DESCRIPTION
+    SAMPLEOUTPUT
+    DESCRIPTION        
+    #>
+    [CmdletBinding()]
+    [Alias('pop-hi')]
+    PARAM(
+        [Parameter(
+            HelpMessage="Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]")]
+            [int]$PadIncrement = 4,
+        [Parameter(
+            HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
+            [switch]$usePID
+    ) ; 
+    BEGIN {
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;     
+        #$VerbosePreference = "SilentlyContinue" ;
+        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+
+        write-verbose "$($CmdletName): Using `$PadIncrement:`'$($PadIncrement)`'" ; 
+
+        #if we want to tune this to a $PID-specific variant, could use:
+        if($usePID){
+            $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+            $HISName = "Env:HostIndentSpaces$($PID)" ;
+        } else {
+            $HISName = "Env:HostIndentSpaces" ;
+        } ;
+        #(Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value
+
+        if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
+#*------v Function clear-HostIndent v------
+function clear-HostIndent {
+    <#
+    .SYNOPSIS
+    clear-HostIndent - Utility cmdlet that clears/removes the $env:HostIndentSpaces (used when exiting script to avoid leaving process-level evari in place)
+    .NOTES
+    Version     : 0.0.5
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-01-12
+    FileName    : clear-HostIndent.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Host,Console,Output,Formatting
+    AddedCredit : L5257
+    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedTwitter: URL
+    REVISIONS
+    * 2:01 PM 2/1/2023 add: -PID param; ported variant of reset-HostIndent
+    * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
+    * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
+    * 4:39 PM 1/11/2023 init
+    .DESCRIPTION
+    clear-HostIndent - Utility cmdlet that clears/removes the $env:HostIndentSpaces (used when exiting script to avoid leaving process-level evari in place)
+
+            
+    Part of the verb-HostIndent set:
+    write-HostIndent # write-host wrapper that indents/pads each line of output a fixed amount (driven by $env:HostIndentSpaces common variable). 
+    reset-HostIndent # $env:HostIndentSpaces = 0 ; 
+    clear-HostIndent # remove $env:HostIndentSpaces ; 
+    push-HostIndent   # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    pop-HostIndent # $env:HostIndentSpaces -= 4
+    set-HostIndent # explicit set to multiples of 4
+            
+    .PARAMETER PadIncrement
+    Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]
+    .PARAMETER usePID
+    Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]
+    .EXAMPLE
+    PS> clear-HostIndent ;
+    PS> $env:HostIndentSpaces ; 
+    Simple indented text demo
+    .EXAMPLE
+    PS>  $domain = 'somedomain.com' ; 
+    PS>  write-verbose "Top of code, establish 0 Indent" ;
+    PS>  $env:HostIndentSpaces = 0 ;
+    PS>  #...
+    PS>  # indent & do nested thing
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  clear-HostIndent "Spf Version: $($spfElement)" -verbose ;
+    PS>  # nested another level
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: += 4 Net:$($env:HostIndentSpaces)" ;
+    PS>  clear-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  clear-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    SAMPLEOUTPUT
+    DESCRIPTION
+    SAMPLEOUTPUT
+    DESCRIPTION        
+    #>
+    [CmdletBinding()]
+    [Alias('c-hi')]
+    PARAM(
+        [Parameter(
+            HelpMessage="Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]")]
+        [int]$PadIncrement = 4,
+        [Parameter(
+            HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
+            [switch]$usePID
+    ) ; 
+    BEGIN {
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;     
+        #$VerbosePreference = "SilentlyContinue" ;
+        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+
+        #if we want to tune this to a $PID-specific variant, could use:
+        if($usePID){
+            $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+            $HISName = "Env:HostIndentSpaces$($PID)" ;
+        } else {
+            $HISName = "Env:HostIndentSpaces" ;
+        } ;
+        #(Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value
+
+        #>
+
+        if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
+            [int]$CurrIndent = 0 ; 
+        } ; 
+        $pltSV=[ordered]@{
+            Path = $HISName ; 
+            Force = $true ; 
+            erroraction = 'STOP' ;
+        } ;
+        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ; 
+        write-verbose $smsg  ;
+        TRY{
+            Clear-Item @pltSV #-verbose ; 
+        } CATCH {
+            $smsg = $_.Exception.Message ;
+            write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+            BREAK ;
+        } ;
+    } ;  # BEG-E
+#*------^ END Function clear-HostIndent ^------
+} ; 
+            [int]$CurrIndent = 0 ; 
+        } ; 
+        write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ;  
+
+        if(($NewIndent = $CurrIndent - $PadIncrement) -lt 0){
+            write-warning "$($CmdletName): `$HostIndentSpaces has reached 0/left margin (limiting to 0)" ; 
+            $NewIndent = 0 ; 
+        } ; 
+
+        $pltSV=[ordered]@{
+            Path = $HISName ; 
+            Value = $NewIndent ; 
+            Force = $true ; 
+            erroraction = 'STOP' ;
+        } ;
+        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ; 
+        write-verbose $smsg  ;
+        TRY{
+            #Set-Variable @pltSV -verbose ; 
+            Set-Item @pltSV #-verbose ; 
+        } CATCH {
+            $smsg = $_.Exception.Message ;
+            write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+            BREAK ;
+        } ;
+    } ;  # BEG-E
+#*------^ END Function pop-HostIndent ^------
+}
+
+#*------^ clear-HostIndent.ps1 ^------
+
+
 #*------v Close-IfAlreadyRunning.ps1 v------
 Function Close-IfAlreadyRunning {
     <#
@@ -992,6 +1252,7 @@ function Compress-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 12:36 PM 12/15/2022: add: BH example wrapping up a ticket's output files.
     * 1:54 PM 8/30/2022 looks functionally equiv compress-archive & .net calls, at least in the three use cases in the example: they produce substantially similar content in the resultant zip; expanded echos;
          emulated verbose 'splat' echos before the .net calls (aids spotting bad params); added boolean:false includerootdir on the createfromdir (avoids error if not spec'd at all); simplified all CATCH; 
          added Psv5 -force support; added psColor BP & w-h use; ren prop in output from destination -> DestinationPath; fix CBH params
@@ -1093,6 +1354,18 @@ function Compress-ArchiveFile {
         RDP Links mnu,expl.lnk   2252 11/18/2015 10:35:42 AM -06:00
         txt.txt                   845 7/13/2017 6:37:26 PM -05:00  
     Create an archive that only zips the files in the root directory, by specifying path with star-dot-start (*.*).
+    .EXAMPLE
+    PS>  $ticket = '733043' ; 
+    PS>  gci "d:\scripts\logs\$($ticket)*" | 
+    PS>      Compress-ArchiveFile -DestinationPath "d:\scripts\$($ticket)-work-files-$(get-date -format 'yyyyMMdd-HHmmtt').zip" ; 
+
+      -DestinationPath: *exists* (and -force not specified): using -Update, to add specified -path to existing file
+      ...
+      DestinationPath                                  Contents
+      ---------------                                  --------
+      D:\scripts\733043-work-files-20221215-1228PM.zip {@{FullName=733043-MsgTrkDetail-08dad667e195-20221206-1733PM.csv; Length=2705; LastWriteTime=12/6/2022 5:33:16 PM -06:00}, @{Fu...
+    
+    Demo grabbing all files in a dir with prefix, and zip down the content in a prefix-named, and timestamped zip file (wrap up ticket handling). 
     .LINK
     https://github.com/tostka/verb-XXX
     #>
@@ -3168,6 +3441,197 @@ $(_getRemark $example)
 }
 
 #*------^ convert-HelpToMarkdown.ps1 ^------
+
+
+#*------v Convert-NumbertoWords.ps1 v------
+function Convert-NumbertoWords {
+    <#
+    .SYNOPSIS
+    Convert-NumbertoWords - Converts any number up to the octillions to its word equivilent. Example: 1,234,567 = one million two hundred thirty-four thousand five hundred sixty-seven.
+    .NOTES
+    Version     : 0.0.5
+    Author      : smithcbp
+    Website     : https://github.com/smithcbp
+    Twitter     : 
+    CreatedDate : 2023-01-06
+    FileName    : Convert-NumbertoWords
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Text
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS
+    * 11:01 AM 1/9/2023 _convert-3DigitNumberToWords():TSK: fixed bug: wasn't pretesting number places, to ensure enough digits to support 10s & hundreds.
+        add: CBH example, and _-prefixed internal func; flip output from string of both comma & text to object w both as props, trim() text output (has trailing space)
+    * 5:06 PM 1/6/2023 TSK fixed a bug - it didn't properly accomdate '000' sets - which aren't pronounced, but are part of bumping the setting up a level; 
+    added CBH ; 
+    added pipeline support on the IPAddress input ; simplfied compound stmts ; added to verb-Network.
+    * Apr 17, 2018 smithcbp posted github version from: https://github.com/smithcbp/Powershell-Convert-NumbertoWords/blob/main/Convert-NumbertoWords.ps1
+    .DESCRIPTION
+    Convert-NumbertoWords - Converts any number up to the octillions to its word equivilent. Example: 1,234,567 = one million two hundred thirty-four thousand five hundred sixty-seven.
+
+    Convert a Number to Words
+
+    Converts any number up to the octillions to its word equivilent. Example: 1,234,567 = one million two hundred thirty-four thousand five hundred sixty-seven
+
+    .PARAMETER number
+    Number to be represented as a spoken sentance[-Numnber 123456
+    .INPUTS
+    Does not accepted piped input
+    .OUTPUTS
+    System.string
+    .EXAMPLE
+    PS> if(get-command -name Convert-NumberToWords -ea 0){
+    PS>     $textNum = Convert-NumbertoWords -number ($subnet.HostAddressCount+1) ; 
+    PS>     $smsg += "(`nThat's $($textNum.text) ip addresses" ; 
+    PS> } ; 
+    PS> write-host $smsg ; 
+    .LINK
+    https://github.com/tostka/verb-IO
+    https://github.com/smithcbp/Powershell-Convert-NumbertoWords/blob/main/Convert-NumbertoWords.ps1
+    #>
+    # VALIDATORS: [ValidateNotNull()][ValidateNotNullOrEmpty()][ValidateLength(24,25)][ValidateLength(5)][ValidatePattern("some\sregex\sexpr")][ValidateSet("US","GB","AU")][ValidateScript({Test-Path $_ -PathType 'Container'})][ValidateScript({Test-Path $_})][ValidateRange(21,65)]#positiveInt:[ValidateRange(0,[int]::MaxValue)]#negativeInt:[ValidateRange([int]::MinValue,0)][ValidateCount(1,3)]
+    [outputtype([System.String])]
+    [CmdletBinding()]
+    PARAM(
+        [parameter(Mandatory=$true, Position=0,ValueFromPipeline = $True,HelpMessage="Number to be represented as a spoken sentance[-Numnber 123456")]
+        $number
+    ) ; 
+    $verbose = ($VerbosePreference -eq "Continue") ;
+
+    #$ErrorActionPreference = "SilentlyContinue"
+    $numbercommas = [string]::Format('{0:N0}',$number)
+    $numbergroups = $numbercommas -split ',' ; # (e.g. split into 'thousands, millions' groups)
+    
+    #*======v FUNCTIONS v======
+
+    #*------v Function _convert-3DigitNumberToWords v------
+    Function _convert-3DigitNumberToWords {
+        <# .NOTES
+            REVISIONS
+            * 11:01 AM 1/9/2023 _convert-3DigitNumberToWords():TSK: fixed bug: wasn't pretesting number places, to ensure enough digits to support 10s & hundreds.
+        #> 
+        Param([int]$number)
+        $wordarray = @{
+            1 = 'one';
+            2 = 'two';
+            3 = 'three';
+            4 = 'four';
+            5 = 'five';
+            6 = 'six';
+            7 = 'seven';
+            8 = 'eight';
+            9 = 'nine';
+            10 = 'ten';
+            11 = 'eleven';
+            12 = 'twelve';
+            13 = 'thirteen';
+            14 = 'fourteen';
+            15 = 'fifteen';
+            16 = 'sixteen';
+            17 = 'seventeen';
+            18 = 'eighteen';
+            19 = 'nineteen';
+            20 = 'twenty';
+            30 = 'thirty';
+            40 = 'forty';
+            50 = 'fifty';
+            60 = 'sixty';
+            70 = 'seventy';
+            80 = 'eighty';
+            90 = 'ninety';
+        } ; 
+        
+        if ($number -le 19){
+            $word = $wordarray.$($number) ; 
+        } ; 
+            
+        $Ones = $number.ToString().ToCharArray()[-1].ToString().ToInt32($null) ; 
+        # pre-test char count before taking -gt 1:
+        if(($number.ToString().ToCharArray().count -gt 1)){
+            $Tens = $number.ToString().ToCharArray()[-2].ToString().ToInt32($null) ; 
+        } ; 
+        if(($number.ToString().ToCharArray().count -gt 2)){
+            $Hundreds = $number.ToString().ToCharArray()[-3].ToString().ToInt32($null) ; 
+        } ;
+        $OnesTens = (-join ($number.ToString().ToCharArray()[-2..-1])).ToInt32($null) ; 
+
+        if ($Hundreds -ge 1) {
+            $HundredsWord = "$($wordarray.($hundreds)) hundred" ; 
+        } ; 
+        if ($OnesTens -le 19) {
+            $OneTensWord = $wordarray.($OnesTens) ; 
+        } ; 
+        if ($Tens -ge 2 ) {
+            $Tensword = $wordarray.($Tens * 10) ; 
+            $Onesword = $wordarray.($Ones)  ; 
+            if ($onestens % 10 -eq 0){$OneTensWord = $Tensword}
+            else {$OneTensWord = $Tensword + '-' + $Onesword} ; 
+        } ; 
+
+        $finalwordarray = @($hundredsword,$OneTensword) ; 
+        $finalwordarray = $finalwordarray | where-Object {$_} ; 
+        $finalwordarray -join " " ; 
+    }
+    #*------^ END Function _convert-3DigitNumberToWords ^------
+    #*======^ END FUNCTIONS ^======
+
+    #*======v SUB MAIN v======
+    $groupwordarray = foreach ($numbergroup in $numbergroups) {
+        if($numbergroup -eq '000'){
+            write-verbose "c3dntw uses [int] numbers, 000 isn't an integer (other than 0, but comes in as a string)..." ; 
+            # drop a marker in to ensure gorup bump occurs at the right place
+            '000'
+        } else { 
+            _convert-3DigitNumberToWords -number $numbergroup ; 
+        } ; 
+    } ; 
+
+    $thouwordhash = @{
+        1 = '' ;
+        2 = 'thousand' ;
+        3 = 'million' ;
+        4 = 'billion' ;
+        5 = 'trillion' ;
+        6 = 'quadrillion' ;
+        7 = 'quintillion' ;
+        8 = 'sextillion' ;
+        9 = 'septillion' ;
+        10 = 'octillion'    ;        
+    } ; 
+
+    [array]::reverse($groupwordarray) ; 
+
+    $i = 0 ; 
+    $modifiedgroups = foreach($group in $groupwordarray){
+        $i++ ; 
+        if ($group -eq '000'){
+             write-verbose 'suppress zeros, not pronounced, bump position' ; 
+        }elseif ($group){ 
+            Write-Output "$group $($thouwordhash.$i)" 
+        } ; 
+    } ; 
+    
+    [array]::reverse($modifiedgroups) ; 
+    
+    <# 
+    if($VerbosePreference -eq "Continue"){
+        $numbercommas ; 
+    } ; 
+    $modifiedgroups -join ' ' ; 
+    #>
+    #emit an object with both, not a string ; 
+    New-Object PSObject -Property @{
+        Number = $numbercommas ;
+        Text = ($modifiedgroups -join ' ').Trim() ; 
+    } | write-output ; 
+
+    #*======^ END SUB MAIN ^======
+}
+
+#*------^ Convert-NumbertoWords.ps1 ^------
 
 
 #*------v ConvertTo-HashIndexed.ps1 v------
@@ -5385,6 +5849,70 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
 #*------^ get-colorcombo.ps1 ^------
 
 
+#*------v get-ColorNames.ps1 v------
+function get-ColorNames {
+    <#
+    .SYNOPSIS
+    get-ColorNames - Outputs a color-chart grid of all write-host -backgroundcolor & -foregroundcolors comboos, for easy selection of suitable combos for output. 
+    .NOTES
+	Author      : Todd Kadrie
+	Website     : http://www.toddomation.com
+	Twitter     : @tostka / http://twitter.com/tostka
+	CreatedDate : 2023-01-30
+	FileName    : get-ColorNames.ps1
+	License     : MIT License
+	Copyright   : (c) 2023 Todd Kadrie
+	Github      : https://github.com/tostka/verb-IO
+	Tags        : Powershell
+	AddedCredit : REFERENCE
+	AddedWebsite: URL
+	AddedTwitter: URL
+    REVISIONS
+    * 4:24 PM 2/1/2023 typo, trailing missing }
+    * 4:24 PM 1/30/2023 flipped freeshtanding script to function in verb-io 
+    .DESCRIPTION
+    get-ColorNames - Outputs a color-chart grid of all write-host -backgroundcolor & -foregroundcolors comboos, for easy selection of suitable combos for output. 
+    
+    Simple nested loop on the default consolecolor foreground & background color combos.
+    
+    .INPUTS
+    Does not accepted piped input
+    .OUTPUTS
+    None.
+    .EXAMPLE
+    PS> get-ColorNames ;
+    
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on Black
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on DarkBlue
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on DarkGreen
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on DarkCyan
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on DarkRed
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on DarkMagenta
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on DarkYellow
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on Gray
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on DarkGray
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on Blue
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on Green
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on Cyan
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on Red
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on Magenta
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on Yellow
+		Black|DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White| on White
+		
+    Demo typical pass output (obviously rendered in appriate colors in actual console output).
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    $ConsoleColors = [enum]::GetValues([System.ConsoleColor]) ;
+	Foreach ($backgroundcolor in $ConsoleColors){
+		Foreach ($foregroundcolor in $ConsoleColors) {Write-Host -ForegroundColor $foregroundcolor -BackgroundColor $backgroundcolor "$($foregroundcolor)|" -NoNewLine } ;
+		Write-Host " on $backgroundcolor" ;
+	} ;
+}
+
+#*------^ get-ColorNames.ps1 ^------
+
+
 #*------v get-ConsoleText.ps1 v------
 Function get-ConsoleText {
     <#
@@ -7324,6 +7852,7 @@ Function mount-UnavailableMappedDrives{
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 4:43 PM 1/1/2023 fixed on TINKERTOY debugging (was missing returned obj props etc)
     * 11:07 AM 1/19/2022 swapped in $hommeta.rgxMapsUNCs for hard-coded rgx ; added test for value, pre-run
     *2:51 PM 12/5/2021 init
     .DESCRIPTION
@@ -7355,8 +7884,12 @@ Function mount-UnavailableMappedDrives{
             else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
             throw $smsg ;
         } ; 
-        $unavdrvs = Get-SMBMapping -verbose:$($VerbosePreference -eq "Continue") | ?{$_.RemotePath -match $rgxRemoteHosts -AND $_.status -eq 'Unavailable'} ; 
-        $psdrvs = Get-psdrive -verbose:$($VerbosePreference -eq "Continue") | ?{$_.remotepath -match $rgxRemoteHosts } ; 
+        #$unavdrvs = Get-SMBMapping -verbose:$($VerbosePreference -eq "Continue") | ?{$_.RemotePath -match $rgxRemoteHosts -AND $_.status -eq 'Unavailable'} ; 
+        # flip it to generic detect of unc RemotePath (supports fqdn, over nbnames, wo customized rgx)
+        $unavdrvs = Get-SMBMapping -verbose:$($VerbosePreference -eq "Continue") | ?{([system.uri]$_.RemotePath).isUnc -AND $_.status -eq 'Unavailable'} ;
+        #$psdrvs = Get-psdrive -verbose:$($VerbosePreference -eq "Continue") | ?{$_.remotepath -match $rgxRemoteHosts } ; 
+        # flip it to generic detect of unc RemotePath (supports fqdn, over nbnames, wo customized rgx)
+        $psdrvs = Get-psdrive -verbose:$($VerbosePreference -eq "Continue") | ? {$_.provider.name -eq 'Filesystem'} | ?{ ([system.uri]$_.displayroot).isUnc} ;
         if($unavdrvs){
             $smsg = "Unavailable mapped drives:`n$(($unavdrvs|ft -a $propsSDrv | out-string).trim())" ; 
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
@@ -7374,9 +7907,11 @@ Function mount-UnavailableMappedDrives{
         # New-PSDrive -Name "S" -Root "\\Server01\Scripts" -Persist -PSProvider "FileSystem" -Credential $cred ;      
         $netDrvs = @() ;    
         foreach($drv in $unavdrvs){
-            $pltNPSD.Name = [regex]::match($drv.localpath.tostring(),"([A-Z]):").captures[0].groups[1].value; 
+            #$pltNPSD.Name = [regex]::match($drv.localpath.tostring(),"([A-Z]):").captures[0].groups[1].value; 
+            $pltNPSD.Name = $drv.localpath.tostring().split(':')[0]
             $pltNPSD.Root = $drv.remotepath; 
-            if($psdrvs |?{($_.Root -eq $drv.remotepath) -AND $_.name -eq $pltNPSD.Name}){
+            #if($psdrvs |?{($_.Root -eq $drv.remotepath) -AND $_.name -eq $pltNPSD.Name}){
+            if( ($psdrvs |?{$_.displayroot -eq $drv.RemotePath}) -AND ($psdrvs |?{$_.name -eq $pltNPSD.Name}) ) {
                 $smsg = "(existing psDrive for " ; 
                 if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
                 else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
@@ -8078,6 +8613,143 @@ function play-beep {
 #*------^ play-beep.ps1 ^------
 
 
+#*------v pop-HostIndent.ps1 v------
+function pop-HostIndent {
+    <#
+    .SYNOPSIS
+    pop-HostIndent - Utility cmdlet that decrements/pops the $env:HostIndentSpaces by 4 (or the configured `$PadIncrement)
+    .NOTES
+    Version     : 0.0.5
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-01-12
+    FileName    : pop-HostIndent.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Host,Console,Output,Formatting
+    AddedCredit : L5257
+    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedTwitter: URL
+    REVISIONS
+    * 2:01 PM 2/1/2023 add: -PID param
+    * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
+    * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
+    * 4:39 PM 1/11/2023 init
+    .DESCRIPTION
+    pop-HostIndent - Utility cmdlet that decrements/pops the $env:HostIndentSpaces by 4 (or the configured `$PadIncrement)
+
+    If it doesn't find a preexisting $IndentHostSpaces in 'private','local','script','global'
+    it throws an error
+
+    Part of the verb-HostIndent set:
+    write-HostIndent # write-host wrapper that indents/pads each line of output a fixed amount (driven by $env:HostIndentSpaces common variable). 
+    reset-HostIndent # $env:HostIndentSpaces = 0 ; 
+    push-HostIndent   # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    pop-HostIndent # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    set-HostIndent # explicit set to multiples of 4
+            
+    .PARAMETER PadIncrement
+    Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]
+    .PARAMETER usePID
+    Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]
+    .EXAMPLE
+    PS> pop-HostIndent ;
+    PS> $env:HostIndentSpaces ; 
+    Simple indented text demo
+    .EXAMPLE
+    PS>  $domain = 'somedomain.com' ; 
+    PS>  write-verbose "Top of code, establish 0 Indent" ;
+    PS>  $env:HostIndentSpaces = 0 ;
+    PS>  #...
+    PS>  # indent & do nested thing
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  pop-HostIndent "Spf Version: $($spfElement)" -verbose ;
+    PS>  # nested another level
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: += 4 Net:$($env:HostIndentSpaces)" ;
+    PS>  pop-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  pop-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    SAMPLEOUTPUT
+    DESCRIPTION
+    SAMPLEOUTPUT
+    DESCRIPTION        
+    #>
+    [CmdletBinding()]
+    [Alias('pop-hi')]
+    PARAM(
+        [Parameter(
+            HelpMessage="Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]")]
+            [int]$PadIncrement = 4,
+        [Parameter(
+            HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
+            [switch]$usePID
+    ) ; 
+    BEGIN {
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;     
+        #$VerbosePreference = "SilentlyContinue" ;
+        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+
+        write-verbose "$($CmdletName): Using `$PadIncrement:`'$($PadIncrement)`'" ; 
+
+        #if we want to tune this to a $PID-specific variant, could use:
+        if($usePID){
+            $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+            $HISName = "Env:HostIndentSpaces$($PID)" ;
+        } else {
+            $HISName = "Env:HostIndentSpaces" ;
+        } ;
+        #(Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value
+
+        if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
+            [int]$CurrIndent = 0 ; 
+        } ; 
+        write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ;  
+
+        if(($NewIndent = $CurrIndent - $PadIncrement) -lt 0){
+            write-warning "$($CmdletName): `$HostIndentSpaces has reached 0/left margin (limiting to 0)" ; 
+            $NewIndent = 0 ; 
+        } ; 
+
+        $pltSV=[ordered]@{
+            Path = $HISName ; 
+            Value = $NewIndent ; 
+            Force = $true ; 
+            erroraction = 'STOP' ;
+        } ;
+        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ; 
+        write-verbose $smsg  ;
+        TRY{
+            #Set-Variable @pltSV -verbose ; 
+            Set-Item @pltSV #-verbose ; 
+        } CATCH {
+            $smsg = $_.Exception.Message ;
+            write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+            BREAK ;
+        } ;
+    } ;  # BEG-E
+#*------^ END Function pop-HostIndent ^------
+}
+
+#*------^ pop-HostIndent.ps1 ^------
+
+
 #*------v Pop-LocationFirst.ps1 v------
 function Pop-LocationFirst {
     <#
@@ -8211,6 +8883,137 @@ Function prompt-Continue {
 }
 
 #*------^ prompt-Continue.ps1 ^------
+
+
+#*------v push-HostIndent.ps1 v------
+function push-HostIndent {
+    <#
+    .SYNOPSIS
+    push-HostIndent - Utility cmdlet that increments/pushes the $env:HostIndentSpaces by 4 (or the configured `$PadIncrement)
+    .NOTES
+    Version     : 0.0.5
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-01-12
+    FileName    : push-HostIndent.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Host,Console,Output,Formatting
+    AddedCredit : L5257
+    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedTwitter: URL
+    REVISIONS
+    * 2:01 PM 2/1/2023 add: -PID param
+    * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
+    * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
+    * 4:39 PM 1/11/2023 init
+    .DESCRIPTION
+    push-HostIndent - Utility cmdlet that increments/pushes the $env:HostIndentSpaces by 4 (or the configured `$PadIncrement)
+
+    If it doesn't find a preexisting $IndentHostSpaces in 'private','local','script','global'
+    it throws an error
+
+    Part of the verb-HostIndent set:
+    write-HostIndent # write-host wrapper that indents/pads each line of output a fixed amount (driven by $env:HostIndentSpaces common variable). 
+    reset-HostIndent # $env:HostIndentSpaces = 0 ; 
+    push-HostIndent   # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    pop-HostIndent # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    set-HostIndent # explicit set to multiples of 4
+            
+    .PARAMETER PadIncrement
+    Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]
+    .PARAMETER usePID
+    Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]
+    .EXAMPLE
+    PS> push-HostIndent ;
+    PS> $env:HostIndentSpaces ; 
+    Simple indented text demo
+    .EXAMPLE
+    PS>  $domain = 'somedomain.com' ; 
+    PS>  write-verbose "Top of code, establish 0 Indent" ;
+    PS>  $env:HostIndentSpaces = 0 ;
+    PS>  #...
+    PS>  # indent & do nested thing
+    PS>  $env:HostIndentSpaces += 4 ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  push-HostIndent "Spf Version: $($spfElement)" -verbose ;
+    PS>  # nested another level
+    PS>  $env:HostIndentSpaces += 4 ;
+    PS>  write-verbose "`$env:HostIndentSpaces: += 4 Net:$($env:HostIndentSpaces)" ;
+    PS>  push-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces -= 4 ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces -= 4 ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  push-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    SAMPLEOUTPUT
+    DESCRIPTION
+    SAMPLEOUTPUT
+    DESCRIPTION        
+    #>
+    [CmdletBinding()]
+    [Alias('push-hi')]
+    PARAM(
+        [Parameter(
+            HelpMessage="Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]")]
+        [int]$PadIncrement = 4,
+        [Parameter(
+            HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
+            [switch]$usePID
+    ) ; 
+    BEGIN {
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;     
+        #$VerbosePreference = "SilentlyContinue" ;
+        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+
+        write-verbose "$($CmdletName): Using `$PadIncrement:`'$($PadIncrement)`'" ; 
+
+        #if we want to tune this to a $PID-specific variant, could use:
+        if($usePID){
+            $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+            $HISName = "Env:HostIndentSpaces$($PID)" ;
+        } else {
+            $HISName = "Env:HostIndentSpaces" ;
+        } ;
+        #(Get-Item -Path "$HISName$($PID)" -erroraction SilentlyContinue).value
+
+        if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
+            [int]$CurrIndent = 0 ; 
+        } ; 
+        write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ; 
+        $pltSV=[ordered]@{
+            Path = $HISName ;  
+            Value = [int](Get-Item -Path $HISName -erroraction SilentlyContinue).Value + $PadIncrement; 
+            Force = $true ; 
+            erroraction = 'STOP' ;
+        } ;
+        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ; 
+        write-verbose $smsg  ;
+        TRY{
+            #Set-Variable @pltSV -verbose ; 
+            Set-Item @pltSV #-verbose ; 
+        } CATCH {
+            $smsg = $_.Exception.Message ;
+            write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+            BREAK ;
+        } ;
+    } ;  # BEG-E
+#*------^ END Function push-HostIndent ^------
+}
+
+#*------^ push-HostIndent.ps1 ^------
 
 
 #*------v read-Host2.ps1 v------
@@ -9779,6 +10582,132 @@ Function reset-ConsoleColors {
 #*------^ reset-ConsoleColors.ps1 ^------
 
 
+#*------v reset-HostIndent.ps1 v------
+function reset-HostIndent {
+    <#
+    .SYNOPSIS
+    reset-HostIndent - Utility cmdlet that rests the $env:HostIndentSpaces to 0 (resets prior indenting to left margin)
+    .NOTES
+    Version     : 0.0.5
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-01-12
+    FileName    : reset-HostIndent.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Host,Console,Output,Formatting
+    AddedCredit : L5257
+    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedTwitter: URL
+    REVISIONS
+    * 2:01 PM 2/1/2023 add: -PID param
+    * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
+    * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
+    * 4:39 PM 1/11/2023 init
+    .DESCRIPTION
+    reset-HostIndent - Utility cmdlet that rests the $env:HostIndentSpaces to 0 (resets prior indenting to left margin)
+
+    If it doesn't find a preexisting $IndentHostSpaces in 'private','local','script','global'
+    it defaults to intializing to value 0 in the 'local' scope.
+
+    Part of the verb-HostIndent set:
+    write-HostIndent # write-host wrapper that indents/pads each line of output a fixed amount (driven by $env:HostIndentSpaces common variable). 
+    reset-HostIndent # $env:HostIndentSpaces = 0 ; 
+    push-HostIndent   # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    pop-HostIndent # $env:HostIndentSpaces -= 4
+    set-HostIndent # explicit set to multiples of 4
+            
+    .PARAMETER PadIncrement
+    Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]
+    .PARAMETER usePID
+    Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]
+    .EXAMPLE
+    PS> reset-HostIndent ;
+    PS> $env:HostIndentSpaces ; 
+    Simple indented text demo
+    .EXAMPLE
+    PS>  $domain = 'somedomain.com' ; 
+    PS>  write-verbose "Top of code, establish 0 Indent" ;
+    PS>  $env:HostIndentSpaces = 0 ;
+    PS>  #...
+    PS>  # indent & do nested thing
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  reset-HostIndent "Spf Version: $($spfElement)" -verbose ;
+    PS>  # nested another level
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: += 4 Net:$($env:HostIndentSpaces)" ;
+    PS>  reset-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  reset-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    Independant Demo      
+    #>
+    [CmdletBinding()]
+    [Alias('r-hi')]
+    PARAM(
+        [Parameter(
+            HelpMessage="Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]")]
+        [int]$PadIncrement = 4,
+        [Parameter(
+            HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
+            [switch]$usePID
+    ) ; 
+    BEGIN {
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;     
+        #$VerbosePreference = "SilentlyContinue" ;
+        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+
+
+        #if we want to tune this to a $PID-specific variant, could use:
+        if($usePID){
+            $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ; 
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+            $HISName = "Env:HostIndentSpaces$($PID)" ; 
+        } else { 
+            $HISName = "Env:HostIndentSpaces" ; 
+        } ; 
+        #(Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value
+                
+
+        if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
+            [int]$CurrIndent = 0 ; 
+        } ; 
+        $pltSV=[ordered]@{
+            Path = $HISName 
+            Value = 0; 
+            Force = $true ; 
+            erroraction = 'STOP' ;
+        } ;
+        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ; 
+        write-verbose $smsg  ;
+        TRY{
+            Set-Item @pltSV #-verbose ; 
+        } CATCH {
+            $smsg = $_.Exception.Message ;
+            write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+            BREAK ;
+        } ;
+    } ;  # BEG-E
+#*------^ END Function reset-HostIndent ^------
+}
+
+#*------^ reset-HostIndent.ps1 ^------
+
+
 #*------v restore-FileTDO.ps1 v------
 function restore-FileTDO {
     <#
@@ -10848,6 +11777,277 @@ function Set-ContentFixEncoding {
 #*------^ Set-ContentFixEncoding.ps1 ^------
 
 
+#*------v set-FileAssociation.ps1 v------
+function set-FileAssociation {
+    <#
+    .SYNOPSIS
+    set-FileAssociation.ps1 - Create or Update Windows File Association. Wraps underlying ftype.exe & assoc.exe OS commands to implement changes. 
+    .NOTES
+    Version     : 1.6.2
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2019-02-06
+    FileName    :
+    License     : MIT License
+    Copyright   : (c) 2019 Todd Kadrie
+    Github      : https://github.com/tostka/powershell
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 4:29 PM 2/1/2023 fixed misrenamed file; removed all requires entries (was circular at min). 
+    * 10:10 AM 12/10/2022 TSK:updated
+    * posted vers
+    .DESCRIPTION
+    set-FileAssociation.ps1 - Create or Update Windows File Association. Wraps underlying ftype.exe & assoc.exe OS commands to implement changes. 
+    .PARAMETER  Path
+    Path to a file or Directory to be checked for encoding or encoding-conversion damage [-Path C:\sc\powershell]
+    .PARAMETER EncodingTarget
+    Encoding to be coerced on targeted files (defaults to UTF8, supports:ASCII|BigEndianUnicode|BigEndianUTF32|Byte|Default (system active codepage, freq ANSI)|OEM|String|Unicode|UTF7|UTF8|UTF32)[-EncodingTarget ASCII]
+    .PARAMETER showDebug
+    Parameter to display Debugging messages [-ShowDebug switch]
+    .PARAMETER Whatif
+    Parameter to run a Test no-change pass [-Whatif switch]
+    .EXAMPLE
+    PS> set-FileAssociation.ps1 -replaceChars
+    In files in default path (C:\sc\powershell), in files Where-Object high-ascii chars are found, replace the chars with matching low-bit chars (whatif is autoforced true to ensure no accidental runs)
+    .EXAMPLE
+    PS> set-FileAssociation.ps1 -path C:\sc\verb-AAD -replacechars -whatif:$false ;
+    Exec-pass: problem char files, replacements, with explicit path and overridden whatif
+    .EXAMPLE
+    PS> gci c:\sc\ -recur| ?{$_.extension -match '\.ps((d|m)*)1' } | 
+    PS>     select -expand fullname | set-FileAssociation -whatif ;
+    Recurse a sourcecode root, for ps-related files, expand the fullnames and run the set through set-FileAssociation with whatif
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    # VALIDATORS: [ValidateNotNull()][ValidateNotNullOrEmpty()][ValidateLength(24,25)][ValidateLength(5)][ValidatePattern("some\sregex\sexpr")][ValidateSet("USEA","GBMK","AUSYD")][ValidateScript({Test-Path $_ -PathType 'Container'})][ValidateScript({Test-Path $_})][ValidateRange(21,65)][ValidateCount(1,3)]
+    [CmdletBinding()]
+    [Alias('fix-encoding')]
+    PARAM(
+        [Parameter(Mandatory=$true,HelpMessage="Specifies the file extension to associate the file type with[-ext .txt")]
+        [string]$ext,
+        [Parameter(Mandatory=$false,HelpMessage="Specifies the file type to associate with the file extension[-fileType 'Text Document'")]
+        [string]$name,
+        #fileType,
+        #openCommandString Specifies the open command to use when launching files of this type.
+        [Parameter(Mandatory=$true,HelpMessage="Specifies the open command to use when launching files of this type[-ext .txt")]
+        [ValidateScript({Test-Path $_ })]
+        [string]$exe,
+        #openCommandString        
+        [Parameter(HelpMessage="Whatif Flag  [-whatIf]")]
+        [switch] $whatIf=$true
+    ) ;
+    #*======v SUB MAIN v======
+    #region INIT; # ------
+    ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+    $Verbose = ($VerbosePreference -eq 'Continue') ;
+    
+    write-verbose 'confirm existing filetype' ; 
+    [boolean]$ftypeFound = $false ; 
+    if($name){
+        if($ttype = (cmd /c "assoc $ext 2>NUL").split('=')[1]){
+            $ftypeFound = $true ; 
+            write-verbose "Found a existig filetype for $($ext)" ; 
+        } else { 
+            $ftypeFound = $false ; 
+            write-verbose "NO matching existig filetype found for $($ext) (creating new)" ;
+        } ; 
+    } else { 
+        $name = cmd /c "assoc $ext 2>NUL"
+    }
+
+    if ($name) { 
+        write-verbose 'Association already exists: override it'
+        $name = $name.Split('=')[1] ; 
+    } else { 
+        write-verbose "Name doesn't exist: create it" ; 
+        $name = "$($ext.Replace('.',''))file" 
+        # ".log.1" becomes "log1file" ; 
+        $excCmd = "cmd /c 'assoc $($ext)=$name'"
+        if($whatif){
+            $smsg = "-whatif:invoke-command`n$(($excCmd |out-string).trim())" ; 
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            #Levels:Error|Warn|Info|H1|H2|H3|Debug|Verbose|Prompt
+        } else { 
+            cmd /c 'assoc $ext=$name'
+        } ; 
+    }
+    cmd /c "ftype $name=`"$exe`" `"%1`""
+   
+
+    
+    
+}
+
+#*------^ set-FileAssociation.ps1 ^------
+
+
+#*------v set-HostIndent.ps1 v------
+function set-HostIndent {
+    <#
+    .SYNOPSIS
+    set-HostIndent - Utility cmdlet that explicitly forces the $env:HostIndentSpaces to a known interval of 4 (or the configured `$PadIncrement)
+    .NOTES
+    Version     : 0.0.5
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-01-12
+    FileName    : set-HostIndent.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Host,Console,Output,Formatting
+    AddedCredit : L5257
+    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedTwitter: URL
+    REVISIONS
+    * 2:01 PM 2/1/2023 add: -PID param
+    * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
+    * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
+    * 4:39 PM 1/11/2023 init
+    .DESCRIPTION
+    set-HostIndent - Utility cmdlet that explicitly forces the $env:HostIndentSpaces to a known interval of 4 (or the configured `$PadIncrement)
+
+    If it doesn't find a preexisting $IndentHostSpaces in 'private','local','script','global'
+    it throws an error
+
+    Part of the verb-HostIndent set:
+    write-HostIndent # write-host wrapper that indents/pads each line of output a fixed amount (driven by $env:HostIndentSpaces common variable). 
+    reset-HostIndent # $env:HostIndentSpaces = 0 ; 
+    push-HostIndent   # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ;
+    pop-HostIndent # $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
+    set-HostIndent # explicit set to multiples of 4
+            
+
+    Concept inspired by L5257's printIndent() in his get-DNSspf.ps1 (which ran a simple write-host -nonewline loop, to be run prior to write-host use). 
+
+    .PARAMETER PadIncrement
+    Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]
+    .PARAMETER usePID
+    Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]
+    .EXAMPLE
+    PS> set-HostIndent ;
+    PS> $env:HostIndentSpaces ; 
+    Simple indented text demo
+    .EXAMPLE
+    PS>  $domain = 'somedomain.com' ; 
+    PS>  write-verbose "Top of code, establish 0 Indent" ;
+    PS>  $env:HostIndentSpaces = 0 ;
+    PS>  #...
+    PS>  # indent & do nested thing
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ; ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  set-HostIndent "Spf Version: $($spfElement)" -verbose ;
+    PS>  # nested another level
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) + 4) ; ;
+    PS>  write-verbose "`$env:HostIndentSpaces: += 4 Net:$($env:HostIndentSpaces)" ;
+    PS>  set-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ; ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  # unindent back out
+    PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ; ;
+    PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
+    PS>  set-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
+    SAMPLEOUTPUT
+    DESCRIPTION
+    SAMPLEOUTPUT
+    DESCRIPTION        
+    #>
+    [CmdletBinding()]
+    [Alias('pop-hi')]
+    PARAM(
+        [Parameter(Position=0,
+            HelpMessage="Number of spaces to set write-hostIndent current indent (`$scop:HostIndentpaces) to.[-Spaces 8]")]
+            [int]$Spaces,
+        [Parameter(
+            HelpMessage="Number of spaces to pad by default (defaults to 4).[-PadIncrement 8]")]
+        [int]$PadIncrement = 4,
+        [Parameter(
+            HelpMessage="Mathematical rounding logic to use for calculating nearest multiple of PadIncrement (RoundUp|RoundDown|AwayFromZero|Midpoint, default:RoundUp)[-Rounding awayfromzero]")]
+            [ValidateSet('RoundUp','RoundDown','AwayFromZero','Midpoint')]
+            [string]$Rounding = 'RoundUp',
+        [Parameter(
+            HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
+            [switch]$usePID
+    ) ; 
+    BEGIN {
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;     
+        #$VerbosePreference = "SilentlyContinue" ;
+        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+
+        write-verbose "$($CmdletName): Using `$PadIncrement:`'$($PadIncrement)`'" ; 
+
+        switch($Rounding){
+            'RoundUp' {
+                # always round up (to next higher multiple)
+                $Spaces = ([system.math]::ceiling($Spaces/$PadIncrement))*$PadIncrement  ; 
+                write-verbose "Rounding:Roundup specified: Rounding to: $($Spaces)" ; 
+                }
+            'RoundDown' {
+                # always round down (to next lower multiple)
+                $Spaces = ([system.math]::floor($Spaces/$PadIncrement))*$PadIncrement  ; 
+                write-verbose "Rounding:RoundDown specified: Rounding to: $($Spaces)" ;
+                }
+            'AwayFromZero' {
+                # traditional school: 'when remainder is 5 round up'
+                $Spaces = ([system.math]::round($_/$PadIncrement,0,1))*$PadIncrement  ;
+                write-verbose "Rounding:AwayFromZero specified: Rounding to: $($Spaces)" ;
+            }
+            'Midpoint' {
+                # default programatic/banker's rounding: if midpoint 5, round to the *nearest even number*'
+                $Spaces = ([system.math]::round($_/$PadIncrement))*$PadIncrement  ;
+                write-verbose "Rounding:Midpoint specified: Rounding to: $($Spaces)" ;
+            }
+        } ;
+
+        #if we want to tune this to a $PID-specific variant, could use:
+        if($usePID){
+            $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
+            if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
+            else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+            $HISName = "Env:HostIndentSpaces$($PID)" ;
+        } else {
+            $HISName = "Env:HostIndentSpaces" ;
+        } ;
+        #(Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value
+
+        if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
+            [int]$CurrIndent = 0 ; 
+        } ; 
+                
+        write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ; 
+        $pltSV=[ordered]@{
+            Path = $HISName ;  
+            Value = $Spaces; 
+            Force = $true ; 
+            erroraction = 'STOP' ;
+        } ;
+        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ; 
+        write-verbose $smsg  ;
+        TRY{
+            Set-Item @pltSV #-verbose ; 
+        } CATCH {
+            $smsg = $_.Exception.Message ;
+            write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+            BREAK ;
+        } ;
+    } ;  # BEG-E
+}
+
+#*------^ set-HostIndent.ps1 ^------
+
+
 #*------v set-ItemReadOnlyTDO.ps1 v------
 function set-ItemReadOnlyTDO {
     <#
@@ -11397,6 +12597,7 @@ Function stop-driveburn {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,Performance,Workstation
     REVISIONS
+    * 9:00 AM 12/22/2022 flipped start-log -notimestamp:$true
     * 9:00 AM 12/12/2022 fixed broken added logging (spliced over holistic intact, w looping timestamp exempt)
     * 10:50 AM 11/29/2022 added logging, to track how often landesk processes are impeding productive work.
     7:35 AM 10/5/2020 ported to verb-IO, updated tsksid/admin-incl-ServerCore.ps1
@@ -11510,7 +12711,7 @@ Function stop-driveburn {
     if(!(get-variable rgxPSCurrUserScope -ea 0)){
         $rgxPSCurrUserScope="^$([regex]::escape([Environment]::GetFolderPath('MyDocuments')))\\((Windows)*)PowerShell\\(Scripts|Modules)\\.*\.(ps((d|m)*)1|dll)$" ;
     } ;
-    $pltSL=[ordered]@{Path=$null ;NoTimeStamp=$false ;Tag=$null ;showdebug=$($showdebug) ; Verbose=$($VerbosePreference -eq 'Continue') ; whatif=$($whatif) ;} ;
+    $pltSL=[ordered]@{Path=$null ;NoTimeStamp=$true ;Tag=$null ;showdebug=$($showdebug) ; Verbose=$($VerbosePreference -eq 'Continue') ; whatif=$($whatif) ;} ;
     #$pltSL.Tag = $ModuleName ; 
     if($NoLoop){
         $pltSL.NoTimestamp = $true ;
@@ -12392,6 +13593,7 @@ Function test-MissingMediaSummary {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio
     REVISIONS
+    * 8:36 PM 1/2/2023 added transcript logging with 4-file rotation (for post-review when running large number of dirs, and they scroll off of ps buffer recording).
     * 10:35 AM 3/14/2022 yanked [hash]Requires -Modules Get-MediaInfo: I don't want to install gmi on servers, at all. So we drop the coverage.
     * 8:34 AM 3/9/2022 set gci to recurse whole tree (span season dirs, save re-run needs); added w-v at a few useful points; expanded some alias use; duped rgx from profile into func.
     * 8:25 PM 3/7/2022init vers
@@ -12410,17 +13612,143 @@ Function test-MissingMediaSummary {
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    
+    [CmdletBinding()]
     [Alias('vmf')]
     PARAM(
         [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
         [ValidateScript({Test-Path $_ -PathType 'Container'})]
-        [string[]] $Path,
+        #[string[]] $Path,
+        [system.io.fileinfo[]]$Path,
         [Parameter(HelpMessage="Suppress all outputs but return pass status as`$true/`$false, to the pipeline[-Silent]")]
         [switch] $Silent
     ) ;
     BEGIN{
-      if(-not $rgxVideoExts){$rgxVideoExts = '\.(MPEG|AVI|ASF|WMV|MP4|MOV|3GP|OGM|MKV|WEBM|MXF)' } ;
+        if(-not $rgxVideoExts){$rgxVideoExts = '\.(MPEG|AVI|ASF|WMV|MP4|MOV|3GP|OGM|MKV|WEBM|MXF)' } ;
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "`$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ; 
+        #if ($PSScriptRoot -eq "") {
+        if( -not (get-variable -name PSScriptRoot -ea 0) -OR ($PSScriptRoot -eq '')){
+            if ($psISE) { $ScriptName = $psISE.CurrentFile.FullPath } 
+            elseif($psEditor){
+                if ($context = $psEditor.GetEditorContext()) {$ScriptName = $context.CurrentFile.Path } 
+            } elseif ($host.version.major -lt 3) {
+                $ScriptName = $MyInvocation.MyCommand.Path ;
+                $PSScriptRoot = Split-Path $ScriptName -Parent ;
+                $PSCommandPath = $ScriptName ;
+            } else {
+                if ($MyInvocation.MyCommand.Path) {
+                    $ScriptName = $MyInvocation.MyCommand.Path ;
+                    $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent ;
+                } else {throw "UNABLE TO POPULATE SCRIPT PATH, EVEN `$MyInvocation IS BLANK!" } ;
+            };
+            if($ScriptName){
+                $ScriptDir = Split-Path -Parent $ScriptName ;
+                $ScriptBaseName = split-path -leaf $ScriptName ;
+                $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($ScriptName) ;
+            } ; 
+        } else {
+            if($PSScriptRoot){$ScriptDir = $PSScriptRoot ;}
+            else{
+                write-warning "Unpopulated `$PSScriptRoot!" ; 
+                $ScriptDir=(Split-Path -parent $MyInvocation.MyCommand.Definition) + "\" ;
+            }
+            if ($PSCommandPath) {$ScriptName = $PSCommandPath } 
+            else {
+                $ScriptName = $myInvocation.ScriptName
+                $PSCommandPath = $ScriptName ;
+            } ;
+            $ScriptBaseName = (Split-Path -Leaf ((& { $myInvocation }).ScriptName))  ;
+            $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($MyInvocation.InvocationName) ;
+        } ;
+        if(!$ScriptDir){
+            write-host "Failed `$ScriptDir resolution on PSv$($host.version.major): Falling back to $MyInvocation parsing..." ; 
+            $ScriptDir=(Split-Path -parent $MyInvocation.MyCommand.Definition) + "\" ;
+            $ScriptBaseName = (Split-Path -Leaf ((&{$myInvocation}).ScriptName))  ; 
+            $ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($MyInvocation.InvocationName) ;     
+        } else {
+            if(-not $PSCommandPath ){
+                $PSCommandPath  = $ScriptName ; 
+                if($PSCommandPath){ write-host "(Derived missing `$PSCommandPath from `$ScriptName)" ; } ;
+            } ; 
+            if(-not $PSScriptRoot  ){
+                $PSScriptRoot   = $ScriptDir ; 
+                if($PSScriptRoot){ write-host "(Derived missing `$PSScriptRoot from `$ScriptDir)" ; } ;
+            } ; 
+        } ; 
+        if(-not ($ScriptDir -AND $ScriptBaseName -AND $ScriptNameNoExt)){ 
+            throw "Invalid Invocation. Blank `$ScriptDir/`$ScriptBaseName/`ScriptNameNoExt" ; 
+            BREAK ; 
+        } ; 
+
+        $smsg = "`$ScriptDir:$($ScriptDir)" ;
+        $smsg += "`n`$ScriptBaseName:$($ScriptBaseName)" ;
+        $smsg += "`n`$ScriptNameNoExt:$($ScriptNameNoExt)" ;
+        $smsg += "`n`$PSScriptRoot:$($PSScriptRoot)" ;
+        $smsg += "`n`$PSCommandPath:$($PSCommandPath)" ;  ;
+        write-host $smsg ; 
+
+        #region TRANSCRIPTPATH ; #*------v TRANSCRIPT FROM A $PATH VARI v------
+        #$transcript = "$($path.directoryname)\logs" ; 
+        # simple root of path'd drive x:\scripts\logs transcript on the functionname
+        $transcript = "$((split-path $path[0]).split('\')[0])\scripts\logs" ; 
+        if(!(test-path -path $transcript)){ write-host "Creating missing log dir $($transcript)..." ; mkdir $transcript -verbose:$true  ; } ;
+        #$transcript += "\$($path[0].basename)" ; 
+        $transcript += "\$($ScriptNameNoExt)" ; 
+        <#$transcript += "-WHATIF-$(get-date -format 'yyyyMMdd-HHmmtt')-trans.txt" ; 
+        if(get-variable whatif -ea 0){
+            if(-not $whatif){$transcript = $transcript.replace('-WHATIF-','-EXECUTE-')} 
+        } ;
+        #>
+        # rotating series of 4 logs named for the base $transcript
+        $transcript += "-transNO.txt" ; 
+        $rotation = (get-childitem $transcript.replace('NO','*')) ; 
+        if(-not $rotation ){
+            write-verbose "Establishing 4 rotating log files ($transcript)..." ; 
+            1..4 | %{echo $null > $transcript.replace('NO',"0$($_)") } ; 
+            $rotation = (get-childitem $transcript.replace('NO','*')) ;
+        } ;
+        $transcript = $rotation | sort LastWriteTime | select -first 1 | select -expand fullname ; 
+        $logfile = $transcript.replace('-trans','-log') ; 
+        #$logging = $true ; 
+        #endregion TRANSCRIPTPATH ; #*------^ END TRANSCRIPT FROM A $PATH VARI ^------
+        #region STARTTRANS ; #*------v STARTTRANSCRIPT v------
+        TRY {
+            if($transcript){
+                $stopResults = try {Stop-transcript -ErrorAction stop} catch {} ;
+                if($stopResults){
+                    $smsg = "Stop-transcript:$($stopResults)" ; 
+                    if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+                    else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+                } ; 
+                $startResults = start-Transcript -path $transcript ;
+                if($startResults){
+                    $smsg = "start-transcript:$($startResults)" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                } ; 
+            } else {
+                $smsg = "UNPOPULATED `$transcript! - ABORTING!" ; 
+                write-warning $smsg ; 
+                throw $smsg ; 
+                break ; 
+            } ;  
+        } CATCH [System.Management.Automation.PSNotSupportedException]{
+            if($host.name -eq 'Windows PowerShell ISE Host'){
+                $smsg = "This version of $($host.name):$($host.version) does *not* support native (start-)transcription" ; 
+            } else { 
+                $smsg = "This host does *not* support native (start-)transcription" ; 
+            } ; 
+            write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+        } CATCH {
+            $ErrTrapd=$Error[0] ;
+            $smsg = "Failed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: $($ErrTrapd)" ;
+            write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+        } ;
+        #endregion STARTTRANS ; #*------^ END STARTTRANSCRIPT ^------
     }
     PROCESS{
         foreach($p in $Path){
@@ -12439,7 +13767,17 @@ Function test-MissingMediaSummary {
            } ;  # loop-E
         }  # loop-E
     }  # PROC-E
-    END{};
+    END {
+        $smsg = "$($sBnr.replace('=v','=^').replace('v=','^='))" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level H1 } #Error|Warn|Debug
+        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        $stopResults = try {Stop-transcript -ErrorAction stop} catch {} ;
+        if($stopResults){
+            $smsg = "Stop-transcript:$($stopResults)" ; 
+            if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+            else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+        } ; 
+    } ;  # END-E
 }
 
 #*------^ test-MissingMediaSummary.ps1 ^------
@@ -13142,6 +14480,558 @@ function update-RegistryProperty {
 #*------^ update-RegistryProperty.ps1 ^------
 
 
+#*------v write-HostIndent.ps1 v------
+function Write-Log {
+    <#
+    .SYNOPSIS
+    Write-Log.ps1 - Write-Log writes a message to a specified log file with the current time stamp, and write-verbose|warn|error's the matching msg.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-06-11
+    FileName    : Write-Log.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-logging
+    Tags        : Powershell,Logging,Output,Echo,Console
+    AddedCredit : Jason Wasser
+    AddedWebsite:	https://www.powershellgallery.com/packages/MrAADAdministration/1.0/Content/Write-Log.ps1
+    AddedTwitter:	@wasserja
+    REVISIONS
+    * 4:20 PM 2/1/2023 added full -indent support; updated CBH w related demos; flipped $Object to [System.Object]$Object (was coercing multiline into single text string); 
+        ren $Message -> $Object (aliased prior) splice over from w-hi, and is the param used natively by w-h; refactored/simplified logic prep for w-hi support. Working now with the refactor.
+    * 4:47 PM 1/30/2023 tweaked color schemes, renamed splat varis to exactly match levels; added -demo; added Level 'H4','H5', and Success (rounds out the set of banrs I setup in psBnr)
+    * 11:38 AM 11/16/2022 moved splats to top, added ISE v2 alt-color options (ISE isn't readable on psv2, by default using w-h etc)
+    * 9:07 AM 3/21/2022 added -Level verbose & prompt support, flipped all non-usehost options, but verbose, from w-v -> write-host; added level prefix to console echos
+    * 3:11 PM 8/17/2021 added verbose suppress to the get-colorcombo calls, clutters the heck out of outputs on verbose, no benef.
+    * 10:53 AM 6/16/2021 get-help isn't displaying param details, pulled erroneous semi's from end of CBH definitions
+    * 7:59 AM 6/11/2021 added H1|2|3 md-style #|##|## header tags ; added support for get-colorcombo, and enforced bg colors (legible regardless of local color scheme of console); expanded CBH, revised Author - it's diverged so substantially from JW's original concept, it's now "inspired-by", less than a variant of the original.
+    * 10:54 AM 5/7/2021 pulled weird choice to set: $VerbosePreference = 'Continue' , that'd reset pref everytime called
+    * 8:46 AM 11/23/2020 ext verbose supp
+    * 3:50 PM 3/29/2020 minor tightening layout
+    * 11:34 AM 8/26/2019 fixed missing noecho parameter desig in comment help
+    * 9:31 AM 2/15/2019:Write-Log: added Level:Debug support, and broader init
+        block example with $whatif & $ticket support, added -NoEcho to suppress console
+        echos and just use it for writing logged output
+    * 8:57 PM 11/25/2018 Write-Log:shifted copy to verb-transcript, added defer to scope $script versions
+    * 2:30 PM 10/18/2018 added -useHost to have it issue color-keyed write-host commands vs write-(warn|error|verbose)
+        switched timestamp into the function (as $echotime), rather than redundant code in the $Message contstruction.
+    * 10:18 AM 10/18/2018 cleanedup, added to pshelp, put into OTB fmt, added trailing semis, parame HelpMessages, and -showdebug param
+    * Code simplification and clarification - thanks to @juneb_get_help  ;
+    * Added documentation.
+    * Renamed LogPath parameter to Path to keep it standard - thanks to @JeffHicks  ;
+    * Revised the Force switch to work as it should - thanks to @JeffHicks  ;
+    .DESCRIPTION
+    Write-Log is intended to provide console write-log echos in addition to commiting text to a log file. 
+    
+    It was originally based on a concept by Jason Wasser demoed at...
+    [](https://gallery.technet.microsoft.com/scriptcenter/Write-Log-PowerShell-999c32d0)
+    
+    ... of course as is typical that link was subsequently broken by MS over time... [facealm]
+    
+    But since that time I have substantially reimplemented jason's code from scratch to implement my evolving concept for the function. My variant now includes a wide range of Levels, a -useHost parameter that implements a more useful write-host color coded output for console output (vs use of the native write-error write-warning write-verbose cmdlets that don't permit you to differentiate types of output, beyond those three niche standardized formats). 
+    
+    ### I typically use write-host in the following way:
+    
+    1. I configure a $logfile variable centrally in the host script/function, pointed at a suitable output file. 
+    2. I set a [boolean]$logging variable to indicate if a log file is present, and should be written to via write-log 
+		or if a simple native output should be used (I also use this for scripts that can use the block below, without access to my hosting verb-io module's copy of write-log).
+	3. I then call write-log from an if/then block to fed the message via an $smsg variable.
+	
+	```powershell
+    $smsg = "" ; 
+	if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+	else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+	#Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+    ```
+    ### Hn Levels
+    
+    The H1..H5 Levels are intended to "somewhat" emulate Markdown's Heading Levels (#,##,###...#####) for output. No it's not native Markdown, but it does provide another layer of visible output demarcation for scanning dense blocks of text from process & analysis code.
+   
+    Note: Psv2 ISE fundementally mangles and fails to shows these colors properly (you can clearly see it running get-Colornames() from verb-io). 
+    It appears to just not like writing mixed fg & bg color combos quickly. Works fine for writing and logging to file, just don't be surprised when the ISE console output looks like technicolor vomit.
+    
+    .PARAMETER Message  
+    Message is the content that you wish to add to the log file.
+    .PARAMETER Path  
+    The path to the log file to which you would like to write. By default the function will create the path and file if it does not exist.
+    .PARAMETER Level  
+    Specify the criticality of the log information being written to the log (defaults Info): (Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success)[-level Info]
+    .PARAMETER useHost  
+    Switch to use write-host rather than write-[verbose|warn|error] (does not apply to H1|H2|H3|DEBUG which alt via uncolored write-host) [-useHost]
+    .PARAMETER NoEcho
+    Switch to suppress console echos (e.g log to file only [-NoEcho]
+    .PARAMETER NoClobber  
+    Use NoClobber if you do not wish to overwrite an existing file.
+    .PARAMETER ShowDebug
+    Parameter to display Debugging messages [-ShowDebug switch]
+    .PARAMETER demo
+	Switch to output a demo display of each Level, and it's configured color scheme (requires specification of a 'dummy' message string to avoid an error).[-Demo]
+    .EXAMPLE
+        PS>  Write-Log -Message 'Log message'   ;
+        Writes the message to default log loc (c:\Logs\PowerShellLog.log, -level defaults to Info).
+        .EXAMPLE
+        PS> Write-Log -Message 'Restarting Server.' -Path c:\Logs\Scriptoutput.log ;
+        Writes the content to the specified log file and creates the path and file specified.
+        .EXAMPLE
+        PS> write-log -level warn "some information" -Path c:\tmp\tmp.txt
+        WARNING: 10:17:59: some information
+        Demo default use of the native write-warning cmdlet (default behavior when -useHost is not used)
+        .EXAMPLE
+        write-log -level warn "some information" -Path c:\tmp\tmp.txt -usehost
+        10:19:14: WARNING: some information
+        Demo use of the "warning" color scheme write-host cmdlet (behavior when -useHost *IS* used)
+        .EXAMPLE
+        PS> Write-Log -level Prompt -Message "Enter Text:" -Path c:\tmp\tmp.txt -usehost  ; 
+        PS> invoke-soundcue -type question ; 
+        PS> $enteredText = read-host ;
+        Echo's a distinctive Prompt color scheme for the message (vs using read-host native non-color-differentiating -prompt parameter), 
+        and writes a 'Prompt'-level entry to the log, uses my verb-io:invoke-soundCue to play a the system question sound; then uses promptless read-host to take typed input. 
+        PS> Write-Log -level Prompt -Message "Enter Password:" -Path c:\tmp\tmp.txt -usehost  ; 
+        PS> invoke-soundcue -type question ; 
+        PS> $SecurePW = read-host -AsSecureString ;        
+        Variant that demos collection of a secure password using read-host's native -AsSecureString param.
+        .EXAMPLE
+        PS>  $smsg = "ENTER CERTIFICATE PFX Password: (use 'dummy' for UserName)" ;
+        PS>  if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level PROMPT } 
+        PS>  else{ write-host -foregroundcolor Blue -backgroundcolor White "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        PS>  $pfxcred=(Get-Credential -credential dummy) ;
+        PS>  Export-PfxCertificate -Password $pfxcred.password -Cert= $certpath -FilePath c:\path-to\output.pfx;
+        Demo use of write-log -level prompt, leveraging the get-credential popup GUI to collect a secure password (without use of username)
+        .EXAMPLE
+        PS>  # init content in script context ($MyInvocation is blank in function scope)
+        PS>  $logfile = join-path -path $ofile -childpath "$([system.io.path]::GetFilenameWithoutExtension($MyInvocation.InvocationName))-BATCH-$(get-date -format 'yyyyMMdd-HHmmtt')-LOG.txt"  ;
+        PS>  $logging = $True ;
+        PS>  $sBnr="#*======v `$tmbx:($($Procd)/$($ttl)):$($tmbx) v======" ;
+        PS>  $smsg="$($sBnr)" ;
+        PS>  if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug|H1|H2|H3 
+        PS>  else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        PS>  Example with conditional write-log (with -useHost switch, to trigger native write-host use), else failthru to write-host output
+        PS>  .EXAMPLE
+        PS>  $transcript = join-path -path (Split-Path -parent $MyInvocation.MyCommand.Definition) -ChildPath "logs" ;
+        PS>  if(!(test-path -path $transcript)){ "Creating missing log dir $($transcript)..." ; mkdir $transcript  ; } ;
+        PS>  $transcript=join-path -path $transcript -childpath "$([system.io.path]::GetFilenameWithoutExtension($MyInvocation.InvocationName))"  ;
+        PS>  $transcript+= "-Transcript-BATCH-$(get-date -format 'yyyyMMdd-HHmmtt')-trans-log.txt"  ;
+        PS>  # add log file variant as target of Write-Log:
+        PS>  $logfile=$transcript.replace("-Transcript","-LOG").replace("-trans-log","-log")
+        PS>  if($whatif){
+        PS>      $logfile=$logfile.replace("-BATCH","-BATCH-WHATIF") ;
+        PS>      $transcript=$transcript.replace("-BATCH","-BATCH-WHATIF") ;
+        PS>  } else {
+        PS>      $logfile=$logfile.replace("-BATCH","-BATCH-EXEC") ;
+        PS>      $transcript=$transcript.replace("-BATCH","-BATCH-EXEC") ;
+        PS>  } ;
+        PS>  if($Ticket){
+        PS>      $logfile=$logfile.replace("-BATCH","-$($Ticket)") ;
+        PS>      $transcript=$transcript.replace("-BATCH","-$($Ticket)") ;
+        PS>  } else {
+        PS>      $logfile=$logfile.replace("-BATCH","-nnnnnn") ;
+        PS>      $transcript=$transcript.replace("-BATCH","-nnnnnn") ;
+        PS>  } ;
+        PS>  $logging = $True ;
+        PS>  $sBnr="#*======v START PASS:$($ScriptBaseName) v======" ;
+        PS>  $smsg= "$($sBnr)" ;
+        PS>  if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } ; #Error|Warn
+        More complete boilerplate including $whatif & $ticket
+        .EXAMPLE
+        PS>  $pltSL=@{ NoTimeStamp=$false ; Tag = $null ; showdebug=$($showdebug) ; whatif=$($whatif) ; Verbose=$($VerbosePreference -eq 'Continue') ; } ;
+        PS>  $pltSL.Tag = "$(split-path -path $CSVPath -leaf)"; # build tag from a variable
+        PS>  # construct log name on calling script/function fullname
+        PS>  if($PSCommandPath){ $logspec = start-Log -Path $PSCommandPath @pltSL }
+        PS>  else { $logspec = start-Log -Path ($MyInvocation.MyCommand.Definition) @pltSL } ;
+        PS>  if($logspec){
+        PS>      $logging=$logspec.logging ;
+        PS>      $logfile=$logspec.logfile ;
+        PS>      $transcript=$logspec.transcript ;
+        PS>      $stopResults = try {Stop-transcript -ErrorAction stop} catch {} ;
+        PS>      start-Transcript -path $transcript ;
+        PS>  } else {throw "Unable to configure logging!" } ;
+        PS>  $sBnr="#*======v $(${CmdletName}): v======" ;
+        PS>  $smsg = $sBnr ;
+        PS>  if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
+        PS>  else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        Example leveraging splatted start-log(), and either $PSCommandPath or $MyInvocation (support varies by host/psversion) to build the log name. 
+        .EXAMPLE
+        PS> write-log -demo -message 'Dummy' ; 
+        Demo (using required dummy error-suppressing messasge) of sample outputs/color combos for each Level configured).
+        .EXAMPLE
+        PS>  $smsg = "`n`n===TESTIPAddress: was *validated* as covered by the recursed ipv4 specification:" ; 
+        PS>  $smsg += "`n" ; 
+        PS>  $smsg += "`n---> This host *should be able to* send email on behalf of the configured SPF domain (at least in terms of SPF checks)" ; 
+        PS>  $env:hostindentspaces = 8 ; 
+        PS>  $lvl = 'Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success'.split('|') ; 
+        PS>  foreach ($l in $lvl){Write-Log -LogContent $smsg -Path $tmpfile -Level $l -useHost -Indent} ; 
+        Demo indent function across range of Levels (alt to native -Demo which also supports -indent). 
+        .EXAMPLE
+        PS>  write-verbose 'set to baseline' ; 
+        PS>  reset-HostIndent ; 
+        PS>  write-host "`$env:HostIndentSpaces:$($env:HostIndentSpaces)" ; 
+        PS>  write-verbose 'write an H1 banner'
+        PS>  $sBnr="#*======v  H1 Banner: v======" ;
+        PS>  $smsg = $sBnr ;
+        PS>  Write-Log -LogContent $smsg -Path $logfile -useHost -Level H1;
+        PS>  write-verbose 'push indent level+1' ; 
+        PS>  push-HostIndent ; 
+        PS>  write-host "`$env:HostIndentSpaces:$($env:HostIndentSpaces)" ; 
+        PS>  write-verbose 'write an INFO entry with -Indent specified' ; 
+        PS>  $smsg = "This is information (indented)" ; 
+        PS>  Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info -Indent:$true ;
+        PS>  write-verbose 'push indent level+2' ; 
+        PS>  push-HostIndent ; 
+        PS>  write-host "`$env:HostIndentSpaces:$($env:HostIndentSpaces)" ; 
+        PS>  write-verbose 'write a PROMPT entry with -Indent specified' ; 
+        PS>  $smsg = "This is a subset of information (indented)" ; 
+        PS>  Write-Log -LogContent $smsg -Path $logfile -useHost -Level Prompt -Indent:$true ;
+        PS>  write-verbose 'pop indent level out one -1' ; 
+        PS>  pop-HostIndent ; 
+        PS>  write-verbose 'write a Success entry with -Indent specified' ; 
+        PS>  $smsg = "This is a Successful information (indented)" ; 
+        PS>  Write-Log -LogContent $smsg -Path $logfile -useHost -Level Success -Indent:$true ;
+        PS>  write-verbose 'reset to baseline for trailing banner'
+        PS>  reset-HostIndent ; 
+        PS>  write-host "`$env:HostIndentSpaces:$($env:HostIndentSpaces)" ; 
+        PS>  write-verbose 'write the trailing H1 banner'
+        PS>  $smsg = "$($sBnr.replace('=v','=^').replace('v=','^='))" ;
+        PS>  Write-Log -LogContent $smsg -Path $logfile -useHost -Level H1;
+        PS>  write-verbose 'clear indent `$env:HostIndentSpaces' ; 
+        PS>  clear-HostIndent ; 
+        PS>  write-host "`$env:HostIndentSpaces:$($env:HostIndentSpaces)" ; 
+        
+            $env:HostIndentSpaces:0
+            16:16:17: #  #*======v  H1 Banner: v======
+            $env:HostIndentSpaces:4
+                16:16:17: INFO:  This is information (indented)
+            $env:HostIndentSpaces:8
+                    16:16:17: PROMPT:  This is a subset of information (indented)
+                16:16:17: SUCCESS:  This is a Successful information (indented)
+            $env:HostIndentSpaces:0
+            16:16:17: #  #*======^  H1 Banner: ^======
+            $env:HostIndentSpaces:
+
+        Demo broad process for use of verb-HostIndent funcs and write-log with -indent parameter.
+        .LINK
+        https://gallery.technet.microsoft.com/scriptcenter/Write-Log-PowerShell-999c32d0  ;
+    #>    
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, 
+            HelpMessage = "Message is the content that you wish to add to the log file")]
+            [ValidateNotNullOrEmpty()][Alias("LogContent")]
+            [Alias('Message')] # splice over from w-hi, and is the param used natively by w-h
+            [System.Object]$Object,
+        [Parameter(Mandatory = $false, 
+            HelpMessage = "The path to the log file to which you would like to write. By default the function will create the path and file if it does not exist.")]
+            [Alias('LogPath')]
+            [string]$Path = 'C:\Logs\PowerShellLog.log',
+        [Parameter(Mandatory = $false, 
+            HelpMessage = "Specify the criticality of the log information being written to the log (defaults Info): (Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success)[-level Info]")]
+            [ValidateSet('Error','Warn','Info','H1','H2','H3','H4','H5','Debug','Verbose','Prompt','Success')]
+            [string]$Level = "Info",
+        [Parameter(
+            HelpMessage = "Switch to use write-host rather than write-[verbose|warn|error] [-useHost]")]
+            [switch] $useHost,
+        # params to supportr explicit color control in the call.
+        [Parameter(
+            HelpMessage="Specifies the background color. There is no default. The acceptable values for this parameter are:
+    (Black | DarkBlue | DarkGreen | DarkCyan | DarkRed | DarkMagenta | DarkYellow | Gray | DarkGray | Blue | Green | Cyan | Red | Magenta | Yellow | White)")]
+            [System.ConsoleColor]$BackgroundColor,
+        [Parameter(
+            HelpMessage="Specifies the text color. There is no default. The acceptable values for this parameter are:
+(Black | DarkBlue | DarkGreen | DarkCyan | DarkRed | DarkMagenta | DarkYellow | Gray | DarkGray | Blue | Green | Cyan | Red | Magenta | Yellow | White)")]
+            [System.ConsoleColor]$ForegroundColor,
+        [Parameter(
+            HelpMessage="The string representations of the input objects are concatenated to form the output. No spaces or newlines are inserted between
+the output strings. No newline is added after the last output string.")]
+            [System.Management.Automation.SwitchParameter]$NoNewline,
+        # params to support write-HostInden w/in w-l
+        [Parameter(
+            HelpMessage = "Switch to use write-HostIndent-type code for console echos(see get-help write-HostIndent)[-useHost]")]
+            [Alias('in')]
+            [switch] $Indent,
+        [Parameter(
+            HelpMessage="Specifies a separator string to insert between objects displayed by the host.")]
+        [System.Object]$Separator,
+        [Parameter(
+            HelpMessage="Character to use for padding (defaults to a space).[-PadChar '-']")]
+        [string]$PadChar = ' ',
+        [Parameter(
+            HelpMessage="Number of spaces to pad by default (defaults to 4).[-PadIncrment 8]")]
+        [int]$PadIncrment = 4,
+        [Parameter(
+                HelpMessage = "Switch to suppress console echos (e.g log to file only [-NoEcho]")]
+            [switch] $NoEcho,
+        [Parameter(Mandatory = $false, 
+            HelpMessage = "Use NoClobber if you do not wish to overwrite an existing file.")]
+            [switch]$NoClobber,
+        [Parameter(
+            HelpMessage = "Debugging Flag [-showDebug]")]
+            [switch] $showDebug,
+        [Parameter(
+            HelpMessage = "Switch to output a demo display of each Level, and it's configured color scheme (requires specification of a 'dummy' message string to avoid an error).[-Demo]")]
+            [switch] $demo
+    )  ;
+    BEGIN {
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;     
+        #$VerbosePreference = "SilentlyContinue" ;
+        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+
+        $pltWH = @{
+            Object = $null ; 
+        } ; 
+        if ($PSBoundParameters.ContainsKey('BackgroundColor')) {
+            $pltWH.add('BackgroundColor',$BackgroundColor) ; 
+        } ;
+        if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
+            $pltWH.add('ForegroundColor',$ForegroundColor) ; 
+        } ;
+        if ($PSBoundParameters.ContainsKey('NoNewline')) {
+            $pltWH.add('NoNewline',$NoNewline) ; 
+        } ;
+        
+        if($Indent){
+        
+            if ($PSBoundParameters.ContainsKey('Separator')) {
+                $pltWH.add('Separator',$Separator) ; 
+            } ;
+            write-verbose "$($CmdletName): Using `$PadChar:`'$($PadChar)`'" ; 
+            if (-not ([int]$CurrIndent = (Get-Item -Path Env:HostIndentSpaces -erroraction SilentlyContinue).Value ) ){
+                [int]$CurrIndent = 0 ; 
+            } ; 
+            write-verbose "$($CmdletName): Discovered `$env:HostIndentSpaces:$($CurrIndent)" ; 
+
+            # if $object has multiple lines, split it:
+            #$Object = $Object.Split([Environment]::NewLine) ; 
+            # have to coerce the system.object to string array, to get access to a .split method (raw object doese't have it)
+            # and you have to recast the type to string array (can't assign a string[] to [system.object] type vari
+            [string[]]$Object = [string[]]$Object.ToString().Split([Environment]::NewLine) 
+
+        } ; 
+
+        if(get-command get-colorcombo -ErrorAction SilentlyContinue){$buseCC=$true} else {$buseCC=$false} ;
+
+        if($host.Name -eq 'Windows PowerShell ISE Host' -AND $host.version.major -lt 3){
+            #write-verbose "(low-contrast/visibility ISE 2 detected: using alt colors)" ; # too NOISEY!
+            $pltError=@{foregroundcolor='yellow';backgroundcolor='darkred'};
+            $pltWarn=@{foregroundcolor='DarkMagenta';backgroundcolor='yellow'};
+            $pltInfo=@{foregroundcolor='gray';backgroundcolor='darkblue'};
+            $pltH1=@{foregroundcolor='black';backgroundcolor='darkyellow'};
+            $pltH2=@{foregroundcolor='darkblue';backgroundcolor='gray'};
+            $pltH3=@{foregroundcolor='black';backgroundcolor='darkgray'};
+            $pltH4=@{foregroundcolor='gray';backgroundcolor='DarkCyan'};
+            $pltH5=@{foregroundcolor='cyan';backgroundcolor='DarkGreen'};
+            $pltDebug=@{foregroundcolor='red';backgroundcolor='black'};
+            $pltVerbose=@{foregroundcolor='darkgray';backgroundcolor='black'};
+            $pltPrompt=@{foregroundcolor='DarkMagenta';backgroundcolor='darkyellow'};
+            $pltSuccess=@{foregroundcolor='Blue';backgroundcolor='green'};
+        } else {
+            $pltWH = @{} ;
+            <#
+            if($buseCC){$pltErr=get-colorcombo 60 -verbose:$false} else { $pltErr=@{foregroundcolor='yellow';backgroundcolor='red'};};
+            if($buseCC){$pltWarn=get-colorcombo 52 -verbose:$false} else { $pltWarn=@{foregroundcolor='yellow';backgroundcolor='red'};};
+            if($buseCC){$pltInfo=get-colorcombo 2 -verbose:$false} else { $pltInfo=@{foregroundcolor='yellow';backgroundcolor='red'};};
+            if($buseCC){$pltH1=get-colorcombo 22 -verbose:$false } else { $pltH1=@{foregroundcolor='black';backgroundcolor='darkyellow'};};
+            if($buseCC){$pltH2=get-colorcombo 25 -verbose:$false } else { $pltH2=@{foregroundcolor='black';backgroundcolor='gray'};};
+            if($buseCC){$pltH3=get-colorcombo 30 -verbose:$false } else { $pltH3=@{foregroundcolor='black';backgroundcolor='darkgray'};};
+            if($buseCC){$pltDbg=get-colorcombo 4 -verbose:$false } else { $pltDbg=@{foregroundcolor='red';backgroundcolor='black'};};
+            if($buseCC){$pltVerb=get-colorcombo 1 -verbose:$false} else { $pltVerb=@{foregroundcolor='yellow';backgroundcolor='red'};};
+            if($buseCC){$pltPrmpt=get-colorcombo 15 -verbose:$false} else { $pltPrmpt=@{foregroundcolor='Blue';backgroundcolor='White'};};
+            #>
+            $pltError=@{foregroundcolor='yellow';backgroundcolor='darkred'};
+            $pltWarn=@{foregroundcolor='DarkMagenta';backgroundcolor='yellow'};
+            $pltInfo=@{foregroundcolor='gray';backgroundcolor='darkblue'};
+            $pltH1=@{foregroundcolor='black';backgroundcolor='darkyellow'};
+            $pltH2=@{foregroundcolor='darkblue';backgroundcolor='gray'};
+            $pltH3=@{foregroundcolor='black';backgroundcolor='darkgray'};
+            $pltH4=@{foregroundcolor='gray';backgroundcolor='DarkCyan'};
+            $pltH5=@{foregroundcolor='cyan';backgroundcolor='DarkGreen'};
+            $pltDebug=@{foregroundcolor='red';backgroundcolor='black'};
+            $pltVerbose=@{foregroundcolor='darkgray';backgroundcolor='black'};
+            $pltPrompt=@{foregroundcolor='DarkMagenta';backgroundcolor='darkyellow'};
+            $pltSuccess=@{foregroundcolor='Blue';backgroundcolor='green'};
+        } ; 
+    }  ;
+    PROCESS {
+
+        if($Demo){
+            write-host "Running demo of current settings..." @pltH1 
+            $combos = "h1m;H1","h2m;H2","h3m;H3","h4m;H4","h5m;H5",
+                "whm;INFO","whp;PROMPT","whs;SUCCESS","whw;WARN","wem;ERROR","whv;VERBOSE" ; 
+            $h1m =" #*======v STATUSMSG: SBNR v======" ; 
+            $h2m = "`n#*------v PROCESSING : sBnrS v------" ; 
+            $h3m ="`n#*~~~~~~v SUB-PROCESSING : sBnr3 v~~~~~~" ;
+            $h4m="`n#*``````v DETAIL : sBnr4 v``````" ; 
+            $h5m="`n#*______v FOCUS : sBnr5 v______" ; 
+            $whm = "This is typical output" ; 
+            $whp = "What is your quest?" ;
+            $whs = "Successful execution!" ;
+            $whw = "THIS DIDN'T GO AS PLANNED" ; 
+            $wem = "UTTER FAILURE!" ; 
+            $whv = "internal comment executed" ; 
+            $tmpfile = [System.IO.Path]::GetTempFileName().replace('.tmp','.txt') ; 
+            foreach($cmbo in $combos){
+                $txt,$name = $cmbo.split(';') ; 
+                $Level = $name ; 
+                if($Level -eq 'H5'){
+                    write-host "Gotcha!"; 
+                } ; 
+                $whplt = (gv "plt$($name)").value ; 
+                $text = (gv $txt).value ; 
+                #$smsg="`$plt$($name):($($whplt.foregroundcolor):$($whplt.backgroundcolor)):`n`n$($text)`n`n" ;
+                $whsmsg="`$plt$($name):($($whplt.foregroundcolor):$($whplt.backgroundcolor)):`n`n" ; 
+                $pltWL=@{
+                    message= $text ;
+                    Level=$Level ;
+                    Path=$tmpfile  ;
+                    useHost=$true;
+                } ;
+                if($Indent){$PltWL.add('Indent',$true)} ; 
+
+                $whsmsg += "write-log w`n$(($pltWL|out-string).trim())`n" ; 
+                write-host $whsmsg ; 
+                write-log @pltWL ; 
+            } ; 
+            remove-item -path $tmpfile ; 
+            
+        } else {
+
+            # If the file already exists and NoClobber was specified, do not write to the log.
+            if ((Test-Path $Path) -AND $NoClobber) {
+                Write-Error "Log file $Path already exists, and you specified NoClobber. Either delete the file or specify a different name."  ;
+                Return  ;
+            } elseif (!(Test-Path $Path)) {
+                # create the file including the path when missing.
+                Write-Verbose "Creating $Path."  ;
+                $NewLogFile = New-Item $Path -Force -ItemType File  ;
+            } else {
+              # Nothing to see here yet.
+            }  ;
+
+            $FormattedDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"  ;
+            $EchoTime = "$((get-date).ToString('HH:mm:ss')): " ;
+            <#
+            $pltWH
+            #>
+        
+            $pltWH.Object = $EchoTime ; 
+            $pltColors = @{} ; 
+            # Write message to error, warning, or verbose pipeline and specify $LevelText
+            switch ($Level) {
+                'Error' {
+                    $LevelText = 'ERROR: ' ; 
+                    $pltColors = $pltErr ; 
+                    if ($useHost) {} else {if (!$NoEcho) { Write-Error ($smsg + $Object) } } ;
+                }
+                'Warn' {
+                    $LevelText = 'WARNING: ' ; 
+                    $pltColors = $pltWarn ; 
+                    if ($useHost) {} else {if (!$NoEcho) { Write-Warning ($smsg + $Object) } } ;
+                }
+                'Info' {
+                    $LevelText = 'INFO: ' ; 
+                    $pltColors = $pltInfo ; 
+                }
+                'H1' {
+                    $LevelText = '# ' ; 
+                    $pltColors = $pltH1 ; 
+                }
+                'H2' {
+                    $LevelText = '## ' ; 
+                    $pltColors = $pltH2 ; 
+                }
+                'H3' {
+                    $LevelText = '### ' ; 
+                    $pltColors = $pltH3 ; 
+                }
+                'H4' {
+                    $LevelText = '#### ' ; 
+                    $pltColors = $pltH4 ; 
+                }
+                'H5' {
+                    $LevelText = '##### ' ; 
+                    $pltColors = $pltH5 ; 
+                }
+                'Debug' {
+                    $LevelText = 'DEBUG: ' ; 
+                    $pltColors = $pltDebug ; 
+                    if ($useHost) {} else {if (!$NoEcho) { Write-Degug $smsg } }  ;                
+                }
+                'Verbose' {
+                    $LevelText = 'VERBOSE: ' ; 
+                    $pltColors = $pltVerbose ; 
+                    if ($useHost) {}else {if (!$NoEcho) { Write-Verbose ($smsg) } } ;          
+                }
+                'Prompt' {
+                    $LevelText = 'PROMPT: ' ; 
+                    $pltColors = $pltPrompt ; 
+                }
+                'Success' {
+                    $LevelText = 'SUCCESS: ' ; 
+                    $pltColors = $pltSuccess ; 
+                }
+            } ;
+            # build msg string down here, once, v in ea above
+            #$smsg = $EchoTime ;
+            # always defer to explicit cmdline colors
+            if(-not ($pltWH.foregroundcolor) -AND $pltColors.foregroundcolor){$pltWH.add('foregroundcolor',$pltColors.foregroundcolor) } ; 
+            if(-not ($pltWH.backgroundcolor) -AND $pltColors.backgroundcolor){$pltWH.add('backgroundcolor',$pltColors.backgroundcolor) } ; 
+            if ($useHost) {
+                if(-not $Indent){
+                    if($Level -match '(Debug|Verbose)' ){
+                        #$pltWH.Object += ($LevelText + '(' + $Object + ')') ; 
+                        $pltWH.Object += "$($LevelText) ($($Object))" ;
+                    } else { 
+                        #$pltWH.Object += $LevelText + $Object ;
+                        $pltWH.Object += "$($LevelText) $($Object)" ;
+                    } ; 
+                    $smsg = "write-host w`n$(($pltWH|out-string).trim())" ; 
+                    write-verbose $smsg ; 
+                    #write-host @pltErr $smsg ; 
+                    write-host @pltwh ; 
+                } else { 
+                    # indent support
+                    foreach ($obj in $object){
+                        # here we're looping the object, so completely do the object build in here:
+                        $pltWH.Object = $EchoTime ; 
+                        # issue: empty lines/elements with the above are gen'ing: 15:31:44: VERBOSE:  ()
+                        if($Level -match '(Debug|Verbose)' ){
+                            if($obj.length -gt 0){
+                                $pltWH.Object += "$($LevelText) ($($obj))" ;
+                            } else { 
+                                $pltWH.Object += "$($LevelText)" ;
+                            } ; 
+                        } else { 
+                            $pltWH.Object += "$($LevelText) $($obj)" ;
+                        } ; 
+                        $smsg = "write-host w`n$(($pltWH|out-string).trim())" ; 
+                        write-verbose $smsg ; 
+                        # write the indent, then writhe the styled obj/msg
+                        Write-Host -NoNewline $($PadChar * $CurrIndent)  ; 
+                        #write-host @pltWH -object $obj ; 
+                        write-host @pltwh ; 
+                    } ; 
+
+
+                } ; 
+            } 
+            # Write log entry to $Path
+            "$FormattedDate $LevelText : $Object" | Out-File -FilePath $Path -Append  ;
+
+        } ;  # if-E -Demo ; 
+
+    }  ; # PROC-E
+    End {}  ;
+}
+
+#*------^ write-HostIndent.ps1 ^------
+
+
 #*------v Write-ProgressHelper.ps1 v------
 function Write-ProgressHelper {
     <#
@@ -13218,7 +15108,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,Pop-LocationFirst,prompt-Continue,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-ItemReadOnlyTDO,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-InstalledApplication,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,pop-HostIndent,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-LoremName,Get-ProductItems,get-RegistryProperty,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-InstalledApplication,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,update-RegistryProperty,Write-Log,Write-ProgressHelper -Alias *
 
 
 

@@ -19,6 +19,7 @@ function set-FileAssociation {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 4:29 PM 2/1/2023 fixed misrenamed file; removed all requires entries (was circular at min). 
     * 10:10 AM 12/10/2022 TSK:updated
     * posted vers
     .DESCRIPTION
@@ -44,7 +45,6 @@ function set-FileAssociation {
     .LINK
     https://github.com/tostka/verb-io
     #>
-    #Requires -Modules verb-IO, verb-logging, verb-Text
     # VALIDATORS: [ValidateNotNull()][ValidateNotNullOrEmpty()][ValidateLength(24,25)][ValidateLength(5)][ValidatePattern("some\sregex\sexpr")][ValidateSet("USEA","GBMK","AUSYD")][ValidateScript({Test-Path $_ -PathType 'Container'})][ValidateScript({Test-Path $_})][ValidateRange(21,65)][ValidateCount(1,3)]
     [CmdletBinding()]
     [Alias('fix-encoding')]
