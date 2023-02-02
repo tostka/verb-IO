@@ -19,6 +19,7 @@ function set-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 2:40 PM 2/2/2023 correct typo: alias pop-hi -> s-hi; 
     * 2:01 PM 2/1/2023 add: -PID param
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
     * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
@@ -73,7 +74,7 @@ function set-HostIndent {
     DESCRIPTION        
     #>
     [CmdletBinding()]
-    [Alias('pop-hi')]
+    [Alias('s-hi')]
     PARAM(
         [Parameter(Position=0,
             HelpMessage="Number of spaces to set write-hostIndent current indent (`$scop:HostIndentpaces) to.[-Spaces 8]")]
