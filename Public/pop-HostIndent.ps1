@@ -130,5 +130,5 @@ function pop-HostIndent {
             BREAK ;
         } ;
     } ;  # BEG-E
-#*------^ END Function pop-HostIndent ^------
 } ; 
+#*------^ END Function pop-HostIndent ^------
