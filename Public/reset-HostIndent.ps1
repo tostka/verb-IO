@@ -119,5 +119,5 @@ function reset-HostIndent {
             BREAK ;
         } ;
     } ;  # BEG-E
-#*------^ END Function reset-HostIndent ^------
 } ; 
+#*------^ END Function reset-HostIndent ^------

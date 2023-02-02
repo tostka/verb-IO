@@ -124,5 +124,5 @@ function push-HostIndent {
             BREAK ;
         } ;
     } ;  # BEG-E
-#*------^ END Function push-HostIndent ^------
 } ; 
+#*------^ END Function push-HostIndent ^------
