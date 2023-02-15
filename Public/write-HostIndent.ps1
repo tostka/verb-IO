@@ -19,6 +19,8 @@ function write-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
+        typo fix, removed [ordered] from hashes (psv2 compat); 
     * 3:02 PM 2/2/2023 rolled back overwrite with w-l() code ; updated CBH
     * 2:01 PM 2/1/2023 add: -PID param
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope.
@@ -132,7 +134,6 @@ function write-HostIndent {
     #>
     [CmdletBinding()]
     [Alias('w-hi')]
-            
     PARAM(
         [Parameter(
             HelpMessage="Specifies the background color. There is no default. The acceptable values for this parameter are:
@@ -164,12 +165,12 @@ the output strings. No newline is added after the last output string.")]
     ) ; 
     BEGIN {
         #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
-        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
-        $Verbose = ($VerbosePreference -eq 'Continue') ;     
-        #$VerbosePreference = "SilentlyContinue" ;
+        if(($PSBoundParameters.keys).count -ne 0){
+            $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+            write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        } ; 
+        $Verbose = ($VerbosePreference -eq 'Continue') ;   
         #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
 
         $pltWH = @{} ; 
@@ -185,10 +186,9 @@ the output strings. No newline is added after the last output string.")]
         if ($PSBoundParameters.ContainsKey('Separator')) {
             $pltWH.add('Separator',$Separator) ; 
         } ;
-
         write-verbose "$($CmdletName): Using `$PadChar:`'$($PadChar)`'" ; 
 
-        #if we want to tune this to a $PID-specific variant, could use:
+        #if we want to tune this to a $PID-specific variant, use:
         if($usePID){
             $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
@@ -198,12 +198,13 @@ the output strings. No newline is added after the last output string.")]
         } else {
             $HISName = "Env:HostIndentSpaces" ;
         } ;
-        #(Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value
+        if(($smsg = Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value){
+            write-verbose $smsg ; 
+        } ; 
 
         if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
             [int]$CurrIndent = 0 ; 
         } ; 
-
         write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ; 
 
         <# some methods to left pad console output: Most add padding within the obj written by write- host: youend up with a big block of color, if you use fore/back w w-h:
@@ -230,7 +231,7 @@ the output strings. No newline is added after the last output string.")]
         #>
 
         # if $object has multiple lines, split it:
-        $Object = $Object.Split([Environment]::NewLine)
+        $Object = $Object.Split([Environment]::NewLine) ; 
                 
         <# Issue with most above: if you use:
         $padding = "-" * 4 ; # to *see* the spaces
@@ -258,7 +259,6 @@ the output strings. No newline is added after the last output string.")]
             Write-Host -NoNewline $($PadChar * $CurrIndent)  ; 
             write-host @pltWH -object $obj ; 
         } ; 
-
     } ;  # BEG-E
 } ; 
 #*------^ END Function write-HostIndent ^------
