@@ -19,6 +19,8 @@ function get-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
+        typo fix, removed [ordered] from hashes (psv2 compat); 
     * 2:13 PM 2/3/2023 init
     .DESCRIPTION
     get-HostIndent - Utility cmdlet that retrieves the current $env:HostIndentSpaces value. 
@@ -47,18 +49,19 @@ function get-HostIndent {
         [Parameter(
             HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
             [switch]$usePID
-    ) ; 
+    ) ;
     BEGIN {
         #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
         # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
-        $Verbose = ($VerbosePreference -eq 'Continue') ;     
-        #$VerbosePreference = "SilentlyContinue" ;
+        if(($PSBoundParameters.keys).count -ne 0){
+            $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+            write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        } ; 
+        $Verbose = ($VerbosePreference -eq 'Continue') ;
         #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
 
-        #if we want to tune this to a $PID-specific variant, could use:
+        #if we want to tune this to a $PID-specific variant, use:
         if($usePID){
             $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
@@ -68,8 +71,6 @@ function get-HostIndent {
         } else {
             $HISName = "Env:HostIndentSpaces" ;
         } ;
-        #(Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value
-
         write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ; 
         $smsg = "$($CmdletName): get $($HISName) value)" ; 
         write-verbose $smsg  ;
