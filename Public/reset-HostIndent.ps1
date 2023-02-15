@@ -19,6 +19,8 @@ function reset-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
+    typo fix, removed [ordered] from hashes (psv2 compat). 
     * 2:01 PM 2/1/2023 add: -PID param
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
     * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
@@ -77,33 +79,29 @@ function reset-HostIndent {
             [switch]$usePID
     ) ; 
     BEGIN {
-        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
-        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        #if($PSBoundParameters){ # always testsd true, as a hash, test for the .keys count.
+        if(($PSBoundParameters.keys).count -ne 0){
+            $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+            write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        } ; 
         $Verbose = ($VerbosePreference -eq 'Continue') ;     
-        #$VerbosePreference = "SilentlyContinue" ;
-        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
-
-
-        #if we want to tune this to a $PID-specific variant, could use:
         if($usePID){
             $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ; 
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
             else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-            #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
             $HISName = "Env:HostIndentSpaces$($PID)" ; 
         } else { 
             $HISName = "Env:HostIndentSpaces" ; 
         } ; 
-        #(Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value
-                
-
+            
+        if(($smsg = Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value){
+            write-verbose $smsg ; 
+        } ; 
         if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
             [int]$CurrIndent = 0 ; 
         } ; 
-        $pltSV=[ordered]@{
+        $pltSV=@{
             Path = $HISName 
             Value = 0; 
             Force = $true ; 
@@ -118,6 +116,6 @@ function reset-HostIndent {
             write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
             BREAK ;
         } ;
-    } ;  # BEG-E
-} ; 
+    } ;  
+    } ; 
 #*------^ END Function reset-HostIndent ^------
