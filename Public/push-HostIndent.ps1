@@ -19,6 +19,8 @@ function push-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
+        typo fix, removed [ordered] from hashes (psv2 compat). 
     * 2:01 PM 2/1/2023 add: -PID param
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
     * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
@@ -78,15 +80,16 @@ function push-HostIndent {
         [Parameter(
             HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
             [switch]$usePID
-    ) ; 
+    ) ;
     BEGIN {
         #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
         # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
-        $Verbose = ($VerbosePreference -eq 'Continue') ;     
-        #$VerbosePreference = "SilentlyContinue" ;
+        if(($PSBoundParameters.keys).count -ne 0){
+            $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+            write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        } ; 
+        write-verbose "$($CmdletName): Using `$PadIncrement:`'$($PadIncrement)`'" ;
         #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
 
         write-verbose "$($CmdletName): Using `$PadIncrement:`'$($PadIncrement)`'" ; 
@@ -101,28 +104,27 @@ function push-HostIndent {
         } else {
             $HISName = "Env:HostIndentSpaces" ;
         } ;
-        #(Get-Item -Path "$HISName$($PID)" -erroraction SilentlyContinue).value
 
         if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
-            [int]$CurrIndent = 0 ; 
-        } ; 
-        write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ; 
-        $pltSV=[ordered]@{
-            Path = $HISName ;  
-            Value = [int](Get-Item -Path $HISName -erroraction SilentlyContinue).Value + $PadIncrement; 
-            Force = $true ; 
+            [int]$CurrIndent = 0 ;
+        } ;
+        write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ;
+        $pltSV=@{
+            Path = $HISName ;
+            Value = [int](Get-Item -Path $HISName -erroraction SilentlyContinue).Value + $PadIncrement;
+            Force = $true ;
             erroraction = 'STOP' ;
         } ;
-        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ; 
+        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ;
         write-verbose $smsg  ;
         TRY{
-            #Set-Variable @pltSV -verbose ; 
-            Set-Item @pltSV #-verbose ; 
-        } CATCH {
-            $smsg = $_.Exception.Message ;
-            write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
-            BREAK ;
-        } ;
-    } ;  # BEG-E
-} ; 
+                #Set-Variable @pltSV -verbose ;
+                Set-Item @pltSV #-verbose ;
+            } CATCH {
+                $smsg = $_.Exception.Message ;
+                write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                BREAK ;
+            } ;
+        } ; 
+    } ;
 #*------^ END Function push-HostIndent ^------
