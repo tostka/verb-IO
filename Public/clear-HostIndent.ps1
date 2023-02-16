@@ -65,10 +65,7 @@ function clear-HostIndent {
     PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
     PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
     PS>  clear-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
-    SAMPLEOUTPUT
-    DESCRIPTION
-    SAMPLEOUTPUT
-    DESCRIPTION        
+    Typical Usage      
     #>
     [CmdletBinding()]
     [Alias('c-hi')]

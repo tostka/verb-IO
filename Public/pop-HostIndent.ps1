@@ -66,10 +66,7 @@ function pop-HostIndent {
     PS>  $env:HostIndentSpaces = ([int]($env:HostIndentSpaces) - 4) ;
     PS>  write-verbose "`$env:HostIndentSpaces: -= 4: Net:$($env:HostIndentSpaces)" ;
     PS>  pop-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
-    SAMPLEOUTPUT
-    DESCRIPTION
-    SAMPLEOUTPUT
-    DESCRIPTION        
+    Demo typical usage.
     #>
     [CmdletBinding()]
     [Alias('pop-hi')]

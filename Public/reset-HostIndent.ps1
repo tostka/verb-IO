@@ -80,7 +80,6 @@ function reset-HostIndent {
     ) ; 
     BEGIN {
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        #if($PSBoundParameters){ # always testsd true, as a hash, test for the .keys count.
         if(($PSBoundParameters.keys).count -ne 0){
             $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
             write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
@@ -117,5 +116,5 @@ function reset-HostIndent {
             BREAK ;
         } ;
     } ;  
-    } ; 
+} ; 
 #*------^ END Function reset-HostIndent ^------
