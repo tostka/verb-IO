@@ -19,6 +19,7 @@ function write-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 3:07 PM 2/17/2023 splice over -flatten, and other updates from w-l's fixes and workarounds
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat); 
     * 3:02 PM 2/2/2023 rolled back overwrite with w-l() code ; updated CBH
@@ -57,6 +58,8 @@ function write-HostIndent {
     Character to use for padding (defaults to a space).[-PadChar '-']
     .PARAMETER usePID
     Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]
+    .PARAMETER Flatten
+    Switch to strip empty lines when using -Indent (which auto-splits multiline Objects)[-Flatten]
     .EXAMPLE
     PS> $env:HostIndentSpaces = 4 ; 
     PS> write-HostIndent 'indented message'
@@ -133,79 +136,81 @@ function write-HostIndent {
     Demo push/popping $env:HostIndentSpaces and using write-hostIndent
     #>
     [CmdletBinding()]
-    [Alias('w-hi')]
-    PARAM(
-        [Parameter(
-            HelpMessage="Specifies the background color. There is no default. The acceptable values for this parameter are:
+        [Alias('w-hi')]
+        PARAM(
+            [Parameter(
+                HelpMessage="Specifies the background color. There is no default. The acceptable values for this parameter are:
+        (Black | DarkBlue | DarkGreen | DarkCyan | DarkRed | DarkMagenta | DarkYellow | Gray | DarkGray | Blue | Green | Cyan | Red | Magenta | Yellow | White)")]
+                [System.ConsoleColor]$BackgroundColor,
+            [Parameter(
+                HelpMessage="Specifies the text color. There is no default. The acceptable values for this parameter are:
     (Black | DarkBlue | DarkGreen | DarkCyan | DarkRed | DarkMagenta | DarkYellow | Gray | DarkGray | Blue | Green | Cyan | Red | Magenta | Yellow | White)")]
-            [System.ConsoleColor]$BackgroundColor,
-        [Parameter(
-            HelpMessage="Specifies the text color. There is no default. The acceptable values for this parameter are:
-(Black | DarkBlue | DarkGreen | DarkCyan | DarkRed | DarkMagenta | DarkYellow | Gray | DarkGray | Blue | Green | Cyan | Red | Magenta | Yellow | White)")]
-            [System.ConsoleColor]$ForegroundColor,
-        [Parameter(
-            HelpMessage="The string representations of the input objects are concatenated to form the output. No spaces or newlines are inserted between
-the output strings. No newline is added after the last output string.")]
-            [System.Management.Automation.SwitchParameter]$NoNewline,
-        [Parameter(Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,
-            HelpMessage="Objects to display in the host")]
-            [System.Object]$Object,
-        [Parameter(
-            HelpMessage="Specifies a separator string to insert between objects displayed by the host.")]
-            [System.Object]$Separator,
-        [Parameter(
-            HelpMessage="Character to use for padding (defaults to a space).[-PadChar '-']")]
-            [string]$PadChar = ' ',
-        [Parameter(
-            HelpMessage="Number of spaces to pad by default (defaults to 4).[-PadIncrment 8]")]
-        [int]$PadIncrment = 4,
-        [Parameter(
-            HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
-            [switch]$usePID
-    ) ; 
-    BEGIN {
+                [System.ConsoleColor]$ForegroundColor,
+            [Parameter(
+                HelpMessage="The string representations of the input objects are concatenated to form the output. No spaces or newlines are inserted between
+    the output strings. No newline is added after the last output string.")]
+                [System.Management.Automation.SwitchParameter]$NoNewline,
+            [Parameter(Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,
+                HelpMessage="Objects to display in the host")]
+                [System.Object]$Object,
+            [Parameter(
+                HelpMessage="Specifies a separator string to insert between objects displayed by the host.")]
+                [System.Object]$Separator,
+            [Parameter(
+                HelpMessage="Character to use for padding (defaults to a space).[-PadChar '-']")]
+                [string]$PadChar = ' ',
+            [Parameter(
+                HelpMessage="Number of spaces to pad by default (defaults to 4).[-PadIncrment 8]")]
+            [int]$PadIncrment = 4,
+            [Parameter(
+                HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
+                [switch]$usePID,
+            [Parameter(
+                HelpMessage = "Switch to strip empty lines when using -Indent (which auto-splits multiline Objects)[-Flatten]")]
+                #[Alias('flat')]
+                [switch] $Flatten
+        ) ;
+        BEGIN {
         #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
         if(($PSBoundParameters.keys).count -ne 0){
             $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
             write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
-        } ; 
-        $Verbose = ($VerbosePreference -eq 'Continue') ;   
+        } ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;
         #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
 
-        $pltWH = @{} ; 
+        $pltWH = @{} ;
         if ($PSBoundParameters.ContainsKey('BackgroundColor')) {
-            $pltWH.add('BackgroundColor',$BackgroundColor) ; 
+            $pltWH.add('BackgroundColor',$BackgroundColor) ;
         } ;
         if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
-            $pltWH.add('ForegroundColor',$ForegroundColor) ; 
+            $pltWH.add('ForegroundColor',$ForegroundColor) ;
         } ;
         if ($PSBoundParameters.ContainsKey('NoNewline')) {
-            $pltWH.add('NoNewline',$NoNewline) ; 
+            $pltWH.add('NoNewline',$NoNewline) ;
         } ;
         if ($PSBoundParameters.ContainsKey('Separator')) {
-            $pltWH.add('Separator',$Separator) ; 
+            $pltWH.add('Separator',$Separator) ;
         } ;
-        write-verbose "$($CmdletName): Using `$PadChar:`'$($PadChar)`'" ; 
+        write-verbose "$($CmdletName): Using `$PadChar:`'$($PadChar)`'" ;
 
         #if we want to tune this to a $PID-specific variant, use:
         if($usePID){
             $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
             else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-            #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
             $HISName = "Env:HostIndentSpaces$($PID)" ;
         } else {
             $HISName = "Env:HostIndentSpaces" ;
         } ;
         if(($smsg = Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value){
-            write-verbose $smsg ; 
-        } ; 
-
+            write-verbose $smsg ;
+        } ;
         if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
-            [int]$CurrIndent = 0 ; 
-        } ; 
-        write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ; 
+            [int]$CurrIndent = 0 ;
+        } ;
+        write-verbose "$($CmdletName): Discovered `$$($HISName):$($CurrIndent)" ;
 
         <# some methods to left pad console output: Most add padding within the obj written by write- host: youend up with a big block of color, if you use fore/back w w-h:
 
@@ -231,7 +236,13 @@ the output strings. No newline is added after the last output string.")]
         #>
 
         # if $object has multiple lines, split it:
-        $Object = $Object.Split([Environment]::NewLine) ; 
+        TRY{
+            #$Object = $Object.Split([Environment]::NewLine) ;
+            [string[]]$Object = [string[]]$Object.ToString().Split([Environment]::NewLine) ; 
+        } CATCH{
+            write-verbose "Workaround err: The variable cannot be validated because the value System.String[] is not a valid value for the Object variable." ; 
+            [string[]]$Object = ($Object|out-string).trim().Split([Environment]::NewLine) ; 
+        } ; 
                 
         <# Issue with most above: if you use:
         $padding = "-" * 4 ; # to *see* the spaces
@@ -256,9 +267,9 @@ the output strings. No newline is added after the last output string.")]
         #>
         # works, is equiv to the above, just collapses down the silly -nonewline loop
         foreach ($obj in $object){
-            Write-Host -NoNewline $($PadChar * $CurrIndent)  ; 
-            write-host @pltWH -object $obj ; 
-        } ; 
+            Write-Host -NoNewline $($PadChar * $CurrIndent)  ;
+            write-host @pltWH -object $obj ;
+        } ;
     } ;  # BEG-E
 } ; 
 #*------^ END Function write-HostIndent ^------
