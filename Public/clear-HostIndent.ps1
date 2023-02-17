@@ -76,49 +76,47 @@ function clear-HostIndent {
         [Parameter(
             HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
             [switch]$usePID
-    ) ; 
+    ) ;
     BEGIN {
-        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
-        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
-        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        if(($PSBoundParameters.keys).count -ne 0){
-            $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-            write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
-        } ; 
-        $Verbose = ($VerbosePreference -eq 'Continue') ;   
-        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+    #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+    # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+    ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+    if(($PSBoundParameters.keys).count -ne 0){
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+    } ;
+    $Verbose = ($VerbosePreference -eq 'Continue') ;
+    #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
 
-        #if we want to tune this to a $PID-specific variant, use:
-        if($usePID){
+    #if we want to tune this to a $PID-specific variant, use:
+    if($usePID){
             $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
             else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-            #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
             $HISName = "Env:HostIndentSpaces$($PID)" ;
         } else {
             $HISName = "Env:HostIndentSpaces" ;
         } ;
         if(($smsg = Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value){
-            write-verbose $smsg ; 
-        } ; 
-
+            write-verbose $smsg ;
+        } ;
         if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
-            [int]$CurrIndent = 0 ; 
-        } ; 
+            [int]$CurrIndent = 0 ;
+        } ;
         $pltSV=@{
-            Path = $HISName ; 
-            Force = $true ; 
+            Path = $HISName ;
+            Force = $true ;
             erroraction = 'STOP' ;
         } ;
-        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ; 
+        $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ;
         write-verbose $smsg  ;
         TRY{
-            Clear-Item @pltSV #-verbose ; 
+            Clear-Item @pltSV  ;
         } CATCH {
             $smsg = $_.Exception.Message ;
             write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
             BREAK ;
         } ;
     } ;  # BEG-E
-} ; 
+} ;
 #*------^ END Function clear-HostIndent ^------

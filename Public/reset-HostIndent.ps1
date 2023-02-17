@@ -93,7 +93,7 @@ function reset-HostIndent {
         } else { 
             $HISName = "Env:HostIndentSpaces" ; 
         } ; 
-            
+                
         if(($smsg = Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value){
             write-verbose $smsg ; 
         } ; 
@@ -109,7 +109,7 @@ function reset-HostIndent {
         $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ; 
         write-verbose $smsg  ;
         TRY{
-            Set-Item @pltSV #-verbose ; 
+            Set-Item @pltSV ;
         } CATCH {
             $smsg = $_.Exception.Message ;
             write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;

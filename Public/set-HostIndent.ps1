@@ -91,43 +91,38 @@ function set-HostIndent {
             [switch]$usePID
     ) ;
     BEGIN {
-        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
-        # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
-        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        if(($PSBoundParameters.keys).count -ne 0){
-            $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
-            write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
-        } ; 
-        $Verbose = ($VerbosePreference -eq 'Continue') ;
-        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+    #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+    # function self-name (equiv to script's: $MyInvocation.MyCommand.Path) ;
+    ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+    if(($PSBoundParameters.keys).count -ne 0){
+        $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+        write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+    } ;
+    $Verbose = ($VerbosePreference -eq 'Continue') ;
+    #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
 
-        write-verbose "$($CmdletName): Using `$PadIncrement:`'$($PadIncrement)`'" ; 
-
-        switch($Rounding){
-            'RoundUp' {
-                # always round up (to next higher multiple)
-                $Spaces = ([system.math]::ceiling($Spaces/$PadIncrement))*$PadIncrement  ;
-                write-verbose "Rounding:Roundup specified: Rounding to: $($Spaces)" ;
-                }
-            'RoundDown' {
-                # always round down (to next lower multiple)
-                $Spaces = ([system.math]::floor($Spaces/$PadIncrement))*$PadIncrement  ;
-                write-verbose "Rounding:RoundDown specified: Rounding to: $($Spaces)" ;
-                }
-            'AwayFromZero' {
-                # traditional school: 'when remainder is 5 round up'
-                $Spaces = ([system.math]::round($_/$PadIncrement,0,1))*$PadIncrement  ;
-                write-verbose "Rounding:AwayFromZero specified: Rounding to: $($Spaces)" ;
+    write-verbose "$($CmdletName): Using `$PadIncrement:`'$($PadIncrement)`'" ;
+    switch($Rounding){
+        'RoundUp' {
+            $Spaces = ([system.math]::ceiling($Spaces/$PadIncrement))*$PadIncrement  ;
+            write-verbose "Rounding:Roundup specified: Rounding to: $($Spaces)" ;
             }
-            'Midpoint' {
-                # default programatic/banker's rounding: if midpoint 5, round to the *nearest even number*'
-                $Spaces = ([system.math]::round($_/$PadIncrement))*$PadIncrement  ;
-                write-verbose "Rounding:Midpoint specified: Rounding to: $($Spaces)" ;
+        'RoundDown' {
+            $Spaces = ([system.math]::floor($Spaces/$PadIncrement))*$PadIncrement  ;
+            write-verbose "Rounding:RoundDown specified: Rounding to: $($Spaces)" ;
             }
-        } ;
+        'AwayFromZero' {
+            $Spaces = ([system.math]::round($_/$PadIncrement,0,1))*$PadIncrement  ;
+            write-verbose "Rounding:AwayFromZero specified: Rounding to: $($Spaces)" ;
+        }
+        'Midpoint' {
+            $Spaces = ([system.math]::round($_/$PadIncrement))*$PadIncrement  ;
+            write-verbose "Rounding:Midpoint specified: Rounding to: $($Spaces)" ;
+        }
+    } ;
 
-        #if we want to tune this to a $PID-specific variant, use:
-        if($usePID){
+    #if we want to tune this to a $PID-specific variant, use:
+    if($usePID){
             $smsg = "-usePID specified: `$Env:HostIndentSpaces will be suffixed with this process' `$PID value!" ;
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info }
             else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
@@ -136,9 +131,8 @@ function set-HostIndent {
             $HISName = "Env:HostIndentSpaces" ;
         } ;
         if(($smsg = Get-Item -Path "Env:HostIndentSpaces$($PID)" -erroraction SilentlyContinue).value){
-            write-verbose $smsg ; 
-        } ; 
-
+            write-verbose $smsg ;
+        } ;
         if (-not ([int]$CurrIndent = (Get-Item -Path $HISName -erroraction SilentlyContinue).Value ) ){
             [int]$CurrIndent = 0 ;
         } ;
@@ -152,12 +146,12 @@ function set-HostIndent {
         $smsg = "$($CmdletName): Set 1 lvl:Set-Variable w`n$(($pltSV|out-string).trim())" ;
         write-verbose $smsg  ;
         TRY{
-            Set-Item @pltSV #-verbose ;
+            Set-Item @pltSV ;
         } CATCH {
             $smsg = $_.Exception.Message ;
             write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
             BREAK ;
         } ;
-    } ;  
+    } ;
 } ;
 #*------^ END Function set-HostIndent ^------
