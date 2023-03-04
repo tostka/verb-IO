@@ -1,23 +1,24 @@
-﻿#*------v Function get-RegistryProperty v------
-function get-RegistryProperty {
+﻿#*------v Function get-RegistryValue v------
+function get-RegistryValue {
     <#
     .SYNOPSIS
-    get-RegistryProperty - Retrieve and return a registry key
+    get-RegistryValue - Retrieve and return a registry key
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
     CreatedDate : 2020-05-01
-    FileName    : 
+    FileName    : get-RegistryValue.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
     Github      : https://github.com/tostka
     Tags        : Powershell,Registry,Maintenance
     REVISIONS
+    * 2:02 PM 2/21/2023 ren'd get-RegistryProperty -> get-RegistryValue (aliased orig name)
     * 10:13 AM 5/1/2020 init vers
     .DESCRIPTION
-    get-RegistryProperty - Retrieve and return a registry key
+    get-RegistryValue - Retrieve and return a registry key
     .PARAMETER  Path
     Registry path to target key to be updated[-Path 'HKCU:\Control Panel\Desktop']
     .PARAMETER Name
@@ -29,15 +30,16 @@ function get-RegistryProperty {
     .OUTPUT
     System.Object[]
     .EXAMPLE
-    $RegValue = get-RegistryProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'AutoColorization' -Value 0 ; 
+    $RegValue = get-RegistryValue -Path 'HKCU:\Control Panel\Desktop' -Name 'AutoColorization' -Value 0 ; 
     Return the desktop AutoColorization property value (silent)
     .EXAMPLE
-    $RegValue = get-RegistryProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'AutoColorization' -Value 0 -verbose ; 
+    $RegValue = get-RegistryValue -Path 'HKCU:\Control Panel\Desktop' -Name 'AutoColorization' -Value 0 -verbose ; 
     Return the desktop AutoColorization property value with verbose output
     .LINK
     https://github.com/tostka
     #>
     [CmdletBinding()]
+    [alias('get-RegistryProperty')]
     Param(
         [Parameter(Mandatory = $True,HelpMessage = "Registry property to be updated[-Name AutoColorization]")]
         [ValidateNotNullOrEmpty()][string]$Name,
@@ -53,18 +55,12 @@ function get-RegistryProperty {
     $Verbose = ($VerbosePreference -eq 'Continue') ; 
     $error.clear() ;
     TRY {
-        $pltReg=[ordered]@{
-            Path = $Path ;
-            Name = $Name ;
-            Value = $Value ;
-            whatif=$($whatif) ;
-        } ;
-        $RegValue = Get-ItemProperty -path $pltReg.path -name $pltReg.name| select -expand $pltReg.name ; 
-        write-verbose -Verbose:$Verbose  "$((get-date).ToString('HH:mm:ss')):Value queried:$($pltReg.Path)\`n$($pltReg.Name):`n$(($RegValue|out-string).trim())" ;
+        $RegValue = Get-ItemProperty -path $Path -name $Name| select -expand $Name ; 
+        # alt: Get-ItemPropertyValue  -Path 'hkcu:\control panel\desktop' -name AutoColorization
         $RegValue | write-output ; 
     } CATCH {
         $ErrTrpd = $_ ; 
         Write-Warning "$(get-date -format 'HH:mm:ss'): Failed processing $($ErrTrpd.Exception.ItemName). `nError Message: $($ErrTrpd.Exception.Message)`nError Details: $($ErrTrpd)" ;
         $false | write-output ; 
     } ; 
-} ;#*------^ END Function get-RegistryProperty ^------ ; 
+} ;#*------^ END Function get-RegistryValue ^------ ; 

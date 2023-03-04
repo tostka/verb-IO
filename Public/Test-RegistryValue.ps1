@@ -2,7 +2,7 @@
 function Test-RegistryValue {
     <#
     .SYNOPSIS
-    Test-RegistryValue.ps1 - Compares value of registry key against specified -value
+    Test-RegistryValue.ps1 - Tests registry for specified Value at Key (present/set, doesn't return value)
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -22,7 +22,7 @@ function Test-RegistryValue {
     * 5:03 PM 1/14/2021 init, minor CBH mods
     * 7/29/19 AB's posted version
     .DESCRIPTION
-    Test-RegistryValue.ps1 - Compares value of registry key against specified -value
+    Test-RegistryValue.ps1 - Tests registry for specified Value at Key (present/set, doesn't return value)
     .PARAMETER  Key
     Full registkey to be tested [-Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending']
     .PARAMETER  Value
