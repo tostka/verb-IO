@@ -1,13 +1,14 @@
-﻿#*----------------v Function convert-VideoToMp3 v------
+﻿#*------v convert-VideoToMp3.ps1 v------
 function convert-VideoToMp3 {
     <#
     .SYNOPSIS
     convert-VideoToMp3() - convert passed video files to mp3 files in same directory
     .NOTES
     Author: Todd Kadrie
-    Website:	http://tinstoys.blogspot.com
+    Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 5:43 PM 4/23/2023 add support for checking progs86 & progs (new support for 64bit vlc), orig wasn't finding vlc on new box.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 5:26 PM 10/5/2021 ren, and alias orig: convert-tomp3 -> convert-VideoToMp3 (added alias:convertto-mp3); also build into freestanding function in verb-IO
     # 12:02 PM 4/1/2017 convert-ToMp3: if it's a string, it's not going to have a fullname prop - it's a full path string
@@ -43,7 +44,7 @@ function convert-VideoToMp3 {
     Convert Specified video file to mp3.
     #>
     [CmdletBinding()]
-    [Alias('convert-ToMp3','convert-VideoToMp3')]
+    [Alias('convert-ToMp3')]
     PARAM (
         [parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0, Mandatory = $True, HelpMessage = "File(s) to be transcoded")]
         $InputObject
@@ -77,12 +78,25 @@ function convert-VideoToMp3 {
         $progInterval = 500 ; # write-progress interval in ms
         $iProcd = 0 ;
         $continue = $true ;
+        $progs = @($env:ProgramFiles,${env:ProgramFiles(x86)}) ; 
+        foreach($prog in $progs){
+            switch ($encoder) {
+                "VLC" { $processName = join-path -path $prog -childpath "\VideoLAN\VLC\vlc.exe"  }
+                "FFMPEG" { $processName = "C:\apps\ffmpeg\bin\ffmpeg.exe" }
+            } ;
+            if (test-path -path $processName) {
+                write-verbose "matched:$($processname)" ; 
+                break ; 
+            } 
+        } ; 
+        <#
         $programFiles = ${env:ProgramFiles(x86)};
         if ($programFiles -eq $null) { $programFiles = $env:ProgramFiles; } ;
         switch ($encoder) {
             "VLC" { $processName = $programFiles + "\VideoLAN\VLC\vlc.exe" ; }
             "FFMPEG" { $processName = "C:\apps\ffmpeg\bin\ffmpeg.exe" }
         } ;
+        #>
         if (!(test-path -path $processName)) { throw "MISSING/INVALID $($encoder) install path!:$($processName)" } ;
         write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):=== v PROCESSING STARTED v ===" ;
         $progParam = @{
@@ -341,4 +355,6 @@ function convert-VideoToMp3 {
         write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):=== ^ PROCESSING COMPLETE ^ ===" ;
 
     } # END-E
-} #*----------------^ END Function convert-VideoToMp3 ^--------
+}
+
+#*------^ convert-VideoToMp3.ps1 ^------
