@@ -18,6 +18,19 @@ Function mount-UnavailableMappedDrives{
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 8:49 AM 6/2/2023 reming the req for ps5: it's now breaking ipmo attempts during build processing in processbulk-NewModule.ps1 > verb-dev.psm1: Test-ModuleTMPFiles() at: $ModResult = import-module @pltIpmo ;
+    #-=-=-=-=-=-=-=-=
+TRY{ ipmo c:\sc\verb-io\verb-io\7e859d93-66fa-46e0-b053-4e71f64e289d.psm1  -ea STOP} catch {$Error[0] | fl * }
+The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: At
+C:\sc\verb-io\verb-io\7e859d93-66fa-46e0-b053-4e71f64e289d.psm1:8275 char:15
++     [pound]Requires -Version 5
++               ~~~~~~~~
+Cannot bind parameter because parameter 'version' is specified more than once. To provide multiple values to parameters that can accept
+multiple values, use the array syntax. For example, "-parameter value1,value2,value3".
+    + CategoryInfo          : ParserError: (:) [], ActionPreferenceStopException
+    + FullyQualifiedErrorId : ParameterAlreadyBound
+#-=-=-=-=-=-=-=-=
+
     * 4:43 PM 1/1/2023 fixed on TINKERTOY debugging (was missing returned obj props etc)
     * 11:07 AM 1/19/2022 swapped in $hommeta.rgxMapsUNCs for hard-coded rgx ; added test for value, pre-run
     *2:51 PM 12/5/2021 init
@@ -33,7 +46,7 @@ Function mount-UnavailableMappedDrives{
     .LINK
     https://github.com/tostka/verb-io
     #>
-    #Requires -Version 5
+    ##Requires -Version 5
     #Requires -Modules SmbShare
     PARAM(
         [Parameter(HelpMessage="Regex of RemotePath 'hosts' to be re-mounted in session[-rgxRemoteHosts '(Host1|host2)']")]

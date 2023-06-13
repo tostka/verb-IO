@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 8.0.0.0.0
+Version     : 10.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2513,7 +2513,7 @@ if($host.version.major -gt 2){
         Magenta 0xFF00FF   255,0,255
         Silver  0xC0C0C0 192,192,192
         Gray    0x808080 128,128,128
-        Maroon  0x800000     128,0,0
+        Maroon  0x10.0.00     1210.0.0
         Olive   0x808000   128,128,0
         Green   0x008000     0,128,0
         Purple  0x800080   128,0,128
@@ -4180,9 +4180,10 @@ function convert-VideoToMp3 {
     convert-VideoToMp3() - convert passed video files to mp3 files in same directory
     .NOTES
     Author: Todd Kadrie
-    Website:	http://tinstoys.blogspot.com
+    Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 5:43 PM 4/23/2023 add support for checking progs86 & progs (new support for 64bit vlc), orig wasn't finding vlc on new box.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 5:26 PM 10/5/2021 ren, and alias orig: convert-tomp3 -> convert-VideoToMp3 (added alias:convertto-mp3); also build into freestanding function in verb-IO
     # 12:02 PM 4/1/2017 convert-ToMp3: if it's a string, it's not going to have a fullname prop - it's a full path string
@@ -4218,7 +4219,7 @@ function convert-VideoToMp3 {
     Convert Specified video file to mp3.
     #>
     [CmdletBinding()]
-    [Alias('convert-ToMp3','convert-VideoToMp3')]
+    [Alias('convert-ToMp3')]
     PARAM (
         [parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0, Mandatory = $True, HelpMessage = "File(s) to be transcoded")]
         $InputObject
@@ -4252,12 +4253,25 @@ function convert-VideoToMp3 {
         $progInterval = 500 ; # write-progress interval in ms
         $iProcd = 0 ;
         $continue = $true ;
+        $progs = @($env:ProgramFiles,${env:ProgramFiles(x86)}) ; 
+        foreach($prog in $progs){
+            switch ($encoder) {
+                "VLC" { $processName = join-path -path $prog -childpath "\VideoLAN\VLC\vlc.exe"  }
+                "FFMPEG" { $processName = "C:\apps\ffmpeg\bin\ffmpeg.exe" }
+            } ;
+            if (test-path -path $processName) {
+                write-verbose "matched:$($processname)" ; 
+                break ; 
+            } 
+        } ; 
+        <#
         $programFiles = ${env:ProgramFiles(x86)};
         if ($programFiles -eq $null) { $programFiles = $env:ProgramFiles; } ;
         switch ($encoder) {
             "VLC" { $processName = $programFiles + "\VideoLAN\VLC\vlc.exe" ; }
             "FFMPEG" { $processName = "C:\apps\ffmpeg\bin\ffmpeg.exe" }
         } ;
+        #>
         if (!(test-path -path $processName)) { throw "MISSING/INVALID $($encoder) install path!:$($processName)" } ;
         write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):=== v PROCESSING STARTED v ===" ;
         $progParam = @{
@@ -14869,8 +14883,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU68GJU5dVJfeow+MQyXSEPQ63
-# UWugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUshgi14W/cQQOYW0LwszbyueU
+# wGigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -14885,9 +14899,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR85KGp
-# 8CGtdvaUM+UWx9ng9RScXzANBgkqhkiG9w0BAQEFAASBgLIxi8uxp3Um9PHwujEw
-# 8XnMNRV0L+qEM4v/HN4nfaXfyL83pkKSy6liL6JtS8k82Xx71z/BwGHzhZ+nqJmk
-# JAkIiAEcUq2EkXofRZ8NVajxeRuhBcTcXdYrx7SHxSSpIl8PIOmSdGVE2OnjRu0n
-# OSaV4HQ3b6/WOcXcSDdFJ31C
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTySDcf
+# F/qflqf35b/VvM5riQQWhjANBgkqhkiG9w0BAQEFAASBgEOeZuK2RPk0mYad4wiT
+# fZ7f0CgmwT5HuT5h/HpWU0Id7zr6TCStXy2xLuSSiG8XPFLMWxmQiswHXBh/f12W
+# GhgwS5x7zthWAgDwjXa42YqnJ3Hv8l1tqo6sufnhGIU87OxzruLBkKgM/C1TI1L2
+# AD86iCM9EpoSogeLviGm848I
 # SIG # End signature block
