@@ -21,6 +21,7 @@ function search-Excel{
     AddedWebsite: https://stackoverflow.com/users/3245749/themadtechnician
     AddedTwitter: URL
     REVISIONS
+    * 10:59 AM 7/7/2023 added timer; also spliced in additional com-obj removal for subobjects
     * 10:14 AM 7/6/2023 retooled with: excel extension path validation;  added pipeline support ; added CBH ; moved obj open to begin block
     * 8/16/2021 TheMadTechnician's posted looping tweak example
     * 10/1/2019 S Mohammad's posted copy
@@ -96,6 +97,7 @@ function search-Excel{
                 write-host "." -NoNewLine ; $1F=$true ; 
             } ; 
             $Error.Clear() ; 
+            $sw = [Diagnostics.Stopwatch]::StartNew();
             write-verbose "Opening Workbook $($item.fullname)..." ; 
             $Workbook = $Excel.Workbooks.Open($item.fullname) ; 
             ForEach ($Worksheet in @($Workbook.Sheets)) {
@@ -131,6 +133,9 @@ function search-Excel{
             } ; 
             write-verbose "Closing workbook" ; 
             $workbook.close($false) ; 
+            $sw.Stop() ;
+            $smsg =  ("Elapsed Time: {0:dd}d {0:hh}h {0:mm}m {0:ss}s {0:fff}ms" -f $sw.Elapsed) ;
+            write-host -foregroundcolor gray "$((get-date).ToString('HH:mm:ss')):$($smsg)" ; 
         } ;  # loop-E
     } ;  # PROC-E
     END {
