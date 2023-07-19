@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 10.0.0.0.0
+Version     : 10.1.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2513,7 +2513,7 @@ if($host.version.major -gt 2){
         Magenta 0xFF00FF   255,0,255
         Silver  0xC0C0C0 192,192,192
         Gray    0x808080 128,128,128
-        Maroon  0x10.0.00     1210.0.0
+        Maroon  0x800000     128,0,0
         Olive   0x808000   128,128,0
         Green   0x008000     0,128,0
         Purple  0x800080   128,0,128
@@ -6269,6 +6269,318 @@ function Get-FileEncodingExtended {
 #*------^ Get-FileEncodingExtended.ps1 ^------
 
 
+#*------v get-filesignature.ps1 v------
+Function get-filesignature {
+    <#
+    .SYNOPSIS
+    get-filesignature.ps1 - Obtains file signature information on file, such as MZ if it's an executable.
+    .NOTES
+    Version     : 0.0.
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-
+    FileName    : get-filesignature.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell
+    AddedCredit : Boe Prox
+    AddedWebsite: https://mvp.microsoft.com/en-us/PublicProfile/5000355
+    AddedTwitter: @proxb / http://twitter.com/proxb
+    REVISIONS
+    * 6:19 PM 5/12/2023 added/fixed the bundled CBH
+    * 07/25/2018 BP posted rev from article, reflects enhancements from Psv5
+
+    .DESCRIPTION
+    get-filesignature.ps1 - Obtains file signature information on file, such as MZ if it's an executable.
+    The cmdlet all allows you to view signature information of file which could reveal things like executables with different file extensions.
+
+    > TK: NOTE: get-filesignature simply returns the *existing* Extension, *NOT* a suitable/appropriate one, where the file has the wrong extension assigned 
+    >   (have to parse and determine externally, eg. via get-FileType's output).
+
+    Original Weekend Scripter function links broken 
+    [Weekend Scripter: Use PowerShell to Investigate File Signaturesâ€”Part 2 - Scripting Blog](https://devblogs.microsoft.com/scripting/weekend-scripter-use-powershell-to-investigate-file-signaturespart-2/)
+
+    Found 2018-era mcpmag post with the function: 
+    [Investigating File Signatures Using PowerShell -- Microsoft Certified Professional Magazine Online](https://mcpmag.com/articles/2018/07/25/file-signatures-using-powershell.aspx)
+
+    .PARAMETER Path
+    Enter one or more file paths.
+    .INPUTS
+    None. Does not accepted piped input.(.NET types, can add description)
+    .OUTPUTS
+    System.Object
+    Returns three properties of the file:
+    HexSignature
+    ASCIISignature
+    Extension (*Current* Extension assigned to file)
+    .EXAMPLE
+    PS> .\get-filesignature.ps1 -whatif -verbose
+    EXSAMPLEOUTPUT
+    Run with whatif & verbose
+    .EXAMPLE
+    PS> Get-FileSignature -Path C:\Windows\System32\cmd.exe
+
+        Name           : cmd.exe
+        FullName       : C:\Windows\System32\cmd.exe
+        HexSignature   : 4D5A
+        ASCIISignature : MZ
+        Length         : 273920
+        Extension      : exe
+
+    The above examples shows how to view the basic signature of a file and it's output.
+    .LINK
+    https://github.com/tostka/verb-IO
+    .LINK
+    https://bitbucket.org/tostka/powershell/
+    .LINK
+    [Investigating File Signatures Using PowerShell -- Microsoft Certified Professional Magazine Online](https://mcpmag.com/articles/2018/07/25/file-signatures-using-powershell.aspx)
+    #>
+    #Requires -Version 3.0
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$true, ValueFromPipelineByPropertyName=$true,ValueFromPipeline=$True)]
+            [Alias("PSPath","FullName")]
+            [string[]]$Path,
+        [Parameter()]
+            [Alias('Filter')]
+            [string]$HexFilter = "*",
+        [Parameter()]
+            [int]$ByteLimit = 2,
+        [Parameter()]
+            [Alias('OffSet')]
+            [int]$ByteOffset = 0
+    )
+    BEGIN {
+        #Determine how many bytes to return if using the $ByteOffset
+        $TotalBytes = $ByteLimit + $ByteOffset
+
+        #Clean up filter so we can perform a regex match
+        #Also remove any spaces so we can make it easier to match
+        [regex]$pattern = ($HexFilter -replace '\*','.*') -replace '\s',''
+    }
+    PROCESS {  
+        ForEach ($item in $Path) { 
+            TRY {                     
+                $item = Get-Item -LiteralPath (Convert-Path $item) -Force -ErrorAction Stop
+            } CATCH {
+                Write-Warning "$($item): $($_.Exception.Message)"
+                Return
+            }
+            If (Test-Path -Path $item -Type Container) {
+                Write-Warning ("Cannot find signature on directory: {0}" -f $item)
+            } Else {
+                TRY {
+                    If ($Item.length -ge $TotalBytes) {
+                        #Open a FileStream to the file; this will prevent other actions against file until it closes
+                        $filestream = New-Object IO.FileStream($Item, [IO.FileMode]::Open, [IO.FileAccess]::Read)
+
+                        #Determine starting point
+                        [void]$filestream.Seek($ByteOffset, [IO.SeekOrigin]::Begin)
+
+                        #Create Byte buffer to read into and then read bytes from starting point to pre-determined stopping point
+                        $bytebuffer = New-Object "Byte[]" ($filestream.Length - ($filestream.Length - $ByteLimit))
+                        [void]$filestream.Read($bytebuffer, 0, $bytebuffer.Length)
+
+                        #Create string builder objects for hex and ascii display
+                        $hexstringBuilder = New-Object Text.StringBuilder
+                        $stringBuilder = New-Object Text.StringBuilder
+
+                        #Begin converting bytes
+                        For ($i=0;$i -lt $ByteLimit;$i++) {
+                            If ($i%2) {
+                                [void]$hexstringBuilder.Append(("{0:X}" -f $bytebuffer[$i]).PadLeft(2, "0"))
+                            } Else {
+                                If ($i -eq 0) {
+                                    [void]$hexstringBuilder.Append(("{0:X}" -f $bytebuffer[$i]).PadLeft(2, "0"))
+                                } Else {
+                                    [void]$hexstringBuilder.Append(" ")
+                                    [void]$hexstringBuilder.Append(("{0:X}" -f $bytebuffer[$i]).PadLeft(2, "0"))
+                                }        
+                            }
+                            If ([char]::IsLetterOrDigit($bytebuffer[$i])) {
+                                [void]$stringBuilder.Append([char]$bytebuffer[$i])
+                            } Else {
+                                [void]$stringBuilder.Append(".")
+                            }
+                        }
+                        If (($hexstringBuilder.ToString() -replace '\s','') -match $pattern) {
+                            $object = [pscustomobject]@{
+                                Name = ($item -replace '.*\\(.*)','$1')
+                                FullName = $item
+                                HexSignature = $hexstringBuilder.ToString()
+                                ASCIISignature = $stringBuilder.ToString()
+                                Length = $item.length
+                                Extension = $Item.fullname -replace '.*\.(.*)','$1'
+                            }
+                            $object.pstypenames.insert(0,'System.IO.FileInfo.Signature')
+                            Write-Output $object
+                        }
+                    } ElseIf ($Item.length -eq 0) {
+                        Write-Warning ("{0} has no data ({1} bytes)!" -f $item.name,$item.length)
+                    } Else {
+                        Write-Warning ("{0} size ({1}) is smaller than required total bytes for the tested signature ({2})" -f $item.name,$item.length,$TotalBytes)
+                    }
+                } CATCH {
+                    Write-Warning ("{0}: {1}" -f $item,$_.Exception.Message)
+                }
+
+                #Close the file stream so the file is no longer locked by the process
+                $FileStream.Close()
+            };  # if-E
+        }  # loop-E
+    } # PROC-E
+}
+
+#*------^ get-filesignature.ps1 ^------
+
+
+#*------v get-FileType.ps1 v------
+function Get-FileType {
+    <#
+.SYNOPSIS
+Get-FileType - Try to get the file type based on it's file signature.
+.NOTES
+Version     : 0.0.
+Author      : Todd Kadrie
+Website     : http://www.toddomation.com
+Twitter     : @tostka / http://twitter.com/tostka
+CreatedDate : 2023-
+FileName    : Get-FileType.ps1
+License     : (none asserted)
+Copyright   : (none asserted)
+Github      : https://github.com/tostka/verb-IO
+Tags        : Powershell
+AddedCredit : gravejester (Ã˜yvind Kallstad)
+AddedWebsite: https://gist.github.com/gravejester
+AddedTwitter: @okallstad / https://twitter.com/okallstad
+REVISIONS
+* 6:19 PM 5/12/2023 updated/expanded CBH, extra example demoing parse of returned FileType to provide a 'proper' extension for misnamed files.
+* Dec 15, 2014 GJ's posted version
+.DESCRIPTION
+Get-FileType - Try to get the file type based on it's file signature.
+
+This function uses Get-FileSignature by Boe Prox and a list of
+known file signatures to try to find the file type of a given file.
+
+[Get-FileType.ps1 Â· GitHub](https://gist.github.com/gravejester/803649515c2dd85ab37e)
+
+.PARAMETER Path
+Path [-path c:\path-to\]
+.INPUTS
+None. Does not accepted piped input.(.NET types, can add description)
+.OUTPUTS
+System.object
+Returns a summary of the specified file. 
+.EXAMPLE
+PS> Get-FileType c:\path\to\file.pdf
+Run with whatif & verbose
+.EXAMPLE
+PS> $dfile = get-childitem -path $Path ; 
+PS> $Imagetype = get-FileType -Path $dfile.fullname -verbose:$($VerbosePreference -eq "Continue") ;
+PS> $ImagetypeExtension = ([regex]::match($Imagetype.FileType,"\(.*\)").groups[0].captures[0].value.replace('(','').replace(')','').split('/'))[0] ; 
+PS> if($dfile.extension -ne ".$($ImagetypeExtension)"){
+PS>     $pltRI = @{
+PS>         Path = $dfile.fullname ;
+PS>         NewName = $dfile.name.replace($dfile.extension,".$($ImagetypeExtension.tolower())") ; 
+PS>         ErrorAction = 'STOP'
+PS>         verbose = $($VerbosePreference -eq "Continue") ;
+PS>     } ; 
+PS>     rename-item @pltRI ; 
+PS> } ; 
+Demo coercing a 'correct' extension for the file type (where files come down misnamed - and get-filesignature simply returns the *existing* extension)
+Accommodates multi-extension filetypes by parsing output: split on '/' (between extensions), and always take the first entry in the array.
+Ergo: Filetype: 'Archive (ZIP/JAR)' == returns ZIP (vs JAR)
+.LINK
+https://github.com/tostka/verb-IO
+.LINK
+https://gallery.technet.microsoft.com/scriptcenter/Get-FileSignature-f5ae19f5
+.LINK
+https://gist.github.com/gravejester/803649515c2dd85ab37e
+.LINK
+https://github.com/gravejester
+#>
+<#
+.SYNOPSIS
+Try to get the file type based on it's file signature.
+.DESCRIPTION
+
+.EXAMPLE
+Get-FileType c:\path\to\file.pdf
+.LINK
+#>
+    [CmdletBinding()]
+    PARAM (
+        # Path to file.
+        [Parameter(Position = 0, ValueFromPipelineByPropertyName)]
+        [string[]] $Path
+    )
+
+    BEGIN {
+        # description, hex signature, byte offset, byte limit
+        $fileSignatures = @(
+            @('JPG/JPEG','FFD8FF',0,3),
+            @('Portable Network Graphics (PNG)','89504E470D0A1A0A',0,8),
+            @('Graphics Interchange Format - GIF87a (GIF)','474946383761',0,6),
+            @('Graphics Interchange Format - GIF89a (GIF)','474946383961',0,6),
+            @('Icon (ICO)','00000100',0,4),
+            @('MPEG-4 (MP4)','000000*66747970',0,8),
+            @('MPEG-4 (MP4)','336770',0,3),
+            @('Windows/DOS executable file (EXE/COM/DLL/DRV/PIF/OCX/OLB/SCR/CPL ++)','4D5A',0,2),
+            @('Archive (RAR)','526172211A0700',0,7),
+            @('Archive (RAR)','526172211A070100',0,8),
+            @('Adobe Portable Document Format (PDF) / Forms Document file (FDF)','25504446',0,4),
+            @('MPEG-1 Audio Layer 3 (MP3)','FFFB',0,2),
+            @('MPEG-1 Audio Layer 3 (MP3)','494433',0,3),
+            @('ISO9660 CD/DVD image (ISO)','4344303031','0x8001',5),
+            @('ISO9660 CD/DVD image (ISO)','4344303031','0x8801',5),
+            @('ISO9660 CD/DVD image (ISO)','4344303031','0x9001',5),
+            @('Install Shield compressed file (CAB/HDR)','49536328',0,4),
+            @('Microsoft cabinet file (CAB) / Powerpoint Packaged Presentation (PPZ) / Microsoft Access Snapshot Viewer file (SNP)','4D534346',0,4),
+            @('Microsoft Windows Imaging Format file (WIM)','4D5357494D',0,5),
+            @('Rich text format (RTF)','7B5C72746631',0,6),
+            @('TrueType font file (TTF)','0001000000',0,5),
+            @('Windows shell link (shortcut) file (LNK)','4C00000001140200',0,8),
+            @('Windows Help (HLP/GID)','4C4E0200',0,4),
+            @('Windows Help (HLP/GID)','3F5F0300',0,4),
+            @('Windows Help (HLP)','0000FFFFFFFF',0,6),
+            @('Windows Registry (REG/SUD)','52454745444954',0,7),
+            @('Windows Registry (REG)','FFFE',0,2),
+            @('Archive (ZIP/JAR)','504B0304',0,4),
+            @('Microsoft security catalog file (CAT)','30',0,1),
+            @('Windows memory dump (DMP)','5041474544554D50',0,8),
+            @('Windows 64-bit memory dump (DMP)','5041474544553634',0,8),
+            @('Windows minidump (DMP) / Windows heap dump (HDMP)','4D444D5093A7',0,6),
+            @('Microsoft Compiled HTML Help (CHM/CHI)','49545346',0,4),
+            @('Waveform Audio (WAV)','52494646*57415645',0,12)
+        ) ; 
+
+    } # BEG-E
+    PROCESS {
+        foreach ($filePath in $Path) {
+            if (Test-Path $filePath) {
+                foreach($signature in $fileSignatures) {
+                    if($thisSig = Get-FileSignature -Path $filePath -HexFilter $signature[1] -ByteOffset $signature[2] -ByteLimit $signature[3]) {
+                        Write-Output (,([PSCustomObject] [Ordered] @{
+                            Path = $filePath
+                            FileType = ($signature[0])
+                            HexSignature = $thisSig.HexSignature
+                            ASCIISignature = $thisSig.ASCIISignature
+                            Extension = $thisSig.Extension
+                        }))
+                    }
+                }  ; # loop-E
+            } else {
+                Write-Warning "$filePath not found!" ; 
+            } ; 
+        }  ; # loop-E
+    } ;# PROC-E
+}
+
+#*------^ get-FileType.ps1 ^------
+
+
 #*------v Get-FolderSize.ps1 v------
 function Get-FolderSize {
     <#
@@ -7945,6 +8257,19 @@ Function mount-UnavailableMappedDrives{
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 8:49 AM 6/2/2023 reming the req for ps5: it's now breaking ipmo attempts during build processing in processbulk-NewModule.ps1 > verb-dev.psm1: Test-ModuleTMPFiles() at: $ModResult = import-module @pltIpmo ;
+    #-=-=-=-=-=-=-=-=
+TRY{ ipmo c:\sc\verb-io\verb-io\7e859d93-66fa-46e0-b053-4e71f64e289d.psm1  -ea STOP} catch {$Error[0] | fl * }
+The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: At
+C:\sc\verb-io\verb-io\7e859d93-66fa-46e0-b053-4e71f64e289d.psm1:8275 char:15
++     [pound]Requires -Version 5
++               ~~~~~~~~
+Cannot bind parameter because parameter 'version' is specified more than once. To provide multiple values to parameters that can accept
+multiple values, use the array syntax. For example, "-parameter value1,value2,value3".
+    + CategoryInfo          : ParserError: (:) [], ActionPreferenceStopException
+    + FullyQualifiedErrorId : ParameterAlreadyBound
+#-=-=-=-=-=-=-=-=
+
     * 4:43 PM 1/1/2023 fixed on TINKERTOY debugging (was missing returned obj props etc)
     * 11:07 AM 1/19/2022 swapped in $hommeta.rgxMapsUNCs for hard-coded rgx ; added test for value, pre-run
     *2:51 PM 12/5/2021 init
@@ -7960,7 +8285,7 @@ Function mount-UnavailableMappedDrives{
     .LINK
     https://github.com/tostka/verb-io
     #>
-    #Requires -Version 5
+    ##Requires -Version 5
     #Requires -Modules SmbShare
     PARAM(
         [Parameter(HelpMessage="Regex of RemotePath 'hosts' to be re-mounted in session[-rgxRemoteHosts '(Host1|host2)']")]
@@ -13189,6 +13514,184 @@ function test-FileSysAutomaticVariables {
 #*------^ test-FileSysAutomaticVariables.ps1 ^------
 
 
+#*------v test-IsLink.ps1 v------
+function test-IsLink{
+    <#
+    .SYNOPSIS
+    test-IsLink.ps1 - Tests a given file or directory path, for 'Symlink'/'Hardlink'/Reparsepoint status.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-06-16
+    FileName    : test-IsLink.ps1
+    License     : MIT License
+    Copyright   : (c) 2023 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell, fileystem, junctionpoint,  symlink,  reparsepoint
+    AddedCredit : REFERENCE
+    AddedWebsite: URL
+    AddedTwitter: URL
+    REVISIONS
+    * 1:07 PM 6/19/2023 retooled with more extensive gi/gci -type tests for target & linktype, but only works in PsWin v5.1, psCore has zero support
+    * 1:45 PM 6/16/2023 init
+    .DESCRIPTION
+    test-IsLink - Tests a given file or directory path, for 'Symlink'/'Hardlink'/Reparsepoint status.
+    .PARAMETER Path
+    Path [-path c:\path-to\]
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    System.Boolean
+    .EXAMPLE
+    PS> if(test-IsLink -path c:\tmp\){
+    PS>     write-host 'ReparsePoint (Symlink/Hardlink/JuntionPoint) detected' ;
+    PS> }else{
+    PS>     write-host 'No ReparsePoint (Symlink/Hardlink/JuntionPoint) detected' ;
+    PS> }
+    Typical usage
+    .EXAMPLE
+    PS> join-path (split-path $profile) 'profile.ps1' | test-IsLink -verbose ; 
+
+        VERBOSE: Data received from pipeline input: ''
+        VERBOSE: C:\Users\LOGON\OneDrive - COMPANY\Documents\WindowsPowerShell\profile.ps1 is a File
+        True
+    
+    Demo testing resolved profile.ps1 in CU profile, via pipeline.
+    .EXAMPLE
+    PS> join-path (split-path $profile) 'profile.ps1' | test-islink -verbose -type HardLink ; 
+    Test for hardlink type file link
+    .LINK
+    https://github.com/tostka/verb-io
+    .LINK
+    https://bitbucket.org/tostka/powershell/
+    #>
+    [CmdletBinding()]
+    [Alias('test-IsSymlink','test-IsJunction', 'test-IsHardLink')]
+    PARAM(
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True, HelpMessage = 'Paths[-path c:\pathto\file.ext or c:\pathto]')]
+            [Alias('PsPath')]
+            [ValidateScript({Test-Path $_})]
+            [string[]]$Path,
+        [Parameter(Mandatory = $false,HelpMessage = 'ItemType specification (SymbolicLink|HardLink|Junction)[-Type HardLink]')]
+            [ValidateSet('SymbolicLink','HardLink','Junction','Any')]
+            [string[]]$Type
+    ) ; 
+    BEGIN {
+        
+        switch -regex ($PSCmdlet.MyInvocation.Line){
+            ($PSCmdlet.MyInvocation.mycommand.name) {
+                write-verbose "called via native cmdlet name" ; 
+                if(-not $Type){
+                    $Type = 'Any' ; 
+                } ; 
+            }
+            'test-IsSymlink'{
+                write-verbose "called via alias:test-IsSymlink" ; 
+                $Type = 'SymbolicLink' ;
+            }
+            'test-IsHardLink'{
+                write-verbose "called via alias:test-IsHardLink" ; 
+                $Type = 'HardLink' ;
+            }
+            
+            'test-IsJunction'{
+                write-verbose "called via alias:test-IsJunction" ; 
+                $Type = 'Junction' ;
+            }
+            default{
+                $smsg = "unrecognized call!" ; 
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent} 
+                else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                break ; 
+            } 
+        } ; 
+
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ;
+        } 
+    } ;
+    PROCESS {
+        foreach($item in $Path) {
+            #$smsg = $sBnrS="`n#*------v PROCESSING : $($item) v------" ; 
+            #write-verbose $smsg ; 
+            $Error.Clear() ; 
+            $obj = Get-Item $item -Force -ea SilentlyContinue ;
+            switch($obj.PSIsContainer){
+                $true  {
+                    write-verbose "$($obj.fullname) is a Container" ; 
+                } 
+                $false {
+                    write-verbose "$($obj.fullname) is a File" ; 
+                } 
+                default {
+                    write-warning "$($obj.fullname) is of *unrecognized* object type!" ; 
+                    break ; 
+                } ; 
+            } ; 
+            #[bool]($obj.Attributes -band [IO.FileAttributes]::ReparsePoint) | write-output ; 
+            # issue is OneDriveForBusiness (ODFB) has *everything* tagged a ReparsePoint, even if they aren't hard/sym-links|junctionpoint|mountpoints.
+            <# - workaround Psv5.5 gi & gci have link related properties:
+                gi "$env:onedrive\documents\windowspowershell\*.ps1" | ?{$_.target -AND $_.linktype} | fl mode,target,linktype,fullname ; 
+
+                Mode     : -a---l
+                Target   : {C:\sc\powershell\PSProfileUID\profile.ps1}
+                LinkType : HardLink
+                FullName : C:\Users\kadrits\OneDrive - The Toro Company\documents\windowspowershell\profile.ps1
+
+                Mode instr 'l' == link (tagged on hard/symlinks & odfb reparsepoints -= worthless)
+                Target resolves actual target, but not on PSc6+
+                LinkType only works on PsWin5.1.
+
+              - Powershell Core has -view support:
+                gi "$env:onedrive\documents\windowspowershell\test.txt" | ft -view childrenWithHardLink
+
+                    Directory: C:\Users\kadrits\OneDrive - The Toro Company\documents\windowspowershell
+
+                Mode                 LastWriteTime         Length Name
+                ----                 -------------         ------ ----
+                la---           6/16/2023 12:46 PM              0 test.txt
+
+                but that's worthless, and is equiv to mode -like '*l*', and it's fooled and mistags ODFB reparsepoints. 
+                So completley drop tests support under PsC. 
+                It provides *zero* target resolution support. Reportedly pulled for performance issues (and doesn't even permit explicit check at calling user's spec, as Unix would do).
+            #>
+            if($IsCoreCLR){
+                $smsg = "Powershell Core detected: PsC has had *all* hardlink/symlink functional support stripped post psC6+" ; 
+                $smsg += "`n(close and rerun under WindowsPowershell v5.1!)" ; 
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent} 
+                else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                break ; 
+            }else {
+                [bool]$isReparsePoint = ($obj.Attributes -band [IO.FileAttributes]::ReparsePoint) ; 
+                [bool]$isObjLink = ($obj.target -AND $obj.linktype) ;
+                # if it has a .target, it's sometype of redirected object.
+            } ; 
+
+            switch ($type){
+                'any' {
+                    [bool]($isReparsePoint -AND $isObjLink) | write-output ; 
+                }
+                'SymbolicLink' {
+                    [bool]($isReparsePoint -AND $obj.target -AND ($obj.linktype -eq 'SymbolicLink')) | write-output ; 
+                }
+                'HardLink' {
+                    [bool]($isReparsePoint -AND $obj.target -AND ($obj.linktype -eq 'HardLink')) | write-output ; 
+                }
+                'Junction' {
+                    [bool]($isReparsePoint -AND $obj.target -AND ($obj.linktype -eq 'Junction')) | write-output ; 
+                }
+            }
+
+            #write-verbose $sBnrS.replace('-v','-^').replace('v-','^-') ;
+        } ;  # loop-E
+    } ;  # PROC-E
+}
+
+#*------^ test-IsLink.ps1 ^------
+
+
 #*------v test-IsUncPath.ps1 v------
 function test-IsUncPath {
     <#
@@ -13489,7 +13992,7 @@ Function test-MediaFile {
         FileMB | Mins | OBitRate  | Format      | Ext
         70mb   | 9.3  | 1058 kbps | MPEG-4 kbps | .mp4
         V-Fmt | V-Kbps | V-WxH:Ratio    | V-fps | V-Std | V-Encoder
-        AVC   | 881    | 1920x1080:16:9 | 30    |       |
+        AVC   | 881    | 1920x10.1.06:9 | 30    |       |
         A-Chnls   | A-Lang | A-Fmt  | A-BitRate | A-kHz
         2 channel |        | AAC LC | 174 Kbps  | 48.0
         -----
@@ -14875,7 +15378,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,get-LoremName,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,get-LoremName,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -14883,8 +15386,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUshgi14W/cQQOYW0LwszbyueU
-# wGigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUWEvHwoo+IxPRMdYFYmDUzWoI
+# Pf6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -14899,9 +15402,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTySDcf
-# F/qflqf35b/VvM5riQQWhjANBgkqhkiG9w0BAQEFAASBgEOeZuK2RPk0mYad4wiT
-# fZ7f0CgmwT5HuT5h/HpWU0Id7zr6TCStXy2xLuSSiG8XPFLMWxmQiswHXBh/f12W
-# GhgwS5x7zthWAgDwjXa42YqnJ3Hv8l1tqo6sufnhGIU87OxzruLBkKgM/C1TI1L2
-# AD86iCM9EpoSogeLviGm848I
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRlqKbQ
+# UxbIq60KfK8+wEsXQ2vOiTANBgkqhkiG9w0BAQEFAASBgKlrrP4//+tXLzPx481B
+# nPCuqHMkUHYo2OX/iWxbRmXmxV9VUvNK8DNJv1YJ09I8ltyfdd9a69OUtY/3rqNO
+# eJ2m/EKcdsVytnTlwYeVgrXk8E6nAvQde9i/mH+v0FgdRvDRPPJZ15/ddTQwpAvz
+# 04VBS4dUcKoeWF8DKx4r7pPs
 # SIG # End signature block
