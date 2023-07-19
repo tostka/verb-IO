@@ -8,6 +8,8 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:33 PM 7/17/2023 updated clash test rename-item code (was bombing consistently); also updated apostrophe test to solely test in path, not leaf filename.
+    * 12:05 AM 7/16/2023 added inputobject.fullname apostrophe test (parent path with apost crashes rediscover post convert)
     * 5:43 PM 4/23/2023 add support for checking progs86 & progs (new support for 64bit vlc), orig wasn't finding vlc on new box.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 5:26 PM 10/5/2021 ren, and alias orig: convert-tomp3 -> convert-VideoToMp3 (added alias:convertto-mp3); also build into freestanding function in verb-IO
@@ -146,6 +148,13 @@ function convert-VideoToMp3 {
 
                     if ($tf.extension -notmatch $rgxInputExts ) { throw "UNSUPPORTED INPUTFILE TYPE:$($inpuptFile)" }  ;
 
+                    # 12:01 AM 7/16/2023 apostrophe's in fullname crash rediscovery post conv, test
+                    #if($inputFile.FullName.contains("'")){
+                    # actually it's when there's a ' in the path, more than the file name. File name is acommodated, but renaming breaks with it in the path.
+                    if($inputfile.DirectoryName.contains("'")){
+                        throw "INPUTFILE TYPE FULLNAME CONTAINS APOSTROPHE(')!:`n$($inputfile.FULLNAME)`nSKIPPING!"
+                    } ;
+
                     <# 7:20 PM 11/6/2016 windows docs:https://wiki.videolan.org/Transcode/
                     Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
                     escaped by using a double backslash so that a filename would be D:\\path\\to\\file.mpg)
@@ -244,10 +253,10 @@ function convert-VideoToMp3 {
                             # ren $tempout => $outputFileName
                             if ($rf = get-childitem -path $tempout ) {
                                 # renames fail if there's an existing fn clash -> ren the clash, -ea 0 to suppress notfound errors
-                                if ($cf = get-childitem -path ($outputFileName | split-path -Leaf) -ea 0 ) {
+                                #if ($cf = get-childitem -path ($outputFileName | split-path -Leaf) -ea 0 ) {
+                                if($cf = gci -path (join-path -Path (split-path $rf.fullname) -ChildPath ($outputFileName | split-path -Leaf))){
                                     Rename-Item -path $rf.fullname -NewName "$($cf.BaseName)-$((get-date).tostring('yyyyMMdd-HHmmtt'))$($cf.Extension)" ;
-                                }
-                                else {
+                                } else {
                                     Rename-Item -path $rf.fullname -NewName $($outputFileName | split-path -Leaf)
                                 };
                             }
@@ -357,4 +366,4 @@ function convert-VideoToMp3 {
     } # END-E
 }
 
-#*------^ convert-VideoToMp3.ps1 ^------
+#*------^ convert-VideoToMp3.ps1 ^------eisebp ; $psise.CurrentFile.FullPath | ipmo -fo -verb ; 
