@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 10.2.0.0.0
+Version     : 10.3.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -4183,6 +4183,13 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 10:32 AM 7/21/2023 add both aliases convert-toMp3 & convertTo-Mp3(proper verb); fixed alias; removed unused params & showdebug support (v write-verbose) added xmpl; worked on path [] in latest pass ; add: rename nested 
+        try's against rename-item, move-item, and [System.IO.File]::Move() - hasn't 
+        triggered move att3empt yet on psv5 (rename-item -literalpath working), but the 
+        above were options for all way back to psv2 support. Even then could still 
+        proxy through a tmp file as well.  
+    * 10:33 PM 7/17/2023 updated clash test rename-item code (was bombing consistently); also updated apostrophe test to solely test in path, not leaf filename.
+    * 12:05 AM 7/16/2023 added inputobject.fullname apostrophe test (parent path with apost crashes rediscover post convert)
     * 5:43 PM 4/23/2023 add support for checking progs86 & progs (new support for 64bit vlc), orig wasn't finding vlc on new box.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 5:26 PM 10/5/2021 ren, and alias orig: convert-tomp3 -> convert-VideoToMp3 (added alias:convertto-mp3); also build into freestanding function in verb-IO
@@ -4217,25 +4224,29 @@ function convert-VideoToMp3 {
     .EXAMPLE
     $bRet=convert-VideoToMp3 -InputObject "C:\video.mkv" ;
     Convert Specified video file to mp3.
+    .EXAMPLE
+    PS> write-verbose 'cd to target dir' ; 
+    PS> cd .\somepath ; 
+    PS> write-verbose 'run recursive pass from there down' ; 
+    PS> get-childitem * -recurse | ?{$_.extension -match "^\.(mp4|mkv|webm|wmv|mov|mpeg)"} |%{ convert-VideoToMp3 -inputobject $_ }  ;
+    Typical 
     #>
     [CmdletBinding()]
-    [Alias('convert-ToMp3')]
+    [Alias('convert-ToMp3','convertTo-Mp3')]
     PARAM (
         [parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0, Mandatory = $True, HelpMessage = "File(s) to be transcoded")]
-        $InputObject
-        , [parameter(HelpMessage = "Bitrate for transcoded output (defaults to 320k)")]
-        [int]$bitrate = 320
-        , [parameter(HelpMessage = "Samplerate for transcoded output (defaults to 44100)")]
-        [int]$samplerate = 44100
-        , [Parameter(Mandatory = $false, HelpMessage = "Specify Site to analyze [-SiteName (USEA|GBMK|AUSYD]")]
-        [ValidateSet("F", "VLC")]
-        [string]$encoder = "VLC"
-        , [Parameter(HelpMessage = 'ShowProgress [$switch]')]
-        [switch] $showProgress
-        , [Parameter(HelpMessage = 'Debugging Flag [$switch]')]
-        [switch] $showDebug
-        , [Parameter(HelpMessage = 'Whatif Flag  [$switch]')]
-        [switch] $whatIf
+            $InputObject,
+        [parameter(HelpMessage = "Bitrate for transcoded output (defaults to 320k)")]
+            [int]$bitrate = 320,
+        [parameter(HelpMessage = "Samplerate for transcoded output (defaults to 44100)")]
+            [int]$samplerate = 44100,
+        [Parameter(Mandatory = $false, HelpMessage = "Specify Encoder forconversion (F(MPEG), VLC; defaults VLC)[-encoder F")]
+            [ValidateSet("F", "VLC")]
+            [string]$encoder = "VLC",
+        [Parameter(HelpMessage = 'Debugging Flag [$switch]')]
+            [switch] $showDebug,
+        [Parameter(HelpMessage = 'Whatif Flag  [$switch]')]
+            [switch] $whatIf
     ) ; # PARAM-E
 
     <# input formats supported by VLC
@@ -4250,7 +4261,6 @@ function convert-VideoToMp3 {
         $channels = 2 ;
         $mux = "dummy" ; # for mp3 audio-only extracts, use the dummy mux
         #"mpeg1"
-        $progInterval = 500 ; # write-progress interval in ms
         $iProcd = 0 ;
         $continue = $true ;
         $progs = @($env:ProgramFiles,${env:ProgramFiles(x86)}) ; 
@@ -4264,21 +4274,8 @@ function convert-VideoToMp3 {
                 break ; 
             } 
         } ; 
-        <#
-        $programFiles = ${env:ProgramFiles(x86)};
-        if ($programFiles -eq $null) { $programFiles = $env:ProgramFiles; } ;
-        switch ($encoder) {
-            "VLC" { $processName = $programFiles + "\VideoLAN\VLC\vlc.exe" ; }
-            "FFMPEG" { $processName = "C:\apps\ffmpeg\bin\ffmpeg.exe" }
-        } ;
-        #>
-        if (!(test-path -path $processName)) { throw "MISSING/INVALID $($encoder) install path!:$($processName)" } ;
-        write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):=== v PROCESSING STARTED v ===" ;
-        $progParam = @{
-            CurrentOperation = "Beginning";
-            Status           = "Preparing Processing...";
-            PercentComplete  = 0;
-        } ;
+        if (-not (test-path -path $processName)) { throw "MISSING/INVALID $($encoder) install path!:$($processName)" } ;
+        write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):=== v PROCESSING STARTED v ===" ;
     }  # BEG-E ;
 
     PROCESS {
@@ -4290,27 +4287,27 @@ function convert-VideoToMp3 {
         foreach ($inputFile in $InputObject) {
 
             $continue = $true ;
-            try {
+            TRY {
 
                 if ($inputfile.GetType().fullname -ne "System.IO.DirectoryInfo") {
                     switch ($inputfile.GetType().fullname) {
                         "System.IO.FileInfo" {
-                            if ($tf = Get-childitem -path $inputFile.fullname -ea Stop) {
-                            }
-                            else {
+                            if ($tf = Get-childitem -path $inputFile.fullname -ea 0) {}
+                            elseif($tf = Get-childitem -literalpath $inputFile.fullname -ea Stop){
+                                write-verbose "failed get-childitem -path; hit on -literalpath: likely squarebracket in name/path" ; 
+                            } else {
                                 write-host -ForegroundColor red "Unable to read infile: $($inputFile.fullname)" ;
                                 throw "MISSING/INVALID inputfile:$($inputFile.fullname)"
                             } ;
                         } ;
                         "System.String" {
                             # 12:02 PM 4/1/2017 if it's a string, it's not going to have a fullname prop - it's a full path string
-                            if ($tf = Get-childitem -path $inputFile) {
-
-                            }
-                            else {
+                            if ($tf = Get-childitem -path $inputFile -ea 0 ) {}
+                            elseif($tf = Get-childitem -literalpath $inputFile -ea Stop){
+                                write-verbose "failed get-childitem -path; hit on -literalpath: likely squarebracket in name/path" ; 
+                            } else {
                                 write-host -ForegroundColor red "Unable to read infile: $($inputFile.fullname)" ;
-                                throw "MISSING/INVALID inputfile:$($inputFile.fullname)"
-                            } ;
+                            } ;   
                         };
                         default {
                             write-host -ForegroundColor red "Unable to read infile: $($inputFile.fullname)" ;
@@ -4319,7 +4316,17 @@ function convert-VideoToMp3 {
                         } ;
                     } ;
 
+                    $sBnrS="`n#*------v PROCESSING : $($tf.fullname)v------" ; 
+                    write-verbose $sBnrS ;
+
                     if ($tf.extension -notmatch $rgxInputExts ) { throw "UNSUPPORTED INPUTFILE TYPE:$($inpuptFile)" }  ;
+
+                    # 12:01 AM 7/16/2023 apostrophe's in fullname crash rediscovery post conv, test
+                    #if($inputFile.FullName.contains("'")){
+                    # actually it's when there's a ' in the path, more than the file name. File name is acommodated, but renaming breaks with it in the path.
+                    if($inputfile.DirectoryName.contains("'")){
+                        throw "INPUTFILE TYPE FULLNAME CONTAINS APOSTROPHE(')!:`n$($inputfile.FULLNAME)`nSKIPPING!"
+                    } ;
 
                     <# 7:20 PM 11/6/2016 windows docs:https://wiki.videolan.org/Transcode/
                     Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
@@ -4335,7 +4342,7 @@ function convert-VideoToMp3 {
                     $tempout = (join-path -path $tf.Directory -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
                     $inputFileName = $tf.FullName.replace("\", "\\") ;
 
-                    if ($showDebug) { write-verbose -verbose:$true  "`$outputFileName:$outputFileName`n`$tempout:$($tempout)" } ;
+                    write-verbose "`$outputFileName:$outputFileName`n`$tempout:$($tempout)"  ;
 
                     switch ($encoder) {
                         "VLC" {
@@ -4343,7 +4350,7 @@ function convert-VideoToMp3 {
                             # 1st spec dummy/non-GUI pass, and input filename  $($inputFileName)
                             $processArgs = "-I dummy -v `"$($inputFileName)`"" ;
                             if ($whatif) {
-                                write-verbose -verbose:$true  "-whatif detected, test-transcoding only the first 30secs" ;
+                                write-host -foregroundcolor green "-whatif detected, test-transcoding only the first 30secs" ;
                                 $processArgs += " --stop-time=30" ;
                             } ;
                             # build output transcode settings
@@ -4399,15 +4406,13 @@ function convert-VideoToMp3 {
                         }
                     } ;
 
-                    if ($showDebug) {
-                        write-verbose -verbose:$true  "`$processName:$($processName | out-string)" ;
-                        write-verbose -verbose:$true  "`$processArgs:$($processArgs | out-string)" ;
+                        write-verbose "`$processName:$($processName | out-string)" ;
+                        write-verbose "`$processArgs:$($processArgs | out-string)" ;
                         # optional debug: pipe it into the clipboard for cmdline testing
                         #"`"$($processName)`" $($processArgs)" | Out-Clipboard ;
                         #write-verbose -verbose:$true  "current cmdline piped to Clipboard!" ;
-                    } ;
                     # launch command
-                    # capture and echo back errors from robocopy.exe
+                    # capture and echo back errors from .exe
                     $soutf = [System.IO.Path]::GetTempFileName() ;
                     $serrf = [System.IO.Path]::GetTempFileName()  ;
                     "Cmd:$($processName) $($processArgs)" ;
@@ -4415,31 +4420,82 @@ function convert-VideoToMp3 {
 
                     switch ($process.ExitCode) {
                         0 {
-                            "ExitCode 0 returned (No Errors, File converted)"
+                            write-host -foregroundcolor green "ExitCode 0 returned (No Errors, File converted)"
                             # ren $tempout => $outputFileName
+                            $bfound = $useLiteralPath = $false ; 
                             if ($rf = get-childitem -path $tempout ) {
-                                # renames fail if there's an existing fn clash -> ren the clash, -ea 0 to suppress notfound errors
-                                if ($cf = get-childitem -path ($outputFileName | split-path -Leaf) -ea 0 ) {
-                                    Rename-Item -path $rf.fullname -NewName "$($cf.BaseName)-$((get-date).tostring('yyyyMMdd-HHmmtt'))$($cf.Extension)" ;
-                                }
-                                else {
-                                    Rename-Item -path $rf.fullname -NewName $($outputFileName | split-path -Leaf)
-                                };
-                            }
-                            else {
+                                $bfound = $true ; 
+                            }elseif($rf = get-childitem -literalpath $tempout ) {
+                                write-verbose "gci -literalpath reqd to find returnfile - likely spec chars in path" ; 
+                                $bfound = $true ; 
+                                $useLiteralPath = $true ;
+                            }else {
                                 throw "No matching temporary output file found: $($tmpout)" ;
                             } ;
+                            if($bfound){
+                                # renames fail if there's an existing fn clash -> ren the clash, -ea 0 to suppress notfound errors
+                                #if ($cf = get-childitem -path ($outputFileName | split-path -Leaf) -ea 0 ) {
+                                if($useLiteralPath){
+                                    write-verbose "using -literalpath to check for conflict file on rename target" ; 
+                                    $cf = get-childitem -ea 0 -literalpath (join-path -Path (split-path $rf.fullname) -ChildPath ($outputFileName | split-path -Leaf))
+                                } else { 
+                                    $cf = get-childitem -ea 0 -path (join-path -Path (split-path $rf.fullname) -ChildPath ($outputFileName | split-path -Leaf))
+                                } ;
+                                if($cf){
+                                    $nname = "$($cf.BaseName)-$((get-date).tostring('yyyyMMdd-HHmmtt'))$($cf.Extension)" ; 
+                                    $smsg = "existing conflict found, using variant name:" ; 
+                                    $smsg = "`nrenaming $($rf.fullname)`nto:$($nname)" ; 
+                                    write-verbose $smsg ; 
+                                    if($useLiteralPath){
+                                        # still may fail on square-brackets, but move-item supports as well, with better tolerance
+                                        TRY{
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                        }CATCH{
+                                            TRY{
+                                                write-warning  "FAILED:Rename-Item, retrying move-item..." ;  
+                                                move-item -LiteralPath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                            }CATCH{
+                                                write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;  
+                                                [System.IO.File]::Move( $rf.fullname , (join-path -path $cf.DirectoryName -childpath $nname)) ;
+                                            } ;
+                                        } ;
+                                    } else { 
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                    } ; 
+                                } else {
+                                    $nname = $($outputFileName | split-path -Leaf) ; 
+                                    write-verbose "renaming $($rf.fullname)`nto:$($nname)" ; 
+                                    if($useLiteralPath){
+                                        TRY{
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                        }catch{
+                                            TRY{
+                                                write-warning  "FAILED:Rename-Item, retrying move-item..." ;
+                                                move-Item -literalpath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                            }CATCH{
+                                                write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;
+                                                [System.IO.File]::Move($rf.fullname ,(join-path -path $cf.DirectoryName -childpath $nname)) ;  
+                                            }
+                                        }
+                                    } else { 
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                    } ; 
+                                };
+                            } ; 
                         } ;
                         1 { "ExitCode 1 returned (fatal error)" } ;
-                        default { write-host "ERROR during VLC Transcoding: Non-0/1 ExitCode returned $($process.ExitCode)" ; write-host "`a" ; } ;
+                        default { 
+                            write-host "ERROR during VLC Transcoding: Non-0/1 ExitCode returned $($process.ExitCode)" ; write-host "`a" ; 
+                        } ;
                     } ;
 
+                    write-verbose "(checking for -RedirectStandardOutput -RedirectStandardError files from conversion...)" ; 
                     if ((get-childitem $soutf).length) {
-                        if ($ShowDebug) { (gc $soutf) | out-string ; } ;
+                        if ($VerbosePreference -eq "Continue") { (get-content $soutf) | out-string ; } ;
                         remove-item $soutf ;
                     } ;
                     if ((get-childitem $serrf).length) {
-                        if ($ShowDebug) { (gc $serrf) | out-string ; } ;
+                        if ($VerbosePreference -eq "Continue") { (get-content $serrf) | out-string ; } ;
                         remove-item $serrf ;
                     } ;
 
@@ -4500,15 +4556,13 @@ function convert-VideoToMp3 {
                     --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit
                     #>
 
-                }
-                else {
+                } else {
                     # code leak to throw out directories
                     # System.IO.DirectoryInfo
-                    "(Skipping $($inputfile) -- Directory)" ;
+                    write-host "(Skipping $($inputfile) -- Directory)" ;
                 } ;
 
-            }
-            catch {
+            }catch {
                 # BOILERPLATE ERROR-TRAP
                 Write "$((get-date).ToString("HH:mm:ss") ): -- SCRIPT PROCESSING CANCELLED" ;
                 Write "$((get-date).ToString("HH:mm:ss") ): Error in $($_.InvocationInfo.ScriptName)." ;
@@ -4522,12 +4576,14 @@ function convert-VideoToMp3 {
                 # Exit; here if you want processing to die and not continue on next for-pass
             } # try/cat-E ;
 
+            write-verbose $sBnrS.replace('-v','-^').replace('v-','^-') ;
+
         } #  # loop-E ;
     } # PROC-E ;
 
     END {
-        write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):$($iProcd) conversions processed" ;
-        write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):=== ^ PROCESSING COMPLETE ^ ===" ;
+        write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):$($iProcd) conversions processed" ;
+        write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):=== ^ PROCESSING COMPLETE ^ ===" ;
 
     } # END-E
 }
@@ -15540,8 +15596,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQURSDbrD7Oi4SM0DO/n4nraIYB
-# AaCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUQTeCsLxykyjy7Z2ntAXoRWIt
+# kyCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -15556,9 +15612,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRwI6H0
-# lBAzVCx1IyLsaRIGk7PFuzANBgkqhkiG9w0BAQEFAASBgBi04cSFXbSpIWjiWcXa
-# 2NqJ/TrUKVFxbb0GAieovMmhDuTkBKV8Vzy8DqzUUbJK4F9UXIZczO0ZA/hm6Har
-# cxbF8lAWBqarcPJBrcOrBKTv+RmWM6aKlaislUQd/QNUQxpKGyrofKDRQuJo4V7e
-# 1FObFwmguNAB7LJYcwnpYYpJ
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRXMuaE
+# CAydRlvQBuv60f0ntEc6NDANBgkqhkiG9w0BAQEFAASBgBQYnWJoXtIpbyh/9E7W
+# bGF9H3HHZ8fsCFK5etaWaUoi9t+YKp/0SNC9pPkM8ifYzW1YRitlOy0dUIYv3ovX
+# Mq4BmvvZFFy4mi4olzbD2EG+TBrF1Y0yFHPOZtVFZv9T9PJRGJFAyNdSaT2Iwtpw
+# 8Gj0XnD4zsx93x4DOlcvCUU+
 # SIG # End signature block
