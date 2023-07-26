@@ -12,7 +12,7 @@
 RootModule = 'verb-IO.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.3.0'
+ModuleVersion = '11.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -148,6 +148,8 @@ PrivateData = @{
 # /wPKsMFg2l1bQXqkN3OpHbWflO/MXR5DMzs/f9P34uvlBqH5Tv/DYbljpj72gAic
 # XKHXduPbSUEafOb+d4ZQaQx3
 # SIG # End signature block
+
+
 
 
 
