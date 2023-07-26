@@ -8,6 +8,7 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 1:41 PM 7/26/2023 add: $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; flipped extension refs to using that combo to detect pre-transcode YT content
     * 10:32 AM 7/21/2023 add both aliases convert-toMp3 & convertTo-Mp3(proper verb); fixed alias; removed unused params & showdebug support (v write-verbose) added xmpl; worked on path [] in latest pass ; add: rename nested 
         try's against rename-item, move-item, and [System.IO.File]::Move() - hasn't 
         triggered move att3empt yet on psv5 (rename-item -literalpath working), but the 
@@ -28,6 +29,25 @@ function convert-VideoToMp3 {
     * 11:44 PM 11/5/2016 - initial pass
     .DESCRIPTION
     convert-VideoToMp3() - convert passed video files to mp3 files in same directory
+
+    [Supported YouTube file formats - YouTube Help](https://support.google.com/youtube/troubleshooter/2888402?hl=en)
+    - MOV
+    - .MPEG-1
+    - .MPEG-2
+    - .MPEG4 (h.264)
+    - .MP4
+    - .MPG
+    - .AVI
+    - .WMV
+    - .MPEGPS
+    - .FLV
+    - 3GPP
+    - WebM
+    - DNxHR
+    - ProRes
+    - CineForm
+    - HEVC (h265, h.265 ext:.hevc)
+
     .PARAMETER  InputObject
     Name or IP address of the target computer
     .PARAMETER Bitrate
@@ -53,7 +73,8 @@ function convert-VideoToMp3 {
     PS> write-verbose 'cd to target dir' ; 
     PS> cd .\somepath ; 
     PS> write-verbose 'run recursive pass from there down' ; 
-    PS> get-childitem * -recurse | ?{$_.extension -match "^\.(mp4|mkv|webm|wmv|mov|mpeg)"} |%{ convert-VideoToMp3 -inputobject $_ }  ;
+    PS> get-childitem * -recurse | ?{$_.extension -match "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)"} |%{ convert-VideoToMp3 -inputobject $_ }  ;
+get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|webm|mkv|mpeg)$"}
     Typical 
     #>
     [CmdletBinding()]
@@ -80,6 +101,7 @@ function convert-VideoToMp3 {
 
     BEGIN {
         $rgxInputExts = "(?i:^\.(MPEG|MP3|AVI|ASF|WMV|WMA|MP4|MOV|3GP|OGG|OGM|MKV|WEBM|WAV|DTS|AAC|AC3|A52|FLAC|FLV|MXF|MIDI|SMF)$)" ;
+        $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; 
         $outputExtension = ".mp3" ;
         $audio_codec = "mp3" ;
         #"mpga"
