@@ -20,7 +20,7 @@ function Get-PermutationTDO {
     AddedWebsite: http://www.toddomation.com
     AddedTwitter: @tostka / http://twitter.com/tostka
     REVISIONS
-    * 10:01 AM 9/14/2023 renamed to distinctive 'TDO' to avoid clashes ; moved class PermutationTDO into main function, to make it selfcontained wo the full .psm1 (to add to my verb-io .psm1); minor OTB reformatting, tighted up whitespace
+    * 2:21 PM 9/14/2023 add: CBH demo that shows use of this to run fancy rgx select-string searches ; -asObject param (returns customobj rather than space-delimited text) ; renamed to distinctive 'TDO' to avoid clashes ; moved class PermutationTDO into main function, to make it selfcontained wo the full .psm1 (to add to my verb-io .psm1); minor OTB reformatting, tighted up whitespace
     - 11/8/2017 Dfinke's posted version
     .DESCRIPTION
     Get-PermutationTDO.ps1 - Calculate the range of Permutations of the specified group
@@ -51,17 +51,32 @@ function Get-PermutationTDO {
     
     > I ported this from James McCaffrey's book [.NET Test Automation Recipes](http://www.apress.com/9781590596630)
 
-        .PARAMETER  Target
+    .PARAMETER  Target
     Array of strings to be permutated[-target 'ant','bug,'cat','dog','elk' ]
+    .PARAMETER AsObject
+    Switch that causes the output to be a PSCustomObject containing Item1...ItemX entries (vs default simple string of all elements space-delimted sent to pipeline)[-AsObject]
     .INPUTS
     None. Does not accepted piped input.(.NET types, can add description)
     .OUTPUTS
     None. Returns no objects or output (.NET types)
-    System.Boolean
-    [| get-member the output to see what .NET obj TypeName is returned, to use here]
     .EXAMPLE
     PS> $people = echo Adam John Jane ; 
     PS> Get-PermutationTDO $people ;
+    .EXAMPLE
+    PS> $kwords = 'quota','mailboxfolderstatistics' ; 
+    PS> $perms = get-permutationTDO $kwords  ; 
+    PS> [array]$rgxString = $() ; 
+    PS> foreach($p in $perms){
+    PS>     $rgxString += "($($p.split(' ') -join '.*'))" ; 
+    PS> } ; 
+    PS> [string]$rgxString = $rgxString -join '|' ; 
+    PS> [regex]$rgxString = $rgxString ;
+    PS> write-host "running search with rgx:$($rgxString.Tostring())..." ; 
+    PS> gci c:\usr\work\incid\*.txt | sort LastWriteTime | sls -pattern $rgxString.Tostring() ;   
+    
+        running search with rgx:(quota.*mailboxfolderstatistics)|(mailboxfolderstatistics.*quota)...
+          
+    Demo that leverages get-permutationTDO() to produce all possible word order variants, and then creates a regex .* wildcard mis-pair, 'OR'd in the various word orders". This lets you run select-string -pattern searches that accomodate any order of the target keywords in subject files.
     .LINK
     https://github.com/tostka/verb-IO
     .LINK
@@ -72,7 +87,9 @@ function Get-PermutationTDO {
     PARAM(
         #[Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="HELPMSG[-PARAM SAMPLEINPUT]")]
         [Parameter(Position=0,Mandatory=$true,HelpMessage="Array of strings to be permutated[-target 'ant','bug,'cat','dog','elk' ]")]
-        $target
+            $target,
+        [Parameter(Position=1,HelpMessage="Switch that causes the output to be a PSCustomObject containing Item1...ItemX entries (vs default simple string of all elements space-delimted sent to pipeline)[-AsObject]")]
+            [switch]$AsObject
     ) ;
     #*------v class Permutation v------
     class Permutation {
@@ -147,7 +164,20 @@ function Get-PermutationTDO {
 
     $p=[Permutation]::new($target.Count) ;
     while ($p) {
-        "$($p.ApplyTo($target))" ;
+        if(-not $AsObject){
+            # this dumps raw string of x elements into pipe
+            "$($p.ApplyTo($target))" | write-output ;
+        } else { 
+            # we want pscustomobject with each element as a property, not requiring post split and parsing
+            $h=[ordered]@{} ; 
+            $idx=1 ;
+            #"$($p.ApplyTo($target))"  | foreach-object {
+            $p.ApplyTo($target)  | foreach-object {
+			    $h."Item$($idx)"=$_ ; 
+			    ++$idx ; 
+		    } ; 
+		    [PSCustomObject]$h | write-output ;
+        } ; 
         $p=$p.Successor() ;
     } ;
 } ;
