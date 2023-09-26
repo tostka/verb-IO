@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 10.1.0.0.0
+Version     : 11.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -4183,6 +4183,14 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 1:41 PM 7/26/2023 add: $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; flipped extension refs to using that combo to detect pre-transcode YT content
+    * 10:32 AM 7/21/2023 add both aliases convert-toMp3 & convertTo-Mp3(proper verb); fixed alias; removed unused params & showdebug support (v write-verbose) added xmpl; worked on path [] in latest pass ; add: rename nested 
+        try's against rename-item, move-item, and [System.IO.File]::Move() - hasn't 
+        triggered move att3empt yet on psv5 (rename-item -literalpath working), but the 
+        above were options for all way back to psv2 support. Even then could still 
+        proxy through a tmp file as well.  
+    * 10:33 PM 7/17/2023 updated clash test rename-item code (was bombing consistently); also updated apostrophe test to solely test in path, not leaf filename.
+    * 12:05 AM 7/16/2023 added inputobject.fullname apostrophe test (parent path with apost crashes rediscover post convert)
     * 5:43 PM 4/23/2023 add support for checking progs86 & progs (new support for 64bit vlc), orig wasn't finding vlc on new box.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 5:26 PM 10/5/2021 ren, and alias orig: convert-tomp3 -> convert-VideoToMp3 (added alias:convertto-mp3); also build into freestanding function in verb-IO
@@ -4196,6 +4204,25 @@ function convert-VideoToMp3 {
     * 11:44 PM 11/5/2016 - initial pass
     .DESCRIPTION
     convert-VideoToMp3() - convert passed video files to mp3 files in same directory
+
+    [Supported YouTube file formats - YouTube Help](https://support.google.com/youtube/troubleshooter/2888402?hl=en)
+    - MOV
+    - .MPEG-1
+    - .MPEG-2
+    - .MPEG4 (h.264)
+    - .MP4
+    - .MPG
+    - .AVI
+    - .WMV
+    - .MPEGPS
+    - .FLV
+    - 3GPP
+    - WebM
+    - DNxHR
+    - ProRes
+    - CineForm
+    - HEVC (h265, h.265 ext:.hevc)
+
     .PARAMETER  InputObject
     Name or IP address of the target computer
     .PARAMETER Bitrate
@@ -4217,25 +4244,30 @@ function convert-VideoToMp3 {
     .EXAMPLE
     $bRet=convert-VideoToMp3 -InputObject "C:\video.mkv" ;
     Convert Specified video file to mp3.
+    .EXAMPLE
+    PS> write-verbose 'cd to target dir' ; 
+    PS> cd .\somepath ; 
+    PS> write-verbose 'run recursive pass from there down' ; 
+    PS> get-childitem * -recurse | ?{$_.extension -match "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)"} |%{ convert-VideoToMp3 -inputobject $_ }  ;
+get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|webm|mkv|mpeg)$"}
+    Typical 
     #>
     [CmdletBinding()]
-    [Alias('convert-ToMp3')]
+    [Alias('convert-ToMp3','convertTo-Mp3')]
     PARAM (
         [parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0, Mandatory = $True, HelpMessage = "File(s) to be transcoded")]
-        $InputObject
-        , [parameter(HelpMessage = "Bitrate for transcoded output (defaults to 320k)")]
-        [int]$bitrate = 320
-        , [parameter(HelpMessage = "Samplerate for transcoded output (defaults to 44100)")]
-        [int]$samplerate = 44100
-        , [Parameter(Mandatory = $false, HelpMessage = "Specify Site to analyze [-SiteName (USEA|GBMK|AUSYD]")]
-        [ValidateSet("F", "VLC")]
-        [string]$encoder = "VLC"
-        , [Parameter(HelpMessage = 'ShowProgress [$switch]')]
-        [switch] $showProgress
-        , [Parameter(HelpMessage = 'Debugging Flag [$switch]')]
-        [switch] $showDebug
-        , [Parameter(HelpMessage = 'Whatif Flag  [$switch]')]
-        [switch] $whatIf
+            $InputObject,
+        [parameter(HelpMessage = "Bitrate for transcoded output (defaults to 320k)")]
+            [int]$bitrate = 320,
+        [parameter(HelpMessage = "Samplerate for transcoded output (defaults to 44100)")]
+            [int]$samplerate = 44100,
+        [Parameter(Mandatory = $false, HelpMessage = "Specify Encoder forconversion (F(MPEG), VLC; defaults VLC)[-encoder F")]
+            [ValidateSet("F", "VLC")]
+            [string]$encoder = "VLC",
+        [Parameter(HelpMessage = 'Debugging Flag [$switch]')]
+            [switch] $showDebug,
+        [Parameter(HelpMessage = 'Whatif Flag  [$switch]')]
+            [switch] $whatIf
     ) ; # PARAM-E
 
     <# input formats supported by VLC
@@ -4244,13 +4276,13 @@ function convert-VideoToMp3 {
 
     BEGIN {
         $rgxInputExts = "(?i:^\.(MPEG|MP3|AVI|ASF|WMV|WMA|MP4|MOV|3GP|OGG|OGM|MKV|WEBM|WAV|DTS|AAC|AC3|A52|FLAC|FLV|MXF|MIDI|SMF)$)" ;
+        $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; 
         $outputExtension = ".mp3" ;
         $audio_codec = "mp3" ;
         #"mpga"
         $channels = 2 ;
         $mux = "dummy" ; # for mp3 audio-only extracts, use the dummy mux
         #"mpeg1"
-        $progInterval = 500 ; # write-progress interval in ms
         $iProcd = 0 ;
         $continue = $true ;
         $progs = @($env:ProgramFiles,${env:ProgramFiles(x86)}) ; 
@@ -4264,21 +4296,8 @@ function convert-VideoToMp3 {
                 break ; 
             } 
         } ; 
-        <#
-        $programFiles = ${env:ProgramFiles(x86)};
-        if ($programFiles -eq $null) { $programFiles = $env:ProgramFiles; } ;
-        switch ($encoder) {
-            "VLC" { $processName = $programFiles + "\VideoLAN\VLC\vlc.exe" ; }
-            "FFMPEG" { $processName = "C:\apps\ffmpeg\bin\ffmpeg.exe" }
-        } ;
-        #>
-        if (!(test-path -path $processName)) { throw "MISSING/INVALID $($encoder) install path!:$($processName)" } ;
-        write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):=== v PROCESSING STARTED v ===" ;
-        $progParam = @{
-            CurrentOperation = "Beginning";
-            Status           = "Preparing Processing...";
-            PercentComplete  = 0;
-        } ;
+        if (-not (test-path -path $processName)) { throw "MISSING/INVALID $($encoder) install path!:$($processName)" } ;
+        write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):=== v PROCESSING STARTED v ===" ;
     }  # BEG-E ;
 
     PROCESS {
@@ -4290,27 +4309,27 @@ function convert-VideoToMp3 {
         foreach ($inputFile in $InputObject) {
 
             $continue = $true ;
-            try {
+            TRY {
 
                 if ($inputfile.GetType().fullname -ne "System.IO.DirectoryInfo") {
                     switch ($inputfile.GetType().fullname) {
                         "System.IO.FileInfo" {
-                            if ($tf = Get-childitem -path $inputFile.fullname -ea Stop) {
-                            }
-                            else {
+                            if ($tf = Get-childitem -path $inputFile.fullname -ea 0) {}
+                            elseif($tf = Get-childitem -literalpath $inputFile.fullname -ea Stop){
+                                write-verbose "failed get-childitem -path; hit on -literalpath: likely squarebracket in name/path" ; 
+                            } else {
                                 write-host -ForegroundColor red "Unable to read infile: $($inputFile.fullname)" ;
                                 throw "MISSING/INVALID inputfile:$($inputFile.fullname)"
                             } ;
                         } ;
                         "System.String" {
                             # 12:02 PM 4/1/2017 if it's a string, it's not going to have a fullname prop - it's a full path string
-                            if ($tf = Get-childitem -path $inputFile) {
-
-                            }
-                            else {
+                            if ($tf = Get-childitem -path $inputFile -ea 0 ) {}
+                            elseif($tf = Get-childitem -literalpath $inputFile -ea Stop){
+                                write-verbose "failed get-childitem -path; hit on -literalpath: likely squarebracket in name/path" ; 
+                            } else {
                                 write-host -ForegroundColor red "Unable to read infile: $($inputFile.fullname)" ;
-                                throw "MISSING/INVALID inputfile:$($inputFile.fullname)"
-                            } ;
+                            } ;   
                         };
                         default {
                             write-host -ForegroundColor red "Unable to read infile: $($inputFile.fullname)" ;
@@ -4319,7 +4338,17 @@ function convert-VideoToMp3 {
                         } ;
                     } ;
 
+                    $sBnrS="`n#*------v PROCESSING : $($tf.fullname)v------" ; 
+                    write-verbose $sBnrS ;
+
                     if ($tf.extension -notmatch $rgxInputExts ) { throw "UNSUPPORTED INPUTFILE TYPE:$($inpuptFile)" }  ;
+
+                    # 12:01 AM 7/16/2023 apostrophe's in fullname crash rediscovery post conv, test
+                    #if($inputFile.FullName.contains("'")){
+                    # actually it's when there's a ' in the path, more than the file name. File name is acommodated, but renaming breaks with it in the path.
+                    if($inputfile.DirectoryName.contains("'")){
+                        throw "INPUTFILE TYPE FULLNAME CONTAINS APOSTROPHE(')!:`n$($inputfile.FULLNAME)`nSKIPPING!"
+                    } ;
 
                     <# 7:20 PM 11/6/2016 windows docs:https://wiki.videolan.org/Transcode/
                     Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
@@ -4335,7 +4364,7 @@ function convert-VideoToMp3 {
                     $tempout = (join-path -path $tf.Directory -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
                     $inputFileName = $tf.FullName.replace("\", "\\") ;
 
-                    if ($showDebug) { write-verbose -verbose:$true  "`$outputFileName:$outputFileName`n`$tempout:$($tempout)" } ;
+                    write-verbose "`$outputFileName:$outputFileName`n`$tempout:$($tempout)"  ;
 
                     switch ($encoder) {
                         "VLC" {
@@ -4343,7 +4372,7 @@ function convert-VideoToMp3 {
                             # 1st spec dummy/non-GUI pass, and input filename  $($inputFileName)
                             $processArgs = "-I dummy -v `"$($inputFileName)`"" ;
                             if ($whatif) {
-                                write-verbose -verbose:$true  "-whatif detected, test-transcoding only the first 30secs" ;
+                                write-host -foregroundcolor green "-whatif detected, test-transcoding only the first 30secs" ;
                                 $processArgs += " --stop-time=30" ;
                             } ;
                             # build output transcode settings
@@ -4399,15 +4428,13 @@ function convert-VideoToMp3 {
                         }
                     } ;
 
-                    if ($showDebug) {
-                        write-verbose -verbose:$true  "`$processName:$($processName | out-string)" ;
-                        write-verbose -verbose:$true  "`$processArgs:$($processArgs | out-string)" ;
+                        write-verbose "`$processName:$($processName | out-string)" ;
+                        write-verbose "`$processArgs:$($processArgs | out-string)" ;
                         # optional debug: pipe it into the clipboard for cmdline testing
                         #"`"$($processName)`" $($processArgs)" | Out-Clipboard ;
                         #write-verbose -verbose:$true  "current cmdline piped to Clipboard!" ;
-                    } ;
                     # launch command
-                    # capture and echo back errors from robocopy.exe
+                    # capture and echo back errors from .exe
                     $soutf = [System.IO.Path]::GetTempFileName() ;
                     $serrf = [System.IO.Path]::GetTempFileName()  ;
                     "Cmd:$($processName) $($processArgs)" ;
@@ -4415,31 +4442,82 @@ function convert-VideoToMp3 {
 
                     switch ($process.ExitCode) {
                         0 {
-                            "ExitCode 0 returned (No Errors, File converted)"
+                            write-host -foregroundcolor green "ExitCode 0 returned (No Errors, File converted)"
                             # ren $tempout => $outputFileName
+                            $bfound = $useLiteralPath = $false ; 
                             if ($rf = get-childitem -path $tempout ) {
-                                # renames fail if there's an existing fn clash -> ren the clash, -ea 0 to suppress notfound errors
-                                if ($cf = get-childitem -path ($outputFileName | split-path -Leaf) -ea 0 ) {
-                                    Rename-Item -path $rf.fullname -NewName "$($cf.BaseName)-$((get-date).tostring('yyyyMMdd-HHmmtt'))$($cf.Extension)" ;
-                                }
-                                else {
-                                    Rename-Item -path $rf.fullname -NewName $($outputFileName | split-path -Leaf)
-                                };
-                            }
-                            else {
+                                $bfound = $true ; 
+                            }elseif($rf = get-childitem -literalpath $tempout ) {
+                                write-verbose "gci -literalpath reqd to find returnfile - likely spec chars in path" ; 
+                                $bfound = $true ; 
+                                $useLiteralPath = $true ;
+                            }else {
                                 throw "No matching temporary output file found: $($tmpout)" ;
                             } ;
+                            if($bfound){
+                                # renames fail if there's an existing fn clash -> ren the clash, -ea 0 to suppress notfound errors
+                                #if ($cf = get-childitem -path ($outputFileName | split-path -Leaf) -ea 0 ) {
+                                if($useLiteralPath){
+                                    write-verbose "using -literalpath to check for conflict file on rename target" ; 
+                                    $cf = get-childitem -ea 0 -literalpath (join-path -Path (split-path $rf.fullname) -ChildPath ($outputFileName | split-path -Leaf))
+                                } else { 
+                                    $cf = get-childitem -ea 0 -path (join-path -Path (split-path $rf.fullname) -ChildPath ($outputFileName | split-path -Leaf))
+                                } ;
+                                if($cf){
+                                    $nname = "$($cf.BaseName)-$((get-date).tostring('yyyyMMdd-HHmmtt'))$($cf.Extension)" ; 
+                                    $smsg = "existing conflict found, using variant name:" ; 
+                                    $smsg = "`nrenaming $($rf.fullname)`nto:$($nname)" ; 
+                                    write-verbose $smsg ; 
+                                    if($useLiteralPath){
+                                        # still may fail on square-brackets, but move-item supports as well, with better tolerance
+                                        TRY{
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                        }CATCH{
+                                            TRY{
+                                                write-warning  "FAILED:Rename-Item, retrying move-item..." ;  
+                                                move-item -LiteralPath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                            }CATCH{
+                                                write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;  
+                                                [System.IO.File]::Move( $rf.fullname , (join-path -path $cf.DirectoryName -childpath $nname)) ;
+                                            } ;
+                                        } ;
+                                    } else { 
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                    } ; 
+                                } else {
+                                    $nname = $($outputFileName | split-path -Leaf) ; 
+                                    write-verbose "renaming $($rf.fullname)`nto:$($nname)" ; 
+                                    if($useLiteralPath){
+                                        TRY{
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                        }catch{
+                                            TRY{
+                                                write-warning  "FAILED:Rename-Item, retrying move-item..." ;
+                                                move-Item -literalpath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                            }CATCH{
+                                                write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;
+                                                [System.IO.File]::Move($rf.fullname ,(join-path -path $cf.DirectoryName -childpath $nname)) ;  
+                                            }
+                                        }
+                                    } else { 
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                    } ; 
+                                };
+                            } ; 
                         } ;
                         1 { "ExitCode 1 returned (fatal error)" } ;
-                        default { write-host "ERROR during VLC Transcoding: Non-0/1 ExitCode returned $($process.ExitCode)" ; write-host "`a" ; } ;
+                        default { 
+                            write-host "ERROR during VLC Transcoding: Non-0/1 ExitCode returned $($process.ExitCode)" ; write-host "`a" ; 
+                        } ;
                     } ;
 
+                    write-verbose "(checking for -RedirectStandardOutput -RedirectStandardError files from conversion...)" ; 
                     if ((get-childitem $soutf).length) {
-                        if ($ShowDebug) { (gc $soutf) | out-string ; } ;
+                        if ($VerbosePreference -eq "Continue") { (get-content $soutf) | out-string ; } ;
                         remove-item $soutf ;
                     } ;
                     if ((get-childitem $serrf).length) {
-                        if ($ShowDebug) { (gc $serrf) | out-string ; } ;
+                        if ($VerbosePreference -eq "Continue") { (get-content $serrf) | out-string ; } ;
                         remove-item $serrf ;
                     } ;
 
@@ -4500,15 +4578,13 @@ function convert-VideoToMp3 {
                     --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit
                     #>
 
-                }
-                else {
+                } else {
                     # code leak to throw out directories
                     # System.IO.DirectoryInfo
-                    "(Skipping $($inputfile) -- Directory)" ;
+                    write-host "(Skipping $($inputfile) -- Directory)" ;
                 } ;
 
-            }
-            catch {
+            }catch {
                 # BOILERPLATE ERROR-TRAP
                 Write "$((get-date).ToString("HH:mm:ss") ): -- SCRIPT PROCESSING CANCELLED" ;
                 Write "$((get-date).ToString("HH:mm:ss") ): Error in $($_.InvocationInfo.ScriptName)." ;
@@ -4522,12 +4598,14 @@ function convert-VideoToMp3 {
                 # Exit; here if you want processing to die and not continue on next for-pass
             } # try/cat-E ;
 
+            write-verbose $sBnrS.replace('-v','-^').replace('v-','^-') ;
+
         } #  # loop-E ;
     } # PROC-E ;
 
     END {
-        write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):$($iProcd) conversions processed" ;
-        write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):=== ^ PROCESSING COMPLETE ^ ===" ;
+        write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):$($iProcd) conversions processed" ;
+        write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):=== ^ PROCESSING COMPLETE ^ ===" ;
 
     } # END-E
 }
@@ -11454,6 +11532,160 @@ function Save-ConsoleOutputToClipBoard {
 #*------^ Save-ConsoleOutputToClipBoard.ps1 ^------
 
 
+#*------v search-Excel.ps1 v------
+function search-Excel{
+    <#
+    .SYNOPSIS
+    search-Excel.ps1 - Search excel (xlsx) file(s) for specific string.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-06-16
+    FileName    : search-Excel.ps1
+    License     : MIT License
+    Copyright   : (c) 2023 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell, fileystem, junctionpoint,  symlink,  reparsepoint
+    AddedCredit : REFERENCE
+    AddedWebsite: URL
+    AddedTwitter: URL
+    AddedCredit : TheMadTechnician
+    AddedWebsite: https://stackoverflow.com/users/3245749/themadtechnician
+    AddedTwitter: URL
+    REVISIONS
+    * 10:59 AM 7/7/2023 added timer; also spliced in additional com-obj removal for subobjects
+    * 10:14 AM 7/6/2023 retooled with: excel extension path validation;  added pipeline support ; added CBH ; moved obj open to begin block
+    * 8/16/2021 TheMadTechnician's posted looping tweak example
+    * 10/1/2019 S Mohammad's posted copy
+    .DESCRIPTION
+    search-Excel.ps1 - Search excel (xlsx) file(s) for specific string.
+    
+    Fairly slow tweaked variant of Shuaib Mohammad's excel-search function (stackedit post comment from TheMadTechnician). 
+    It's generally much quicker to use desktop search if the target files are being WindowsSearch indexed. Just sayin'
+    
+    The search text can accept wildcard characters such as * and ?, does substring matches by default.
+    
+    .PARAMETER Path
+    Path [-path c:\path-to\]
+    .PARAMETER Text
+    Text to be searched[-Text 'word']
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    System.PSCustomObject
+    .EXAMPLE
+    search-excel -path 'path-to\spreadsheet.xlsx' -Text 'text string' ; 
+
+        WorkSheet : WORKSHEETNAME
+        Column    : 43
+        Row       : 4
+        Text      : [full matching cell contents]
+        Address   : '[XXXX.xlsx]WORKSHEETNAME'!AQ4
+
+    Demo running text search
+    .EXAMPLE
+    $hits = gci c:\usr\work\* -include ('*.xlsx','*.xls') -recurse -ea 0 | search-excel -Text 'Marie.Chinnery@hayter.co.uk' -verbose ; 
+    Demo running search for xlsx/xls files, and then running a text search on the retruned spreadsheets 
+    .LINK
+    https://stackoverflow.com/questions/68808806/powershell-script-to-search-through-a-directory-of-excel-files-to-find-a-string
+    .LINK
+    https://shuaiber.medium.com/searching-through-excel-files-for-a-string-using-powershell-964db62348ef
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    #[Alias('xxx')]
+    PARAM(
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True, HelpMessage = 'Paths[-path c:\pathto\file.ext or c:\pathto]')]
+            [Alias('PsPath')]
+            [ValidateScript({
+                TRY {
+                    If (Test-Path -Path $_ ) {
+                        if( [IO.Path]::GetExtension($_) -match '\.(xls|xlsx|xlsm|xlsb)'){$True}
+                        else {Throw "$($_) is not a valid Excel file type!"}
+                    } Else {Throw "$($_) is not a valid path!"}
+                } CATCH {
+                    Throw $_ ; 
+                }
+            })]
+            [system.io.fileinfo[]]$Path,
+        [Parameter(Mandatory = $true,HelpMessage = "Text to be searched[-Text 'word']")]
+            [string]$Text
+            #You can specify wildcard characters (*, ?)
+    ) ; 
+    BEGIN {
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "(Data received from pipeline input)" ;
+        } ;
+        write-verbose "Loading ComObject Excel.Application" ; 
+        $Excel = New-Object -ComObject Excel.Application ; 
+    } ;
+    PROCESS {
+        foreach($item in $Path) {
+            if($VerbosePreference -eq "Continue"){
+                $smsg = $sBnrS="Checking: $($item)..." ; 
+                write-verbose $smsg ; 
+            } else { 
+                write-host "." -NoNewLine ; $1F=$true ; 
+            } ; 
+            $Error.Clear() ; 
+            $sw = [Diagnostics.Stopwatch]::StartNew();
+            write-verbose "Opening Workbook $($item.fullname)..." ; 
+            $Workbook = $Excel.Workbooks.Open($item.fullname) ; 
+            ForEach ($Worksheet in @($Workbook.Sheets)) {
+               write-verbose "searching workbook" ; 
+                $Found = $WorkSheet.Cells.Find($Text) ; 
+                If ($Found) {
+                    $BeginAddress = $Found.Address(0,0,1,1) ; 
+                    #Initial Found Cell
+                    [pscustomobject]@{
+                        WorkSheet = $Worksheet.Name ; 
+                        Column = $Found.Column ; 
+                        Row =$Found.Row ; 
+                        Text = $Found.Text ; 
+                        Address = $BeginAddress ; 
+                    } | write-output ;              
+                    Do {
+                        $Found = $WorkSheet.Cells.FindNext($Found) ; 
+                        $Address = $Found.Address(0,0,1,1) ; 
+                        If ($Address -eq $BeginAddress) {
+                            BREAK ; 
+                        } ; 
+                        [pscustomobject]@{
+                            WorkSheet = $Worksheet.Name
+                            Column = $Found.Column ; 
+                            Row =$Found.Row ; 
+                            Text = $Found.Text ; 
+                            Address = $Address ; 
+                        } | write-output ;              
+                    } Until ($False) ; 
+                } Else {
+                    write-verbose "[$($WorkSheet.Name)] Nothing Found!" ; 
+                } ; 
+            } ; 
+            write-verbose "Closing workbook" ; 
+            $workbook.close($false) ; 
+            $sw.Stop() ;
+            $smsg =  ("Elapsed Time: {0:dd}d {0:hh}h {0:mm}m {0:ss}s {0:fff}ms" -f $sw.Elapsed) ;
+            write-host -foregroundcolor gray "$((get-date).ToString('HH:mm:ss')):$($smsg)" ; 
+        } ;  # loop-E
+    } ;  # PROC-E
+    END {
+        write-verbose "Cleaning up COM objects..." ; 
+        [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($worksheet) ;
+        [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($workbook) ; 
+        [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject([System.__ComObject]$excel) ; 
+        [gc]::Collect() ; 
+        [gc]::WaitForPendingFinalizers() ; 
+        Remove-Variable excel -ErrorAction SilentlyContinue ; 
+    } ; 
+}
+
+#*------^ search-Excel.ps1 ^------
+
+
 #*------v select-first.ps1 v------
 function select-first {
     <#
@@ -13992,7 +14224,7 @@ Function test-MediaFile {
         FileMB | Mins | OBitRate  | Format      | Ext
         70mb   | 9.3  | 1058 kbps | MPEG-4 kbps | .mp4
         V-Fmt | V-Kbps | V-WxH:Ratio    | V-fps | V-Std | V-Encoder
-        AVC   | 881    | 1920x10.1.06:9 | 30    |       |
+        AVC   | 881    | 1920x1080:16:9 | 30    |       |
         A-Chnls   | A-Lang | A-Fmt  | A-BitRate | A-kHz
         2 channel |        | AAC LC | 174 Kbps  | 48.0
         -----
@@ -15378,7 +15610,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,get-LoremName,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,get-LoremName,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -15386,8 +15618,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUWEvHwoo+IxPRMdYFYmDUzWoI
-# Pf6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU800iTN6vmNmgbaB0d6i78o6s
+# xDCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -15402,9 +15634,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRlqKbQ
-# UxbIq60KfK8+wEsXQ2vOiTANBgkqhkiG9w0BAQEFAASBgKlrrP4//+tXLzPx481B
-# nPCuqHMkUHYo2OX/iWxbRmXmxV9VUvNK8DNJv1YJ09I8ltyfdd9a69OUtY/3rqNO
-# eJ2m/EKcdsVytnTlwYeVgrXk8E6nAvQde9i/mH+v0FgdRvDRPPJZ15/ddTQwpAvz
-# 04VBS4dUcKoeWF8DKx4r7pPs
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRnW19V
+# w6AgWhvvR5uVfMG7M0dQSzANBgkqhkiG9w0BAQEFAASBgHXnj3tEjk9oMuLHJXIb
+# hNdSvsOcQjWnjbDmp9pui/XVRcH9aNY88O0M3p8FTwASz5CjoGL2U+kcBqDtxnZt
+# 0iP0fkNq0SMC+Z3Nqxq19BheJppPfwozCHMGc15sBbDByy/QKjojOSP/o/3+oMOC
+# rTt8RCabNHHhLbNPo4AAtMKF
 # SIG # End signature block
