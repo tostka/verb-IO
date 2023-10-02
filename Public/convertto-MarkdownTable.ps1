@@ -24,6 +24,7 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 8:31 AM 9/27/2023 Expl8 isn't rendering (blank PS>): unwrapped the pipe-wrap to see if it works better (though less readable).
     * 10:58 AM 7/13/2022 added -NoPadding to suppress column alignment; added CBH examples: one that demos prettying up handbuilt md tables comboing convertfrom-md | convertto-mdt, and one that demos -NoPadding use with -Tight (produce tightest md tbl output)
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 4:04 PM 9/16/2021 coded around legacy code issue, when using [ordered] hash - need it or it randomizes column positions. Also added -NoDashRow param (breaks md rendering, but useful if using this to dump delimited output to console, for readability)
@@ -61,33 +62,50 @@ Function convertTo-MarkdownTable {
     convertTo-MarkdownTable($data) ;
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable ;
-        Status  | Name  | DisplayName
-        ------- | ----- | -----------------------------------------
-        Running | Bits  | Background Intelligent Transfer Service
-        Running | Winrm | Windows Remote Management (WS-Management)
+    
+    Status  | Name  | DisplayName
+    ------- | ----- | -----------------------------------------
+    Running | Bits  | Background Intelligent Transfer Service
+    Running | Winrm | Windows Remote Management (WS-Management)
+    
     Demo of stock use, with a select to spec properties (this cmdlet doesn't observer cmdlet default properties for display, must be manually selected)
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -border ; 
-        | Status  | Name  | DisplayName                               |
-        | ------- | ----- | ----------------------------------------- |
-        | Running | Bits  | Background Intelligent Transfer Service   |
-        | Running | Winrm | Windows Remote Management (WS-Management) |
+    
+    | Status  | Name  | DisplayName                               |
+    | ------- | ----- | ----------------------------------------- |
+    | Running | Bits  | Background Intelligent Transfer Service   |
+    | Running | Winrm | Windows Remote Management (WS-Management) |
+    
     Demo effect of the -Border param.
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -tight ;
-        Status |Name |DisplayName
-        -------|-----|-----------------------------------------
-        Running|Bits |Background Intelligent Transfer Service
-        Running|Winrm|Windows Remote Management (WS-Management)
+    
+    Status |Name |DisplayName
+    -------|-----|-----------------------------------------
+    Running|Bits |Background Intelligent Transfer Service
+    Running|Winrm|Windows Remote Management (WS-Management)
+    
     Demo effect of the -Tight param.
     .EXAMPLE
     PS> Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
     PS> ConvertTo-Markdown | Out-File C:\MyScript.ps1.md ; 
     Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
     .EXAMPLE
-    PS> Get-Service Bits,Winrm | select status,name,displayname | 
-        Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
-    Demo use of -title, -precontent & -postcontent params:
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
+    
+    # This is Title
+
+    A little something *before*
+
+    Status  | Name  | DisplayName
+    ------- | ----- | -----------------------------------------
+    Stopped | Bits  | Background Intelligent Transfer Service
+    Running | Winrm | Windows Remote Management (WS-Management)
+
+    A little something *after*
+    
+    Demo use of -title, -precontent & -postcontent params
     .EXAMPLE
     PS> 
 .EXAMPLE
@@ -100,16 +118,18 @@ Function convertTo-MarkdownTable {
     Same as prior example, but leveraging more readable splatting
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
-        Status  | Name  | DisplayName                              
-        Stopped | Bits  | Background Intelligent Transfer Service  
-        Running | Winrm | Windows Remote Management (WS-Management)
+    
+    Status  | Name  | DisplayName                              
+    Stopped | Bits  | Background Intelligent Transfer Service  
+    Running | Winrm | Windows Remote Management (WS-Management)
+    
     Demo effect of -NoDashRow param (drops header-seperator line)
     .EXAMPLE
     PS> gci d:\scripts\*_func.ps1 | select name,fullname,length | convertto-markdowntable -border -NoPadding -tight -verbose ;
-        |Name|FullName|Length|
-        |---|---|---|
-        |add-AADUserLicense_func.ps1|D:\scripts\add-AADUserLicense_func.ps1|17747|
-        |toggle-AADLicense_func.ps1|D:\scripts\toggle-AADLicense_func.ps1|26482|
+    |Name|FullName|Length|
+    |---|---|---|
+    |add-AADUserLicense_func.ps1|D:\scripts\add-AADUserLicense_func.ps1|17747|
+    |toggle-AADLicense_func.ps1|D:\scripts\toggle-AADLicense_func.ps1|26482|
     Demo -NoPadding + -border + -tight , on 3 cols of file specs (tightest possible md table output)
     .EXAMPLE
     PS> @"
@@ -118,10 +138,12 @@ Function convertTo-MarkdownTable {
     PS> |aad_graph_api|https://graph.windows.net|
     PS> |spacesapi|https://api.spaces.skype.com|
     PS> "@ | convertfrom-markdowntable | convertto-markdowntable -border ;
-        | tag           | ResourceString               |
-        | ------------- | ---------------------------- |
-        | aad_graph_api | https://graph.windows.net    |
-        | spacesapi     | https://api.spaces.skype.com |
+    
+    | tag           | ResourceString               |
+    | ------------- | ---------------------------- |
+    | aad_graph_api | https://graph.windows.net    |
+    | spacesapi     | https://api.spaces.skype.com |
+        
     Pretty up a minimal hand-built mdtable (from herestring), into space-aligned using convertFrom-MarkdownTable | ConvertTo-MarkdownTable 
     .LINK
     https://github.com/tostka/verb-IO

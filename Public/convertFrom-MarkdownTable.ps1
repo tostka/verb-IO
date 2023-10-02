@@ -15,6 +15,7 @@ Function convertFrom-MarkdownTable {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 9:04 AM 9/27/2023 cbh demo output tweaks (unindented, results in 1st line de-indent and rest indented.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:42 PM 6/22/2021 bug workaround: empty fields in source md table (|data||data|) cause later (export-csv|convertto-csv) to create a csv with *missing* delimiting comma on the problem field ;  added trim of each field content, and CBH example for creation of a csv from mdtable input; added aliases
     * 5:40 PM 6/21/2021 init
@@ -32,6 +33,7 @@ Function convertFrom-MarkdownTable {
    PS> $svcs = Get-Service Bits,Winrm | select status,name,displayname | 
       convertTo-MarkdownTable -border | ConvertFrom-MarkDownTable ;  
    Convert Service listing to and back from MD table, demo's working around border md table syntax (outter pipe-wrapped lines)
+  .EXAMPLE
    PS> $mdtable = @"
 |EmailAddress|DisplayName|Groups|Ticket|
 |---|---|---|---|
