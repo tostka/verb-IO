@@ -576,7 +576,7 @@ function clear-HostIndent {
     * 2:01 PM 2/1/2023 add: -PID param; ported variant of reset-HostIndent
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
     * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
-    * 4:39 PM 1/11/2023 init
+    * 4:39 PM 1/11.2.33 init
     .DESCRIPTION
     clear-HostIndent - Utility cmdlet that clears/removes the $env:HostIndentSpaces (used when exiting script to avoid leaving process-level evari in place)
 
@@ -825,7 +825,7 @@ function Compare-ObjectsSideBySide{
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 fixed typo in params, moved to full param block, and added lhs/rhs as aliases; expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
-    * 10:18 AM 11/2/2018 reformatted, tightened up, shifted params to body, added pshelp
+    * 10:18 AM 11.2.3018 reformatted, tightened up, shifted params to body, added pshelp
     * May 7 '16 at 20:55 posted version
     .DESCRIPTION
     Compare-ObjectsSideBySide() - Displays a pair of objects side-by-side comparatively in console
@@ -923,7 +923,7 @@ function Compare-ObjectsSideBySide3 {
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
-    * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
+    * 10:18 AM 11.2.3018 Extension of base model, to 4 columns
     * May 7 '16 at 20:55 posted version
     .DESCRIPTION
     Compare-ObjectsSideBySide3() - Displays four objects side-by-side comparatively in console
@@ -1019,7 +1019,7 @@ function Compare-ObjectsSideBySide4 {
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
     * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
-    * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
+    * 10:18 AM 11.2.3018 Extension of base model, to 4 columns
     * May 7 '16 at 20:55 posted version
     .DESCRIPTION
     Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
@@ -2410,7 +2410,7 @@ if($host.version.major -gt 2){
         For now if it out anytime psv2 is in play. Nope, parser can't parse the content, so it won't even properly skip the function
         Psv2 appears unable to parse some aspect of this. 
         * 10:35 AM 2/21/2022 CBH example ps> adds
-        0.3.11 2020-03-27 Added -Omit parameter (Each omitted character will be replaced with a space)
+        0.3.11.2.30-03-27 Added -Omit parameter (Each omitted character will be replaced with a space)
         .DESCRIPTION
         The ConvertFrom-SourceTable cmdlet creates objects from a fixed column
         source table (format-table) possibly surrounded by horizontal and/or
@@ -4378,7 +4378,7 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                     Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
                     escaped by using a double backslash so that a filename would be D:\\path\\to\\file.mpg)
                     Dbling \'s in all path objects used in params going into vlc.exe args and see if it fixes the issues transcodeing:
-                    C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL2011.0.2-MieT8cNeXJA).mp3
+                    C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20111001-MieT8cNeXJA).mp3
                     ... which comes out as an mp3 with no extension.
                     #>
                     $outputFileName = (join-path -path $tf.Directory -ChildPath "$($tf.BaseName)$($outputExtension)") ;
@@ -4921,7 +4921,7 @@ function dump-Shortcuts {
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
     * 10:35 AM 2/21/2022 CBH example ps> adds 
-    * 10:21 AM 3/11/2020 recoded again, renamed Summarize-Shortcuts -> dump-Shortcuts, added -xml/-csv/-json export, quicklaunch param, and verbose support, -Path defaults to desktop 
+    * 10:21 AM 3/11.2.30 recoded again, renamed Summarize-Shortcuts -> dump-Shortcuts, added -xml/-csv/-json export, quicklaunch param, and verbose support, -Path defaults to desktop 
     8:29 AM 4/28/2016 rewrote and expanded, based on MattG's orig concept
     2013-02-13 18:38:52 MattG posted version
     .DESCRIPTION
@@ -6990,7 +6990,7 @@ Function get-FolderEmpty {
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
     * 1:02 PM 10/12/2023 fix typo in proc: $folder -> $item
-    * 3:22 PM 10/11/2023 init
+    * 3:22 PM 10/11.2.33 init
     .DESCRIPTION
     get-FolderEmpty.ps1 - Returns empty subfolders below specified folder (has Recusive param as well)
     
@@ -9706,7 +9706,7 @@ function pop-HostIndent {
     * 2:01 PM 2/1/2023 add: -PID param
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
     * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
-    * 4:39 PM 1/11/2023 init
+    * 4:39 PM 1/11.2.33 init
     .DESCRIPTION
     pop-HostIndent - Utility cmdlet that decrements/pops the $env:HostIndentSpaces by 4 (or the configured `$PadIncrement)
 
@@ -9976,7 +9976,7 @@ function push-HostIndent {
     * 2:01 PM 2/1/2023 add: -PID param
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
     * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
-    * 4:39 PM 1/11/2023 init
+    * 4:39 PM 1/11.2.33 init
     .DESCRIPTION
     push-HostIndent - Utility cmdlet that increments/pushes the $env:HostIndentSpaces by 4 (or the configured `$PadIncrement)
 
@@ -11667,7 +11667,7 @@ function reset-HostIndent {
     * 2:01 PM 2/1/2023 add: -PID param
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
     * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
-    * 4:39 PM 1/11/2023 init
+    * 4:39 PM 1/11.2.33 init
     .DESCRIPTION
     reset-HostIndent - Utility cmdlet that rests the $env:HostIndentSpaces to 0 (resets prior indenting to left margin)
 
@@ -13123,7 +13123,7 @@ function set-HostIndent {
     * 2:01 PM 2/1/2023 add: -PID param
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope. 
     * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
-    * 4:39 PM 1/11/2023 init
+    * 4:39 PM 1/11.2.33 init
     .DESCRIPTION
     set-HostIndent - Utility cmdlet that explicitly forces the $env:HostIndentSpaces to a known interval of 4 (or the configured `$PadIncrement)
 
@@ -13690,7 +13690,7 @@ function Shorten-Path([string] $path) {
     Website:	winterdom.com
     Twitter:
     REVISIONS   :
-    12:25 PM 11/2/2015 - added pshelp
+    12:25 PM 11.2.3015 - added pshelp
     .DESCRIPTION
     Shorten-Path - Abbreviates path entries to the first letter of all but the most leaf dir
     c:\usr\work\exch\scripts becomes: C:\u\w\e\scripts
@@ -14729,12 +14729,12 @@ Function test-MediaFile {
     REVISIONS
     * 8:43 AM 3/9/2022 fixed consecutive $smsg's wo += to trigger string addition.
     * 10:25 AM 2/21/2022 updated CBH, added an example sample output. Not sure if worked before, but CBH currently doesn't seem to get-hepl correctly. Needs debugging, but can't determine issue source.
-    * 8:08 PM 12/11/2021 added simpler pipeline example 
+    * 8:08 PM 12/11.2.31 added simpler pipeline example 
     * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
     * 8:15 PM 11/19/2021 added tmr alias
     * 7:37 PM 11/12/2021 added example for doing a full dir of files ; flip $path param test-path to use -literalpath - too many square brackets in sources
     * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
-    * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
+    * 8:44 PM 11.2.3021 flip gci -path => -literalpath, avoid [] wildcard issues
     * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
     * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
     .DESCRIPTION
@@ -15233,7 +15233,7 @@ function Test-PendingReboot {
     Tags        : Powershell,System,Reboot
     REVISIONS
     * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
-    * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
+    * 9:52 AM 2/11.2.31 pulled spurios trailing fire of the cmd below func, updated CBH
     * 5:03 PM 1/14/2021 init, minor CBH mods
     * 7/29/19 AB's posted version
     .DESCRIPTION
@@ -15856,7 +15856,7 @@ function write-HostIndent {
     * 2:01 PM 2/1/2023 add: -PID param
     * 2:39 PM 1/31/2023 updated to work with $env:HostIndentSpaces in process scope.
     * 9:50 AM 1/17/2023 All need to be recoded to use evari's, scoped varis aren't consistently discoverable, to have the current 'indent depth' being tweaked by pop|push|reset|set and read by write:
-    * 11:50 AM 1/11/2023 ren $indentNum -> $HostIndentSpaces -> $env:HostIndentSpaces
+    * 11:50 AM 1/11.2.33 ren $indentNum -> $HostIndentSpaces -> $env:HostIndentSpaces
     * 4:15 PM 1/10/2023 ren printIndent -> write-HostIndent ; expanded CBH example, Heart of this is in the example, not the simple write-host loop; 
         added to verb-io.
     * 2:06 PM 1/9/2023 add: CBH, $indentname driving this is is a parent funciton variable, tweak it on the fly to move cursor left or right.
@@ -16190,8 +16190,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUKKOkXa+JAOfUOT8dz4Yfz56V
-# BxygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUo+dsMd6kJFAsSBKbJrb257nK
+# NPqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -16206,9 +16206,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTCVF4c
-# KNeB+HaMXt0yr0WxwAaE8zANBgkqhkiG9w0BAQEFAASBgK6aZqBnxXQWcjDE2zKF
-# E5oxmY4s+74yEB+ojuWb1qq3kDucmPw/Rks7GkZAtm4BLk6YNGGS10BNiqqvyKCc
-# QAZe8KhsG33eVym8ktAcVipK5Oa2NVs5hdZ5YZhTv63lYF+eBD3qk9D8Od1MI6zG
-# 082r51RatK11I/0r6rB+3e/O
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTRruRN
+# 1cIvmlzqdAbHi/hp4ylm+TANBgkqhkiG9w0BAQEFAASBgABeX61IxotmrX+wj5Mu
+# o1mrOjCR5+5JmV8gCkAeODgnHAo5dcuNaiefNiA15WVNaX7qHmvI56d8+LPUQwyK
+# WgsIgKklA+XUs8tUVb1gvzQUFon0WuZ1azpj3eU9Gzi82j9AAG2Un9mWItaiLHfg
+# guJ8Crwj5sumhNM1VVi06g78
 # SIG # End signature block

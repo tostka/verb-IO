@@ -1156,17 +1156,17 @@ function Compress-ArchiveFile {
     - resolved DestinationPath as a System.IO.FileInfo object
     - Contents as a System.Array object
     .EXAMPLE
-    PS> $zipped = Compress-ArchiveFile -path 'c:\tmp\20170411-0706AM.ps1','c:\tmp\24SbP1B9.ics' -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip" -verbose  ;
+    PS> $zipped = Compress-ArchiveFile -path 'c:\tmp\20170411.0.16AM.ps1','c:\tmp\24SbP1B9.ics' -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip" -verbose  ;
     PS> $zipped.Contents| ft -a ;
 
         FullName            Length LastWriteTime              
         --------            ------ -------------              
-        20170411-0706AM.ps1    846 4/11/2017 7:08:12 AM -05:00
+        20170411.0.16AM.ps1    846 4/11/2017 7:08:12 AM -05:00
         24SbP1B9.ics          1514 4/6/2015 11:55:06 AM -05:00
 
     Compress array of files to specified file (with a dynamic timestamped name)
     .EXAMPLE
-    PS> $zipped = 'c:\tmp\20170411-0706AM.ps1','c:\tmp\24SbP1B9.ics' | Compress-ArchiveFile -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip"  -verbose ;
+    PS> $zipped = 'c:\tmp\20170411.0.16AM.ps1','c:\tmp\24SbP1B9.ics' | Compress-ArchiveFile -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip"  -verbose ;
     Pipeline example: Expand content of specified file to DestinationPath
     .EXAMPLE
     PS> $zipped = Compress-ArchiveFile -path C:\tmp\tmp\* -DestinationPath "c:\tmp\test$((get-date -format 'yyyyMMdd-HHmmtt')).zip" -verbose  ;
@@ -2313,7 +2313,6 @@ Function convertFrom-MarkdownTable {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
-    * 9:04 AM 9/27/2023 cbh demo output tweaks (unindented, results in 1st line de-indent and rest indented.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:42 PM 6/22/2021 bug workaround: empty fields in source md table (|data||data|) cause later (export-csv|convertto-csv) to create a csv with *missing* delimiting comma on the problem field ;  added trim of each field content, and CBH example for creation of a csv from mdtable input; added aliases
     * 5:40 PM 6/21/2021 init
@@ -2331,7 +2330,6 @@ Function convertFrom-MarkdownTable {
    PS> $svcs = Get-Service Bits,Winrm | select status,name,displayname | 
       convertTo-MarkdownTable -border | ConvertFrom-MarkDownTable ;  
    Convert Service listing to and back from MD table, demo's working around border md table syntax (outter pipe-wrapped lines)
-  .EXAMPLE
    PS> $mdtable = @"
 |EmailAddress|DisplayName|Groups|Ticket|
 |---|---|---|---|
@@ -3621,7 +3619,6 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
-    * 8:31 AM 9/27/2023 Expl8 isn't rendering (blank PS>): unwrapped the pipe-wrap to see if it works better (though less readable).
     * 10:58 AM 7/13/2022 added -NoPadding to suppress column alignment; added CBH examples: one that demos prettying up handbuilt md tables comboing convertfrom-md | convertto-mdt, and one that demos -NoPadding use with -Tight (produce tightest md tbl output)
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 4:04 PM 9/16/2021 coded around legacy code issue, when using [ordered] hash - need it or it randomizes column positions. Also added -NoDashRow param (breaks md rendering, but useful if using this to dump delimited output to console, for readability)
@@ -3659,50 +3656,33 @@ Function convertTo-MarkdownTable {
     convertTo-MarkdownTable($data) ;
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable ;
-    
-    Status  | Name  | DisplayName
-    ------- | ----- | -----------------------------------------
-    Running | Bits  | Background Intelligent Transfer Service
-    Running | Winrm | Windows Remote Management (WS-Management)
-    
+        Status  | Name  | DisplayName
+        ------- | ----- | -----------------------------------------
+        Running | Bits  | Background Intelligent Transfer Service
+        Running | Winrm | Windows Remote Management (WS-Management)
     Demo of stock use, with a select to spec properties (this cmdlet doesn't observer cmdlet default properties for display, must be manually selected)
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -border ; 
-    
-    | Status  | Name  | DisplayName                               |
-    | ------- | ----- | ----------------------------------------- |
-    | Running | Bits  | Background Intelligent Transfer Service   |
-    | Running | Winrm | Windows Remote Management (WS-Management) |
-    
+        | Status  | Name  | DisplayName                               |
+        | ------- | ----- | ----------------------------------------- |
+        | Running | Bits  | Background Intelligent Transfer Service   |
+        | Running | Winrm | Windows Remote Management (WS-Management) |
     Demo effect of the -Border param.
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -tight ;
-    
-    Status |Name |DisplayName
-    -------|-----|-----------------------------------------
-    Running|Bits |Background Intelligent Transfer Service
-    Running|Winrm|Windows Remote Management (WS-Management)
-    
+        Status |Name |DisplayName
+        -------|-----|-----------------------------------------
+        Running|Bits |Background Intelligent Transfer Service
+        Running|Winrm|Windows Remote Management (WS-Management)
     Demo effect of the -Tight param.
     .EXAMPLE
     PS> Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
     PS> ConvertTo-Markdown | Out-File C:\MyScript.ps1.md ; 
     Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
     .EXAMPLE
-    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
-    
-    # This is Title
-
-    A little something *before*
-
-    Status  | Name  | DisplayName
-    ------- | ----- | -----------------------------------------
-    Stopped | Bits  | Background Intelligent Transfer Service
-    Running | Winrm | Windows Remote Management (WS-Management)
-
-    A little something *after*
-    
-    Demo use of -title, -precontent & -postcontent params
+    PS> Get-Service Bits,Winrm | select status,name,displayname | 
+        Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
+    Demo use of -title, -precontent & -postcontent params:
     .EXAMPLE
     PS> 
 .EXAMPLE
@@ -3715,18 +3695,16 @@ Function convertTo-MarkdownTable {
     Same as prior example, but leveraging more readable splatting
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
-    
-    Status  | Name  | DisplayName                              
-    Stopped | Bits  | Background Intelligent Transfer Service  
-    Running | Winrm | Windows Remote Management (WS-Management)
-    
+        Status  | Name  | DisplayName                              
+        Stopped | Bits  | Background Intelligent Transfer Service  
+        Running | Winrm | Windows Remote Management (WS-Management)
     Demo effect of -NoDashRow param (drops header-seperator line)
     .EXAMPLE
     PS> gci d:\scripts\*_func.ps1 | select name,fullname,length | convertto-markdowntable -border -NoPadding -tight -verbose ;
-    |Name|FullName|Length|
-    |---|---|---|
-    |add-AADUserLicense_func.ps1|D:\scripts\add-AADUserLicense_func.ps1|17747|
-    |toggle-AADLicense_func.ps1|D:\scripts\toggle-AADLicense_func.ps1|26482|
+        |Name|FullName|Length|
+        |---|---|---|
+        |add-AADUserLicense_func.ps1|D:\scripts\add-AADUserLicense_func.ps1|17747|
+        |toggle-AADLicense_func.ps1|D:\scripts\toggle-AADLicense_func.ps1|26482|
     Demo -NoPadding + -border + -tight , on 3 cols of file specs (tightest possible md table output)
     .EXAMPLE
     PS> @"
@@ -3735,12 +3713,10 @@ Function convertTo-MarkdownTable {
     PS> |aad_graph_api|https://graph.windows.net|
     PS> |spacesapi|https://api.spaces.skype.com|
     PS> "@ | convertfrom-markdowntable | convertto-markdowntable -border ;
-    
-    | tag           | ResourceString               |
-    | ------------- | ---------------------------- |
-    | aad_graph_api | https://graph.windows.net    |
-    | spacesapi     | https://api.spaces.skype.com |
-        
+        | tag           | ResourceString               |
+        | ------------- | ---------------------------- |
+        | aad_graph_api | https://graph.windows.net    |
+        | spacesapi     | https://api.spaces.skype.com |
     Pretty up a minimal hand-built mdtable (from herestring), into space-aligned using convertFrom-MarkdownTable | ConvertTo-MarkdownTable 
     .LINK
     https://github.com/tostka/verb-IO
@@ -4378,7 +4354,7 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                     Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
                     escaped by using a double backslash so that a filename would be D:\\path\\to\\file.mpg)
                     Dbling \'s in all path objects used in params going into vlc.exe args and see if it fixes the issues transcodeing:
-                    C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL2011.0.2-MieT8cNeXJA).mp3
+                    C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20111001-MieT8cNeXJA).mp3
                     ... which comes out as an mp3 with no extension.
                     #>
                     $outputFileName = (join-path -path $tf.Directory -ChildPath "$($tf.BaseName)$($outputExtension)") ;
@@ -6919,8 +6895,8 @@ Get-FileType c:\path\to\file.pdf
             @('MPEG-4 (MP4)','000000*66747970',0,8),
             @('MPEG-4 (MP4)','336770',0,3),
             @('Windows/DOS executable file (EXE/COM/DLL/DRV/PIF/OCX/OLB/SCR/CPL ++)','4D5A',0,2),
-            @('Archive (RAR)','526172211A0700',0,7),
-            @('Archive (RAR)','526172211A070100',0,8),
+            @('Archive (RAR)','526172211.0.10',0,7),
+            @('Archive (RAR)','526172211.0.1100',0,8),
             @('Adobe Portable Document Format (PDF) / Forms Document file (FDF)','25504446',0,4),
             @('MPEG-1 Audio Layer 3 (MP3)','FFFB',0,2),
             @('MPEG-1 Audio Layer 3 (MP3)','494433',0,3),
@@ -6932,7 +6908,7 @@ Get-FileType c:\path\to\file.pdf
             @('Microsoft Windows Imaging Format file (WIM)','4D5357494D',0,5),
             @('Rich text format (RTF)','7B5C72746631',0,6),
             @('TrueType font file (TTF)','0001000000',0,5),
-            @('Windows shell link (shortcut) file (LNK)','4C00000001140200',0,8),
+            @('Windows shell link (shortcut) file (LNK)','4C000000011.0.10',0,8),
             @('Windows Help (HLP/GID)','4C4E0200',0,4),
             @('Windows Help (HLP/GID)','3F5F0300',0,4),
             @('Windows Help (HLP)','0000FFFFFFFF',0,6),
@@ -6970,80 +6946,6 @@ Get-FileType c:\path\to\file.pdf
 }
 
 #*------^ get-FileType.ps1 ^------
-
-
-#*------v get-FolderEmpty.ps1 v------
-Function get-FolderEmpty {
-    <#
-    .SYNOPSIS
-    get-FolderEmpty.ps1 - Returns empty subfolders below specified folder (has Recusive param as well).
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     : http://www.toddomation.com
-    Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2021-06-21
-    FileName    : get-FolderEmpty.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-io
-    Tags        : Powershell,Markdown,Input,Conversion
-    REVISION
-    * 1:02 PM 10/12/2023 fix typo in proc: $folder -> $item
-    * 3:22 PM 10/11/2023 init
-    .DESCRIPTION
-    get-FolderEmpty.ps1 - Returns empty subfolders below specified folder (has Recusive param as well)
-    
-    .PARAMETER Folder
-	Directory from which to find empty subdirectories[-Folder c:\tmp\]
-	PARAMETER Recurse
-	Recurse directory switch[-Recurse]
-    .INPUTS
-    Accepts piped input.
-    .OUTPUTS
-    System.IO.DirectoryInfo[] Array of folder objects
-    .EXAMPLE
-    PS> get-FolderEmpty -folder $folder -recurse -verbose ' 
-    Locate and remove empty subdirs, recursively below the specified directory (single pass, doesn't remove parent folders, see below for looping recursive).
-   .EXAMPLE
-	PS > $folder = 'C:\tmp\test' ;
-	PS > Do {
-	PS > 	write-host -nonewline "." ;
-	PS > 	if($mtdirs = get-FolderEmpty -folder $folder -recurse -verbose){
-	PS > 		$mtdirs | remove-item -ea 0 -verbose;
-	PS > 	} ;
-	PS > } Until (-not(get-FolderEmpty -folder $folder -recurse  -verbose)) ;
-	Locate and remove empty subdirs, recursively below the specified directory, repeat pass until all empty subdirs are removed.
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    PARAM(
-        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Directory from which to find empty subdirectories[-Folder c:\tmp\]")]
-            [System.IO.DirectoryInfo[]]$Folder,
-        [Parameter(HelpMessage="Recurse directory switch[-Recurse]")]
-            [switch]$Recurse
-    )  ; 
-    PROCESS {
-        foreach($item in $folder){
-			$sBnrS="`n#*------v PROCESSING : v------" ; 
-			write-verbose $sBnrS ;
-			$pltGCI=[ordered]@{
-				Path = $item ; 
-				Directory = $true ;
-				Recurse=$($Recurse) ; 
-				erroraction = 'STOP' ;
-			} ;
-			$smsg = "get-childitem w`n$(($pltGCI|out-string).trim())" ; 
-			if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
-			else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
-			Get-ChildItem @pltGCI | Where-Object { $_.GetFileSystemInfos().Count -eq 0 } | write-output ; 
-			write-verbose $sBnrS.replace('-v','-^').replace('v-','^-') ;
-        } ; 
-    } ;  
-}
-
-#*------^ get-FolderEmpty.ps1 ^------
 
 
 #*------v Get-FolderSize.ps1 v------
@@ -14605,7 +14507,7 @@ function test-LineEndings {
     write-warning to console for mixed CrLf (use verbose for echo on all tested files)
     Returns fullname value for each mixed/inconsistent EOL file, to pipeline.
     .EXAMPLE
-    PS> $mixedcrlf = test-LineEndings -path 'c:\tmp\20170411-0706AM.ps1','c:\tmp\24SbP1B9.ics' -verbose  ;
+    PS> $mixedcrlf = test-LineEndings -path 'c:\tmp\20170411.0.16AM.ps1','c:\tmp\24SbP1B9.ics' -verbose  ;
     PS> $mixedcrlf | %{
     PS>     write-host "==Fix LineEndings $($_)" ; 
     PS>     $content = Get-Content $_ ; 
@@ -16182,7 +16084,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -16190,8 +16092,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUKKOkXa+JAOfUOT8dz4Yfz56V
-# BxygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUs1bkgdjRknjR4ZG7oQa/P1FA
+# aAqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -16206,9 +16108,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTCVF4c
-# KNeB+HaMXt0yr0WxwAaE8zANBgkqhkiG9w0BAQEFAASBgK6aZqBnxXQWcjDE2zKF
-# E5oxmY4s+74yEB+ojuWb1qq3kDucmPw/Rks7GkZAtm4BLk6YNGGS10BNiqqvyKCc
-# QAZe8KhsG33eVym8ktAcVipK5Oa2NVs5hdZ5YZhTv63lYF+eBD3qk9D8Od1MI6zG
-# 082r51RatK11I/0r6rB+3e/O
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQmKICu
+# Ih2SXjH0+flbIxgZbEoKmjANBgkqhkiG9w0BAQEFAASBgEFhsmy+xpz7F9W1pBaP
+# 7p4TDIySLtOubrAjFhy7pCa94CyJ1sEaNF7FIKfBQeFioBrDL6+TU8EZL3W0QsfV
+# qaG1cSlaiQOgHmAEsWJeyLOaKfb1ARIK/15sNsHhFn27anrkcMP5vsT2dgGYgcDD
+# QD1KUNahytgHZolqiMhK2luV
 # SIG # End signature block

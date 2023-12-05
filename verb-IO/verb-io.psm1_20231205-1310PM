@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 10.2.0.0.0
+Version     : 11.2.2.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2313,6 +2313,7 @@ Function convertFrom-MarkdownTable {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 9:04 AM 9/27/2023 cbh demo output tweaks (unindented, results in 1st line de-indent and rest indented.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:42 PM 6/22/2021 bug workaround: empty fields in source md table (|data||data|) cause later (export-csv|convertto-csv) to create a csv with *missing* delimiting comma on the problem field ;  added trim of each field content, and CBH example for creation of a csv from mdtable input; added aliases
     * 5:40 PM 6/21/2021 init
@@ -2330,6 +2331,7 @@ Function convertFrom-MarkdownTable {
    PS> $svcs = Get-Service Bits,Winrm | select status,name,displayname | 
       convertTo-MarkdownTable -border | ConvertFrom-MarkDownTable ;  
    Convert Service listing to and back from MD table, demo's working around border md table syntax (outter pipe-wrapped lines)
+  .EXAMPLE
    PS> $mdtable = @"
 |EmailAddress|DisplayName|Groups|Ticket|
 |---|---|---|---|
@@ -3619,6 +3621,7 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 8:31 AM 9/27/2023 Expl8 isn't rendering (blank PS>): unwrapped the pipe-wrap to see if it works better (though less readable).
     * 10:58 AM 7/13/2022 added -NoPadding to suppress column alignment; added CBH examples: one that demos prettying up handbuilt md tables comboing convertfrom-md | convertto-mdt, and one that demos -NoPadding use with -Tight (produce tightest md tbl output)
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 4:04 PM 9/16/2021 coded around legacy code issue, when using [ordered] hash - need it or it randomizes column positions. Also added -NoDashRow param (breaks md rendering, but useful if using this to dump delimited output to console, for readability)
@@ -3656,33 +3659,50 @@ Function convertTo-MarkdownTable {
     convertTo-MarkdownTable($data) ;
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable ;
-        Status  | Name  | DisplayName
-        ------- | ----- | -----------------------------------------
-        Running | Bits  | Background Intelligent Transfer Service
-        Running | Winrm | Windows Remote Management (WS-Management)
+    
+    Status  | Name  | DisplayName
+    ------- | ----- | -----------------------------------------
+    Running | Bits  | Background Intelligent Transfer Service
+    Running | Winrm | Windows Remote Management (WS-Management)
+    
     Demo of stock use, with a select to spec properties (this cmdlet doesn't observer cmdlet default properties for display, must be manually selected)
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -border ; 
-        | Status  | Name  | DisplayName                               |
-        | ------- | ----- | ----------------------------------------- |
-        | Running | Bits  | Background Intelligent Transfer Service   |
-        | Running | Winrm | Windows Remote Management (WS-Management) |
+    
+    | Status  | Name  | DisplayName                               |
+    | ------- | ----- | ----------------------------------------- |
+    | Running | Bits  | Background Intelligent Transfer Service   |
+    | Running | Winrm | Windows Remote Management (WS-Management) |
+    
     Demo effect of the -Border param.
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -tight ;
-        Status |Name |DisplayName
-        -------|-----|-----------------------------------------
-        Running|Bits |Background Intelligent Transfer Service
-        Running|Winrm|Windows Remote Management (WS-Management)
+    
+    Status |Name |DisplayName
+    -------|-----|-----------------------------------------
+    Running|Bits |Background Intelligent Transfer Service
+    Running|Winrm|Windows Remote Management (WS-Management)
+    
     Demo effect of the -Tight param.
     .EXAMPLE
     PS> Invoke-ScriptAnalyzer -Path C:\MyScript.ps1 | select RuleName,Line,Severity,Message |
     PS> ConvertTo-Markdown | Out-File C:\MyScript.ps1.md ; 
     Converts output of PSScriptAnalyzer to a Markdown report file using selected properties
     .EXAMPLE
-    PS> Get-Service Bits,Winrm | select status,name,displayname | 
-        Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
-    Demo use of -title, -precontent & -postcontent params:
+    PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -Title 'This is Title' -PreContent 'A little something *before*' -PostContent 'A little something *after*' ; 
+    
+    # This is Title
+
+    A little something *before*
+
+    Status  | Name  | DisplayName
+    ------- | ----- | -----------------------------------------
+    Stopped | Bits  | Background Intelligent Transfer Service
+    Running | Winrm | Windows Remote Management (WS-Management)
+
+    A little something *after*
+    
+    Demo use of -title, -precontent & -postcontent params
     .EXAMPLE
     PS> 
 .EXAMPLE
@@ -3695,16 +3715,18 @@ Function convertTo-MarkdownTable {
     Same as prior example, but leveraging more readable splatting
     .EXAMPLE
     PS> Get-Service Bits,Winrm | select status,name,displayname | Convertto-Markdowntable -NoDashRow
-        Status  | Name  | DisplayName                              
-        Stopped | Bits  | Background Intelligent Transfer Service  
-        Running | Winrm | Windows Remote Management (WS-Management)
+    
+    Status  | Name  | DisplayName                              
+    Stopped | Bits  | Background Intelligent Transfer Service  
+    Running | Winrm | Windows Remote Management (WS-Management)
+    
     Demo effect of -NoDashRow param (drops header-seperator line)
     .EXAMPLE
     PS> gci d:\scripts\*_func.ps1 | select name,fullname,length | convertto-markdowntable -border -NoPadding -tight -verbose ;
-        |Name|FullName|Length|
-        |---|---|---|
-        |add-AADUserLicense_func.ps1|D:\scripts\add-AADUserLicense_func.ps1|17747|
-        |toggle-AADLicense_func.ps1|D:\scripts\toggle-AADLicense_func.ps1|26482|
+    |Name|FullName|Length|
+    |---|---|---|
+    |add-AADUserLicense_func.ps1|D:\scripts\add-AADUserLicense_func.ps1|17747|
+    |toggle-AADLicense_func.ps1|D:\scripts\toggle-AADLicense_func.ps1|26482|
     Demo -NoPadding + -border + -tight , on 3 cols of file specs (tightest possible md table output)
     .EXAMPLE
     PS> @"
@@ -3713,10 +3735,12 @@ Function convertTo-MarkdownTable {
     PS> |aad_graph_api|https://graph.windows.net|
     PS> |spacesapi|https://api.spaces.skype.com|
     PS> "@ | convertfrom-markdowntable | convertto-markdowntable -border ;
-        | tag           | ResourceString               |
-        | ------------- | ---------------------------- |
-        | aad_graph_api | https://graph.windows.net    |
-        | spacesapi     | https://api.spaces.skype.com |
+    
+    | tag           | ResourceString               |
+    | ------------- | ---------------------------- |
+    | aad_graph_api | https://graph.windows.net    |
+    | spacesapi     | https://api.spaces.skype.com |
+        
     Pretty up a minimal hand-built mdtable (from herestring), into space-aligned using convertFrom-MarkdownTable | ConvertTo-MarkdownTable 
     .LINK
     https://github.com/tostka/verb-IO
@@ -4183,6 +4207,14 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 1:41 PM 7/26/2023 add: $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; flipped extension refs to using that combo to detect pre-transcode YT content
+    * 10:32 AM 7/21/2023 add both aliases convert-toMp3 & convertTo-Mp3(proper verb); fixed alias; removed unused params & showdebug support (v write-verbose) added xmpl; worked on path [] in latest pass ; add: rename nested 
+        try's against rename-item, move-item, and [System.IO.File]::Move() - hasn't 
+        triggered move att3empt yet on psv5 (rename-item -literalpath working), but the 
+        above were options for all way back to psv2 support. Even then could still 
+        proxy through a tmp file as well.  
+    * 10:33 PM 7/17/2023 updated clash test rename-item code (was bombing consistently); also updated apostrophe test to solely test in path, not leaf filename.
+    * 12:05 AM 7/16/2023 added inputobject.fullname apostrophe test (parent path with apost crashes rediscover post convert)
     * 5:43 PM 4/23/2023 add support for checking progs86 & progs (new support for 64bit vlc), orig wasn't finding vlc on new box.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     # 5:26 PM 10/5/2021 ren, and alias orig: convert-tomp3 -> convert-VideoToMp3 (added alias:convertto-mp3); also build into freestanding function in verb-IO
@@ -4196,6 +4228,25 @@ function convert-VideoToMp3 {
     * 11:44 PM 11/5/2016 - initial pass
     .DESCRIPTION
     convert-VideoToMp3() - convert passed video files to mp3 files in same directory
+
+    [Supported YouTube file formats - YouTube Help](https://support.google.com/youtube/troubleshooter/2888402?hl=en)
+    - MOV
+    - .MPEG-1
+    - .MPEG-2
+    - .MPEG4 (h.264)
+    - .MP4
+    - .MPG
+    - .AVI
+    - .WMV
+    - .MPEGPS
+    - .FLV
+    - 3GPP
+    - WebM
+    - DNxHR
+    - ProRes
+    - CineForm
+    - HEVC (h265, h.265 ext:.hevc)
+
     .PARAMETER  InputObject
     Name or IP address of the target computer
     .PARAMETER Bitrate
@@ -4217,25 +4268,30 @@ function convert-VideoToMp3 {
     .EXAMPLE
     $bRet=convert-VideoToMp3 -InputObject "C:\video.mkv" ;
     Convert Specified video file to mp3.
+    .EXAMPLE
+    PS> write-verbose 'cd to target dir' ; 
+    PS> cd .\somepath ; 
+    PS> write-verbose 'run recursive pass from there down' ; 
+    PS> get-childitem * -recurse | ?{$_.extension -match "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)"} |%{ convert-VideoToMp3 -inputobject $_ }  ;
+get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|webm|mkv|mpeg)$"}
+    Typical 
     #>
     [CmdletBinding()]
-    [Alias('convert-ToMp3')]
+    [Alias('convert-ToMp3','convertTo-Mp3')]
     PARAM (
         [parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0, Mandatory = $True, HelpMessage = "File(s) to be transcoded")]
-        $InputObject
-        , [parameter(HelpMessage = "Bitrate for transcoded output (defaults to 320k)")]
-        [int]$bitrate = 320
-        , [parameter(HelpMessage = "Samplerate for transcoded output (defaults to 44100)")]
-        [int]$samplerate = 44100
-        , [Parameter(Mandatory = $false, HelpMessage = "Specify Site to analyze [-SiteName (USEA|GBMK|AUSYD]")]
-        [ValidateSet("F", "VLC")]
-        [string]$encoder = "VLC"
-        , [Parameter(HelpMessage = 'ShowProgress [$switch]')]
-        [switch] $showProgress
-        , [Parameter(HelpMessage = 'Debugging Flag [$switch]')]
-        [switch] $showDebug
-        , [Parameter(HelpMessage = 'Whatif Flag  [$switch]')]
-        [switch] $whatIf
+            $InputObject,
+        [parameter(HelpMessage = "Bitrate for transcoded output (defaults to 320k)")]
+            [int]$bitrate = 320,
+        [parameter(HelpMessage = "Samplerate for transcoded output (defaults to 44100)")]
+            [int]$samplerate = 44100,
+        [Parameter(Mandatory = $false, HelpMessage = "Specify Encoder forconversion (F(MPEG), VLC; defaults VLC)[-encoder F")]
+            [ValidateSet("F", "VLC")]
+            [string]$encoder = "VLC",
+        [Parameter(HelpMessage = 'Debugging Flag [$switch]')]
+            [switch] $showDebug,
+        [Parameter(HelpMessage = 'Whatif Flag  [$switch]')]
+            [switch] $whatIf
     ) ; # PARAM-E
 
     <# input formats supported by VLC
@@ -4244,13 +4300,13 @@ function convert-VideoToMp3 {
 
     BEGIN {
         $rgxInputExts = "(?i:^\.(MPEG|MP3|AVI|ASF|WMV|WMA|MP4|MOV|3GP|OGG|OGM|MKV|WEBM|WAV|DTS|AAC|AC3|A52|FLAC|FLV|MXF|MIDI|SMF)$)" ;
+        $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; 
         $outputExtension = ".mp3" ;
         $audio_codec = "mp3" ;
         #"mpga"
         $channels = 2 ;
         $mux = "dummy" ; # for mp3 audio-only extracts, use the dummy mux
         #"mpeg1"
-        $progInterval = 500 ; # write-progress interval in ms
         $iProcd = 0 ;
         $continue = $true ;
         $progs = @($env:ProgramFiles,${env:ProgramFiles(x86)}) ; 
@@ -4264,21 +4320,8 @@ function convert-VideoToMp3 {
                 break ; 
             } 
         } ; 
-        <#
-        $programFiles = ${env:ProgramFiles(x86)};
-        if ($programFiles -eq $null) { $programFiles = $env:ProgramFiles; } ;
-        switch ($encoder) {
-            "VLC" { $processName = $programFiles + "\VideoLAN\VLC\vlc.exe" ; }
-            "FFMPEG" { $processName = "C:\apps\ffmpeg\bin\ffmpeg.exe" }
-        } ;
-        #>
-        if (!(test-path -path $processName)) { throw "MISSING/INVALID $($encoder) install path!:$($processName)" } ;
-        write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):=== v PROCESSING STARTED v ===" ;
-        $progParam = @{
-            CurrentOperation = "Beginning";
-            Status           = "Preparing Processing...";
-            PercentComplete  = 0;
-        } ;
+        if (-not (test-path -path $processName)) { throw "MISSING/INVALID $($encoder) install path!:$($processName)" } ;
+        write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):=== v PROCESSING STARTED v ===" ;
     }  # BEG-E ;
 
     PROCESS {
@@ -4290,27 +4333,27 @@ function convert-VideoToMp3 {
         foreach ($inputFile in $InputObject) {
 
             $continue = $true ;
-            try {
+            TRY {
 
                 if ($inputfile.GetType().fullname -ne "System.IO.DirectoryInfo") {
                     switch ($inputfile.GetType().fullname) {
                         "System.IO.FileInfo" {
-                            if ($tf = Get-childitem -path $inputFile.fullname -ea Stop) {
-                            }
-                            else {
+                            if ($tf = Get-childitem -path $inputFile.fullname -ea 0) {}
+                            elseif($tf = Get-childitem -literalpath $inputFile.fullname -ea Stop){
+                                write-verbose "failed get-childitem -path; hit on -literalpath: likely squarebracket in name/path" ; 
+                            } else {
                                 write-host -ForegroundColor red "Unable to read infile: $($inputFile.fullname)" ;
                                 throw "MISSING/INVALID inputfile:$($inputFile.fullname)"
                             } ;
                         } ;
                         "System.String" {
                             # 12:02 PM 4/1/2017 if it's a string, it's not going to have a fullname prop - it's a full path string
-                            if ($tf = Get-childitem -path $inputFile) {
-
-                            }
-                            else {
+                            if ($tf = Get-childitem -path $inputFile -ea 0 ) {}
+                            elseif($tf = Get-childitem -literalpath $inputFile -ea Stop){
+                                write-verbose "failed get-childitem -path; hit on -literalpath: likely squarebracket in name/path" ; 
+                            } else {
                                 write-host -ForegroundColor red "Unable to read infile: $($inputFile.fullname)" ;
-                                throw "MISSING/INVALID inputfile:$($inputFile.fullname)"
-                            } ;
+                            } ;   
                         };
                         default {
                             write-host -ForegroundColor red "Unable to read infile: $($inputFile.fullname)" ;
@@ -4319,7 +4362,17 @@ function convert-VideoToMp3 {
                         } ;
                     } ;
 
+                    $sBnrS="`n#*------v PROCESSING : $($tf.fullname)v------" ; 
+                    write-verbose $sBnrS ;
+
                     if ($tf.extension -notmatch $rgxInputExts ) { throw "UNSUPPORTED INPUTFILE TYPE:$($inpuptFile)" }  ;
+
+                    # 12:01 AM 7/16/2023 apostrophe's in fullname crash rediscovery post conv, test
+                    #if($inputFile.FullName.contains("'")){
+                    # actually it's when there's a ' in the path, more than the file name. File name is acommodated, but renaming breaks with it in the path.
+                    if($inputfile.DirectoryName.contains("'")){
+                        throw "INPUTFILE TYPE FULLNAME CONTAINS APOSTROPHE(')!:`n$($inputfile.FULLNAME)`nSKIPPING!"
+                    } ;
 
                     <# 7:20 PM 11/6/2016 windows docs:https://wiki.videolan.org/Transcode/
                     Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
@@ -4335,7 +4388,7 @@ function convert-VideoToMp3 {
                     $tempout = (join-path -path $tf.Directory -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
                     $inputFileName = $tf.FullName.replace("\", "\\") ;
 
-                    if ($showDebug) { write-verbose -verbose:$true  "`$outputFileName:$outputFileName`n`$tempout:$($tempout)" } ;
+                    write-verbose "`$outputFileName:$outputFileName`n`$tempout:$($tempout)"  ;
 
                     switch ($encoder) {
                         "VLC" {
@@ -4343,7 +4396,7 @@ function convert-VideoToMp3 {
                             # 1st spec dummy/non-GUI pass, and input filename  $($inputFileName)
                             $processArgs = "-I dummy -v `"$($inputFileName)`"" ;
                             if ($whatif) {
-                                write-verbose -verbose:$true  "-whatif detected, test-transcoding only the first 30secs" ;
+                                write-host -foregroundcolor green "-whatif detected, test-transcoding only the first 30secs" ;
                                 $processArgs += " --stop-time=30" ;
                             } ;
                             # build output transcode settings
@@ -4399,15 +4452,13 @@ function convert-VideoToMp3 {
                         }
                     } ;
 
-                    if ($showDebug) {
-                        write-verbose -verbose:$true  "`$processName:$($processName | out-string)" ;
-                        write-verbose -verbose:$true  "`$processArgs:$($processArgs | out-string)" ;
+                        write-verbose "`$processName:$($processName | out-string)" ;
+                        write-verbose "`$processArgs:$($processArgs | out-string)" ;
                         # optional debug: pipe it into the clipboard for cmdline testing
                         #"`"$($processName)`" $($processArgs)" | Out-Clipboard ;
                         #write-verbose -verbose:$true  "current cmdline piped to Clipboard!" ;
-                    } ;
                     # launch command
-                    # capture and echo back errors from robocopy.exe
+                    # capture and echo back errors from .exe
                     $soutf = [System.IO.Path]::GetTempFileName() ;
                     $serrf = [System.IO.Path]::GetTempFileName()  ;
                     "Cmd:$($processName) $($processArgs)" ;
@@ -4415,31 +4466,82 @@ function convert-VideoToMp3 {
 
                     switch ($process.ExitCode) {
                         0 {
-                            "ExitCode 0 returned (No Errors, File converted)"
+                            write-host -foregroundcolor green "ExitCode 0 returned (No Errors, File converted)"
                             # ren $tempout => $outputFileName
+                            $bfound = $useLiteralPath = $false ; 
                             if ($rf = get-childitem -path $tempout ) {
-                                # renames fail if there's an existing fn clash -> ren the clash, -ea 0 to suppress notfound errors
-                                if ($cf = get-childitem -path ($outputFileName | split-path -Leaf) -ea 0 ) {
-                                    Rename-Item -path $rf.fullname -NewName "$($cf.BaseName)-$((get-date).tostring('yyyyMMdd-HHmmtt'))$($cf.Extension)" ;
-                                }
-                                else {
-                                    Rename-Item -path $rf.fullname -NewName $($outputFileName | split-path -Leaf)
-                                };
-                            }
-                            else {
+                                $bfound = $true ; 
+                            }elseif($rf = get-childitem -literalpath $tempout ) {
+                                write-verbose "gci -literalpath reqd to find returnfile - likely spec chars in path" ; 
+                                $bfound = $true ; 
+                                $useLiteralPath = $true ;
+                            }else {
                                 throw "No matching temporary output file found: $($tmpout)" ;
                             } ;
+                            if($bfound){
+                                # renames fail if there's an existing fn clash -> ren the clash, -ea 0 to suppress notfound errors
+                                #if ($cf = get-childitem -path ($outputFileName | split-path -Leaf) -ea 0 ) {
+                                if($useLiteralPath){
+                                    write-verbose "using -literalpath to check for conflict file on rename target" ; 
+                                    $cf = get-childitem -ea 0 -literalpath (join-path -Path (split-path $rf.fullname) -ChildPath ($outputFileName | split-path -Leaf))
+                                } else { 
+                                    $cf = get-childitem -ea 0 -path (join-path -Path (split-path $rf.fullname) -ChildPath ($outputFileName | split-path -Leaf))
+                                } ;
+                                if($cf){
+                                    $nname = "$($cf.BaseName)-$((get-date).tostring('yyyyMMdd-HHmmtt'))$($cf.Extension)" ; 
+                                    $smsg = "existing conflict found, using variant name:" ; 
+                                    $smsg = "`nrenaming $($rf.fullname)`nto:$($nname)" ; 
+                                    write-verbose $smsg ; 
+                                    if($useLiteralPath){
+                                        # still may fail on square-brackets, but move-item supports as well, with better tolerance
+                                        TRY{
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                        }CATCH{
+                                            TRY{
+                                                write-warning  "FAILED:Rename-Item, retrying move-item..." ;  
+                                                move-item -LiteralPath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                            }CATCH{
+                                                write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;  
+                                                [System.IO.File]::Move( $rf.fullname , (join-path -path $cf.DirectoryName -childpath $nname)) ;
+                                            } ;
+                                        } ;
+                                    } else { 
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                    } ; 
+                                } else {
+                                    $nname = $($outputFileName | split-path -Leaf) ; 
+                                    write-verbose "renaming $($rf.fullname)`nto:$($nname)" ; 
+                                    if($useLiteralPath){
+                                        TRY{
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                        }catch{
+                                            TRY{
+                                                write-warning  "FAILED:Rename-Item, retrying move-item..." ;
+                                                move-Item -literalpath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                            }CATCH{
+                                                write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;
+                                                [System.IO.File]::Move($rf.fullname ,(join-path -path $cf.DirectoryName -childpath $nname)) ;  
+                                            }
+                                        }
+                                    } else { 
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                    } ; 
+                                };
+                            } ; 
                         } ;
                         1 { "ExitCode 1 returned (fatal error)" } ;
-                        default { write-host "ERROR during VLC Transcoding: Non-0/1 ExitCode returned $($process.ExitCode)" ; write-host "`a" ; } ;
+                        default { 
+                            write-host "ERROR during VLC Transcoding: Non-0/1 ExitCode returned $($process.ExitCode)" ; write-host "`a" ; 
+                        } ;
                     } ;
 
+                    write-verbose "(checking for -RedirectStandardOutput -RedirectStandardError files from conversion...)" ; 
                     if ((get-childitem $soutf).length) {
-                        if ($ShowDebug) { (gc $soutf) | out-string ; } ;
+                        if ($VerbosePreference -eq "Continue") { (get-content $soutf) | out-string ; } ;
                         remove-item $soutf ;
                     } ;
                     if ((get-childitem $serrf).length) {
-                        if ($ShowDebug) { (gc $serrf) | out-string ; } ;
+                        if ($VerbosePreference -eq "Continue") { (get-content $serrf) | out-string ; } ;
                         remove-item $serrf ;
                     } ;
 
@@ -4500,15 +4602,13 @@ function convert-VideoToMp3 {
                     --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit
                     #>
 
-                }
-                else {
+                } else {
                     # code leak to throw out directories
                     # System.IO.DirectoryInfo
-                    "(Skipping $($inputfile) -- Directory)" ;
+                    write-host "(Skipping $($inputfile) -- Directory)" ;
                 } ;
 
-            }
-            catch {
+            }catch {
                 # BOILERPLATE ERROR-TRAP
                 Write "$((get-date).ToString("HH:mm:ss") ): -- SCRIPT PROCESSING CANCELLED" ;
                 Write "$((get-date).ToString("HH:mm:ss") ): Error in $($_.InvocationInfo.ScriptName)." ;
@@ -4522,12 +4622,14 @@ function convert-VideoToMp3 {
                 # Exit; here if you want processing to die and not continue on next for-pass
             } # try/cat-E ;
 
+            write-verbose $sBnrS.replace('-v','-^').replace('v-','^-') ;
+
         } #  # loop-E ;
     } # PROC-E ;
 
     END {
-        write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):$($iProcd) conversions processed" ;
-        write-verbose -verbose:$true  "$((get-date).ToString("HH:mm:ss")):=== ^ PROCESSING COMPLETE ^ ===" ;
+        write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):$($iProcd) conversions processed" ;
+        write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):=== ^ PROCESSING COMPLETE ^ ===" ;
 
     } # END-E
 }
@@ -5919,6 +6021,295 @@ function get-ColorNames {
 #*------^ get-ColorNames.ps1 ^------
 
 
+#*------v Get-CombinationTDO.ps1 v------
+function Get-CombinationTDO {
+    <#
+    .SYNOPSIS
+    Get-CombinationTDO - Select Combinations from the group specified
+    .NOTES
+    Version     : 0.0.2
+    Author      : Doug Finke (dfinke)
+    Website     : https://github.com/dfinke
+    Twitter     : @dfinke / http://twitter.com/dfinke
+    CreatedDate : 2020-04-30
+    FileName    : Get-CombinationTDO.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell, Algorithm, Permutation, Math
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS
+    * 10:01 AM 9/14/2023 renamed to distinctive 'TDO' to avoid clashes ; moved class Combination into main function, to make it selfcontained wo the full .psm1 (to add to my verb-io .psm1); minor OTB reformatting, tighted up whitespace
+    * 4/30/2020 Dfinke's posted version
+    - 11/8/2017 Dfinke's prior rev
+    .DESCRIPTION
+    Get-CombinationTDO - Select Combinations from the group specified
+
+    [GitHub - dfinke/PowerShellCombinations: Using PowerShell Classes & Script to generate and manipulate combinations and permutations](https://github.com/dfinke/PowerShellCombinations)
+
+    ## Combinations
+
+    A combination is a way of selecting to members from a grouping, such that (unlike permutations) the order of selection does not matter.
+
+    For example, if you have the 5 items
+
+        ```text
+        ant bug cat dog elk
+        ```
+
+    then the 10 possible combinations of size 3 are
+
+        ```text
+        ant   bug   cat  
+        ant   bug   dog  
+        ant   bug   elk  
+        ant   cat   dog  
+        ant   cat   elk  
+        ant   dog   elk  
+        bug   cat   dog  
+        bug   cat   elk  
+        bug   dog   elk  
+        cat   dog   elk  
+        ```
+    
+    > I ported this from James McCaffrey's book [.NET Test Automation Recipes](http://www.apress.com/9781590596630)
+
+    Dfinke's accompanying script that leverages the [combination] class to draw a hand from a 52 card deck of cards.
+
+    ```powershell
+    write-verbose "this leverages/loads dfinke's original Combination module, assumed to be locally stored (to mount the Combination class)" ; 
+    $here = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $scriptBody = "using module $here\Combination.psm1" ; 
+    $script = [ScriptBlock]::Create($scriptBody) ; 
+    . $script ; 
+    write-verbose "... and then obtains a 5 card combination" ; 
+    $possibilities = [Combination]::Choose(52,5) ; 
+    $c = [Combination]::new(52,5) ; 
+
+    $deck = $(
+        echo As Ks Qs Js Ts 9s 8s 7s 6s 5s 4s 3s 2s ; 
+        echo Ac Kc Qc Jc Tc 9c 8c 7c 6c 5c 4c 3c 2c ; 
+        echo Ad Kd Qd Jd Td 9d 8d 7d 6d 5d 4d 3d 2d ; 
+        echo Ah Kh Qh Jh Th 9h 8h 7h 6h 5h 4h 3h 2h ; 
+    ) ; 
+
+    "$($c.Element((Get-Random $possibilities)).ApplyTo($deck))" ; 
+
+    ```
+
+    .PARAMETER  Data
+    Array of strings to be Combinationed[-target 'ant','bug,'cat','dog','elk']
+    .INPUTS
+    None. Does not accepted piped input.(.NET types, can add description)
+    .OUTPUTS
+    None. Returns no objects or output (.NET types)
+    System.Boolean
+    [| get-member the output to see what .NET obj TypeName is returned, to use here]
+    .EXAMPLE
+    PS> $animals = echo ant bug cat dog elk ;
+    PS> Get-CombinationTDO $animals 3 | Format-Table -AutoSize ;
+
+        Item1 Item2 Item3
+        ----- ----- -----
+        ant   bug   cat  
+        ant   bug   dog  
+        ant   bug   elk  
+        ant   cat   dog  
+        ant   cat   elk  
+        ant   dog   elk  
+        bug   cat   dog  
+        bug   cat   elk  
+        bug   dog   elk  
+        cat   dog   elk  
+    
+    Calculate combinations of three of the specified array.
+     .EXAMPLE
+    PS> $animals = echo ant bug cat dog elk ;
+    PS> Get-CombinationTDO $animals | Format-Table -AutoSize ;
+
+        Item1 Item2 Item3 Item4 Item5
+        ----- ----- ----- ----- -----
+        ant   bug   cat   dog   elk  
+        ant   bug   cat   dog        
+        ant   bug   cat   elk        
+        ant   bug   dog   elk        
+        ant   cat   dog   elk        
+        bug   cat   dog   elk        
+        ant   bug   cat              
+        ant   bug   dog              
+        ant   bug   elk              
+        ant   cat   dog              
+        ant   cat   elk              
+        ant   dog   elk              
+        bug   cat   dog              
+        bug   cat   elk              
+        bug   dog   elk              
+        cat   dog   elk              
+        ant   bug                    
+        ant   cat                    
+        ant   dog                    
+        ant   elk                    
+        bug   cat                    
+        bug   dog                    
+        bug   elk                    
+        cat   dog                    
+        cat   elk                    
+        dog   elk                    
+        ant                          
+        bug                          
+        cat                          
+        dog                          
+        elk       
+    
+    Calculate unlimited combinations of the full array of the five elements
+    .LINK
+    https://github.com/tostka/verb-IO
+    .LINK
+    https://github.com/dfinke/PowerShellCombinations
+    #>
+    [OutputType("Object[]")]
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Array of strings to have Combinations run[-Data 'ant bug cat dog elk']")]
+            [string[]]$Data,
+        [Parameter(Position=1,HelpMessage="Size limit of combinations to run (defaults to 0==Unlimited; 3 == if there are 5 elements, calculate variant Combinations of 3 elements)[-TakeXAtAtime 'ant','bug','cat','dog','elk']")]
+            [int]$TakeXAtAtime = 0
+    ) ; 
+    $targetVersion = [version]"5.0.9883.0"
+    if($PSVersionTable.PSVersion -lt $targetVersion) {
+        Write-Error "Sorry, you need PowerShell version $targetVersion or newer"
+        break
+    }
+
+    #*------v class Combination v------
+    class Combination {
+        hidden [long]$n ; 
+        hidden [long]$k ; 
+        hidden [long[]]$data ; 
+    
+        Combination([long]$n, [long]$k) {
+            $this.n=$n ;
+            $this.k=$k ;
+            if($n -lt 0 -Or $k -lt 0) {throw "Negative argument in constructor"} ;
+            $this.data=New-Object long[] $k ;
+            for ($i = 0; $i -lt $k; ++$i){
+                $this.data[$i]=$i ;
+            } ;
+        }
+    
+        Combination([long]$n, [long]$k, [long[]]$a) {
+            if($k -ne $a.Count) {throw "Bad array size in constructor"} ; 
+            $this.n=$n ; 
+            $this.k=$k ; 
+            $this.data=New-Object long[] $k ; 
+            for ($i = 0; $i -lt $k; ++$i){
+                $this.data[$i]=$a[$i] ; 
+            } ; 
+
+        }
+
+        [string]ToString() { return "{ "+ $this.data + " }" } 
+
+        static [long] Choose([long]$n, [long]$k) {
+            [long]$delta=0 ; 
+            [long]$iMax=0 ; 
+            if($n -lt $k) { return 0 } ; 
+            if($n -eq $k) { return 1 } ; 
+            if($k -lt $n -$k) {
+                $delta=$n-$k ; 
+                $iMax=$k ; 
+            } else {
+                $delta=$k ; 
+                $iMax=$n-$k ; 
+            } ; 
+            [long]$answer = $delta + 1 ; 
+            for ($i = 2; $i -le $iMax; ++$i){
+                $answer = ($answer * ($delta + $i)) / $i
+            } ; 
+            return $answer ; 
+        }
+
+        [Combination] Successor() {
+            if($this.data[0] -eq $this.n - $this.k) { return $null } ; 
+            [Combination]$ans = [Combination]::new($this.n, $this.k) ; 
+            for ($i = 0; $i -lt $this.k; ++$i){
+                $ans.data[$i]=$this.data[$i] ; 
+            } ; 
+            for ($x = $this.k - 1; $x -gt 0 -and $ans.data[$x]  -eq $this.n-$this.k+$x; --$x) {} ; 
+            ++$ans.data[$x] ; 
+            for ($j = $x; $j -lt $this.k - 1; ++$j){
+                $ans.data[$j+1]=$ans.data[$j]+1 ; 
+            } ; 
+            return $ans ; 
+        }
+ 
+        [Combination] Element([long]$m) {
+            [long[]] $ans = New-Object long[] $this.k
+            [long]$a = $this.n;
+            [long]$b = $this.k;
+            [long]$x = ([Combination]::Choose($this.n, $this.k) - 1) - $m
+            for ($i = 0; $i -lt $this.k; ++$i){
+                $ans[$i] = [Combination]::LargestV($a,$b,$x) ; 
+                $x = $x - [Combination]::Choose($ans[$i],$b) ; 
+                $a = $ans[$i] ; 
+                $b = $b-1 ; 
+            } ; 
+            for ($i = 0; $i -lt $this.k; ++$i){
+                $ans[$i] = ($this.n-1) - $ans[$i] ; 
+            } ; 
+            return [Combination]::new($this.n, $this.k, $ans) ; 
+        }
+
+        hidden static [long] LargestV([long]$a, [long]$b, [long]$x) {
+            $v = $a-1 ; 
+            while([Combination]::Choose($v, $b) -gt $x) { --$v }  ;
+            return $v ; 
+        }
+
+        #[string[]] ApplyTo([string[]]$sa) {
+        [string[]] ApplyTo2([string[]]$sa) {
+            [string[]]$result=New-Object string[] $this.k ; 
+            for ($i = 0; $i -lt $result.Count; ++$i){
+                $result[$i] = $sa[$this.data[$i]] ; 
+            } ; 
+            return $result ; 
+        }[string[]] ApplyTo([string[]]$sa) {
+            [string[]]$result=New-Object string[] $this.k ; 
+            for ($i = 0; $i -lt $result.Count; ++$i){
+                $result[$i] = $sa[$this.data[$i]] ; 
+            }
+            return $result ; 
+        }
+    } ; 
+    #*------^ END class Combination ^------
+
+	# Allow variable width combinations
+	if ($TakeXAtAtime -eq 0)
+    {$TakeAtLeast = 1 ; $TakeAtMost = $Data.Count} 
+    else {$TakeAtLeast = $TakeAtMost = $TakeXAtAtime } ; 
+	
+	for ($i = $TakeAtMost; $i -ge $TakeAtLeast; $i--){
+		$c = [Combination]::new($data.count, $i) ; 
+		while ($c) {
+			$h=[ordered]@{} ; 
+			$idx=1 ; 
+			#$c.ApplyTo($data) | foreach-object {
+            # clashing in the loaded perm class, rename variant for now (identical function)
+            $c.ApplyTo2($data) | foreach-object {
+				$h."Item$($idx)"=$_ ; 
+				++$idx ; 
+			} ; 
+			[PSCustomObject]$h ; 
+			$c=$c.Successor()  ; 
+		} ; 
+	} ; 
+}
+
+#*------^ Get-CombinationTDO.ps1 ^------
+
+
 #*------v get-ConsoleText.ps1 v------
 Function get-ConsoleText {
     <#
@@ -6581,6 +6972,80 @@ Get-FileType c:\path\to\file.pdf
 #*------^ get-FileType.ps1 ^------
 
 
+#*------v get-FolderEmpty.ps1 v------
+Function get-FolderEmpty {
+    <#
+    .SYNOPSIS
+    get-FolderEmpty.ps1 - Returns empty subfolders below specified folder (has Recusive param as well).
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2021-06-21
+    FileName    : get-FolderEmpty.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Markdown,Input,Conversion
+    REVISION
+    * 1:02 PM 10/12/2023 fix typo in proc: $folder -> $item
+    * 3:22 PM 10/11/2023 init
+    .DESCRIPTION
+    get-FolderEmpty.ps1 - Returns empty subfolders below specified folder (has Recusive param as well)
+    
+    .PARAMETER Folder
+	Directory from which to find empty subdirectories[-Folder c:\tmp\]
+	PARAMETER Recurse
+	Recurse directory switch[-Recurse]
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    System.IO.DirectoryInfo[] Array of folder objects
+    .EXAMPLE
+    PS> get-FolderEmpty -folder $folder -recurse -verbose ' 
+    Locate and remove empty subdirs, recursively below the specified directory (single pass, doesn't remove parent folders, see below for looping recursive).
+   .EXAMPLE
+	PS > $folder = 'C:\tmp\test' ;
+	PS > Do {
+	PS > 	write-host -nonewline "." ;
+	PS > 	if($mtdirs = get-FolderEmpty -folder $folder -recurse -verbose){
+	PS > 		$mtdirs | remove-item -ea 0 -verbose;
+	PS > 	} ;
+	PS > } Until (-not(get-FolderEmpty -folder $folder -recurse  -verbose)) ;
+	Locate and remove empty subdirs, recursively below the specified directory, repeat pass until all empty subdirs are removed.
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Directory from which to find empty subdirectories[-Folder c:\tmp\]")]
+            [System.IO.DirectoryInfo[]]$Folder,
+        [Parameter(HelpMessage="Recurse directory switch[-Recurse]")]
+            [switch]$Recurse
+    )  ; 
+    PROCESS {
+        foreach($item in $folder){
+			$sBnrS="`n#*------v PROCESSING : v------" ; 
+			write-verbose $sBnrS ;
+			$pltGCI=[ordered]@{
+				Path = $item ; 
+				Directory = $true ;
+				Recurse=$($Recurse) ; 
+				erroraction = 'STOP' ;
+			} ;
+			$smsg = "get-childitem w`n$(($pltGCI|out-string).trim())" ; 
+			if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+			else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+			Get-ChildItem @pltGCI | Where-Object { $_.GetFileSystemInfos().Count -eq 0 } | write-output ; 
+			write-verbose $sBnrS.replace('-v','-^').replace('v-','^-') ;
+        } ; 
+    } ;  
+}
+
+#*------^ get-FolderEmpty.ps1 ^------
+
+
 #*------v Get-FolderSize.ps1 v------
 function Get-FolderSize {
     <#
@@ -7114,6 +7579,191 @@ function get-LoremName {
 }
 
 #*------^ get-LoremName.ps1 ^------
+
+
+#*------v Get-PermutationTDO.ps1 v------
+function Get-PermutationTDO {
+    <#
+    .SYNOPSIS
+    Get-PermutationTDO.ps1 - Calculate the range of Permutations of the specified group
+    .NOTES
+    Version     : 0.0.2
+    Author      : Doug Finke (dfinke)
+    Website     : https://github.com/dfinke
+    Twitter     : @dfinke / http://twitter.com/dfinke
+    CreatedDate : 2020-04-30
+    FileName    : Get-PermutationTDO.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell, Algorithm, Permutation, Math
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS
+    * 2:21 PM 9/14/2023 add: CBH demo that shows use of this to run fancy rgx select-string searches ; -asObject param (returns customobj rather than space-delimited text) ; renamed to distinctive 'TDO' to avoid clashes ; moved class PermutationTDO into main function, to make it selfcontained wo the full .psm1 (to add to my verb-io .psm1); minor OTB reformatting, tighted up whitespace
+    - 11/8/2017 Dfinke's posted version
+    .DESCRIPTION
+    Get-PermutationTDO.ps1 - Calculate the range of Permutations of the specified group
+
+    [GitHub - dfinke/PowerShellCombinations: Using PowerShell Classes & Script to generate and manipulate combinations and permutations](https://github.com/dfinke/PowerShellCombinations)
+
+    ## Permutations
+
+    A permutation is a way of selecting to members from a grouping, such that (unlike combinations) the order of selection matters.
+
+    It you have the three items
+
+        ```text
+        Adam John Jane
+        ```
+
+    then, the six permutations of these items are
+
+        ```text
+        Adam John Jane
+        Adam Jane John
+        John Adam Jane
+        John Jane Adam
+        Jane Adam John
+        Jane John Adam
+        ```
+
+    
+    > I ported this from James McCaffrey's book [.NET Test Automation Recipes](http://www.apress.com/9781590596630)
+
+    .PARAMETER  Target
+    Array of strings to be permutated[-target 'ant','bug,'cat','dog','elk' ]
+    .PARAMETER AsObject
+    Switch that causes the output to be a PSCustomObject containing Item1...ItemX entries (vs default simple string of all elements space-delimted sent to pipeline)[-AsObject]
+    .INPUTS
+    None. Does not accepted piped input.(.NET types, can add description)
+    .OUTPUTS
+    None. Returns no objects or output (.NET types)
+    .EXAMPLE
+    PS> $people = echo Adam John Jane ; 
+    PS> Get-PermutationTDO $people ;
+    .EXAMPLE
+    PS> $kwords = 'quota','mailboxfolderstatistics' ; 
+    PS> $perms = get-permutationTDO $kwords  ; 
+    PS> [array]$rgxString = $() ; 
+    PS> foreach($p in $perms){
+    PS>     $rgxString += "($($p.split(' ') -join '.*'))" ; 
+    PS> } ; 
+    PS> [string]$rgxString = $rgxString -join '|' ; 
+    PS> [regex]$rgxString = $rgxString ;
+    PS> write-host "running search with rgx:$($rgxString.Tostring())..." ; 
+    PS> gci c:\usr\work\incid\*.txt | sort LastWriteTime | sls -pattern $rgxString.Tostring() ;   
+    
+        running search with rgx:(quota.*mailboxfolderstatistics)|(mailboxfolderstatistics.*quota)...
+          
+    Demo that leverages get-permutationTDO() to produce all possible word order variants, and then creates a regex .* wildcard mis-pair, 'OR'd in the various word orders". This lets you run select-string -pattern searches that accomodate any order of the target keywords in subject files.
+    .LINK
+    https://github.com/tostka/verb-IO
+    .LINK
+    https://github.com/dfinke/PowerShellCombinations
+    #>
+    [OutputType("Object[]")]
+    [CmdletBinding()]
+    PARAM(
+        #[Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="HELPMSG[-PARAM SAMPLEINPUT]")]
+        [Parameter(Position=0,Mandatory=$true,HelpMessage="Array of strings to be permutated[-target 'ant','bug,'cat','dog','elk' ]")]
+            $target,
+        [Parameter(Position=1,HelpMessage="Switch that causes the output to be a PSCustomObject containing Item1...ItemX entries (vs default simple string of all elements space-delimted sent to pipeline)[-AsObject]")]
+            [switch]$AsObject
+    ) ;
+    #*------v class Permutation v------
+    class Permutation {
+        hidden [int[]] $data ; 
+        hidden [int] $order ; 
+
+        Permutation([int]$n){
+            $this.data = New-Object int[] $n ; 
+            for ($i = 0; $i -lt $n; ++$i) {
+                $this.data[$i] = $i ; 
+            } ; 
+            $this.order = $n ; 
+        }
+
+        Permutation([int[]]$a){
+            $this.data = New-Object int[] $a.Count ; 
+            for ($i = 0; $i -lt $a.count ; ++$i){
+                $this.data[$i] = $a[$i] ; 
+            }
+            $this.order = $a.Count ; 
+        }
+
+        [Permutation] Successor() {
+            [Permutation]$result = [Permutation]::new($this.order)
+            [int]$left=0 ; 
+            [int]$right=0 ; 
+            for ($k = 0; $k -lt $result.order; ++$k){
+                $result.data[$k] = $this.data[$k] ; 
+            } ; 
+            $left = $result.order - 2 ;
+            while (($result.data[$left] -gt $result.data[$left+1]) -And ($left -ge 1)) {
+                --$left ; 
+            } ; 
+            if (($left -eq 0) -And ($this.data[$left] -gt $this.data[$left+1])) {return $null} ; 
+            $right = $result.order - 1 ;
+            while ($result.data[$left] -gt $result.data[$right]) {
+                --$right ; 
+            }
+            [int]$temp = $result.data[$left] ; 
+            $result.data[$left] = $result.data[$right] ; 
+            $result.data[$right] = $temp ; 
+            [int]$i = $left + 1 ; 
+            [int]$j = $result.order - 1 ; 
+            while ($i -lt $j) {
+                $temp = $result.data[$i] ; 
+                $result.data[$i++] = $result.data[$j] ; 
+                $result.data[$j--] = $temp ; 
+            } ; 
+            return $result ; 
+        }
+
+        static [object] Factorial([int]$n){
+            $answer = 1 ; 
+            for ($i = 1; $i -le $n; ++$i){
+                $answer *= $i ; 
+            } ;         
+            return $answer ; 
+        }
+
+        [string[]] ApplyTo([string[]] $sa){
+            if ($sa.Length -ne $this.order) { throw "Bad array size in ApplyTo()" } ; 
+            [string[]]$result = New-Object string[] $this.order ; 
+            for ($i = 0; $i -lt $result.Length; ++$i) {
+                $result[$i] = $sa[$this.data[$i]] ; 
+            } ; 
+            return $result ; 
+        }
+
+        [string]ToString() { return "% "+ $this.data + " %" }
+    }
+    #*------^ END class Permutation ^------
+
+    $p=[Permutation]::new($target.Count) ;
+    while ($p) {
+        if(-not $AsObject){
+            # this dumps raw string of x elements into pipe
+            "$($p.ApplyTo($target))" | write-output ;
+        } else { 
+            # we want pscustomobject with each element as a property, not requiring post split and parsing
+            $h=[ordered]@{} ; 
+            $idx=1 ;
+            #"$($p.ApplyTo($target))"  | foreach-object {
+            $p.ApplyTo($target)  | foreach-object {
+			    $h."Item$($idx)"=$_ ; 
+			    ++$idx ; 
+		    } ; 
+		    [PSCustomObject]$h | write-output ;
+        } ; 
+        $p=$p.Successor() ;
+    } ;
+}
+
+#*------^ Get-PermutationTDO.ps1 ^------
 
 
 #*------v Get-ProductItems.ps1 v------
@@ -15532,7 +16182,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,get-LoremName,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -15540,8 +16190,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQURSDbrD7Oi4SM0DO/n4nraIYB
-# AaCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU3jIkTkBGJUKPSyGd9qBHPps0
+# olqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -15556,9 +16206,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRwI6H0
-# lBAzVCx1IyLsaRIGk7PFuzANBgkqhkiG9w0BAQEFAASBgBi04cSFXbSpIWjiWcXa
-# 2NqJ/TrUKVFxbb0GAieovMmhDuTkBKV8Vzy8DqzUUbJK4F9UXIZczO0ZA/hm6Har
-# cxbF8lAWBqarcPJBrcOrBKTv+RmWM6aKlaislUQd/QNUQxpKGyrofKDRQuJo4V7e
-# 1FObFwmguNAB7LJYcwnpYYpJ
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTggS7E
+# /X9RxjjRRNJB1pIaKGPGDzANBgkqhkiG9w0BAQEFAASBgJcPudnDYmw2LuGk4WBK
+# 4m7sPO1Syjk0FMpsukVGloNEUicp2HTa5Ed2egs8csatGRVbgndDa8z1u4OPRdFy
+# Plh00AnSx8jU1H0iymUXV+zSJSzir9kIUKj6KV8dbZurCnFGPHS1i/OHtzXNp4Ki
+# LNE+w3q4E3mzwgtPovvLIPle
 # SIG # End signature block
