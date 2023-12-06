@@ -12,7 +12,7 @@
 RootModule = 'verb-IO.psm1'
 
 # Version number of this module.
-ModuleVersion = '11.0.4'
+ModuleVersion = '11.0.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -87,7 +87,7 @@ AliasesToExport = '*'
 # ModuleList = @()
 
 # List of all files packaged with this module
-FileList = @('Quick-Start-Installation-and-Example.md','test-MediaFile.jpg','CHANGELOG.md','LICENSE.txt','README.md')
+FileList = @()
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUd5aElzev2SHvDttBBWAInWKe
-# t9ygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5d2DJ0YmbbCos1dq0HHZ0+hF
+# BJGgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSyVgFC
-# wvtnFthncSFAbLtp1Ff5QDANBgkqhkiG9w0BAQEFAASBgB0/+Et4Hm+iF4aJNxa/
-# WiVkrWfTl4S/H77pvKsp9k39xtkOfVAvEzcsXcc43aU8nNFCV1lynNHqNdSe4Uwb
-# VeH82Hgxi8BeB2IzAsQA/0PFlPKhGJ7NWuoWU8aKt6ux7lokt4iBt9CZ54jx2pRI
-# zWXHn+1CAwro0tYdE/lfPstX
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTIduQL
+# yqBfXoHURoUvwiYFQftLIjANBgkqhkiG9w0BAQEFAASBgC9KIMgDU0ul9SPBJbho
+# sqDSjuohqP0yzQvjoZKZcFUw8deaZyF0fmv5H7stqDbm0d9z9ptQwgIrSLpwVAs4
+# 30Jzi/46IjTthAtfTc4R5i8Thrja5Vv6FGcioSPskubpGkEeJ8zwnvrKSv6zNtku
+# YbS9Fgo+RcBT4ZvtY5R2j3Px
 # SIG # End signature block

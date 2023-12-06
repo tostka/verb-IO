@@ -1,0 +1,609 @@
+﻿2023-12-06 14:39:37 INFO:  : #*======v update-NewModule.ps1:verb-io v======
+2023-12-06 14:39:38 INFO:  : Run: reset-ModulePublishingDirectory -ModuleName verb-io
+2023-12-06 14:39:38 ##  : 
+#*------v PROCESSING : verb-io v------
+2023-12-06 14:39:38 INFO:  : Pre-purge (CHANGELOG|README)\.md$ Root dir matches from :
+2023-12-06 14:39:39 INFO:  : verb-io resolved $ModPubPath:C:\sc\verb-io\verb-io\
+$ModResPath:C:\sc\verb-io\Resource\
+2023-12-06 14:39:39 VERBOSE:  : Reset module Resource files (purge from C:\sc\verb-io\verb-io\)
+2023-12-06 14:39:39 INFO:  : verb-io resolved $ModPubPath:C:\sc\verb-io\verb-io\
+$ModResPath:C:\sc\verb-io\Licenses\
+2023-12-06 14:39:39 VERBOSE:  : Reset module Licenses files (purge from C:\sc\verb-io\verb-io\)
+2023-12-06 14:39:39 INFO:  : verb-io resolved $ModPubPath:C:\sc\verb-io\verb-io\
+$ModResPath:C:\sc\verb-io\Docs\
+2023-12-06 14:39:39 VERBOSE:  : Reset module Docs files (purge from C:\sc\verb-io\verb-io\)
+2023-12-06 14:39:39 INFO:  : ==C:\sc\verb-io\CHANGELOG.md:
+2023-12-06 14:39:39 INFO:  : ==C:\sc\verb-io\README.md:
+2023-12-06 14:39:39 INFO:  : ==C:\sc\verb-io\Docs\Quick-Start-Installation-and-Example.md:
+2023-12-06 14:39:39 INFO:  : ==C:\sc\verb-io\Docs\test-MediaFile.jpg:
+2023-12-06 14:39:39 ##  : 
+#*------^ PROCESSING : verb-io ^------
+2023-12-06 14:39:40 INFO:  : Run: populate-ModulePublishingDirectory -ModuleName verb-io
+2023-12-06 14:39:40 ##  : 
+#*------v PROCESSING : verb-io v------
+2023-12-06 14:39:40 INFO:  : Locating (CHANGELOG|README)\.md$ Root dir matches from :
+2023-12-06 14:39:40 INFO:  : verb-io resolved $ModPubPath:C:\sc\verb-io\verb-io\
+$ModResPath:C:\sc\verb-io\Resource\
+2023-12-06 14:39:40 VERBOSE:  : Recopy module Resource files (copy from C:\sc\verb-io\verb-io\)
+2023-12-06 14:39:40 INFO:  : verb-io resolved $ModPubPath:C:\sc\verb-io\verb-io\
+$ModResPath:C:\sc\verb-io\Licenses\
+2023-12-06 14:39:40 VERBOSE:  : Recopy module Licenses files (copy from C:\sc\verb-io\verb-io\)
+2023-12-06 14:39:41 INFO:  : verb-io resolved $ModPubPath:C:\sc\verb-io\verb-io\
+$ModResPath:C:\sc\verb-io\Docs\
+2023-12-06 14:39:41 VERBOSE:  : Recopy module Docs files (copy from C:\sc\verb-io\verb-io\)
+2023-12-06 14:39:41 INFO:  : copy-item w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+path                           {C:\sc\verb-io\CHANGELOG.md, C:\sc\verb-io\README.md, C:\sc\verb-io\Docs\Quick-Start-Installation-and-Example.md, C:\sc\verb-io\Docs\test-MediaFile.jpg}                                                               
+destination                    C:\sc\verb-io\verb-io\                                                                                                                                                                                                 
+force                          True                                                                                                                                                                                                                   
+erroraction                    STOP                                                                                                                                                                                                                   
+verbose                        True                                                                                                                                                                                                                   
+whatif                         False
+--$pltCI.path:
+C:\sc\verb-io\CHANGELOG.md
+C:\sc\verb-io\README.md
+C:\sc\verb-io\Docs\Quick-Start-Installation-and-Example.md
+C:\sc\verb-io\Docs\test-MediaFile.jpg
+2023-12-06 14:39:41 ##  : 
+#*------^ PROCESSING : verb-io ^------
+2023-12-06 14:39:41 INFO:  : Validate updated verb-io\verb-io dir contents against Manifest:
+Run: test-modulemanifest -Path C:\sc\verb-io\verb-io\verb-io.psd1
+2023-12-06 14:39:41 VERBOSE:  : (no $ttmm_Err: test-ModuleManifest had no errors)
+2023-12-06 14:39:41 INFO:  : NON-Republish pass detected:
+MERGE parm specified as well:`n-Merge Public|Internal|Classes include subdirs module content into updated .psm1
+-Sign updated files.
+-Uninstall/Remove existing profile module
+-Copy new module to profile
+-Confirm: Get-Module -ListAvailable
+-Check/Update existing Psd1 Version
+-Publish-Module
+-Remove existing installed profile module
+-Test Install-Module
+-Test Import-Module
+2023-12-06 14:39:41 INFO:  : -Merge specified...
+2023-12-06 14:39:42 INFO:  : ConvertTo-ModuleMergedTDO w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+ModuleName                     verb-io                                                                                                                                                                                                                
+ModuleSourcePath               {c:\sc\verb-io\Public, c:\sc\verb-io\Internal}                                                                                                                                                                         
+ModuleDestinationPath          c:\sc\verb-io\verb-io                                                                                                                                                                                                  
+RequiredVersion                11.0.4                                                                                                                                                                                                                 
+LogSpec                        {logging, logfile, transcript}                                                                                                                                                                                         
+NoAliasExport                                                                                                                                                                                                                                         
+ErrorAction                    Stop                                                                                                                                                                                                                   
+showdebug                      False                                                                                                                                                                                                                  
+whatif                         False
+2023-12-06 14:39:45 INFO:  : (NON-dyn psm1 detected - purging existing non-CBH content...)
+2023-12-06 14:39:49 INFO:  : Initialize-PSModuleDirectories w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+ModuleSourcePath               {c:\sc\verb-io\Public, c:\sc\verb-io\Internal}                                                                                                                                                                         
+ModuleDestinationPath          c:\sc\verb-io\verb-io                                                                                                                                                                                                  
+ErrorAction                    Stop                                                                                                                                                                                                                   
+whatif                         False
+2023-12-06 14:39:49 INFO:  : 
+#*------v (1/2):C:\sc\verb-io\Public v------
+2023-12-06 14:39:50 INFO:  : Processing 140 $ComponentScripts files through Remove-AuthenticodeSignature...
+2023-12-06 14:39:52 INFO:  : Processing (1/140):C:\sc\verb-io\Public\Add-ContentFixEncoding.ps1...
+2023-12-06 14:39:55 INFO:  : Processing (2/140):C:\sc\verb-io\Public\Add-PSTitleBar.ps1...
+2023-12-06 14:39:58 INFO:  : Processing (3/140):C:\sc\verb-io\Public\Authenticate-File.ps1...
+2023-12-06 14:39:59 INFO:  : Processing (4/140):C:\sc\verb-io\Public\backup-FileTDO.ps1...
+2023-12-06 14:40:02 INFO:  : Processing (5/140):C:\sc\verb-io\Public\check-FileLock.ps1...
+2023-12-06 14:40:04 INFO:  : Processing (6/140):C:\sc\verb-io\Public\clear-HostIndent.ps1...
+2023-12-06 14:40:05 INFO:  : Processing (7/140):C:\sc\verb-io\Public\Close-IfAlreadyRunning.ps1...
+2023-12-06 14:40:06 INFO:  : Processing (8/140):C:\sc\verb-io\Public\ColorMatch.ps1...
+2023-12-06 14:40:07 INFO:  : Processing (9/140):C:\sc\verb-io\Public\Compare-ObjectsSideBySide.ps1...
+2023-12-06 14:40:08 INFO:  : Processing (10/140):C:\sc\verb-io\Public\Compare-ObjectsSideBySide3.ps1...
+2023-12-06 14:40:08 INFO:  : Processing (11/140):C:\sc\verb-io\Public\Compare-ObjectsSideBySide4.ps1...
+2023-12-06 14:40:10 INFO:  : Processing (12/140):C:\sc\verb-io\Public\Compress-ArchiveFile.ps1...
+2023-12-06 14:40:14 INFO:  : Processing (13/140):C:\sc\verb-io\Public\convert-BinaryToDecimalStorageUnits.ps1...
+2023-12-06 14:40:15 INFO:  : Processing (14/140):C:\sc\verb-io\Public\convert-ColorHexCodeToWindowsMediaColorsName.ps1...
+2023-12-06 14:40:16 INFO:  : Processing (15/140):C:\sc\verb-io\Public\convert-DehydratedBytesToGB.ps1...
+2023-12-06 14:40:16 INFO:  : Processing (16/140):C:\sc\verb-io\Public\convert-DehydratedBytesToMB.ps1...
+2023-12-06 14:40:17 INFO:  : Processing (17/140):C:\sc\verb-io\Public\Convert-FileEncoding.ps1...
+2023-12-06 14:40:17 INFO:  : Processing (18/140):C:\sc\verb-io\Public\ConvertFrom-CanonicalOU.ps1...
+2023-12-06 14:40:18 INFO:  : Processing (19/140):C:\sc\verb-io\Public\ConvertFrom-CanonicalUser.ps1...
+2023-12-06 14:40:19 INFO:  : Processing (20/140):C:\sc\verb-io\Public\ConvertFrom-CmdList.ps1...
+2023-12-06 14:40:19 INFO:  : Processing (21/140):C:\sc\verb-io\Public\ConvertFrom-DN.ps1...
+2023-12-06 14:40:20 INFO:  : Processing (22/140):C:\sc\verb-io\Public\ConvertFrom-IniFile.ps1...
+2023-12-06 14:40:22 INFO:  : Processing (23/140):C:\sc\verb-io\Public\convertFrom-MarkdownTable.ps1...
+2023-12-06 14:40:23 INFO:  : Processing (24/140):C:\sc\verb-io\Public\ConvertFrom-SourceTable.ps1...
+2023-12-06 14:40:38 INFO:  : Processing (25/140):C:\sc\verb-io\Public\ConvertFrom-UncPath.ps1...
+2023-12-06 14:40:41 INFO:  : Processing (26/140):C:\sc\verb-io\Public\convert-HelpToMarkdown.ps1...
+2023-12-06 14:40:45 INFO:  : Processing (27/140):C:\sc\verb-io\Public\Convert-NumbertoWords.ps1...
+2023-12-06 14:40:47 INFO:  : Processing (28/140):C:\sc\verb-io\Public\ConvertTo-HashIndexed.ps1...
+2023-12-06 14:40:48 INFO:  : Processing (29/140):C:\sc\verb-io\Public\convertto-MarkdownTable.ps1...
+2023-12-06 14:40:51 INFO:  : Processing (30/140):C:\sc\verb-io\Public\convertTo-Object.ps1...
+2023-12-06 14:40:52 INFO:  : Processing (31/140):C:\sc\verb-io\Public\ConvertTo-SRT.ps1...
+2023-12-06 14:40:53 INFO:  : Processing (32/140):C:\sc\verb-io\Public\ConvertTo-UncPath.ps1...
+2023-12-06 14:40:55 INFO:  : Processing (33/140):C:\sc\verb-io\Public\convert-VideoToMp3.ps1...
+2023-12-06 14:41:01 INFO:  : Processing (34/140):C:\sc\verb-io\Public\copy-Profile.ps1...
+2023-12-06 14:41:05 INFO:  : Processing (35/140):C:\sc\verb-io\Public\count-object.ps1...
+2023-12-06 14:41:06 INFO:  : Processing (36/140):C:\sc\verb-io\Public\Create-ScheduledTaskLegacy.ps1...
+2023-12-06 14:41:07 INFO:  : Processing (37/140):C:\sc\verb-io\Public\dump-Shortcuts.ps1...
+2023-12-06 14:41:08 INFO:  : Processing (38/140):C:\sc\verb-io\Public\Echo-Finish.ps1...
+2023-12-06 14:41:09 INFO:  : Processing (39/140):C:\sc\verb-io\Public\Echo-ScriptEnd.ps1...
+2023-12-06 14:41:09 INFO:  : Processing (40/140):C:\sc\verb-io\Public\Echo-Start.ps1...
+2023-12-06 14:41:09 INFO:  : Processing (41/140):C:\sc\verb-io\Public\Expand-ArchiveFile.ps1...
+2023-12-06 14:41:10 INFO:  : Processing (42/140):C:\sc\verb-io\Public\extract-Icon.ps1...
+2023-12-06 14:41:13 INFO:  : Processing (43/140):C:\sc\verb-io\Public\Find-LockedFileProcess.ps1...
+2023-12-06 14:41:13 INFO:  : Processing (44/140):C:\sc\verb-io\Public\Format-Json.ps1...
+2023-12-06 14:41:14 INFO:  : Processing (45/140):C:\sc\verb-io\Public\get-AliasDefinition.ps1...
+2023-12-06 14:41:15 INFO:  : Processing (46/140):C:\sc\verb-io\Public\Get-AverageItems.ps1...
+2023-12-06 14:41:15 INFO:  : Processing (47/140):C:\sc\verb-io\Public\get-colorcombo.ps1...
+2023-12-06 14:41:16 INFO:  : Processing (48/140):C:\sc\verb-io\Public\get-ColorNames.ps1...
+2023-12-06 14:41:17 INFO:  : Processing (49/140):C:\sc\verb-io\Public\Get-CombinationTDO.ps1...
+2023-12-06 14:41:21 INFO:  : Processing (50/140):C:\sc\verb-io\Public\get-ConsoleText.ps1...
+2023-12-06 14:41:23 INFO:  : Processing (51/140):C:\sc\verb-io\Public\Get-CountItems.ps1...
+2023-12-06 14:41:24 INFO:  : Processing (52/140):C:\sc\verb-io\Public\Get-FileEncoding.ps1...
+2023-12-06 14:41:25 INFO:  : Processing (53/140):C:\sc\verb-io\Public\Get-FileEncodingExtended.ps1...
+2023-12-06 14:41:25 INFO:  : Processing (54/140):C:\sc\verb-io\Public\get-filesignature.ps1...
+2023-12-06 14:41:27 INFO:  : Processing (55/140):C:\sc\verb-io\Public\get-FileType.ps1...
+2023-12-06 14:41:28 INFO:  : Processing (56/140):C:\sc\verb-io\Public\get-FolderEmpty.ps1...
+2023-12-06 14:41:29 INFO:  : Processing (57/140):C:\sc\verb-io\Public\Get-FolderSize.ps1...
+2023-12-06 14:41:31 INFO:  : Processing (58/140):C:\sc\verb-io\Public\Get-FolderSize2.ps1...
+2023-12-06 14:41:32 INFO:  : Processing (59/140):C:\sc\verb-io\Public\Get-FsoShortName.ps1...
+2023-12-06 14:41:32 INFO:  : Processing (60/140):C:\sc\verb-io\Public\Get-FsoShortPath.ps1...
+2023-12-06 14:41:33 INFO:  : Processing (61/140):C:\sc\verb-io\Public\Get-FsoTypeObj.ps1...
+2023-12-06 14:41:34 INFO:  : Processing (62/140):C:\sc\verb-io\Public\get-HostIndent.ps1...
+2023-12-06 14:41:35 INFO:  : Processing (63/140):C:\sc\verb-io\Public\get-LoremName.ps1...
+2023-12-06 14:41:36 INFO:  : Processing (64/140):C:\sc\verb-io\Public\Get-PermutationTDO.ps1...
+2023-12-06 14:41:39 INFO:  : Processing (65/140):C:\sc\verb-io\Public\Get-ProductItems.ps1...
+2023-12-06 14:41:39 INFO:  : Processing (66/140):C:\sc\verb-io\Public\get-RegistryValue.ps1...
+2023-12-06 14:41:40 INFO:  : Processing (67/140):C:\sc\verb-io\Public\Get-ScheduledTaskLegacy.ps1...
+2023-12-06 14:41:40 INFO:  : Processing (68/140):C:\sc\verb-io\Public\Get-Shortcut.ps1...
+2023-12-06 14:41:41 INFO:  : Processing (69/140):C:\sc\verb-io\Public\Get-SumItems.ps1...
+2023-12-06 14:41:42 INFO:  : Processing (70/140):C:\sc\verb-io\Public\get-TaskReport.ps1...
+2023-12-06 14:41:44 INFO:  : Processing (71/140):C:\sc\verb-io\Public\Get-Time.ps1...
+2023-12-06 14:41:45 INFO:  : Processing (72/140):C:\sc\verb-io\Public\Get-TimeStamp.ps1...
+2023-12-06 14:41:45 INFO:  : Processing (73/140):C:\sc\verb-io\Public\get-TimeStampNow.ps1...
+2023-12-06 14:41:45 INFO:  : Processing (74/140):C:\sc\verb-io\Public\get-Uptime.ps1...
+2023-12-06 14:41:46 INFO:  : Processing (75/140):C:\sc\verb-io\Public\Invoke-Flasher.ps1...
+2023-12-06 14:41:47 INFO:  : Processing (76/140):C:\sc\verb-io\Public\Invoke-Pause.ps1...
+2023-12-06 14:41:47 INFO:  : Processing (77/140):C:\sc\verb-io\Public\Invoke-Pause2.ps1...
+2023-12-06 14:41:47 INFO:  : Processing (78/140):C:\sc\verb-io\Public\invoke-SoundCue.ps1...
+2023-12-06 14:41:51 INFO:  : Processing (79/140):C:\sc\verb-io\Public\mount-UnavailableMappedDrives.ps1...
+2023-12-06 14:41:55 INFO:  : Processing (80/140):C:\sc\verb-io\Public\move-FileOnReboot.ps1...
+2023-12-06 14:41:56 INFO:  : Processing (81/140):C:\sc\verb-io\Public\New-RandomFilename.ps1...
+2023-12-06 14:41:57 INFO:  : Processing (82/140):C:\sc\verb-io\Public\new-Shortcut.ps1...
+2023-12-06 14:41:59 INFO:  : Processing (83/140):C:\sc\verb-io\Public\out-Clipboard.ps1...
+2023-12-06 14:42:00 INFO:  : Processing (84/140):C:\sc\verb-io\Public\Out-Excel.ps1...
+2023-12-06 14:42:01 INFO:  : Processing (85/140):C:\sc\verb-io\Public\Out-Excel-Events.ps1...
+2023-12-06 14:42:01 INFO:  : Processing (86/140):C:\sc\verb-io\Public\parse-PSTitleBar.ps1...
+2023-12-06 14:42:03 INFO:  : Processing (87/140):C:\sc\verb-io\Public\play-beep.ps1...
+2023-12-06 14:42:03 INFO:  : Processing (88/140):C:\sc\verb-io\Public\pop-HostIndent.ps1...
+2023-12-06 14:42:04 INFO:  : Processing (89/140):C:\sc\verb-io\Public\Pop-LocationFirst.ps1...
+2023-12-06 14:42:05 INFO:  : Processing (90/140):C:\sc\verb-io\Public\prompt-Continue.ps1...
+2023-12-06 14:42:07 INFO:  : Processing (91/140):C:\sc\verb-io\Public\push-HostIndent.ps1...
+2023-12-06 14:42:08 INFO:  : Processing (92/140):C:\sc\verb-io\Public\read-Host2.ps1...
+2023-12-06 14:42:09 INFO:  : Processing (93/140):C:\sc\verb-io\Public\rebuild-PSTitleBar.ps1...
+2023-12-06 14:42:12 INFO:  : Processing (94/140):C:\sc\verb-io\Public\Remove-AuthenticodeSignature.ps1...
+2023-12-06 14:42:16 INFO:  : Processing (95/140):C:\sc\verb-io\Public\Remove-InvalidFileNameChars.ps1...
+2023-12-06 14:42:17 INFO:  : Processing (96/140):C:\sc\verb-io\Public\Remove-InvalidVariableNameChars.ps1...
+2023-12-06 14:42:18 INFO:  : Processing (97/140):C:\sc\verb-io\Public\remove-ItemRetry.ps1...
+2023-12-06 14:42:20 INFO:  : Processing (98/140):C:\sc\verb-io\Public\remove-JsonComments.ps1...
+2023-12-06 14:42:20 INFO:  : Processing (99/140):C:\sc\verb-io\Public\Remove-PSTitleBar.ps1...
+2023-12-06 14:42:23 INFO:  : Processing (100/140):C:\sc\verb-io\Public\Remove-ScheduledTaskLegacy.ps1...
+2023-12-06 14:42:24 INFO:  : Processing (101/140):C:\sc\verb-io\Public\remove-UnneededFileVariants.ps1...
+2023-12-06 14:42:30 INFO:  : Processing (102/140):C:\sc\verb-io\Public\repair-FileEncoding.ps1...
+2023-12-06 14:42:39 INFO:  : Processing (103/140):C:\sc\verb-io\Public\replace-PSTitleBarText.ps1...
+2023-12-06 14:42:41 INFO:  : Processing (104/140):C:\sc\verb-io\Public\reset-ConsoleColors.ps1...
+2023-12-06 14:42:42 INFO:  : Processing (105/140):C:\sc\verb-io\Public\reset-HostIndent.ps1...
+2023-12-06 14:42:43 INFO:  : Processing (106/140):C:\sc\verb-io\Public\restore-FileTDO.ps1...
+2023-12-06 14:42:48 INFO:  : Processing (107/140):C:\sc\verb-io\Public\Run-ScheduledTaskLegacy.ps1...
+2023-12-06 14:42:48 INFO:  : Processing (108/140):C:\sc\verb-io\Public\Save-ConsoleOutputToClipBoard.ps1...
+2023-12-06 14:42:49 INFO:  : Processing (109/140):C:\sc\verb-io\Public\search-Excel.ps1...
+2023-12-06 14:42:51 INFO:  : Processing (110/140):C:\sc\verb-io\Public\select-first.ps1...
+2023-12-06 14:42:52 INFO:  : Processing (111/140):C:\sc\verb-io\Public\select-last.ps1...
+2023-12-06 14:42:53 INFO:  : Processing (112/140):C:\sc\verb-io\Public\Select-StringAll.ps1...
+2023-12-06 14:42:54 INFO:  : Processing (113/140):C:\sc\verb-io\Public\set-ConsoleColors.ps1...
+2023-12-06 14:42:56 INFO:  : Processing (114/140):C:\sc\verb-io\Public\Set-ContentFixEncoding.ps1...
+2023-12-06 14:42:57 INFO:  : Processing (115/140):C:\sc\verb-io\Public\set-FileAssociation.ps1...
+2023-12-06 14:42:58 INFO:  : Processing (116/140):C:\sc\verb-io\Public\set-HostIndent.ps1...
+2023-12-06 14:42:59 INFO:  : Processing (117/140):C:\sc\verb-io\Public\set-ItemReadOnlyTDO.ps1...
+2023-12-06 14:43:03 INFO:  : Processing (118/140):C:\sc\verb-io\Public\set-PSTitleBar.ps1...
+2023-12-06 14:43:03 INFO:  : Processing (119/140):C:\sc\verb-io\Public\Set-RegistryValue.ps1...
+2023-12-06 14:43:04 INFO:  : Processing (120/140):C:\sc\verb-io\Public\Set-Shortcut.ps1...
+2023-12-06 14:43:05 INFO:  : Processing (121/140):C:\sc\verb-io\Public\Shorten-Path.ps1...
+2023-12-06 14:43:05 INFO:  : Processing (122/140):C:\sc\verb-io\Public\Show-MsgBox.ps1...
+2023-12-06 14:43:05 INFO:  : Processing (123/140):C:\sc\verb-io\Public\Sign-File.ps1...
+2023-12-06 14:43:07 INFO:  : Processing (124/140):C:\sc\verb-io\Public\stop-driveburn.ps1...
+2023-12-06 14:43:16 INFO:  : Processing (125/140):C:\sc\verb-io\Public\test-FileSysAutomaticVariables.ps1...
+2023-12-06 14:43:19 INFO:  : Processing (126/140):C:\sc\verb-io\Public\test-IsLink.ps1...
+2023-12-06 14:43:21 INFO:  : Processing (127/140):C:\sc\verb-io\Public\test-IsUncPath.ps1...
+2023-12-06 14:43:22 INFO:  : Processing (128/140):C:\sc\verb-io\Public\test-LineEndings.ps1...
+2023-12-06 14:43:24 INFO:  : Processing (129/140):C:\sc\verb-io\Public\test-MediaFile.ps1...
+2023-12-06 14:43:32 INFO:  : Processing (130/140):C:\sc\verb-io\Public\test-MissingMediaSummary.ps1...
+2023-12-06 14:43:35 INFO:  : Processing (131/140):C:\sc\verb-io\Public\Test-PendingReboot.ps1...
+2023-12-06 14:43:39 INFO:  : Processing (132/140):C:\sc\verb-io\Public\test-PSTitleBar.ps1...
+2023-12-06 14:43:40 INFO:  : Processing (133/140):C:\sc\verb-io\Public\Test-RegistryKey.ps1...
+2023-12-06 14:43:40 INFO:  : Processing (134/140):C:\sc\verb-io\Public\Test-RegistryValue.ps1...
+2023-12-06 14:43:41 INFO:  : Processing (135/140):C:\sc\verb-io\Public\Test-RegistryValueNotNull.ps1...
+2023-12-06 14:43:41 INFO:  : Processing (136/140):C:\sc\verb-io\Public\Touch-File.ps1...
+2023-12-06 14:43:41 INFO:  : Processing (137/140):C:\sc\verb-io\Public\trim-FileList.ps1...
+2023-12-06 14:43:43 INFO:  : Processing (138/140):C:\sc\verb-io\Public\unless.ps1...
+2023-12-06 14:43:44 INFO:  : Processing (139/140):C:\sc\verb-io\Public\write-HostIndent.ps1...
+2023-12-06 14:43:46 INFO:  : Processing (140/140):C:\sc\verb-io\Public\Write-ProgressHelper.ps1...
+2023-12-06 14:43:47 INFO:  : 
+#*------v (2/2):C:\sc\verb-io\Internal v------
+2023-12-06 14:43:47 INFO:  : Processing 0 $ComponentScripts files through Remove-AuthenticodeSignature...
+2023-12-06 14:43:47 INFO:  : (Updating Psm1 Export-ModuleMember -Function to reflect Public modules)
+2023-12-06 14:43:47 INFO:  : Adding:FooterBlock...
+2023-12-06 14:43:50 INFO:  : confirm-ModuleBuildSync w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+ModPsdPath                     c:\sc\verb-io\verb-io\verb-io.psd1_TMP                                                                                                                                                                                 
+RequiredVersion                11.0.4                                                                                                                                                                                                                 
+NoTest                         True                                                                                                                                                                                                                   
+whatif                         False                                                                                                                                                                                                                  
+verbose                        False
+2023-12-06 14:43:51 INFO:  : (test-path confirms $ModPsm1 & $ModTestPs1)
+2023-12-06 14:43:51 INFO:  : Import-PowerShellDataFile w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Path                           c:\sc\verb-io\verb-io\verb-io.psd1_TMP                                                                                                                                                                                 
+ErrorAction                    Stop                                                                                                                                                                                                                   
+verbose                        False
+2023-12-06 14:43:51 INFO:  : (resolved Module attributes:
+$ModuleName:	verb-io
+$ModRoot:	c:\sc\verb-io
+$ModPsd1:	c:\sc\verb-io\verb-io\verb-io.psd1_TMP
+$ModPsm1:	c:\sc\verb-io\verb-io\verb-io.psm1_TMP
+$ModTestPs1:	c:\sc\verb-io\Tests\verb-io.tests.ps1
+$psd1Vers:	11.0.3
+$psd1guid:	12cb1eb4-ac9c-405e-8711-e80c914a9b32)
+2023-12-06 14:43:52 INFO:  : confirm-ModulePsd1Version w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Path                           c:\sc\verb-io\verb-io\verb-io.psd1_TMP                                                                                                                                                                                 
+RequiredVersion                11.0.4                                                                                                                                                                                                                 
+whatif                         False                                                                                                                                                                                                                  
+verbose                        False
+2023-12-06 14:43:52 WARNING:  : In:c:\sc\verb-io\verb-io\verb-io.psd1_TMP
+Version present:(11.0.3)
+*does not* properly match:11.0.4
+FORCING MATCHING UPDATE!
+2023-12-06 14:43:53 INFO:  : $objReport
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Version                        11.0.4                                                                                                                                                                                                                 
+Valid                          False
+2023-12-06 14:43:53 INFO:  : (SET:$objReport.Valid = $true ;)
+2023-12-06 14:43:53 INFO:  : (PIPELINE:New-Object PSObject -Property $objReport | write-output)
+$objReport
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Version                        11.0.4                                                                                                                                                                                                                 
+Valid                          True
+2023-12-06 14:43:53 INFO:  : #*======^ confirm-ModulePsd1Version: c:\sc\verb-io\verb-io\verb-io.psd1_TMP ^======
+2023-12-06 14:43:53 INFO:  : (confirm-ModulePsd1Version:Success)
+2023-12-06 14:43:54 INFO:  : confirm-ModulePsm1Version w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Path                           c:\sc\verb-io\verb-io\verb-io.psm1_TMP                                                                                                                                                                                 
+RequiredVersion                11.0.4                                                                                                                                                                                                                 
+whatif                         False                                                                                                                                                                                                                  
+verbose                        False
+2023-12-06 14:43:54 WARNING:  : In:c:\sc\verb-io\verb-io\verb-io.psm1_TMP
+Version present:(11.0.3)
+*does not* properly match:11.0.4
+FORCING MATCHING UPDATE!
+2023-12-06 14:45:32 INFO:  : $objReport
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Version                        11.0.4                                                                                                                                                                                                                 
+Valid                          False
+2023-12-06 14:45:32 INFO:  : (SET:$objReport.Valid = $true ;)
+2023-12-06 14:45:32 INFO:  : (PIPELINE:New-Object PSObject -Property $objReport | write-output)
+$objReport
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Version                        11.0.4                                                                                                                                                                                                                 
+Valid                          True
+2023-12-06 14:45:32 INFO:  : #*======^ confirm-ModulePsm1Version: c:\sc\verb-io\verb-io\verb-io.psm1_TMP ^======
+2023-12-06 14:45:32 INFO:  : (confirm-ModulePsm1Version:Success)
+2023-12-06 14:45:32 INFO:  : (-NoTest: skipping confirm-ModuleTestPs1Guid)
+2023-12-06 14:45:32 INFO:  : $objReport
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Manifest                       c:\sc\verb-io\verb-io\verb-io.psd1_TMP                                                                                                                                                                                 
+Module                         c:\sc\verb-io\verb-io\verb-io.psm1_TMP                                                                                                                                                                                 
+Pester                         (SKIPPED)                                                                                                                                                                                                              
+Guid                           (SKIPPED)                                                                                                                                                                                                              
+Version                        11.0.4                                                                                                                                                                                                                 
+Valid                          False
+2023-12-06 14:45:32 INFO:  : (SET:$objReport.Valid = $true ;)
+2023-12-06 14:45:33 INFO:  : (PIPELINE:New-Object PSObject -Property $objReport | write-output)
+$objReport
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Manifest                       c:\sc\verb-io\verb-io\verb-io.psd1_TMP                                                                                                                                                                                 
+Module                         c:\sc\verb-io\verb-io\verb-io.psm1_TMP                                                                                                                                                                                 
+Pester                         (SKIPPED)                                                                                                                                                                                                              
+Guid                           (SKIPPED)                                                                                                                                                                                                              
+Version                        11.0.4                                                                                                                                                                                                                 
+Valid                          True
+2023-12-06 14:45:33 INFO:  : #*======^ confirm-ModuleBuildSync:  ^======
+2023-12-06 14:45:33 INFO:  : (confirm-ModuleBuildSync:Success)
+2023-12-06 14:45:33 INFO:  : Test-ModuleTMPFiles w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+ModuleNamePSM1Path             c:\sc\verb-io\verb-io\verb-io.psm1_TMP                                                                                                                                                                                 
+verbose                        False
+2023-12-06 14:45:33 INFO:  : #*======v Test-ModuleTMPFiles: c:\sc\verb-io\verb-io\verb-io.psm1_TMP v======
+2023-12-06 14:45:33 INFO:  : 
+Psm1:c:\sc\verb-io\verb-io\verb-io.psm1_TMP
+Psd1:c:\sc\verb-io\verb-io\verb-io.psd1_TMP
+2023-12-06 14:45:33 INFO:  : Test-ModuleManifest:PASSED
+2023-12-06 14:45:33 INFO:  : Creating Testable c:\sc\verb-io\verb-io\7590e2ab-6e7a-482d-abf4-e6670f242d94.psm1
+ to validate c:\sc\verb-io\verb-io\verb-io.psm1_TMP will Import-Module
+2023-12-06 14:45:34 INFO:  : Ipmo: PASSED
+2023-12-06 14:45:34 INFO:  : (remove-module -name c:\sc\verb-io\verb-io\7590e2ab-6e7a-482d-abf4-e6670f242d94.psm1 -force)
+2023-12-06 14:45:34 INFO:  : (remove-item -path c:\sc\verb-io\verb-io\7590e2ab-6e7a-482d-abf4-e6670f242d94.psm1 -ErrorAction SilentlyContinue ; 
+2023-12-06 14:45:34 INFO:  : (remove-item -path c:\sc\verb-io\verb-io\7590e2ab-6e7a-482d-abf4-e6670f242d94.psd1 -ErrorAction SilentlyContinue ; 
+2023-12-06 14:45:35 INFO:  : $objReport
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Manifest                       7590e2ab-6e7a-482d-abf4-e6670f242d94                                                                                                                                                                                   
+Module                         7590e2ab-6e7a-482d-abf4-e6670f242d94                                                                                                                                                                                   
+Valid                          False
+2023-12-06 14:45:35 INFO:  : (SET:$objReport.Valid = $true ;)
+2023-12-06 14:45:35 INFO:  : (PIPELINE:New-Object PSObject -Property $objReport | write-output)
+$objReport
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Manifest                       7590e2ab-6e7a-482d-abf4-e6670f242d94                                                                                                                                                                                   
+Module                         7590e2ab-6e7a-482d-abf4-e6670f242d94                                                                                                                                                                                   
+Valid                          True
+2023-12-06 14:45:35 INFO:  : #*======^ Test-ModuleTMPFiles: c:\sc\verb-io\verb-io\verb-io.psm1_TMP ^======
+2023-12-06 14:45:35 INFO:  : #*======^ ConvertTo-ModuleMergedTDO: ^======
+2023-12-06 14:45:35 VERBOSE:  : (no $ttmm_Err: test-ModuleManifest had no errors)
+2023-12-06 14:45:35 INFO:  : (Test-ModuleManifest:PASSED)
+2023-12-06 14:45:35 INFO:  : Checking sync of Psd1 module guid to the Pester Test Script: c:\sc\verb-io\Tests\verb-io.tests.ps1
+2023-12-06 14:45:35 INFO:  : confirm-ModuleBuildSync w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+ModPsdPath                     C:\sc\verb-io\verb-io\verb-io.psd1                                                                                                                                                                                     
+RequiredVersion                11.0.4                                                                                                                                                                                                                 
+whatif                         False                                                                                                                                                                                                                  
+verbose                        True
+2023-12-06 14:45:36 INFO:  : (confirm-ModuleBuildSync:Success)
+2023-12-06 14:45:38 VERBOSE:  : $Psd1filelist populated: xXML:c:\sc\verb-io\Psd1filelist
+2023-12-06 14:45:38 INFO:  : Updating the Psd1 FileList to with populated $Psd1filelist...
+2023-12-06 14:45:41 INFO:  : (Set-ContentFixEncoding:C:\sc\verb-io\verb-io\verb-io.psd1)
+2023-12-06 14:45:41 INFO:  : Set-Content w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+PassThru                       True                                                                                                                                                                                                                   
+Path                           C:\sc\verb-io\verb-io\verb-io.psd1                                                                                                                                                                                     
+whatif                         False                                                                                                                                                                                                                  
+encoding                       UTF8                                                                                                                                                                                                                   
+ErrorAction                    STOP
+-Value[0,2]:
+#
+# Module manifest for module 'verb-IO'
+
+2023-12-06 14:45:43 INFO:  : Signing appropriate files...
+2023-12-06 14:45:44 INFO:  : Sign-file w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+file                           {C:\sc\verb-io\rebuild-module.ps1, C:\sc\verb-io\requirements.psd1, C:\sc\verb-io\Tests\PPoShScriptingStyle.psd1, C:\sc\verb-io\Tests\ToddomationScriptingStyle-medium.psd1...}                                        
+ErrorAction                    Stop                                                                                                                                                                                                                   
+showdebug                      False                                                                                                                                                                                                                  
+whatif                         False
+2023-12-06 14:45:47 INFO:  : Removing existing profile verb-io content...
+2023-12-06 14:45:47 INFO:  : Uninstall-ModuleForce w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+ModuleName                     verb-io                                                                                                                                                                                                                
+Verbose                        True                                                                                                                                                                                                                   
+whatif                         False
+2023-12-06 14:47:40 INFO:  : (no $sRet returned on call)
+2023-12-06 14:47:40 INFO:  : Copying module to profile (net of .git & .vscode dirs, and backed up content)...
+2023-12-06 14:48:17 INFO:  : $srcFiles:post-filter out:
+\\(Package|Tests|logs)\\|(\.ps[dm]1_(\d+-\d+[AP]M|TMP)|-LOG-BATCH-EXEC-\d+-\d+[AP]M-log\.txt|\\(fingerprint|Psd1filelist))$
+2023-12-06 14:48:28 INFO:  : Discovered mod-copy files ($srcFiles.fullname):w
+C:\sc\verb-io\verb-IO\CHANGELOG.md
+C:\sc\verb-io\verb-IO\LICENSE.txt
+C:\sc\verb-io\verb-IO\Quick-Start-Installation-and-Example.md
+C:\sc\verb-io\verb-IO\README.md
+C:\sc\verb-io\verb-IO\test-MediaFile.jpg
+C:\sc\verb-io\verb-IO\verb-IO.psd1
+C:\sc\verb-io\verb-IO\verb-IO.psm1
+2023-12-06 14:48:45 INFO:  : Non-Pre-existing:$to:C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io
+Pre-creating before copy...
+2023-12-06 14:48:52 INFO:  : Mode   LastWriteTime        Length Name   
+----   -------------        ------ ----   
+d----- 12/6/2023 2:48:48 PM        verb-io
+2023-12-06 14:49:01 INFO:  : -Merge:exclude $MergeBuildExcl \\(Public|Internal|External|Private)\\.*.ps1$ files from temp build copy
+2023-12-06 14:49:02 INFO:  : Recursively remove empty subdirs below C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io...
+2023-12-06 14:49:03 VERBOSE:  : get-childitem w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Path                           C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io                                                                                                                                                  
+Directory                      True                                                                                                                                                                                                                   
+Recurse                        True                                                                                                                                                                                                                   
+erroraction                    STOP
+2023-12-06 14:49:03 VERBOSE:  : get-childitem w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Path                           C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io                                                                                                                                                  
+Directory                      True                                                                                                                                                                                                                   
+Recurse                        True                                                                                                                                                                                                                   
+erroraction                    STOP
+2023-12-06 14:49:03 INFO:  : Move/Flatten Resource etc files into root of temp Build dir...
+2023-12-06 14:49:03 INFO:  : Unable to locate a problematic temp mod dir C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io COPY of Quick-Start-Installation-and-Example.md
+2023-12-06 14:49:03 INFO:  : Unable to locate a problematic temp mod dir C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io COPY of test-MediaFile.jpg
+2023-12-06 14:49:04 INFO:  : Unable to locate a problematic temp mod dir C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io COPY of CHANGELOG.md
+2023-12-06 14:49:04 INFO:  : Unable to locate a problematic temp mod dir C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io COPY of LICENSE.txt
+2023-12-06 14:49:04 INFO:  : Unable to locate a problematic temp mod dir C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io COPY of README.md
+2023-12-06 14:49:04 INFO:  : copy/Flatten Resource etc files into source root c:\sc\verb-io\verb-io dir...
+2023-12-06 14:49:05 INFO:  : Resolved $ModPsdPath:
+C:\sc\verb-io\verb-io\verb-io.psd1
+2023-12-06 14:49:05 INFO:  : Running pre-Publish-Module .psd1 test:
+Test-ModuleManifest -path C:\sc\verb-io\verb-io\verb-io.psd1
+2023-12-06 14:49:06 VERBOSE:  : (no $ttmm_Err: test-ModuleManifest had no errors)
+2023-12-06 14:49:06 INFO:  : (Test-ModuleManifest:PASSED)
+2023-12-06 14:49:06 INFO:  : (Profiling Repo: get-PSRepository -name lyncRepo...)
+2023-12-06 14:49:08 VERBOSE:  : (confirmed:$tRepo.PublishLocation accessible)
+2023-12-06 14:49:20 PROMPT:  : Large # of funcitons: array of function names char length (;tagdemo.length) -gt $iSkipAutomaticTagsThreshold:2000
+Adding -SkipAutomaticTags param to Publish-Module call, to work around NuGit bug #344
+2023-12-06 14:50:28 INFO:  : 
+Publish-Module w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Name                           verb-io                                                                                                                                                                                                                
+Repository                     lyncRepo                                                                                                                                                                                                               
+RequiredVersion                11.0.4                                                                                                                                                                                                                 
+Verbose                        True                                                                                                                                                                                                                   
+ErrorAction                    Stop                                                                                                                                                                                                                   
+errorVariable                  pbmo_Err                                                                                                                                                                                                               
+whatif                         False                                                                                                                                                                                                                  
+SkipAutomaticTags              True
+2023-12-06 14:52:45 WARNING:  :  FOUND $pbmo_Err: import-module HAD ERRORS! (no action, could be non-impacting)
+2023-12-06 14:53:03 WARNING:  :  Publish-Module PBMO UNDEFINED ERROR! System.Management.Automation.StopUpstreamCommandsException: System error.     at Microsoft.PowerShell.Commands.SelectObjectCommand.ProcessRecord()     at System.Management.Automation.CommandProcessor.ProcessRecord() (But PublishModule doesn't bother to return a functional Error object with an Exception, so we can't trust/parse or act on it. Just echo)
+2023-12-06 14:53:23 INFO:  : Waiting for:find-module -name verb-io -Repository lyncRepo ...
+2023-12-06 14:55:09 INFO:  : -GracefulFail specified, using EA:'Continue'
+2023-12-06 14:55:09 INFO:  : remove-item w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Path                           {C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io\CHANGELOG.md, C:\Users\kadritss\Documents\WindowsPowerShell\Modules\verb-io\verb-io\LICENSE.txt, C:\Users\kadritss\Documents\WindowsPowerShel...
+Recurse                        True                                                                                                                                                                                                                   
+ErrorAction                    Continue                                                                                                                                                                                                               
+whatif                         False
+2023-12-06 14:55:10 INFO:  : Install-Module w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Name                           verb-io                                                                                                                                                                                                                
+Repository                     lyncRepo                                                                                                                                                                                                               
+RequiredVersion                11.0.4                                                                                                                                                                                                                 
+scope                          CurrentUser                                                                                                                                                                                                            
+force                          True                                                                                                                                                                                                                   
+AllowClobber                   True                                                                                                                                                                                                                   
+errorVariable                  ismo_Err                                                                                                                                                                                                               
+ErrorAction                    Stop                                                                                                                                                                                                                   
+whatif                         False
+2023-12-06 14:56:22 VERBOSE:  : (no $ismo_Err: Install-Module had no errors)
+2023-12-06 14:56:23 INFO:  : Testing Module:Import-Module w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Name                           verb-io                                                                                                                                                                                                                
+ErrorAction                    Stop                                                                                                                                                                                                                   
+errorVariable                  ipmo_Err                                                                                                                                                                                                               
+force                          True                                                                                                                                                                                                                   
+verbose                        True
+2023-12-06 14:57:07 VERBOSE:  : (no $ipmo_Err: test-ModuleManifest had no errors)
+2023-12-06 14:57:11 INFO:  : Retrieving matching Repo .nupkg file:
+gci \\lynmsv10\lync_fs\scripts\sc\verb-io.11.0.4.nupkgl..
+2023-12-06 14:57:12 INFO:  : Proper updated .nupkg file found:verb-io.11.0.4.nupkg, copying to local Pkg directory.
+2023-12-06 14:57:13 INFO:  : remove-UnneededFileVariants w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Path                           c:\sc\verb-io\Package                                                                                                                                                                                                  
+Include                        verb-io*.nupkg                                                                                                                                                                                                         
+Pattern                                                                                                                                                                                                                                               
+FilterOn                       CreationTime                                                                                                                                                                                                           
+Keep                           2                                                                                                                                                                                                                      
+KeepToday                      True                                                                                                                                                                                                                   
+verbose                        True                                                                                                                                                                                                                   
+whatif                         False
+2023-12-06 14:57:13 INFO:  : gci w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+path                           c:\sc\verb-io\Package\*                                                                                                                                                                                                
+include                        verb-io*.nupkg                                                                                                                                                                                                         
+ErrorAction                    Stop
+2023-12-06 14:57:13 INFO:  : Reducing matched population from 4 to 1 files via:
+filtered files on CreationTime prior to 12/06/2023 00:00:00 AM
+2023-12-06 14:57:14 INFO:  : Remove-Item w 
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+path                           C:\sc\verb-io\Package\verb-io.10.3.0.nupkg                                                                                                                                                                             
+ErrorAction                    STOP                                                                                                                                                                                                                   
+whatif                         False
+2023-12-06 14:57:14 INFO:  : remove-UnneededFileVariants w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+Path                           c:\sc\verb-io\Tests                                                                                                                                                                                                    
+Include                        ScriptAnalyzer-Results-*.xml                                                                                                                                                                                           
+Pattern                                                                                                                                                                                                                                               
+FilterOn                       CreationTime                                                                                                                                                                                                           
+Keep                           4                                                                                                                                                                                                                      
+KeepToday                      True                                                                                                                                                                                                                   
+verbose                        True                                                                                                                                                                                                                   
+whatif                         False
+2023-12-06 14:57:14 INFO:  : gci w
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+path                           c:\sc\verb-io\Tests\*                                                                                                                                                                                                  
+include                        ScriptAnalyzer-Results-*.xml                                                                                                                                                                                           
+ErrorAction                    Stop
+2023-12-06 14:57:14 INFO:  : Reducing matched population from 5 to 1 files via:
+filtered files on CreationTime prior to 12/06/2023 00:00:00 AM
+2023-12-06 14:57:14 INFO:  : Remove-Item w 
+Name                           Value                                                                                                                                                                                                                  
+----                           -----                                                                                                                                                                                                                  
+path                           C:\sc\verb-io\Tests\ScriptAnalyzer-Results-20230622-1557PM.xml                                                                                                                                                         
+ErrorAction                    STOP                                                                                                                                                                                                                   
+whatif                         False
+2023-12-06 14:57:14 INFO:  : -RunTest specified: Running Pester Test script:
+c:\sc\verb-io\Tests\verb-io.tests.ps1
+
+2023-12-06 15:01:04 INFO:  : 
+---------------------------------------------------------------------------------
+Processing completed: verb-io :: c:\sc\verb-io
+- Script is currently installed (from PsRep: with scope:CurrentUser, under TORO\kadriTSS profile
+
+- To update other scopes/accounts on same machine, or install on other machines:
+    1. Uninstall current module copies:
+
+        Uninstall-Module -Name verb-io) -AllVersion -whatif ;
+
+    2. Install the current version (or higher) from the Repo:lyncRepo:
+
+        install-Module -name verb-io -Repository lyncRepo -MinimumVersion 11.0.4 -scope currentuser -whatif ;
+
+    3. Reimport the module with -force, to ensure the current installed verison is loaded:
+
+        import-Module -name verb-io -force -verbose ;
+
+#-=-Stacked list: Unwrap to create a 1-liner for the above: CURRENTUSER =-=-=-=-=-=-=
+$whatif=$false ; $tMod = 'verb-io' ; $tVer = '11.0.4' ;  $tScop = 'CurrentUser' ;
+TRY {
+Remove-Module -Name $tmod -ea 0 ;
+Uninstall-Module -Name $tmod -AllVersion -whatif:$($whatif) ;
+install-Module -name $tmod -Repository 'lyncRepo' -MinimumVersion $tVer -scope $tScop -AllowClobber -whatif:$($whatif) ;
+import-Module -name $tmod -force -verbose ;
+} CATCH {
+Write-Warning "Failed processing $($_.Exception.ItemName). 
+Error Message: $($_.Exception.Message)
+Error Details: $($_)" ; Break ;
+} ;
+#-=-=-=-=-=-=-=-=
+#-=-Stacked list: Unwrap to create a 1-liner for the above: ALLUSERS =-=-=-=-=-=-=
+$whatif=$false ; $tMod = 'verb-io' ; $tVer = '11.0.4' ;  $tScop = 'AllUsers' ;
+TRY {
+Remove-Module -Name $tmod -ea 0 ;
+Uninstall-Module -Name $tmod -AllVersion -whatif:$($whatif) ;
+install-Module -name $tmod -Repository 'lyncRepo' -MinimumVersion $tVer -scope $tScop -AllowClobber -whatif:$($whatif) ;
+import-Module -name $tmod -force -verbose ;
+} CATCH {
+Write-Warning "Failed processing $($_.Exception.ItemName). 
+Error Message: $($_.Exception.Message)
+Error Details: $($_)" ; Break ;
+} ;
+#-=-=-=-=-=-=-=-=
+
+- You may also want to run the configured Pester Tests of the new script:
+
+        . c:\sc\verb-io\Tests\verb-io.tests.ps1
+
+Full Processing Details can be found in:
+
+C:\usr\work\ps\scripts\logs\processbulk-NewModule-verb-io-LOG-BATCH-EXEC-20231206-1439PM-log.txt
+
+---------------------------------------------------------------------------------
+
+2023-12-06 15:01:04 INFO:  : 
+(Processing log can be found at:c:\sc\verb-io\C:\usr\work\ps\scripts\logs\processbulk-NewModule-verb-io-LOG-BATCH-EXEC-20231206-1439PM-log.txt)

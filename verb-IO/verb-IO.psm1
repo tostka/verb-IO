@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 11.0.1.0.0
+Version     : 11.0.4.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -4378,7 +4378,7 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                     Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
                     escaped by using a double backslash so that a filename would be D:\\path\\to\\file.mpg)
                     Dbling \'s in all path objects used in params going into vlc.exe args and see if it fixes the issues transcodeing:
-                    C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL2011.0.2-MieT8cNeXJA).mp3
+                    C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20111001-MieT8cNeXJA).mp3
                     ... which comes out as an mp3 with no extension.
                     #>
                     $outputFileName = (join-path -path $tf.Directory -ChildPath "$($tf.BaseName)$($outputExtension)") ;
@@ -16190,8 +16190,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUKKOkXa+JAOfUOT8dz4Yfz56V
-# BxygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUP4SOLpJ3HGfnfgjW+UeEtRxv
+# fHOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -16206,9 +16206,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTCVF4c
-# KNeB+HaMXt0yr0WxwAaE8zANBgkqhkiG9w0BAQEFAASBgK6aZqBnxXQWcjDE2zKF
-# E5oxmY4s+74yEB+ojuWb1qq3kDucmPw/Rks7GkZAtm4BLk6YNGGS10BNiqqvyKCc
-# QAZe8KhsG33eVym8ktAcVipK5Oa2NVs5hdZ5YZhTv63lYF+eBD3qk9D8Od1MI6zG
-# 082r51RatK11I/0r6rB+3e/O
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQK8qLY
+# TePN8YpaSMrh8CPSevZcbTANBgkqhkiG9w0BAQEFAASBgF2thpwkcknLGNMzlzIN
+# wTZYBlA0XNMPhJnNXbrKA/L4GlS5A8vK38u+lRkQEH/PUqct0pp7WKKq8ibfI9xj
+# ey2yT7su6KegyBXQgtuC2Ne/+/QDjiSGmx7d3Yc5fr/PzVVuc5FlUuulggiOhGYa
+# gu5Hv1gyM9Jyin1oNO3tl9zX
 # SIG # End signature block

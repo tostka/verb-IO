@@ -1,16 +1,7 @@
 ﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
-  <S>_DYNAMIC.txt_</S>
-  <S>_DYNAMIC.txt_</S>
-  <S>2.0.0-installed-working-20220510-0156PM.zip</S>
-  <S>2.0.0-installed-working-20220510-0156PM.zip</S>
-  <S>CHANGELOG.md</S>
   <S>CHANGELOG.md</S>
   <S>LICENSE.txt</S>
-  <S>LICENSE.txt</S>
-  <S>Quick-Start-Installation-and-Example.md</S>
   <S>Quick-Start-Installation-and-Example.md</S>
   <S>README.md</S>
-  <S>README.md</S>
-  <S>test-MediaFile.jpg</S>
   <S>test-MediaFile.jpg</S>
 </Objs>
