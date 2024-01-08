@@ -64,6 +64,20 @@ Function Get-KnownFolderTDO {
 
         [trimmed posted copy of source for this function]
 
+        ## KnownFolderIDs that work with [Environment]::getFolderPath('KnownFolderID')
+
+        ([Environment+SpecialFolder]::GetNames([Environment+SpecialFolder]) | SORT ) -join ', ' ; 
+        Output:
+        AdminTools, ApplicationData, CDBurning, CommonAdminTools, 
+        CommonApplicationData, CommonDesktopDirectory, CommonDocuments, CommonMusic, 
+        CommonOemLinks, CommonPictures, CommonProgramFiles, CommonProgramFilesX86, 
+        CommonPrograms, CommonStartMenu, CommonStartup, CommonTemplates, CommonVideos, 
+        Cookies, Desktop, DesktopDirectory, Favorites, Fonts, History, InternetCache, 
+        LocalApplicationData, LocalizedResources, MyComputer, MyDocuments, MyMusic, 
+        MyPictures, MyVideos, NetworkShortcuts, Personal, PrinterShortcuts, 
+        ProgramFiles, ProgramFilesX86, Programs, Recent, Resources, SendTo, StartMenu, 
+        Startup, System, SystemX86, Templates, UserProfile, Windows 
+
         ## Listing of CLSIDs for Known folders:
 
         ### Windows: known folders
