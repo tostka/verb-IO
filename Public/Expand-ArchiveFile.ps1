@@ -11,13 +11,14 @@ function Expand-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 3:29 PM 1/16/2024 was getting errors overwriting existing under ps5.1: needs -force, so expanded -overwrite to issue -force under ps5.1 (along with prior pre ps5 use).
     * 4:23 PM 8/30/2022 simplified CATCH's; updated CBH; ren -Destination -> -DestinationPath (matches expand-archive, and compress-archivefile params)
     * 1:28 PM 8/29/2022 ren Expand-ZIPFile -> Expand-ArchiveFile (alias orig name); ren source parameter File -> Path; add code to use native expand-archive on psv5+ ; 
         added try/catch support; debugged on psv51 on mybox, pipeline & useshell (older revs untested).
     * 7:28 AM 3/14/2017 updated tsk: pshelp, param() block, OTB format
     .DESCRIPTION
     Expand-ArchiveFile.ps1 - Decompress all files in an archive file to a destination directory (wraps Psv5+ native cmdlets, and matching legacy .net calls)
-    
+
     Wrote to provide broadest support, switches bewtween:
     - PSv5+ native expand-archive 
     - .net 4.5 zipfile class support, 
@@ -51,16 +52,16 @@ function Expand-ArchiveFile {
     [Alias('Expand-ZipFile')]
     Param(
         [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Source archive full path [-Path c:\path-to\Path.ext]")]
-        [ValidateScript( { Test-Path $_ })]
-        [Alias('File')]
-        [string[]]$Path,
+            [ValidateScript( { Test-Path $_ })]
+            [Alias('File')]
+            [string[]]$Path,
         [Parameter(Mandatory = $true,Position = 1,HelpMessage = "Destination folder in which to expand all compressed files in the source archive [-DestinationPath c:\path-to\]")]
-        #[ValidateScript( { Test-Path $_ -PathType 'Container' })]
-        [string]$DestinationPath,
-        [Parameter(HelpMessage = "Overwrite switch (only used pre-psv5 when not using -useShell)[-Overwrite]")]
-        [switch]$Overwrite,
+            #[ValidateScript( { Test-Path $_ -PathType 'Container' })]
+            [string]$DestinationPath,
+        [Parameter(HelpMessage = "Overwrite switch (uses -force under Psv5; also overwrite spec pre-psv5 used when not using -useShell)[-Overwrite]")]
+            [switch]$Overwrite,
         [Parameter(HelpMessage = "Switch to use shell.application COM object (broadest legacy compatibility, slower for large number of files) [-useShell]")]
-        [switch]$useShell
+            [switch]$useShell
     ) ; 
     BEGIN { 
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
@@ -118,6 +119,8 @@ function Expand-ArchiveFile {
                         DestinationPath = $DestinationPath ; 
                         erroraction = 'STOP' ;
                         #whatif = $($whatif) ;
+                        force = $($Overwrite) ;
+                        verbose = $($VerbosePreference -eq 'Continue')
                     } ;
                     if ($item -match "(\[|\])") {
                         write-verbose "(angle bracket chars detected in -Path:switching to -LiteralPath support)" ; 

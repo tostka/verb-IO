@@ -22,6 +22,7 @@ Function Invoke-TakeownFileTDO {
     AddedWebsite: http://www.toddomation.com
     AddedTwitter: @tostka / http://twitter.com/tostka
     REVISION
+    * 9:39 AM 1/16/2024 fix typo trailing comma in param; flip param hlpmsg quote type
     * 12:29 PM 3:11 PM 1/10/2024 adding to verb-io for future ref
     .DESCRIPTION
     Invoke-TakeownFileTDO.ps1 - Simple wrapper for Window's takeown.exe, reassigns file Ownership to the admins SID S-1-5-32-544 group (takes back damaged permissions for access)
@@ -42,12 +43,12 @@ Function Invoke-TakeownFileTDO {
     #[Alias('expand-ISOFile')]
     #[OutputType([boolean])]
     PARAM (
-        [Parameter(Mandatory = $true,Position = 0,HelpMessage = 'Full path to file to have Owner reassigned to the admins SID S-1-5-32-544 group [-Path 'c:\tmp\tmp.txt']')]
+        [Parameter(Mandatory = $true,Position = 0,HelpMessage = "Full path to file to have Owner reassigned to the admins SID S-1-5-32-544 group [-Path 'c:\tmp\tmp.txt']")]
             [Alias('PsPath')]
             #[ValidateScript({Test-Path $_ -PathType 'Container'})]
             #[System.IO.DirectoryInfo[]]$Path,
             [ValidateScript({Test-Path $_})]
-            [system.io.fileinfo]$Path,
+            [system.io.fileinfo]$Path
             #[string[]]$Path,
     ) ;
     takeown.exe /A /F $Path.fullname

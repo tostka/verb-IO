@@ -42,7 +42,7 @@ Function Invoke-TakeownFolderTDO {
     #[Alias('expand-ISOFile')]
     #[OutputType([boolean])]
     PARAM (
-        [Parameter(Mandatory = $true,Position = 0,HelpMessage = 'Full path to file to have Owner reassigned to the admins SID S-1-5-32-544 group [-Path 'c:\tmp']')]
+        [Parameter(Mandatory = $true,Position = 0,HelpMessage = "Full path to file to have Owner reassigned to the admins SID S-1-5-32-544 group [-Path 'c:\tmp']")]
             [Alias('PsPath')]
             [ValidateScript({Test-Path $_ -PathType 'Container'})]
             [System.IO.DirectoryInfo]$Path

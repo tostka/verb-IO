@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 11.2.2.0.0
+Version     : 11.0.4.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -16190,8 +16190,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU3jIkTkBGJUKPSyGd9qBHPps0
-# olqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUP4SOLpJ3HGfnfgjW+UeEtRxv
+# fHOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -16206,9 +16206,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-PSTitleBar,Authenticate
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTggS7E
-# /X9RxjjRRNJB1pIaKGPGDzANBgkqhkiG9w0BAQEFAASBgJcPudnDYmw2LuGk4WBK
-# 4m7sPO1Syjk0FMpsukVGloNEUicp2HTa5Ed2egs8csatGRVbgndDa8z1u4OPRdFy
-# Plh00AnSx8jU1H0iymUXV+zSJSzir9kIUKj6KV8dbZurCnFGPHS1i/OHtzXNp4Ki
-# LNE+w3q4E3mzwgtPovvLIPle
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQK8qLY
+# TePN8YpaSMrh8CPSevZcbTANBgkqhkiG9w0BAQEFAASBgF2thpwkcknLGNMzlzIN
+# wTZYBlA0XNMPhJnNXbrKA/L4GlS5A8vK38u+lRkQEH/PUqct0pp7WKKq8ibfI9xj
+# ey2yT7su6KegyBXQgtuC2Ne/+/QDjiSGmx7d3Yc5fr/PzVVuc5FlUuulggiOhGYa
+# gu5Hv1gyM9Jyin1oNO3tl9zX
 # SIG # End signature block
