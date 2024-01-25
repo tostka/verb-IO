@@ -8,6 +8,7 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 8:09 PM 11/15/2023 recoded around vlc conversion bugs; moved output into $env:temp, then post-move back to target dir; also add retry: noticed on zero-len outfile, that rerunning sometimes properly processed the file.
     * 1:41 PM 7/26/2023 add: $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; flipped extension refs to using that combo to detect pre-transcode YT content
     * 10:32 AM 7/21/2023 add both aliases convert-toMp3 & convertTo-Mp3(proper verb); fixed alias; removed unused params & showdebug support (v write-verbose) added xmpl; worked on path [] in latest pass ; add: rename nested 
         try's against rename-item, move-item, and [System.IO.File]::Move() - hasn't 
@@ -70,12 +71,30 @@ function convert-VideoToMp3 {
     $bRet=convert-VideoToMp3 -InputObject "C:\video.mkv" ;
     Convert Specified video file to mp3.
     .EXAMPLE
+    PS> $whatif = $true ;
     PS> write-verbose 'cd to target dir' ; 
     PS> cd .\somepath ; 
     PS> write-verbose 'run recursive pass from there down' ; 
-    PS> get-childitem * -recurse | ?{$_.extension -match "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)"} |%{ convert-VideoToMp3 -inputobject $_ }  ;
-get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|webm|mkv|mpeg)$"}
-    Typical 
+    PS> $rgxInputExts = "(?i:^\.(MPEG|AVI|ASF|WMV|WMA|MP4|MOV|3GP|OGG|OGM|MKV|WEBM|WAV|DTS|AAC|AC3|A52|FLAC|FLV|MXF|MIDI|SMF)$)" ;
+    PS> TRY{
+    PS>   if($tvids = get-childitem * -recurse | ?{$_.extension -match $rgxInputExts}){
+    PS>       if($tvids |?{$_.fullname -notmatch 'C:\\vidtmp\\convert\\'}){
+    PS>           throw "NOT RUNNING FROM PROPER C:\VIDTMP\CONVERT DIR!" ; BREAK ;
+    PS>       }else {
+    PS>           write-host -foregroundcolor green "`nMatched Vids for Conversion:`n$(($tvids.fullname|out-string).trim())`n" ; 
+    PS>           $tvids |%{
+    PS>              convert-VideoToMp3 -inputobject $_ -Verbose:$($VerbosePreference -eq 'Continue') -whatif:$($whatif) ;
+    PS>           } ;
+    PS>       } ;
+    PS>   } else { 
+    PS>     write-warning "No files matching `n$($rgxInputExts)`nfound..." ; 
+    PS>   } ; 
+    PS> } CATCH {
+    PS>     $ErrTrapd=$Error[0] ;
+    PS>     $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+    PS>     write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+    PS> } ; 
+    Typical pass with test to ensure proper format and in target convert dir
     #>
     [CmdletBinding()]
     [Alias('convert-ToMp3','convertTo-Mp3')]
@@ -100,6 +119,8 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
     #>
 
     BEGIN {
+        $Retries = 4 ;
+        $RetrySleep = 5 ;
         $rgxInputExts = "(?i:^\.(MPEG|MP3|AVI|ASF|WMV|WMA|MP4|MOV|3GP|OGG|OGM|MKV|WEBM|WAV|DTS|AAC|AC3|A52|FLAC|FLV|MXF|MIDI|SMF)$)" ;
         $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; 
         $outputExtension = ".mp3" ;
@@ -162,108 +183,128 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                             throw "UNRECOGNIZED TYPE OBJECT inputfile:$($inputFile.fullname). ABORTING!" ;
                         } ;
                     } ;
+                } else {
+                    # code leak to throw out directories
+                    # System.IO.DirectoryInfo
+                    write-host "(Skipping $($inputfile) -- Directory)" ;
+                    Continue ;
+                } ;
 
-                    $sBnrS="`n#*------v PROCESSING : $($tf.fullname)v------" ; 
-                    write-verbose $sBnrS ;
+                $sBnrS="`n#*------v PROCESSING : $($tf.fullname)v------" ; 
+                write-verbose $sBnrS ;
 
-                    if ($tf.extension -notmatch $rgxInputExts ) { throw "UNSUPPORTED INPUTFILE TYPE:$($inpuptFile)" }  ;
+                if ($tf.extension -notmatch $rgxInputExts ) { throw "UNSUPPORTED INPUTFILE TYPE:$($inpuptFile)" }  ;
 
-                    # 12:01 AM 7/16/2023 apostrophe's in fullname crash rediscovery post conv, test
-                    #if($inputFile.FullName.contains("'")){
-                    # actually it's when there's a ' in the path, more than the file name. File name is acommodated, but renaming breaks with it in the path.
-                    if($inputfile.DirectoryName.contains("'")){
-                        throw "INPUTFILE TYPE FULLNAME CONTAINS APOSTROPHE(')!:`n$($inputfile.FULLNAME)`nSKIPPING!"
-                    } ;
+                # 12:01 AM 7/16/2023 apostrophe's in fullname crash rediscovery post conv, test
+                #if($inputFile.FullName.contains("'")){
+                # actually it's when there's a ' in the path, more than the file name. File name is acommodated, but renaming breaks with it in the path.
+                if($inputfile.DirectoryName.contains("'")){
+                    throw "INPUTFILE TYPE FULLNAME CONTAINS APOSTROPHE(')!:`n$($inputfile.FULLNAME)`nSKIPPING!"
+                } ;
 
-                    <# 7:20 PM 11/6/2016 windows docs:https://wiki.videolan.org/Transcode/
-                    Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
-                    escaped by using a double backslash so that a filename would be D:\\path\\to\\file.mpg)
-                    Dbling \'s in all path objects used in params going into vlc.exe args and see if it fixes the issues transcodeing:
-                    C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20111001-MieT8cNeXJA).mp3
-                    ... which comes out as an mp3 with no extension.
-                    #>
-                    $outputFileName = (join-path -path $tf.Directory -ChildPath "$($tf.BaseName)$($outputExtension)") ;
-                    #$outputFileName=$outputFileName.replace("\","\\") ;
-                    # since there's clearly an export bug in VLC, lets use a generic no-spaces file :
-                    # Generate a unique filename with a specific extension (non-tmp, leverages the GUID-generating call):
-                    $tempout = (join-path -path $tf.Directory -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
-                    $inputFileName = $tf.FullName.replace("\", "\\") ;
+                <# 7:20 PM 11/6/2016 windows docs:https://wiki.videolan.org/Transcode/
+                Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
+                escaped by using a double backslash so that a filename would be D:\\path\\to\\file.mpg)
+                Dbling \'s in all path objects used in params going into vlc.exe args and see if it fixes the issues transcodeing:
+                C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20111001-MieT8cNeXJA).mp3
+                ... which comes out as an mp3 with no extension.
+                #>
+                $outputFileName = (join-path -path $tf.Directory -ChildPath "$($tf.BaseName)$($outputExtension)") ;
+                #$outputFileName=$outputFileName.replace("\","\\") ;
+                # since there's clearly an export bug in VLC, lets use a generic no-spaces file :
+                # Generate a unique filename with a specific extension (non-tmp, leverages the GUID-generating call):
+                #$tempout = (join-path -path $tf.Directory -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
+                # try it out of $env:temp C:\Users\tsk\AppData\Local\Temp
+                $tempout = (join-path -path $env:temp -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
+                $inputFileName = $tf.FullName.replace("\", "\\") ;
 
-                    write-verbose "`$outputFileName:$outputFileName`n`$tempout:$($tempout)"  ;
+                write-verbose "`$outputFileName:$outputFileName`n`$tempout:$($tempout)"  ;
 
-                    switch ($encoder) {
-                        "VLC" {
-                            #  12:11 PM 11/6/2016 build args where we can see whats going on
-                            # 1st spec dummy/non-GUI pass, and input filename  $($inputFileName)
-                            $processArgs = "-I dummy -v `"$($inputFileName)`"" ;
-                            if ($whatif) {
-                                write-host -foregroundcolor green "-whatif detected, test-transcoding only the first 30secs" ;
-                                $processArgs += " --stop-time=30" ;
-                            } ;
-                            # build output transcode settings
-                            $processArgs += " :sout=#transcode{" ;
-                            $processArgs += "vcodec=none,acodec=$($audio_codec),ab=$($bitrate),channels=$($channels),samplerate=$($samplerate)" ;
-                            $processArgs += "acodec=$($audio_codec),ab=$($bitrate),channels=$($channels),samplerate=$($samplerate)" ;
-                            # end output transcode settings
-                            $processArgs += "}" ;
-                            # add the output file specs & mux
-                            $processArgs += ":standard{access=`"file`",mux=$($mux),dst=`"$($tempout)`"}"
-                            # tell it to exit on completion
-                            $processArgs += " vlc://quit" ;
-                        }
-                        "FFMPEG" {
-                            <# C:\apps\ffmpeg\bin\ffmpeg.exe
-                            The basic command is:
-                            ffmpeg -i filename.mp4 filename.mp3
-                            or
-                            ffmpeg -i video.mp4 -b:a 192K -vn music.mp3
+                switch ($encoder) {
+                    "VLC" {
+                        #  12:11 PM 11/6/2016 build args where we can see whats going on
+                        # 1st spec dummy/non-GUI pass, and input filename  $($inputFileName)
+                        $processArgs = "-I dummy -v `"$($inputFileName)`"" ;
+                        if ($whatif) {
+                            write-host -foregroundcolor green "-whatif detected, test-transcoding only the first 30secs" ;
+                            $processArgs += " --stop-time=30" ;
+                        } ;
+                        # build output transcode settings
+                        $processArgs += " :sout=#transcode{" ;
+                        $processArgs += "vcodec=none,acodec=$($audio_codec),ab=$($bitrate),channels=$($channels),samplerate=$($samplerate)" ;
+                        $processArgs += "acodec=$($audio_codec),ab=$($bitrate),channels=$($channels),samplerate=$($samplerate)" ;
+                        # end output transcode settings
+                        $processArgs += "}" ;
+                        # add the output file specs & mux
+                        $processArgs += ":standard{access=`"file`",mux=$($mux),dst=`"$($tempout)`"}"
+                        # tell it to exit on completion
+                        $processArgs += " vlc://quit" ;
+                    }
+                    "FFMPEG" {
+                        <# C:\apps\ffmpeg\bin\ffmpeg.exe
+                        The basic command is:
+                        ffmpeg -i filename.mp4 filename.mp3
+                        or
+                        ffmpeg -i video.mp4 -b:a 192K -vn music.mp3
 
-                            use -q:a for variable bit rate.
-                            ffmpeg -i k.mp4 -q:a 0 -map a k.mp3
-                            The q option can only be used with libmp3lame and corresponds to the LAME -V option. See:
+                        use -q:a for variable bit rate.
+                        ffmpeg -i k.mp4 -q:a 0 -map a k.mp3
+                        The q option can only be used with libmp3lame and corresponds to the LAME -V option. See:
 
-                            leaving out -vn just copies the audio stream
-                            to convert whole directory (including filenames with spaces) with the above command:
-                            for i in *.mp4; do ffmpeg -i "$i" -q:a 0 -map a "$(basename "${i/.mp4}").mp3"; done;
-                            http://donnieknows.com/blog/mp4-video-mp3-file-using-ffmpeg-ubuntu-910-karmic-koala
-                            Encoding VBR (Variable Bit Rate) mp3 audio - https://trac.ffmpeg.org/wiki/Encode/MP3
-                            FFmpeg, encode mp3 - http://svnpenn.github.io/2012/08/ffmpeg-encode-mp3
+                        leaving out -vn just copies the audio stream
+                        to convert whole directory (including filenames with spaces) with the above command:
+                        for i in *.mp4; do ffmpeg -i "$i" -q:a 0 -map a "$(basename "${i/.mp4}").mp3"; done;
+                        http://donnieknows.com/blog/mp4-video-mp3-file-using-ffmpeg-ubuntu-910-karmic-koala
+                        Encoding VBR (Variable Bit Rate) mp3 audio - https://trac.ffmpeg.org/wiki/Encode/MP3
+                        FFmpeg, encode mp3 - http://svnpenn.github.io/2012/08/ffmpeg-encode-mp3
 
-                            To encode a high quality MP3 from an AVI best using -q:a for variable bit rate.
-                            ffmpeg -i sample.avi -q:a 0 -map a sample.mp3
-                            If you want to extract a portion of audio from a video use the -ss option to specify the starting timestamp, and the -t option to specify the encoding duration, eg from 3 minutes and 5 seconds in for 45 seconds
-                            ffmpeg -i sample.avi -ss 00:03:05 -t 00:00:45.0 -q:a 0 -map a sample.mp3
-                                The timestamps need to be in HH:MM:SS.xxx format or in seconds.
-                                If you don't specify the -t option it will go to the end.
-                            ffmpeg -formats
-                            or
-                            ffmpeg -codecs
-                            would give sufficient information so that you know more
+                        To encode a high quality MP3 from an AVI best using -q:a for variable bit rate.
+                        ffmpeg -i sample.avi -q:a 0 -map a sample.mp3
+                        If you want to extract a portion of audio from a video use the -ss option to specify the starting timestamp, and the -t option to specify the encoding duration, eg from 3 minutes and 5 seconds in for 45 seconds
+                        ffmpeg -i sample.avi -ss 00:03:05 -t 00:00:45.0 -q:a 0 -map a sample.mp3
+                            The timestamps need to be in HH:MM:SS.xxx format or in seconds.
+                            If you don't specify the -t option it will go to the end.
+                        ffmpeg -formats
+                        or
+                        ffmpeg -codecs
+                        would give sufficient information so that you know more
 
-                            128 kbps audio (assuming the original video file had good audio!) sampled at the 44,100 sample/second rate used on a CD:
-                            ffmpeg -i moviefile.mpeg -ab 128000 -ar 44100 -f mp3 audiofile.mp3
-                            #>
-                            $processArgs = "-i `"$($inputFileName)`"" ;
-                            # $bitrate=320
-                            $processArgs += " -ab $($bitrate * 1000)" ;
-                            # $samplerate=44100
-                            $processArgs += " -ar $($samplerate)" ;
-                            $processArgs += " -f mp3" ;
-                            $processArgs += " `"$($tempout)`"" ;
-                        }
-                    } ;
+                        128 kbps audio (assuming the original video file had good audio!) sampled at the 44,100 sample/second rate used on a CD:
+                        ffmpeg -i moviefile.mpeg -ab 128000 -ar 44100 -f mp3 audiofile.mp3
+                        #>
+                        $processArgs = "-i `"$($inputFileName)`"" ;
+                        # $bitrate=320
+                        $processArgs += " -ab $($bitrate * 1000)" ;
+                        # $samplerate=44100
+                        $processArgs += " -ar $($samplerate)" ;
+                        $processArgs += " -f mp3" ;
+                        $processArgs += " `"$($tempout)`"" ;
+                    }
+                } ;
 
-                        write-verbose "`$processName:$($processName | out-string)" ;
-                        write-verbose "`$processArgs:$($processArgs | out-string)" ;
-                        # optional debug: pipe it into the clipboard for cmdline testing
-                        #"`"$($processName)`" $($processArgs)" | Out-Clipboard ;
-                        #write-verbose -verbose:$true  "current cmdline piped to Clipboard!" ;
-                    # launch command
-                    # capture and echo back errors from .exe
-                    $soutf = [System.IO.Path]::GetTempFileName() ;
-                    $serrf = [System.IO.Path]::GetTempFileName()  ;
-                    "Cmd:$($processName) $($processArgs)" ;
-                    $process = Start-Process -FilePath $processName -ArgumentList $processArgs -NoNewWindow -PassThru -Wait -RedirectStandardOutput $soutf -RedirectStandardError $serrf ;
+                write-verbose "`$processName:$($processName | out-string)" ;
+                write-verbose "`$processArgs:$($processArgs | out-string)" ;
+                # optional debug: pipe it into the clipboard for cmdline testing
+                #"`"$($processName)`" $($processArgs)" | Out-Clipboard ;
+                #write-verbose -verbose:$true  "current cmdline piped to Clipboard!" ;
+                # launch command
+                # capture and echo back errors from .exe
+                $soutf = [System.IO.Path]::GetTempFileName() ;
+                $serrf = [System.IO.Path]::GetTempFileName()  ;
+
+            } CATCH {
+                $ErrTrapd=$Error[0] ;
+                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                CONTINUE ; 
+            } ; 
+                # 7:29 PM 11/15/2023 add retries, sometimes it comes back working                
+
+            $Exit = 0 ;
+            Do {
+                TRY {
+                    write-host -foregroundcolor yellow "Cmd:$($processName) $($processArgs)" ;
+                    $process = Start-Process -FilePath $processName -ArgumentList $processArgs -NoNewWindow -PassThru -Wait -RedirectStandardOutput $soutf -RedirectStandardError $serrf -Verbose:$($VerbosePreference -eq "Continue") ; 
 
                     switch ($process.ExitCode) {
                         0 {
@@ -271,6 +312,16 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                             # ren $tempout => $outputFileName
                             $bfound = $useLiteralPath = $false ; 
                             if ($rf = get-childitem -path $tempout ) {
+                                if($rf.Length -eq 0){
+                                    write-verbose "removing empty `$tempout file" ; 
+                                    remove-item -path $rf.fullname -verbose -force ; 
+                                    throw "EMPTY output file found: $($tempout)" ;
+                                } else {
+                                    write-verbose "copy back temp loc copy to final loc..."
+                                    move-item -path $tempout -Destination $tf.Directory -verbose:$true -ea STOP ;
+                                    write-verbose "reset `$rf to updated location" ; 
+                                    $rf = get-childitem -path (join-path -path $tf.Directory -ChildPath (split-path $tempout -Leaf)) -ea STOP
+                                } ; 
                                 $bfound = $true ; 
                             }elseif($rf = get-childitem -literalpath $tempout ) {
                                 write-verbose "gci -literalpath reqd to find returnfile - likely spec chars in path" ; 
@@ -296,36 +347,36 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                                     if($useLiteralPath){
                                         # still may fail on square-brackets, but move-item supports as well, with better tolerance
                                         TRY{
-                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP  -Verbose:$($VerbosePreference -eq "Continue") ; 
                                         }CATCH{
                                             TRY{
                                                 write-warning  "FAILED:Rename-Item, retrying move-item..." ;  
-                                                move-item -LiteralPath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                                move-item -LiteralPath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP  -Verbose:$($VerbosePreference -eq "Continue") ;
                                             }CATCH{
                                                 write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;  
                                                 [System.IO.File]::Move( $rf.fullname , (join-path -path $cf.DirectoryName -childpath $nname)) ;
                                             } ;
                                         } ;
                                     } else { 
-                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP -Verbose:$($VerbosePreference -eq "Continue");
                                     } ; 
                                 } else {
                                     $nname = $($outputFileName | split-path -Leaf) ; 
                                     write-verbose "renaming $($rf.fullname)`nto:$($nname)" ; 
                                     if($useLiteralPath){
                                         TRY{
-                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP -Verbose:$($VerbosePreference -eq "Continue") ; 
                                         }catch{
                                             TRY{
                                                 write-warning  "FAILED:Rename-Item, retrying move-item..." ;
-                                                move-Item -literalpath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                                move-Item -literalpath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP  -Verbose:$($VerbosePreference -eq "Continue") ; 
                                             }CATCH{
                                                 write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;
                                                 [System.IO.File]::Move($rf.fullname ,(join-path -path $cf.DirectoryName -childpath $nname)) ;  
                                             }
                                         }
                                     } else { 
-                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP -Verbose:$($VerbosePreference -eq "Continue") ;
                                     } ; 
                                 };
                             } ; 
@@ -336,92 +387,84 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                         } ;
                     } ;
 
-                    write-verbose "(checking for -RedirectStandardOutput -RedirectStandardError files from conversion...)" ; 
-                    if ((get-childitem $soutf).length) {
-                        if ($VerbosePreference -eq "Continue") { (get-content $soutf) | out-string ; } ;
-                        remove-item $soutf ;
-                    } ;
-                    if ((get-childitem $serrf).length) {
-                        if ($VerbosePreference -eq "Continue") { (get-content $serrf) | out-string ; } ;
-                        remove-item $serrf ;
-                    } ;
+                    $Exit = $Retries ;
+                } CATCH {
+                    $ErrorTrapped=$Error[0] ;
+                    Write-Verbose "Failed to exec cmd because: $($ErrorTrapped)" ;
+                    Start-Sleep -Seconds $RetrySleep ;
+                    # reconnect-exo/reconnect-ex2010
+                    $Exit ++ ;
+                    Write-Verbose "Try #: $Exit" ;
+                    If ($Exit -eq $Retries) {Write-Warning "Unable to exec cmd!"} ;
+                }  ;
+            } Until ($Exit -eq $Retries) ; 
 
-                    $iProcd++ ;
-                    [int]$pct = ($iProcd / $ttl) * 100 ;
-
-                    <# SAMPLE TRANSCODE SETTINGS
-                    -I dummy      Disables the graphical interface
-                    vlc://quit     Quit VLC after transcoding
-
-                    # wav to mp3
-                    #$processArgs = "-I dummy -vvv `"$($inputFileName)`" --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit" ;
-                    # mp4 to mp3
-                    #$processArgs = "-I dummy -vvv `"$($inputFileName)`" --sout=#transcode{acodec=`"$audio_codec`",ab=`"$bitrate`",`"channels=$channels`",`"samplerate=$samplerate`"}:standard{access=`"file`",mux=`"$mux`",dst=`"$outputFileName`"} vlc://quit" ;
-
-                    # dvd to mp3
-                    # --qt-start-minimized dvd:///E:\@!Title!:%%C :sout=#transcode{vcodec=none,acodec=mp3,ab=320,channels=2,samplerate=44100}:standard{access="file",mux=dummy,dst="!CD!\!TargetFolder!\!FileNumber!.mp3"} vlc://quit
-
-                    # flv to mp3
-                    # -I dummy -v %1 :sout=#transcode{vcodec=none,acodec=mp3,ab=128,channels=2,samplerate=44100}:standard{access="file",mux=dummy,dst="%_commanm%.mp3"} vlc://quit
-
-                    # MOV_to_MPG
-                    -I dummy -vvv %1
-                    --sout=#transcode{vcodec=h264,vb=10000,deinterlace=1,acodec=mp3,ab=128,channels=2,samplerate=44100}:standard{access=file,mux=ts,dst=%_new_path%} vlc://quit
-                    --stop-time=30 to only encode the first 30 seconds (quick test)
-
-                    # generic syntax:
-                    -I dummy -vvv %%a --sout=#transcode{vcodec=VIDEO_CODEC,vb=VIDEO_BITRATE,scale=1,acodec=AUDIO_CODEC,ab=AUDIO_BITRATE,channels=6}:standard{access=file,mux=MUXER,dst=%%a.OUTPUT_EXT} vlc://quit
-
-                    # audio-only options:
-                    --no-sout-video     VLC will not pass on a video component to the streaming output
-                    --sout-audio     VLC will, however, pass on an audio component to the streaming output
-
-                    # Extracting audio in original format
-                    --no-sout-video dvdsimple:///dev/scd0@1:1 :sout='#std{access=file,mux=raw,dst=./file.ac3}'
-                    # Extracting audio in FLAC format
-                    -I dummy --no-sout-video --sout-audio
-                    --no-sout-rtp-sap --no-sout-standard-sap --ttl=1 --sout-keep
-                    --sout "#transcode{acodec=flac}:std{mux=raw,dst=C:\User\Admin\Desktop\yourAudio.flac}"
-                    Video.TS:///C:\User\Admin\Desktop\yourVideo.mp4\#0:01-3:38 vlc://quit
-                    # Extracting audio in WAV format
-                    -I dummy --no-sout-video --sout-audio
-                    --no-sout-rtp-sap --no-sout-standard-sap --ttl=1 --sout-keep
-                    --sout "#transcode{acodec=s16l,channels=2}:std{access=file,mux=wav,dst=C:\User\Admin\Desktop\yourAudio.wav}"
-                    Video.TS:///C:\User\Admin\Desktop\yourVideo.mp4\#0:01-3:38 vlc://quit
-                    # acodec=s16l tells VLC to use convert the audio content using the s16l codec, which is the codec for WAV format audio
-                    # mux=wav tells VLC to write the s16l audio data into a file with the WAV structure.
-
-                    # changes an asf file to an MPEG-2 file
-                    vlc "C:\Movies\Your File.asf" :sout='#transcode{vcodec=mp2v,vb=4096,acodec=mp2a,ab=192,scale=1,channels=2,deinterlace,audio-sync}:std{access=file, mux=ps,dst="C:\Movies\Your File Output.ps.mpg"}'
-
-                    # m4a files to mp3 files (512kb/s encoding with 44100 sampling frequency
-                    -I dummy -vvv %1
-                    --sout=#transcode{acodec="mpga",ab="512","channels=2",samplerate="44100"}:standard{access="file",mux="mpeg1",dst="%_commanm%.mp3"} vlc://quit
-
-                    # transcode wav to mp3
-                    -I dummy -vvv `"$($inputFileName)`"
-                    --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit
-                    #>
-
-                } else {
-                    # code leak to throw out directories
-                    # System.IO.DirectoryInfo
-                    write-host "(Skipping $($inputfile) -- Directory)" ;
+                write-verbose "(checking for -RedirectStandardOutput -RedirectStandardError files from conversion...)" ; 
+                if ((get-childitem $soutf).length) {
+                    if ($VerbosePreference -eq "Continue") { (get-content $soutf) | out-string ; } ;
+                    remove-item $soutf  -Verbose:$($VerbosePreference -eq "Continue");
+                } ;
+                if ((get-childitem $serrf).length) {
+                    if ($VerbosePreference -eq "Continue") { (get-content $serrf) | out-string ; } ;
+                    remove-item $serrf ;
                 } ;
 
-            }catch {
-                # BOILERPLATE ERROR-TRAP
-                Write "$((get-date).ToString("HH:mm:ss") ): -- SCRIPT PROCESSING CANCELLED" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Error in $($_.InvocationInfo.ScriptName)." ;
-                Write "$((get-date).ToString("HH:mm:ss") ): -- Error information" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Line Number: $($_.InvocationInfo.ScriptLineNumber)" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Offset: $($_.InvocationInfo.OffsetInLine)" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Command: $($_.InvocationInfo.MyCommand)" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Line: $($_.InvocationInfo.Line)" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Error Details: $($_)" ;
-                Continue ;
-                # Exit; here if you want processing to die and not continue on next for-pass
-            } # try/cat-E ;
+                $iProcd++ ;
+                [int]$pct = ($iProcd / $ttl) * 100 ;
+
+                <# SAMPLE TRANSCODE SETTINGS
+                -I dummy      Disables the graphical interface
+                vlc://quit     Quit VLC after transcoding
+
+                # wav to mp3
+                #$processArgs = "-I dummy -vvv `"$($inputFileName)`" --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit" ;
+                # mp4 to mp3
+                #$processArgs = "-I dummy -vvv `"$($inputFileName)`" --sout=#transcode{acodec=`"$audio_codec`",ab=`"$bitrate`",`"channels=$channels`",`"samplerate=$samplerate`"}:standard{access=`"file`",mux=`"$mux`",dst=`"$outputFileName`"} vlc://quit" ;
+
+                # dvd to mp3
+                # --qt-start-minimized dvd:///E:\@!Title!:%%C :sout=#transcode{vcodec=none,acodec=mp3,ab=320,channels=2,samplerate=44100}:standard{access="file",mux=dummy,dst="!CD!\!TargetFolder!\!FileNumber!.mp3"} vlc://quit
+
+                # flv to mp3
+                # -I dummy -v %1 :sout=#transcode{vcodec=none,acodec=mp3,ab=128,channels=2,samplerate=44100}:standard{access="file",mux=dummy,dst="%_commanm%.mp3"} vlc://quit
+
+                # MOV_to_MPG
+                -I dummy -vvv %1
+                --sout=#transcode{vcodec=h264,vb=10000,deinterlace=1,acodec=mp3,ab=128,channels=2,samplerate=44100}:standard{access=file,mux=ts,dst=%_new_path%} vlc://quit
+                --stop-time=30 to only encode the first 30 seconds (quick test)
+
+                # generic syntax:
+                -I dummy -vvv %%a --sout=#transcode{vcodec=VIDEO_CODEC,vb=VIDEO_BITRATE,scale=1,acodec=AUDIO_CODEC,ab=AUDIO_BITRATE,channels=6}:standard{access=file,mux=MUXER,dst=%%a.OUTPUT_EXT} vlc://quit
+
+                # audio-only options:
+                --no-sout-video     VLC will not pass on a video component to the streaming output
+                --sout-audio     VLC will, however, pass on an audio component to the streaming output
+
+                # Extracting audio in original format
+                --no-sout-video dvdsimple:///dev/scd0@1:1 :sout='#std{access=file,mux=raw,dst=./file.ac3}'
+                # Extracting audio in FLAC format
+                -I dummy --no-sout-video --sout-audio
+                --no-sout-rtp-sap --no-sout-standard-sap --ttl=1 --sout-keep
+                --sout "#transcode{acodec=flac}:std{mux=raw,dst=C:\User\Admin\Desktop\yourAudio.flac}"
+                Video.TS:///C:\User\Admin\Desktop\yourVideo.mp4\#0:01-3:38 vlc://quit
+                # Extracting audio in WAV format
+                -I dummy --no-sout-video --sout-audio
+                --no-sout-rtp-sap --no-sout-standard-sap --ttl=1 --sout-keep
+                --sout "#transcode{acodec=s16l,channels=2}:std{access=file,mux=wav,dst=C:\User\Admin\Desktop\yourAudio.wav}"
+                Video.TS:///C:\User\Admin\Desktop\yourVideo.mp4\#0:01-3:38 vlc://quit
+                # acodec=s16l tells VLC to use convert the audio content using the s16l codec, which is the codec for WAV format audio
+                # mux=wav tells VLC to write the s16l audio data into a file with the WAV structure.
+
+                # changes an asf file to an MPEG-2 file
+                vlc "C:\Movies\Your File.asf" :sout='#transcode{vcodec=mp2v,vb=4096,acodec=mp2a,ab=192,scale=1,channels=2,deinterlace,audio-sync}:std{access=file, mux=ps,dst="C:\Movies\Your File Output.ps.mpg"}'
+
+                # m4a files to mp3 files (512kb/s encoding with 44100 sampling frequency
+                -I dummy -vvv %1
+                --sout=#transcode{acodec="mpga",ab="512","channels=2",samplerate="44100"}:standard{access="file",mux="mpeg1",dst="%_commanm%.mp3"} vlc://quit
+
+                # transcode wav to mp3
+                -I dummy -vvv `"$($inputFileName)`"
+                --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit
+                #>
 
             write-verbose $sBnrS.replace('-v','-^').replace('v-','^-') ;
 
@@ -433,5 +476,6 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
         write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):=== ^ PROCESSING COMPLETE ^ ===" ;
 
     } # END-E
-} ;
+}
+
 #*------^ convert-VideoToMp3.ps1 ^------
