@@ -8,6 +8,7 @@ function get-colorcombo {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     REVISIONS   :
+    * 10:54 AM 3/22/2024: add: -splat (outputs a splatted combo write-host scriptblock) ; added combo max value test (was returning nothing when out of range); echo the actual combo # in use into the random and splat options
     * 8:53 AM 4/29/2022 add: Alias gclr; ValueFromPipeline (now supports pipeline input); updated CBH
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 1:46 PM 3/5/2021 set DefaultParameterSetName='Random' to actually make 'no-params' default that way, also added $defaultPSCombo (DarkYellow:DarkMagenta), and added it as the 'last' combo in the combo array 
@@ -24,6 +25,8 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     Returns a random Combo [-Random]
     .PARAMETER  Demo
     Dumps a table of all combos for review[-Demo]
+    .PARAMETER Splat
+    Specifies to output a ScriptBlock that creates a static splatted write-host for the resolved Combo
     .INPUTS
     None. Does not accepted piped input.
     .OUTPUTS
@@ -55,9 +58,14 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     [CmdletBinding(DefaultParameterSetName='Random')]
     # ParameterSetName='EXCLUSIVENAME'
     Param(
-        [Parameter(ParameterSetName='Combo',Position = 0, ValueFromPipeline=$true, HelpMessage = "Combo Number (0-73)[-Combo 65]")][int]$Combo,
-        [Parameter(ParameterSetName='Random',HelpMessage = "Returns a random Combo [-Random]")][switch]$Random,
-        [Parameter(ParameterSetName='Demo',HelpMessage = "Dumps a table of all combos for review[-Demo]")][switch]$Demo
+        [Parameter(ParameterSetName='Combo',Position = 0, ValueFromPipeline=$true, HelpMessage = "Combo Number (0-73)[-Combo 65]")]
+            [int]$Combo,
+        [Parameter(ParameterSetName='Random',HelpMessage = "Returns a random Combo [-Random]")]
+            [switch]$Random,
+        [Parameter(ParameterSetName='Demo',HelpMessage = "Dumps a table of all combos for review[-Demo]")]
+            [switch]$Demo,
+        [Parameter(HelpMessage = "Specifies to output a ScriptBlock that creates a static splatted write-host for the resolved Combo")]
+            [switch]$Splat
     )
     $Verbose = ($VerbosePreference -eq 'Continue') ; 
     if (-not($Demo) -AND -not($Combo) -AND -not($Random)) {
@@ -77,6 +85,11 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     } ;
     $colorcombo[$i] = $defaultPSCombo ; 
     write-verbose "(colorcombo[$($i)] reflects PSDefault scheme)" ; 
+    if($Combo){
+        if($Combo -gt ($colorcombo.keys | measure -Maximum).Maximum){
+            $smsg = "-Combo $($Combo) out of range: Please specify a combo between 0 and $(($colorcombo.keys | measure -Maximum).Maximum)" ; 
+        } ; 
+    } ; 
     if ($Demo) {
         write-host "(-Demo specified: Dumping a table of range from Combo 0 to $($colorcombo.count-1))" ;
         $a = 00 ;
@@ -84,14 +97,30 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
             $plt = $colorcombo[$a].clone() ;
             write-host "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" @plt ;
             $a++ ;
-        }  While ($a -lt $colorcombo.count) ;
-    }
-    elseif ($Random) {
-        $colorcombo[(get-random -minimum 0 -maximum $colorcombo.count)] | write-output ;
-    }
-    else {
+        }  While ($a -le ($colorcombo.keys | measure -Maximum).Maximum) ;
+    } elseif ($Random) {
+        $Combo = (get-random -minimum 0 -maximum $colorcombo.count) ; 
+        write-verbose "-Random Combo:#$($combo):`n$(($colorcombo[$Combo]|out-string).trim())" ; 
+        $colorcombo[$Combo] | write-output ;
+    }else {
         write-verbose "-Combo:$($combo) specified:`n$(($colorcombo[$Combo]|out-string).trim())" ; 
         $colorcombo[$Combo] | write-output ;
     } ;
+    if($Splat -AND $Combo){
+        if(-Not $Demo){
+            $smsg = "--Splat:Constructing Static ScriptBlock reflecting:$($combo):`n$(($colorcombo[$Combo]|out-string).trim())" ; 
+            write-verbose $smsg ; 
+        $hsSB=@"
+
+# constructed Splat for write-host using Combo $($Combo):
+`$pltWH$($Combo) = @{BackgroundColor = '$($colorcombo[$Combo].BackgroundColor)' ; ForegroundColor = '$($colorcombo[$Combo].ForegroundColor)' ; } ; 
+write-host @pltWH$($Combo) "Msg" ; 
+
+"@ ; 
+            $hsSB | write-output  ; 
+        } else { 
+            write-warning "-Demo & -Splat specified: Please use one or the other." ; 
+        }
+    } ; 
 }
 #*------^ get-colorcombo.ps1 ^------
