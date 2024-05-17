@@ -1,20 +1,22 @@
-﻿#*------v convertFrom-MarkdownTable.ps1 v------
+﻿# convertFrom-MarkdownTable.ps1
+#*------v convertFrom-MarkdownTable.ps1 v------
 Function convertFrom-MarkdownTable {
     <#
     .SYNOPSIS
     convertFrom-MarkdownTable.ps1 - Converts a Markdown table to a PowerShell object.
     .NOTES
-    Version     : 1.0.0
+    Version     : 1.0.3
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
     CreatedDate : 2021-06-21
     FileName    : convertFrom-MarkdownTable.ps1
     License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
+    Copyright   : (c) 2024 Todd Kadrie
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 12:33 PM 5/17/2024 fixed odd bug, was failing to trim trailing | on some rows, which caused convertfrom-csv to drop that column.
     * 9:04 AM 9/27/2023 cbh demo output tweaks (unindented, results in 1st line de-indent and rest indented.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:42 PM 6/22/2021 bug workaround: empty fields in source md table (|data||data|) cause later (export-csv|convertto-csv) to create a csv with *missing* delimiting comma on the problem field ;  added trim of each field content, and CBH example for creation of a csv from mdtable input; added aliases
@@ -71,10 +73,16 @@ Function convertFrom-MarkdownTable {
     } ;  
     END {
         # trim lead/trail '| from each line (borders) ; remove empty lines; foreach
-        $PsObj = $content.trim('|')| where-object{$_} | ForEach-Object{ 
-            $_.split('|').trim() -join '|' ; # split fields and trim leading/trailing spaces from each , then re-join with '|'
+        #$PsObj = $content.trim('|')| where-object{$_} | ForEach-Object{ 
+        # 11:19 AM 5/17/2024 issue, it's not triming trailing '|' on "THROTTLE |The message was throttled.|problem|":
+        $PsObj = $content.trim('|').trimend('|')| where-object{$_} | ForEach-Object{ 
+            #$_.split('|').trim() -join '|' ; # split fields and trim leading/trailing spaces from each , then re-join with '|'
+            # still coming through with a surviving trailing |, though the leading border is gone (causes to drop trailing cell)
+            # filter populated, trim start/end spaces, and refilter pop'd then join result - that seems to have fixed the bug
+            ($_.split('|') | where-object{$_} | foreach-object{$_.trim()} |where-object{$_} )  -join '|' ; 
         } | ConvertFrom-Csv -Delimiter '|'; # convert to object
         $PsObj | write-output ; 
     } ; # END-E
 }
+
 #*------^ convertFrom-MarkdownTable.ps1 ^------
