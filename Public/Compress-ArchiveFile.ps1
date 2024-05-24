@@ -11,6 +11,7 @@ function Compress-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 9:01 AM 5/23/20 24 added fully rounded out example
     * 12:36 PM 12/15/2022: add: BH example wrapping up a ticket's output files.
     * 1:54 PM 8/30/2022 looks functionally equiv compress-archive & .net calls, at least in the three use cases in the example: they produce substantially similar content in the resultant zip; expanded echos;
          emulated verbose 'splat' echos before the .net calls (aids spotting bad params); added boolean:false includerootdir on the createfromdir (avoids error if not spec'd at all); simplified all CATCH; 
@@ -125,6 +126,31 @@ function Compress-ArchiveFile {
       D:\scripts\733043-work-files-20221215-1228PM.zip {@{FullName=733043-MsgTrkDetail-08dad667e195-20221206-1733PM.csv; Length=2705; LastWriteTime=12/6/2022 5:33:16 PM -06:00}, @{Fu...
     
     Demo grabbing all files in a dir with prefix, and zip down the content in a prefix-named, and timestamped zip file (wrap up ticket handling). 
+    .EXAMPLE
+    PS> if(test-path $outfile){
+    PS>     $smsg = "Report file written" ; 
+    PS>     $smsg += "`ncontains $((get-content $outfile|  measure | select -expand count |out-string).trim()) lines" ; 
+    PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+    PS>     else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    PS>     $zipped = $null ; 
+    PS>     $pltCmArch=[ordered]@{
+    PS>         Path=$outfile ;
+    PS>         DestinationPath=$outfile.replace('.csv','zip') ;
+    PS>         verbose=$($VerbosePreference -eq "Continue") ;
+    PS>         erroraction = 'STOP' ;
+    PS>     } ;
+    PS>     $smsg = "Compress-ArchiveFile w`n$(($pltCmArch|out-string).trim())" ; 
+    PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;                        
+    PS>     $zipped = Compress-ArchiveFile @pltCmArch ; 
+    PS>     if(test-path $zipped.DestinationPath.fullname){
+    PS>         $smsg = "(confirmed `$zipped present, adding to `$SmtpAttachment)" ; 
+    PS>         if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+    PS>         else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+    PS>         $SmtpAttachment += $zipped.DestinationPath.fullname ; 
+    PS>     } ; 
+    PS> } ;
+    PS> Rounded out demo (from get-HTTrafficSendersNonPrimaryAddress.ps1) that has testing, and wlt echoes  
+    PS> 
     .LINK
     https://github.com/tostka/verb-XXX
     #>
