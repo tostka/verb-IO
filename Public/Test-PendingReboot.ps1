@@ -18,6 +18,7 @@ function Test-PendingReboot {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
+    * 12:19 PM 6/24/2024 new box, pre WinRM remote config, fails hard; so cut in quick & dirty workaroun: -Local param, steers through the tests wo the PSSesssion working
     * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
     * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
     * 5:03 PM 1/14/2021 init, minor CBH mods
@@ -28,11 +29,24 @@ function Test-PendingReboot {
     Array of computernames to be tested for pending reboot
     .PARAMETER  Credential
     windows Credential [-credential (get-credential)]
+    .PARAMETER Local
+    Switch to force check of local computer only (not dependant on PSSession or WinRM config, on new machines)
+    .PARAMETER IgnoreFileRename
+    Switch to skip  tests of *PendingFileRenameOperations*[-ignorefilerename]
     .OUTPUT
     System.Collections.Hashtable
     .EXAMPLE
     if((Test-PendingReboot -ComputerName $env:Computername).IsPendingReboot){write-warning "$env:computername is PENDING REBOOT!"} ;
-    Test for pending reboot.
+    Test for pending reboot remotely
+    .EXAMPLE
+    PS> if((Test-PendingReboot -ComputerName $env:Computername -Local -IgnoreFileRename).IsPendingReboot){
+    PS>     $smsg = "$env:computername is PENDING REBOOT!" ; 
+    PS>     $smsg += "`nreboot and relaunch..." ; 
+    PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } 
+    PS>     else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+    PS>     break ; 
+    PS> } ;
+    Local only test with demo'd echo, and -IgnoreFileRename specified.
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -40,11 +54,15 @@ function Test-PendingReboot {
     #[Alias('get-ScheduledTaskReport')]
     PARAM(
         [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string[]]$ComputerName,
+            [ValidateNotNullOrEmpty()]
+            [string[]]$ComputerName,
         [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [pscredential]$Credential
+            [ValidateNotNullOrEmpty()]
+            [pscredential]$Credential,
+        [Parameter(HelpMessage="Switch to skip remote PSSession connection (which will fail on new build unconfigured WinRM)[-Local]")]
+            [switch]$Local,
+        [Parameter(HelpMessage="Switch to skip  tests of *PendingFileRenameOperations*[-ignorefilerename]")]
+            [switch]$IgnoreFileRename
     ) ;
     $ErrorActionPreference = 'Stop'
 
@@ -157,10 +175,59 @@ function Test-PendingReboot {
                 ComputerName    = $computer ;
                 IsPendingReboot = $false ;
             } ;
-            $psRemotingSession = New-PSSession @connParams ;
-            if (-not ($output.IsPendingReboot = Invoke-Command -Session $psRemotingSession -ScriptBlock $scriptBlock)) {
-                $output.IsPendingReboot = $false ;
-            } ;
+            if($Local){
+                #if (-not ($output.IsPendingReboot = Invoke-Command -ScriptBlock $scriptBlock)) {
+                #    $output.IsPendingReboot = $false ;
+                #} ;
+                $tests = @(
+                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' }
+                    { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootInProgress' }
+                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired' }
+                    { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\PackagesPending' }
+                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\PostRebootReporting' }
+                    { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations' }
+                    { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations2' }
+                    {
+                        # Added test to check first if key exists, using "ErrorAction ignore" will incorrectly return $true
+                        'HKLM:\SOFTWARE\Microsoft\Updates' | Where-Object { test-path $_ -PathType Container } | ForEach-Object {
+                            (Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' | Select-Object -ExpandProperty UpdateExeVolatile) -ne 0
+                        }
+                    }
+                    { Test-RegistryValue -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Value 'DVDRebootSignal' }
+                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\ServerManager\CurrentRebootAttemps' }
+                    { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'JoinDomain' }
+                    { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'AvoidSpnSet' }
+                    {
+                        # Added test to check first if keys exists, if not each group will return $Null
+                        # May need to evaluate what it means if one or both of these keys do not exist
+                        ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ActiveComputerName' | Where-Object { test-path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } ) -ne
+                        ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ComputerName' | Where-Object { Test-Path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } )
+                    }
+                    {
+                        # Added test to check first if key exists
+                        'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending' | Where-Object {
+                            (Test-Path $_) -and (Get-ChildItem -Path $_) } | ForEach-Object { $true }
+                    }
+                ) ; # scriptblock-E
+                # cycle the list and break on first match
+                foreach ($test in $tests) {
+                    # $tests | ?{$_ -like '*PendingFileRenameOperations*'}
+                    if($IgnoreFileRename -and ($test -like '*PendingFileRenameOperations*')){
+                        write-verbose "-IgnoreFileRename: skipping PendingFileRenameOperations" ; 
+                    } else { 
+                        Write-Verbose "Running scriptblock: [$($test.ToString())]"
+                        if (& $test) {
+                            $output.IsPendingReboot = $true ;
+                            break
+                        }
+                    } ; 
+                }
+            } else { 
+                $psRemotingSession = New-PSSession @connParams ;
+                if (-not ($output.IsPendingReboot = Invoke-Command -Session $psRemotingSession -ScriptBlock $scriptBlock)) {                
+                    $output.IsPendingReboot = $false ;
+                } ;
+            } ; 
             [pscustomobject]$output | write-output ;
         } catch {
             Write-Error -Message $_.Exception.Message
