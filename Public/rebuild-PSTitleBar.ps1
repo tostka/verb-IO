@@ -19,6 +19,7 @@ Function rebuild-PSTitleBar {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Console
     REVISIONS
+    * 9:24 AM 7/11/2024 yanked $showdebug exemption; ISE won't work at all, just throws an error, only run in console host
     * 11:53 AM 7/26/2021 refactor for verbose/begin/proc/whatif etc
     * 10:15 AM 7/22/2021 init vers
     .DESCRIPTION
@@ -45,7 +46,8 @@ Function rebuild-PSTitleBar {
     } 
     PROCESS{
         #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
-        If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
+        #If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
+        If ( $host.name -eq 'ConsoleHost') { # no point in running in ISE even w $showdebug; just creates an error
             # doing it with rgx
             #if($host.ui.rawui.windowtitle -match '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)'){
             #     $conshost,$consrole,$consdom=$matches[1..3]; 
