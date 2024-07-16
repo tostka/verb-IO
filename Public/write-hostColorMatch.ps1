@@ -1,7 +1,9 @@
-﻿function ColorMatch {
+﻿# write-hostColorMatch.ps1
+#*------v Function write-hostColorMatch v------
+function write-hostColorMatch {
     <#
     .SYNOPSIS
-    ColorMatch.ps1 - Write-Host variant: Accepts piped input, with a regex as a parameter, and highlights any text matching the regex
+    write-hostColorMatch.ps1 - Write-Host variant: Accepts piped input, with a regex as a parameter, and highlights any text matching the regex
     .NOTES
     Author: latkin
     Website:	https://stackoverflow.com/users/1366219/latkin
@@ -12,6 +14,7 @@
     Website:	URL
     Twitter:	URL
     REVISIONS   :
+    * 12:37 PM 7/12/2024 ren (& alias) to verb-noun std: ColorMatch -> write-hostColorMatch
     * 9/26/2012 - Posted version
     .DESCRIPTION
     Write-Host variant: Accepts piped input, with a regex as a parameter, and highlights any text matching the regex
@@ -26,11 +29,13 @@
     .OUTPUTS
     Write-hosts highlit content to console
     .EXAMPLE
-    "$mailbox" | ColorMatch "Item count: [0-9]*" ;
+    "$mailbox" | write-hostColorMatch "Item count: [0-9]*" ;
     Highlight the $mailbox object with portion matching the regex (Position 0 is pattern)
     .LINK
     https://stackoverflow.com/questions/12609760
     #>
+    [CmdletBinding()]
+    [Alias('ColorMatch')]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [string] $InputObject,
@@ -57,3 +62,4 @@
         Write-Host ;
     }
 }
+#*------^ END Function write-hostColorMatch ^------
