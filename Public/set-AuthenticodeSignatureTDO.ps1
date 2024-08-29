@@ -178,7 +178,6 @@ function set-AuthenticodeSignatureTDO {
                 .LINK
                 https://github.com/tostka/verb-io
                 #>
-                #requires -Version 2.0
                 [CmdletBinding()]
                 [Alias('rol','restart-Outlook')]
                 PARAM(

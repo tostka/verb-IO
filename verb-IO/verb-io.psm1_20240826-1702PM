@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 12.2.2.0.0
+Version     : 12.1.3.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -309,7 +309,7 @@ Function Add-PSTitleBar {
     * 4:37 PM 2/27/2020 updated CBH
     # 8:44 AM 3/15/2017 ren Update-PSTitleBar => Add-PSTitleBar, so that we can have a Remove-PSTitleBar, to subtract
     # 8:42 AM 3/15/2017 Add-PSTitleBar for addition, before adding
-    # 11/12.2.24 - posted version
+    # 11/12/2014 - posted version
     .DESCRIPTION
     Add-PSTitleBar.ps1 - Append specified identifying Tag string to the end of the powershell console Titlebar
     Inspired by dsolodow's Update-PSTitleBar code
@@ -4715,7 +4715,7 @@ function copy-Profile {
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 9:47 AM 9/24/2020 updated CBH, copied to verb-IO mod; added -MinProfile to drive admin/svcacct copying 
     * 10:41 AM 3/26/2020 rewrote, added verbose support, condensed 
-    8:07 AM 6/12.2.25 - functionalize copy code from the EMS block
+    8:07 AM 6/12/2015 - functionalize copy code from the EMS block
     .DESCRIPTION
     copy-Profile() - Copies $SourceProfileMachine WindowsPowershell profile dir to the specified machine(s)
     .PARAMETER  ComputerName
@@ -6688,7 +6688,7 @@ function Get-FileEncoding {
     REVISIONS
     * 2:08 PM 11/7/2022 updated CBH example3 to reset to UTF8 (vs prior Ascii); added examples for running the entire source tree recursive, and added example echos of the per-file processing.
     * 3:08 PM 2/25/2020 re-implemented orig code, need values that can be fed back into set-content -encoding, and .net encoding class doesn't map cleanly (needs endian etc, and there're a raft that aren't supported). Spliced in UTF8BOM byte entries from https://superuser.com/questions/418515/how-to-find-all-files-in-directory-that-contain-utf-8-bom-byte-order-mark/914116
-    * 2/12.2.22 posted vers
+    * 2/12/2012 posted vers
     .DESCRIPTION
     Get-FileEncoding() - Gets file encoding..
     The Get-FileEncoding function determines encoding by looking at Byte Order Mark (BOM).
@@ -9733,7 +9733,7 @@ function move-FileOnReboot {
     AddedTwitter:	URL
     REVISIONS
     * 12:10 PM 11/23/2020 replaced Lee Holmes old code ; this is a more up to date well-rounded option ; also renamed to move-FileOnReboot (from move-FileLocked)
-    * 12/1/2017 - posted version
+    * 12.1.3017 - posted version
     .DESCRIPTION
     Move Locked file on next reboot.Win32 API that enables this is MoveFileEx. Calling this API with the MOVEFILE_DELAY_UNTIL_REBOOT flag tells Windows to move (or delete) your file at the next boot. Specify a destination, and it moves on reboot. Omit destination and it deletes the file on reboot. Note: directory contents (or permission restrictions) must be removed & queued for reboot removal *before* doing any parent directory object deletion. 
     .PARAMETER path
@@ -12954,7 +12954,7 @@ Function Remove-PSTitleBar {
     * 8:15 AM 7/27/2021 sub'd in $rgxQ for duped rgx
     * 4:37 PM 2/27/2020 updated CBH
     # 8:46 AM 3/15/2017 Remove-PSTitleBar: initial version
-    # 11/12.2.24 - posted version
+    # 11/12/2014 - posted version
     .DESCRIPTION
     Remove-PSTitleBar.ps1 - Append specified string to the end of the powershell console Titlebar
     Inspired by dsolodow's Update-PSTitleBar code
@@ -16405,7 +16405,7 @@ Function stop-driveburn {
     7:35 AM 10/5/2020 ported to verb-IO, updated tsksid/admin-incl-ServerCore.ps1
     * 8:48 AM 10/22/2019 added ldesk gatherproducts
     *11:34 AM 4/16/2019 rearranging cmd order
-    * 11:46 AM 3/12.2.29 rewrote/internalized the wsearch stop, updated the output to be write-hosts with timestamps
+    * 11:46 AM 3/12/2019 rewrote/internalized the wsearch stop, updated the output to be write-hosts with timestamps
     *7:57 AM 2/27/2018 #36, was getting obj as output, tried out-string/out-default to see if we could clean it to just the id & name properties as string
     *9:04 AM 10/18/2017 found it picking up $whatif from ps, so added it as an explicit param (don't want a whatif, want them dead), added sig, added passthrough -whatif on the stop-indexing call
     *9:47 AM 5/5/2017 broke out, had it echo on matches, added pshelps, added process echos & results

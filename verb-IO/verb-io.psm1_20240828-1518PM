@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 11.0.5.0.0
+Version     : 12.1.4.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -604,66 +604,6 @@ function backup-FileTDO {
 #*------^ backup-FileTDO.ps1 ^------
 
 
-#*------v check-FileLock.ps1 v------
-function check-FileLock {
-    <#
-    .SYNOPSIS
-    check-FileLock - Check for lock status on a file
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     : http://www.toddomation.com
-    Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2020-11-23
-    FileName    : check-FileLock.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-XXX
-    Tags        : Powershell
-    AddedCredit : Henri Benoit (StreamReader error on lock)
-    AddedWebsite: https://benohead.com/blog/2014/12/08/powershell-check-whether-file-locked/
-    REVISIONS
-    * 11:30 AM 11/23/2020 minor updates, reformated into fuunc
-    * 12/8/14 posted version
-    .DESCRIPTION
-    .PARAMETER  Path
-    Path to file[-path 'c:\pathto\file.txt'
-    .INPUTS
-    None. Does not accepted piped input.
-    .OUTPUTS
-    System.Boolean
-    .EXAMPLE
-    .\check-FileLock.ps1 -path 'c:\pathto\file.txt' 
-    Check lock status on specified file
-    .LINK
-    https://github.com/tostka/verb-io
-    #>
-    [CmdletBinding()]
-    PARAM(
-        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Path to file[-path 'c:\pathto\file.txt']")]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({Test-Path $_})]
-        $Path
-    ) ;
-    BEGIN { $Verbose = ($VerbosePreference -eq 'Continue') } ;
-    PROCESS {
-        $Error.Clear() ; 
-        Write-verbose "(Checking lock on file: $path)" ;
-        $LockedFile = $false ; 
-        $file = get-item (Resolve-Path $path) -Force ;
-        if ($file.exists){
-            TRY{
-              $stream = New-Object system.IO.StreamReader $file ;
-              if ($stream) {$stream.Close()} ; 
-            } catch {$LockedFile = $true } ; 
-        } ;
-    } ;  # PROC-E
-    END { $LockedFile | write-output } ; 
-}
-
-#*------^ check-FileLock.ps1 ^------
-
-
 #*------v clear-HostIndent.ps1 v------
 function clear-HostIndent {
     <#
@@ -849,70 +789,6 @@ Function Close-IfAlreadyRunning {
 }
 
 #*------^ Close-IfAlreadyRunning.ps1 ^------
-
-
-#*------v ColorMatch.ps1 v------
-function ColorMatch {
-    <#
-    .SYNOPSIS
-    ColorMatch.ps1 - Write-Host variant: Accepts piped input, with a regex as a parameter, and highlights any text matching the regex
-    .NOTES
-    Author: latkin
-    Website:	https://stackoverflow.com/users/1366219/latkin
-    Updated By: Todd Kadrie
-    Website:	http://www.toddomation.com
-    Twitter:	@tostka, http://twitter.com/tostka
-    Additional Credits: REFERENCE
-    Website:	URL
-    Twitter:	URL
-    REVISIONS   :
-    * 9/26/2012 - Posted version
-    .DESCRIPTION
-    Write-Host variant: Accepts piped input, with a regex as a parameter, and highlights any text matching the regex
-    .PARAMETER  InputObject
-    Object to be highlit & write-host'd
-    .PARAMETER  Pattern
-    Regex for the text to be highlit
-    .PARAMETER  Color
-    Write-host -foregroundcolor to be used for the highlight
-    .INPUTS
-    Accepts piped input.
-    .OUTPUTS
-    Write-hosts highlit content to console
-    .EXAMPLE
-    "$mailbox" | ColorMatch "Item count: [0-9]*" ;
-    Highlight the $mailbox object with portion matching the regex (Position 0 is pattern)
-    .LINK
-    https://stackoverflow.com/questions/12609760
-    #>
-    param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-        [string] $InputObject,
-
-        [Parameter(Mandatory = $true, Position = 0)]
-        [string] $Pattern,
-
-        [Parameter(Mandatory = $false, Position = 1)]
-        [string] $Color='Red'
-    )
-    begin{ $r = [regex]$Pattern }
-    process {
-        $ms = $r.matches($inputObject) ;
-        $startIndex = 0 ;
-        foreach($m in $ms) {
-            $nonMatchLength = $m.Index - $startIndex ;
-            Write-Host $inputObject.Substring($startIndex, $nonMatchLength) -NoNew ;
-            Write-Host $m.Value -Fore $Color -NoNew ;
-            $startIndex = $m.Index + $m.Length ;
-        } ;
-        if($startIndex -lt $inputObject.Length) {
-            Write-Host $inputObject.Substring($startIndex) -NoNew ;
-        } ;
-        Write-Host ;
-    }
-}
-
-#*------^ ColorMatch.ps1 ^------
 
 
 #*------v Compare-ObjectsSideBySide.ps1 v------
@@ -1231,6 +1107,7 @@ function Compress-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 9:01 AM 5/23/20 24 added fully rounded out example
     * 12:36 PM 12/15/2022: add: BH example wrapping up a ticket's output files.
     * 1:54 PM 8/30/2022 looks functionally equiv compress-archive & .net calls, at least in the three use cases in the example: they produce substantially similar content in the resultant zip; expanded echos;
          emulated verbose 'splat' echos before the .net calls (aids spotting bad params); added boolean:false includerootdir on the createfromdir (avoids error if not spec'd at all); simplified all CATCH; 
@@ -1345,6 +1222,31 @@ function Compress-ArchiveFile {
       D:\scripts\733043-work-files-20221215-1228PM.zip {@{FullName=733043-MsgTrkDetail-08dad667e195-20221206-1733PM.csv; Length=2705; LastWriteTime=12/6/2022 5:33:16 PM -06:00}, @{Fu...
     
     Demo grabbing all files in a dir with prefix, and zip down the content in a prefix-named, and timestamped zip file (wrap up ticket handling). 
+    .EXAMPLE
+    PS> if(test-path $outfile){
+    PS>     $smsg = "Report file written" ; 
+    PS>     $smsg += "`ncontains $((get-content $outfile|  measure | select -expand count |out-string).trim()) lines" ; 
+    PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+    PS>     else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    PS>     $zipped = $null ; 
+    PS>     $pltCmArch=[ordered]@{
+    PS>         Path=$outfile ;
+    PS>         DestinationPath=$outfile.replace('.csv','zip') ;
+    PS>         verbose=$($VerbosePreference -eq "Continue") ;
+    PS>         erroraction = 'STOP' ;
+    PS>     } ;
+    PS>     $smsg = "Compress-ArchiveFile w`n$(($pltCmArch|out-string).trim())" ; 
+    PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;                        
+    PS>     $zipped = Compress-ArchiveFile @pltCmArch ; 
+    PS>     if(test-path $zipped.DestinationPath.fullname){
+    PS>         $smsg = "(confirmed `$zipped present, adding to `$SmtpAttachment)" ; 
+    PS>         if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+    PS>         else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+    PS>         $SmtpAttachment += $zipped.DestinationPath.fullname ; 
+    PS>     } ; 
+    PS> } ;
+    PS> Rounded out demo (from get-HTTrafficSendersNonPrimaryAddress.ps1) that has testing, and wlt echoes  
+    PS> 
     .LINK
     https://github.com/tostka/verb-XXX
     #>
@@ -2416,17 +2318,18 @@ Function convertFrom-MarkdownTable {
     .SYNOPSIS
     convertFrom-MarkdownTable.ps1 - Converts a Markdown table to a PowerShell object.
     .NOTES
-    Version     : 1.0.0
+    Version     : 1.0.3
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
     CreatedDate : 2021-06-21
     FileName    : convertFrom-MarkdownTable.ps1
     License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
+    Copyright   : (c) 2024 Todd Kadrie
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 12:33 PM 5/17/2024 fixed odd bug, was failing to trim trailing | on some rows, which caused convertfrom-csv to drop that column.
     * 9:04 AM 9/27/2023 cbh demo output tweaks (unindented, results in 1st line de-indent and rest indented.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 12:42 PM 6/22/2021 bug workaround: empty fields in source md table (|data||data|) cause later (export-csv|convertto-csv) to create a csv with *missing* delimiting comma on the problem field ;  added trim of each field content, and CBH example for creation of a csv from mdtable input; added aliases
@@ -2483,8 +2386,13 @@ Function convertFrom-MarkdownTable {
     } ;  
     END {
         # trim lead/trail '| from each line (borders) ; remove empty lines; foreach
-        $PsObj = $content.trim('|')| where-object{$_} | ForEach-Object{ 
-            $_.split('|').trim() -join '|' ; # split fields and trim leading/trailing spaces from each , then re-join with '|'
+        #$PsObj = $content.trim('|')| where-object{$_} | ForEach-Object{ 
+        # 11:19 AM 5/17/2024 issue, it's not triming trailing '|' on "THROTTLE |The message was throttled.|problem|":
+        $PsObj = $content.trim('|').trimend('|')| where-object{$_} | ForEach-Object{ 
+            #$_.split('|').trim() -join '|' ; # split fields and trim leading/trailing spaces from each , then re-join with '|'
+            # still coming through with a surviving trailing |, though the leading border is gone (causes to drop trailing cell)
+            # filter populated, trim start/end spaces, and refilter pop'd then join result - that seems to have fixed the bug
+            ($_.split('|') | where-object{$_} | foreach-object{$_.trim()} |where-object{$_} )  -join '|' ; 
         } | ConvertFrom-Csv -Delimiter '|'; # convert to object
         $PsObj | write-output ; 
     } ; # END-E
@@ -4321,6 +4229,7 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 8:09 PM 11/15/2023 recoded around vlc conversion bugs; moved output into $env:temp, then post-move back to target dir; also add retry: noticed on zero-len outfile, that rerunning sometimes properly processed the file.
     * 1:41 PM 7/26/2023 add: $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; flipped extension refs to using that combo to detect pre-transcode YT content
     * 10:32 AM 7/21/2023 add both aliases convert-toMp3 & convertTo-Mp3(proper verb); fixed alias; removed unused params & showdebug support (v write-verbose) added xmpl; worked on path [] in latest pass ; add: rename nested 
         try's against rename-item, move-item, and [System.IO.File]::Move() - hasn't 
@@ -4383,12 +4292,30 @@ function convert-VideoToMp3 {
     $bRet=convert-VideoToMp3 -InputObject "C:\video.mkv" ;
     Convert Specified video file to mp3.
     .EXAMPLE
+    PS> $whatif = $true ;
     PS> write-verbose 'cd to target dir' ; 
     PS> cd .\somepath ; 
     PS> write-verbose 'run recursive pass from there down' ; 
-    PS> get-childitem * -recurse | ?{$_.extension -match "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)"} |%{ convert-VideoToMp3 -inputobject $_ }  ;
-get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|webm|mkv|mpeg)$"}
-    Typical 
+    PS> $rgxInputExts = "(?i:^\.(MPEG|AVI|ASF|WMV|WMA|MP4|MOV|3GP|OGG|OGM|MKV|WEBM|WAV|DTS|AAC|AC3|A52|FLAC|FLV|MXF|MIDI|SMF)$)" ;
+    PS> TRY{
+    PS>   if($tvids = get-childitem * -recurse | ?{$_.extension -match $rgxInputExts}){
+    PS>       if($tvids |?{$_.fullname -notmatch 'C:\\vidtmp\\convert\\'}){
+    PS>           throw "NOT RUNNING FROM PROPER C:\VIDTMP\CONVERT DIR!" ; BREAK ;
+    PS>       }else {
+    PS>           write-host -foregroundcolor green "`nMatched Vids for Conversion:`n$(($tvids.fullname|out-string).trim())`n" ; 
+    PS>           $tvids |%{
+    PS>              convert-VideoToMp3 -inputobject $_ -Verbose:$($VerbosePreference -eq 'Continue') -whatif:$($whatif) ;
+    PS>           } ;
+    PS>       } ;
+    PS>   } else { 
+    PS>     write-warning "No files matching `n$($rgxInputExts)`nfound..." ; 
+    PS>   } ; 
+    PS> } CATCH {
+    PS>     $ErrTrapd=$Error[0] ;
+    PS>     $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+    PS>     write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+    PS> } ; 
+    Typical pass with test to ensure proper format and in target convert dir
     #>
     [CmdletBinding()]
     [Alias('convert-ToMp3','convertTo-Mp3')]
@@ -4413,6 +4340,8 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
     #>
 
     BEGIN {
+        $Retries = 4 ;
+        $RetrySleep = 5 ;
         $rgxInputExts = "(?i:^\.(MPEG|MP3|AVI|ASF|WMV|WMA|MP4|MOV|3GP|OGG|OGM|MKV|WEBM|WAV|DTS|AAC|AC3|A52|FLAC|FLV|MXF|MIDI|SMF)$)" ;
         $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; 
         $outputExtension = ".mp3" ;
@@ -4475,108 +4404,128 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                             throw "UNRECOGNIZED TYPE OBJECT inputfile:$($inputFile.fullname). ABORTING!" ;
                         } ;
                     } ;
+                } else {
+                    # code leak to throw out directories
+                    # System.IO.DirectoryInfo
+                    write-host "(Skipping $($inputfile) -- Directory)" ;
+                    Continue ;
+                } ;
 
-                    $sBnrS="`n#*------v PROCESSING : $($tf.fullname)v------" ; 
-                    write-verbose $sBnrS ;
+                $sBnrS="`n#*------v PROCESSING : $($tf.fullname)v------" ; 
+                write-verbose $sBnrS ;
 
-                    if ($tf.extension -notmatch $rgxInputExts ) { throw "UNSUPPORTED INPUTFILE TYPE:$($inpuptFile)" }  ;
+                if ($tf.extension -notmatch $rgxInputExts ) { throw "UNSUPPORTED INPUTFILE TYPE:$($inpuptFile)" }  ;
 
-                    # 12:01 AM 7/16/2023 apostrophe's in fullname crash rediscovery post conv, test
-                    #if($inputFile.FullName.contains("'")){
-                    # actually it's when there's a ' in the path, more than the file name. File name is acommodated, but renaming breaks with it in the path.
-                    if($inputfile.DirectoryName.contains("'")){
-                        throw "INPUTFILE TYPE FULLNAME CONTAINS APOSTROPHE(')!:`n$($inputfile.FULLNAME)`nSKIPPING!"
-                    } ;
+                # 12:01 AM 7/16/2023 apostrophe's in fullname crash rediscovery post conv, test
+                #if($inputFile.FullName.contains("'")){
+                # actually it's when there's a ' in the path, more than the file name. File name is acommodated, but renaming breaks with it in the path.
+                if($inputfile.DirectoryName.contains("'")){
+                    throw "INPUTFILE TYPE FULLNAME CONTAINS APOSTROPHE(')!:`n$($inputfile.FULLNAME)`nSKIPPING!"
+                } ;
 
-                    <# 7:20 PM 11/6/2016 windows docs:https://wiki.videolan.org/Transcode/
-                    Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
-                    escaped by using a double backslash so that a filename would be D:\\path\\to\\file.mpg)
-                    Dbling \'s in all path objects used in params going into vlc.exe args and see if it fixes the issues transcodeing:
-                    C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20111001-MieT8cNeXJA).mp3
-                    ... which comes out as an mp3 with no extension.
-                    #>
-                    $outputFileName = (join-path -path $tf.Directory -ChildPath "$($tf.BaseName)$($outputExtension)") ;
-                    #$outputFileName=$outputFileName.replace("\","\\") ;
-                    # since there's clearly an export bug in VLC, lets use a generic no-spaces file :
-                    # Generate a unique filename with a specific extension (non-tmp, leverages the GUID-generating call):
-                    $tempout = (join-path -path $tf.Directory -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
-                    $inputFileName = $tf.FullName.replace("\", "\\") ;
+                <# 7:20 PM 11/6/2016 windows docs:https://wiki.videolan.org/Transcode/
+                Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
+                escaped by using a double backslash so that a filename would be D:\\path\\to\\file.mpg)
+                Dbling \'s in all path objects used in params going into vlc.exe args and see if it fixes the issues transcodeing:
+                C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20111001-MieT8cNeXJA).mp3
+                ... which comes out as an mp3 with no extension.
+                #>
+                $outputFileName = (join-path -path $tf.Directory -ChildPath "$($tf.BaseName)$($outputExtension)") ;
+                #$outputFileName=$outputFileName.replace("\","\\") ;
+                # since there's clearly an export bug in VLC, lets use a generic no-spaces file :
+                # Generate a unique filename with a specific extension (non-tmp, leverages the GUID-generating call):
+                #$tempout = (join-path -path $tf.Directory -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
+                # try it out of $env:temp C:\Users\tsk\AppData\Local\Temp
+                $tempout = (join-path -path $env:temp -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
+                $inputFileName = $tf.FullName.replace("\", "\\") ;
 
-                    write-verbose "`$outputFileName:$outputFileName`n`$tempout:$($tempout)"  ;
+                write-verbose "`$outputFileName:$outputFileName`n`$tempout:$($tempout)"  ;
 
-                    switch ($encoder) {
-                        "VLC" {
-                            #  12:11 PM 11/6/2016 build args where we can see whats going on
-                            # 1st spec dummy/non-GUI pass, and input filename  $($inputFileName)
-                            $processArgs = "-I dummy -v `"$($inputFileName)`"" ;
-                            if ($whatif) {
-                                write-host -foregroundcolor green "-whatif detected, test-transcoding only the first 30secs" ;
-                                $processArgs += " --stop-time=30" ;
-                            } ;
-                            # build output transcode settings
-                            $processArgs += " :sout=#transcode{" ;
-                            $processArgs += "vcodec=none,acodec=$($audio_codec),ab=$($bitrate),channels=$($channels),samplerate=$($samplerate)" ;
-                            $processArgs += "acodec=$($audio_codec),ab=$($bitrate),channels=$($channels),samplerate=$($samplerate)" ;
-                            # end output transcode settings
-                            $processArgs += "}" ;
-                            # add the output file specs & mux
-                            $processArgs += ":standard{access=`"file`",mux=$($mux),dst=`"$($tempout)`"}"
-                            # tell it to exit on completion
-                            $processArgs += " vlc://quit" ;
-                        }
-                        "FFMPEG" {
-                            <# C:\apps\ffmpeg\bin\ffmpeg.exe
-                            The basic command is:
-                            ffmpeg -i filename.mp4 filename.mp3
-                            or
-                            ffmpeg -i video.mp4 -b:a 192K -vn music.mp3
+                switch ($encoder) {
+                    "VLC" {
+                        #  12:11 PM 11/6/2016 build args where we can see whats going on
+                        # 1st spec dummy/non-GUI pass, and input filename  $($inputFileName)
+                        $processArgs = "-I dummy -v `"$($inputFileName)`"" ;
+                        if ($whatif) {
+                            write-host -foregroundcolor green "-whatif detected, test-transcoding only the first 30secs" ;
+                            $processArgs += " --stop-time=30" ;
+                        } ;
+                        # build output transcode settings
+                        $processArgs += " :sout=#transcode{" ;
+                        $processArgs += "vcodec=none,acodec=$($audio_codec),ab=$($bitrate),channels=$($channels),samplerate=$($samplerate)" ;
+                        $processArgs += "acodec=$($audio_codec),ab=$($bitrate),channels=$($channels),samplerate=$($samplerate)" ;
+                        # end output transcode settings
+                        $processArgs += "}" ;
+                        # add the output file specs & mux
+                        $processArgs += ":standard{access=`"file`",mux=$($mux),dst=`"$($tempout)`"}"
+                        # tell it to exit on completion
+                        $processArgs += " vlc://quit" ;
+                    }
+                    "FFMPEG" {
+                        <# C:\apps\ffmpeg\bin\ffmpeg.exe
+                        The basic command is:
+                        ffmpeg -i filename.mp4 filename.mp3
+                        or
+                        ffmpeg -i video.mp4 -b:a 192K -vn music.mp3
 
-                            use -q:a for variable bit rate.
-                            ffmpeg -i k.mp4 -q:a 0 -map a k.mp3
-                            The q option can only be used with libmp3lame and corresponds to the LAME -V option. See:
+                        use -q:a for variable bit rate.
+                        ffmpeg -i k.mp4 -q:a 0 -map a k.mp3
+                        The q option can only be used with libmp3lame and corresponds to the LAME -V option. See:
 
-                            leaving out -vn just copies the audio stream
-                            to convert whole directory (including filenames with spaces) with the above command:
-                            for i in *.mp4; do ffmpeg -i "$i" -q:a 0 -map a "$(basename "${i/.mp4}").mp3"; done;
-                            http://donnieknows.com/blog/mp4-video-mp3-file-using-ffmpeg-ubuntu-910-karmic-koala
-                            Encoding VBR (Variable Bit Rate) mp3 audio - https://trac.ffmpeg.org/wiki/Encode/MP3
-                            FFmpeg, encode mp3 - http://svnpenn.github.io/2012/08/ffmpeg-encode-mp3
+                        leaving out -vn just copies the audio stream
+                        to convert whole directory (including filenames with spaces) with the above command:
+                        for i in *.mp4; do ffmpeg -i "$i" -q:a 0 -map a "$(basename "${i/.mp4}").mp3"; done;
+                        http://donnieknows.com/blog/mp4-video-mp3-file-using-ffmpeg-ubuntu-910-karmic-koala
+                        Encoding VBR (Variable Bit Rate) mp3 audio - https://trac.ffmpeg.org/wiki/Encode/MP3
+                        FFmpeg, encode mp3 - http://svnpenn.github.io/2012/08/ffmpeg-encode-mp3
 
-                            To encode a high quality MP3 from an AVI best using -q:a for variable bit rate.
-                            ffmpeg -i sample.avi -q:a 0 -map a sample.mp3
-                            If you want to extract a portion of audio from a video use the -ss option to specify the starting timestamp, and the -t option to specify the encoding duration, eg from 3 minutes and 5 seconds in for 45 seconds
-                            ffmpeg -i sample.avi -ss 00:03:05 -t 00:00:45.0 -q:a 0 -map a sample.mp3
-                                The timestamps need to be in HH:MM:SS.xxx format or in seconds.
-                                If you don't specify the -t option it will go to the end.
-                            ffmpeg -formats
-                            or
-                            ffmpeg -codecs
-                            would give sufficient information so that you know more
+                        To encode a high quality MP3 from an AVI best using -q:a for variable bit rate.
+                        ffmpeg -i sample.avi -q:a 0 -map a sample.mp3
+                        If you want to extract a portion of audio from a video use the -ss option to specify the starting timestamp, and the -t option to specify the encoding duration, eg from 3 minutes and 5 seconds in for 45 seconds
+                        ffmpeg -i sample.avi -ss 00:03:05 -t 00:00:45.0 -q:a 0 -map a sample.mp3
+                            The timestamps need to be in HH:MM:SS.xxx format or in seconds.
+                            If you don't specify the -t option it will go to the end.
+                        ffmpeg -formats
+                        or
+                        ffmpeg -codecs
+                        would give sufficient information so that you know more
 
-                            128 kbps audio (assuming the original video file had good audio!) sampled at the 44,100 sample/second rate used on a CD:
-                            ffmpeg -i moviefile.mpeg -ab 128000 -ar 44100 -f mp3 audiofile.mp3
-                            #>
-                            $processArgs = "-i `"$($inputFileName)`"" ;
-                            # $bitrate=320
-                            $processArgs += " -ab $($bitrate * 1000)" ;
-                            # $samplerate=44100
-                            $processArgs += " -ar $($samplerate)" ;
-                            $processArgs += " -f mp3" ;
-                            $processArgs += " `"$($tempout)`"" ;
-                        }
-                    } ;
+                        128 kbps audio (assuming the original video file had good audio!) sampled at the 44,100 sample/second rate used on a CD:
+                        ffmpeg -i moviefile.mpeg -ab 128000 -ar 44100 -f mp3 audiofile.mp3
+                        #>
+                        $processArgs = "-i `"$($inputFileName)`"" ;
+                        # $bitrate=320
+                        $processArgs += " -ab $($bitrate * 1000)" ;
+                        # $samplerate=44100
+                        $processArgs += " -ar $($samplerate)" ;
+                        $processArgs += " -f mp3" ;
+                        $processArgs += " `"$($tempout)`"" ;
+                    }
+                } ;
 
-                        write-verbose "`$processName:$($processName | out-string)" ;
-                        write-verbose "`$processArgs:$($processArgs | out-string)" ;
-                        # optional debug: pipe it into the clipboard for cmdline testing
-                        #"`"$($processName)`" $($processArgs)" | Out-Clipboard ;
-                        #write-verbose -verbose:$true  "current cmdline piped to Clipboard!" ;
-                    # launch command
-                    # capture and echo back errors from .exe
-                    $soutf = [System.IO.Path]::GetTempFileName() ;
-                    $serrf = [System.IO.Path]::GetTempFileName()  ;
-                    "Cmd:$($processName) $($processArgs)" ;
-                    $process = Start-Process -FilePath $processName -ArgumentList $processArgs -NoNewWindow -PassThru -Wait -RedirectStandardOutput $soutf -RedirectStandardError $serrf ;
+                write-verbose "`$processName:$($processName | out-string)" ;
+                write-verbose "`$processArgs:$($processArgs | out-string)" ;
+                # optional debug: pipe it into the clipboard for cmdline testing
+                #"`"$($processName)`" $($processArgs)" | Out-Clipboard ;
+                #write-verbose -verbose:$true  "current cmdline piped to Clipboard!" ;
+                # launch command
+                # capture and echo back errors from .exe
+                $soutf = [System.IO.Path]::GetTempFileName() ;
+                $serrf = [System.IO.Path]::GetTempFileName()  ;
+
+            } CATCH {
+                $ErrTrapd=$Error[0] ;
+                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                CONTINUE ; 
+            } ; 
+                # 7:29 PM 11/15/2023 add retries, sometimes it comes back working                
+
+            $Exit = 0 ;
+            Do {
+                TRY {
+                    write-host -foregroundcolor yellow "Cmd:$($processName) $($processArgs)" ;
+                    $process = Start-Process -FilePath $processName -ArgumentList $processArgs -NoNewWindow -PassThru -Wait -RedirectStandardOutput $soutf -RedirectStandardError $serrf -Verbose:$($VerbosePreference -eq "Continue") ; 
 
                     switch ($process.ExitCode) {
                         0 {
@@ -4584,6 +4533,16 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                             # ren $tempout => $outputFileName
                             $bfound = $useLiteralPath = $false ; 
                             if ($rf = get-childitem -path $tempout ) {
+                                if($rf.Length -eq 0){
+                                    write-verbose "removing empty `$tempout file" ; 
+                                    remove-item -path $rf.fullname -verbose -force ; 
+                                    throw "EMPTY output file found: $($tempout)" ;
+                                } else {
+                                    write-verbose "copy back temp loc copy to final loc..."
+                                    move-item -path $tempout -Destination $tf.Directory -verbose:$true -ea STOP ;
+                                    write-verbose "reset `$rf to updated location" ; 
+                                    $rf = get-childitem -path (join-path -path $tf.Directory -ChildPath (split-path $tempout -Leaf)) -ea STOP
+                                } ; 
                                 $bfound = $true ; 
                             }elseif($rf = get-childitem -literalpath $tempout ) {
                                 write-verbose "gci -literalpath reqd to find returnfile - likely spec chars in path" ; 
@@ -4609,36 +4568,36 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                                     if($useLiteralPath){
                                         # still may fail on square-brackets, but move-item supports as well, with better tolerance
                                         TRY{
-                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP  -Verbose:$($VerbosePreference -eq "Continue") ; 
                                         }CATCH{
                                             TRY{
                                                 write-warning  "FAILED:Rename-Item, retrying move-item..." ;  
-                                                move-item -LiteralPath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                                move-item -LiteralPath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP  -Verbose:$($VerbosePreference -eq "Continue") ;
                                             }CATCH{
                                                 write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;  
                                                 [System.IO.File]::Move( $rf.fullname , (join-path -path $cf.DirectoryName -childpath $nname)) ;
                                             } ;
                                         } ;
                                     } else { 
-                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP -Verbose:$($VerbosePreference -eq "Continue");
                                     } ; 
                                 } else {
                                     $nname = $($outputFileName | split-path -Leaf) ; 
                                     write-verbose "renaming $($rf.fullname)`nto:$($nname)" ; 
                                     if($useLiteralPath){
                                         TRY{
-                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP ;
+                                            Rename-Item -literalpath $rf.fullname -NewName $nname -ea STOP -Verbose:$($VerbosePreference -eq "Continue") ; 
                                         }catch{
                                             TRY{
                                                 write-warning  "FAILED:Rename-Item, retrying move-item..." ;
-                                                move-Item -literalpath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP ;
+                                                move-Item -literalpath $rf.fullname -Destination (join-path -path $cf.DirectoryName -childpath $nname) -ea STOP  -Verbose:$($VerbosePreference -eq "Continue") ; 
                                             }CATCH{
                                                 write-warning  "FAILED:move-item, retrying [System.IO.File]::Move()..." ;
                                                 [System.IO.File]::Move($rf.fullname ,(join-path -path $cf.DirectoryName -childpath $nname)) ;  
                                             }
                                         }
                                     } else { 
-                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP ;
+                                        Rename-Item -path $rf.fullname -NewName $nname -ea STOP -Verbose:$($VerbosePreference -eq "Continue") ;
                                     } ; 
                                 };
                             } ; 
@@ -4649,92 +4608,84 @@ get-childitem * -recurse | ?{$_.extension -match "^\.(mov|mpg|mp4|avi|wmv|flv|we
                         } ;
                     } ;
 
-                    write-verbose "(checking for -RedirectStandardOutput -RedirectStandardError files from conversion...)" ; 
-                    if ((get-childitem $soutf).length) {
-                        if ($VerbosePreference -eq "Continue") { (get-content $soutf) | out-string ; } ;
-                        remove-item $soutf ;
-                    } ;
-                    if ((get-childitem $serrf).length) {
-                        if ($VerbosePreference -eq "Continue") { (get-content $serrf) | out-string ; } ;
-                        remove-item $serrf ;
-                    } ;
+                    $Exit = $Retries ;
+                } CATCH {
+                    $ErrorTrapped=$Error[0] ;
+                    Write-Verbose "Failed to exec cmd because: $($ErrorTrapped)" ;
+                    Start-Sleep -Seconds $RetrySleep ;
+                    # reconnect-exo/reconnect-ex2010
+                    $Exit ++ ;
+                    Write-Verbose "Try #: $Exit" ;
+                    If ($Exit -eq $Retries) {Write-Warning "Unable to exec cmd!"} ;
+                }  ;
+            } Until ($Exit -eq $Retries) ; 
 
-                    $iProcd++ ;
-                    [int]$pct = ($iProcd / $ttl) * 100 ;
-
-                    <# SAMPLE TRANSCODE SETTINGS
-                    -I dummy      Disables the graphical interface
-                    vlc://quit     Quit VLC after transcoding
-
-                    # wav to mp3
-                    #$processArgs = "-I dummy -vvv `"$($inputFileName)`" --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit" ;
-                    # mp4 to mp3
-                    #$processArgs = "-I dummy -vvv `"$($inputFileName)`" --sout=#transcode{acodec=`"$audio_codec`",ab=`"$bitrate`",`"channels=$channels`",`"samplerate=$samplerate`"}:standard{access=`"file`",mux=`"$mux`",dst=`"$outputFileName`"} vlc://quit" ;
-
-                    # dvd to mp3
-                    # --qt-start-minimized dvd:///E:\@!Title!:%%C :sout=#transcode{vcodec=none,acodec=mp3,ab=320,channels=2,samplerate=44100}:standard{access="file",mux=dummy,dst="!CD!\!TargetFolder!\!FileNumber!.mp3"} vlc://quit
-
-                    # flv to mp3
-                    # -I dummy -v %1 :sout=#transcode{vcodec=none,acodec=mp3,ab=128,channels=2,samplerate=44100}:standard{access="file",mux=dummy,dst="%_commanm%.mp3"} vlc://quit
-
-                    # MOV_to_MPG
-                    -I dummy -vvv %1
-                    --sout=#transcode{vcodec=h264,vb=10000,deinterlace=1,acodec=mp3,ab=128,channels=2,samplerate=44100}:standard{access=file,mux=ts,dst=%_new_path%} vlc://quit
-                    --stop-time=30 to only encode the first 30 seconds (quick test)
-
-                    # generic syntax:
-                    -I dummy -vvv %%a --sout=#transcode{vcodec=VIDEO_CODEC,vb=VIDEO_BITRATE,scale=1,acodec=AUDIO_CODEC,ab=AUDIO_BITRATE,channels=6}:standard{access=file,mux=MUXER,dst=%%a.OUTPUT_EXT} vlc://quit
-
-                    # audio-only options:
-                    --no-sout-video     VLC will not pass on a video component to the streaming output
-                    --sout-audio     VLC will, however, pass on an audio component to the streaming output
-
-                    # Extracting audio in original format
-                    --no-sout-video dvdsimple:///dev/scd0@1:1 :sout='#std{access=file,mux=raw,dst=./file.ac3}'
-                    # Extracting audio in FLAC format
-                    -I dummy --no-sout-video --sout-audio
-                    --no-sout-rtp-sap --no-sout-standard-sap --ttl=1 --sout-keep
-                    --sout "#transcode{acodec=flac}:std{mux=raw,dst=C:\User\Admin\Desktop\yourAudio.flac}"
-                    Video.TS:///C:\User\Admin\Desktop\yourVideo.mp4\#0:01-3:38 vlc://quit
-                    # Extracting audio in WAV format
-                    -I dummy --no-sout-video --sout-audio
-                    --no-sout-rtp-sap --no-sout-standard-sap --ttl=1 --sout-keep
-                    --sout "#transcode{acodec=s16l,channels=2}:std{access=file,mux=wav,dst=C:\User\Admin\Desktop\yourAudio.wav}"
-                    Video.TS:///C:\User\Admin\Desktop\yourVideo.mp4\#0:01-3:38 vlc://quit
-                    # acodec=s16l tells VLC to use convert the audio content using the s16l codec, which is the codec for WAV format audio
-                    # mux=wav tells VLC to write the s16l audio data into a file with the WAV structure.
-
-                    # changes an asf file to an MPEG-2 file
-                    vlc "C:\Movies\Your File.asf" :sout='#transcode{vcodec=mp2v,vb=4096,acodec=mp2a,ab=192,scale=1,channels=2,deinterlace,audio-sync}:std{access=file, mux=ps,dst="C:\Movies\Your File Output.ps.mpg"}'
-
-                    # m4a files to mp3 files (512kb/s encoding with 44100 sampling frequency
-                    -I dummy -vvv %1
-                    --sout=#transcode{acodec="mpga",ab="512","channels=2",samplerate="44100"}:standard{access="file",mux="mpeg1",dst="%_commanm%.mp3"} vlc://quit
-
-                    # transcode wav to mp3
-                    -I dummy -vvv `"$($inputFileName)`"
-                    --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit
-                    #>
-
-                } else {
-                    # code leak to throw out directories
-                    # System.IO.DirectoryInfo
-                    write-host "(Skipping $($inputfile) -- Directory)" ;
+                write-verbose "(checking for -RedirectStandardOutput -RedirectStandardError files from conversion...)" ; 
+                if ((get-childitem $soutf).length) {
+                    if ($VerbosePreference -eq "Continue") { (get-content $soutf) | out-string ; } ;
+                    remove-item $soutf  -Verbose:$($VerbosePreference -eq "Continue");
+                } ;
+                if ((get-childitem $serrf).length) {
+                    if ($VerbosePreference -eq "Continue") { (get-content $serrf) | out-string ; } ;
+                    remove-item $serrf ;
                 } ;
 
-            }catch {
-                # BOILERPLATE ERROR-TRAP
-                Write "$((get-date).ToString("HH:mm:ss") ): -- SCRIPT PROCESSING CANCELLED" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Error in $($_.InvocationInfo.ScriptName)." ;
-                Write "$((get-date).ToString("HH:mm:ss") ): -- Error information" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Line Number: $($_.InvocationInfo.ScriptLineNumber)" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Offset: $($_.InvocationInfo.OffsetInLine)" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Command: $($_.InvocationInfo.MyCommand)" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Line: $($_.InvocationInfo.Line)" ;
-                Write "$((get-date).ToString("HH:mm:ss") ): Error Details: $($_)" ;
-                Continue ;
-                # Exit; here if you want processing to die and not continue on next for-pass
-            } # try/cat-E ;
+                $iProcd++ ;
+                [int]$pct = ($iProcd / $ttl) * 100 ;
+
+                <# SAMPLE TRANSCODE SETTINGS
+                -I dummy      Disables the graphical interface
+                vlc://quit     Quit VLC after transcoding
+
+                # wav to mp3
+                #$processArgs = "-I dummy -vvv `"$($inputFileName)`" --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit" ;
+                # mp4 to mp3
+                #$processArgs = "-I dummy -vvv `"$($inputFileName)`" --sout=#transcode{acodec=`"$audio_codec`",ab=`"$bitrate`",`"channels=$channels`",`"samplerate=$samplerate`"}:standard{access=`"file`",mux=`"$mux`",dst=`"$outputFileName`"} vlc://quit" ;
+
+                # dvd to mp3
+                # --qt-start-minimized dvd:///E:\@!Title!:%%C :sout=#transcode{vcodec=none,acodec=mp3,ab=320,channels=2,samplerate=44100}:standard{access="file",mux=dummy,dst="!CD!\!TargetFolder!\!FileNumber!.mp3"} vlc://quit
+
+                # flv to mp3
+                # -I dummy -v %1 :sout=#transcode{vcodec=none,acodec=mp3,ab=128,channels=2,samplerate=44100}:standard{access="file",mux=dummy,dst="%_commanm%.mp3"} vlc://quit
+
+                # MOV_to_MPG
+                -I dummy -vvv %1
+                --sout=#transcode{vcodec=h264,vb=10000,deinterlace=1,acodec=mp3,ab=128,channels=2,samplerate=44100}:standard{access=file,mux=ts,dst=%_new_path%} vlc://quit
+                --stop-time=30 to only encode the first 30 seconds (quick test)
+
+                # generic syntax:
+                -I dummy -vvv %%a --sout=#transcode{vcodec=VIDEO_CODEC,vb=VIDEO_BITRATE,scale=1,acodec=AUDIO_CODEC,ab=AUDIO_BITRATE,channels=6}:standard{access=file,mux=MUXER,dst=%%a.OUTPUT_EXT} vlc://quit
+
+                # audio-only options:
+                --no-sout-video     VLC will not pass on a video component to the streaming output
+                --sout-audio     VLC will, however, pass on an audio component to the streaming output
+
+                # Extracting audio in original format
+                --no-sout-video dvdsimple:///dev/scd0@1:1 :sout='#std{access=file,mux=raw,dst=./file.ac3}'
+                # Extracting audio in FLAC format
+                -I dummy --no-sout-video --sout-audio
+                --no-sout-rtp-sap --no-sout-standard-sap --ttl=1 --sout-keep
+                --sout "#transcode{acodec=flac}:std{mux=raw,dst=C:\User\Admin\Desktop\yourAudio.flac}"
+                Video.TS:///C:\User\Admin\Desktop\yourVideo.mp4\#0:01-3:38 vlc://quit
+                # Extracting audio in WAV format
+                -I dummy --no-sout-video --sout-audio
+                --no-sout-rtp-sap --no-sout-standard-sap --ttl=1 --sout-keep
+                --sout "#transcode{acodec=s16l,channels=2}:std{access=file,mux=wav,dst=C:\User\Admin\Desktop\yourAudio.wav}"
+                Video.TS:///C:\User\Admin\Desktop\yourVideo.mp4\#0:01-3:38 vlc://quit
+                # acodec=s16l tells VLC to use convert the audio content using the s16l codec, which is the codec for WAV format audio
+                # mux=wav tells VLC to write the s16l audio data into a file with the WAV structure.
+
+                # changes an asf file to an MPEG-2 file
+                vlc "C:\Movies\Your File.asf" :sout='#transcode{vcodec=mp2v,vb=4096,acodec=mp2a,ab=192,scale=1,channels=2,deinterlace,audio-sync}:std{access=file, mux=ps,dst="C:\Movies\Your File Output.ps.mpg"}'
+
+                # m4a files to mp3 files (512kb/s encoding with 44100 sampling frequency
+                -I dummy -vvv %1
+                --sout=#transcode{acodec="mpga",ab="512","channels=2",samplerate="44100"}:standard{access="file",mux="mpeg1",dst="%_commanm%.mp3"} vlc://quit
+
+                # transcode wav to mp3
+                -I dummy -vvv `"$($inputFileName)`"
+                --sout=#transcode{acodec=`"mp3`",ab=`"$bitrate`",`"channels=$channels`"}:standard{access=`"file`",mux=`"wav`",dst=`"$outputFileName`"} vlc://quit
+                #>
 
             write-verbose $sBnrS.replace('-v','-^').replace('v-','^-') ;
 
@@ -5313,13 +5264,14 @@ function Expand-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 3:29 PM 1/16/2024 was getting errors overwriting existing under ps5.1: needs -force, so expanded -overwrite to issue -force under ps5.1 (along with prior pre ps5 use).
     * 4:23 PM 8/30/2022 simplified CATCH's; updated CBH; ren -Destination -> -DestinationPath (matches expand-archive, and compress-archivefile params)
     * 1:28 PM 8/29/2022 ren Expand-ZIPFile -> Expand-ArchiveFile (alias orig name); ren source parameter File -> Path; add code to use native expand-archive on psv5+ ; 
         added try/catch support; debugged on psv51 on mybox, pipeline & useshell (older revs untested).
     * 7:28 AM 3/14/2017 updated tsk: pshelp, param() block, OTB format
     .DESCRIPTION
     Expand-ArchiveFile.ps1 - Decompress all files in an archive file to a destination directory (wraps Psv5+ native cmdlets, and matching legacy .net calls)
-    
+
     Wrote to provide broadest support, switches bewtween:
     - PSv5+ native expand-archive 
     - .net 4.5 zipfile class support, 
@@ -5353,16 +5305,16 @@ function Expand-ArchiveFile {
     [Alias('Expand-ZipFile')]
     Param(
         [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Source archive full path [-Path c:\path-to\Path.ext]")]
-        [ValidateScript( { Test-Path $_ })]
-        [Alias('File')]
-        [string[]]$Path,
+            [ValidateScript( { Test-Path $_ })]
+            [Alias('File')]
+            [string[]]$Path,
         [Parameter(Mandatory = $true,Position = 1,HelpMessage = "Destination folder in which to expand all compressed files in the source archive [-DestinationPath c:\path-to\]")]
-        #[ValidateScript( { Test-Path $_ -PathType 'Container' })]
-        [string]$DestinationPath,
-        [Parameter(HelpMessage = "Overwrite switch (only used pre-psv5 when not using -useShell)[-Overwrite]")]
-        [switch]$Overwrite,
+            #[ValidateScript( { Test-Path $_ -PathType 'Container' })]
+            [string]$DestinationPath,
+        [Parameter(HelpMessage = "Overwrite switch (uses -force under Psv5; also overwrite spec pre-psv5 used when not using -useShell)[-Overwrite]")]
+            [switch]$Overwrite,
         [Parameter(HelpMessage = "Switch to use shell.application COM object (broadest legacy compatibility, slower for large number of files) [-useShell]")]
-        [switch]$useShell
+            [switch]$useShell
     ) ; 
     BEGIN { 
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
@@ -5420,6 +5372,8 @@ function Expand-ArchiveFile {
                         DestinationPath = $DestinationPath ; 
                         erroraction = 'STOP' ;
                         #whatif = $($whatif) ;
+                        force = $($Overwrite) ;
+                        verbose = $($VerbosePreference -eq 'Continue')
                     } ;
                     if ($item -match "(\[|\])") {
                         write-verbose "(angle bracket chars detected in -Path:switching to -LiteralPath support)" ; 
@@ -5976,6 +5930,7 @@ function get-colorcombo {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     REVISIONS   :
+    * 10:54 AM 3/22/2024: add: -splat (outputs a splatted combo write-host scriptblock) ; added combo max value test (was returning nothing when out of range); echo the actual combo # in use into the random and splat options
     * 8:53 AM 4/29/2022 add: Alias gclr; ValueFromPipeline (now supports pipeline input); updated CBH
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 1:46 PM 3/5/2021 set DefaultParameterSetName='Random' to actually make 'no-params' default that way, also added $defaultPSCombo (DarkYellow:DarkMagenta), and added it as the 'last' combo in the combo array 
@@ -5992,6 +5947,8 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     Returns a random Combo [-Random]
     .PARAMETER  Demo
     Dumps a table of all combos for review[-Demo]
+    .PARAMETER Splat
+    Specifies to output a ScriptBlock that creates a static splatted write-host for the resolved Combo
     .INPUTS
     None. Does not accepted piped input.
     .OUTPUTS
@@ -6023,9 +5980,14 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     [CmdletBinding(DefaultParameterSetName='Random')]
     # ParameterSetName='EXCLUSIVENAME'
     Param(
-        [Parameter(ParameterSetName='Combo',Position = 0, ValueFromPipeline=$true, HelpMessage = "Combo Number (0-73)[-Combo 65]")][int]$Combo,
-        [Parameter(ParameterSetName='Random',HelpMessage = "Returns a random Combo [-Random]")][switch]$Random,
-        [Parameter(ParameterSetName='Demo',HelpMessage = "Dumps a table of all combos for review[-Demo]")][switch]$Demo
+        [Parameter(ParameterSetName='Combo',Position = 0, ValueFromPipeline=$true, HelpMessage = "Combo Number (0-73)[-Combo 65]")]
+            [int]$Combo,
+        [Parameter(ParameterSetName='Random',HelpMessage = "Returns a random Combo [-Random]")]
+            [switch]$Random,
+        [Parameter(ParameterSetName='Demo',HelpMessage = "Dumps a table of all combos for review[-Demo]")]
+            [switch]$Demo,
+        [Parameter(HelpMessage = "Specifies to output a ScriptBlock that creates a static splatted write-host for the resolved Combo")]
+            [switch]$Splat
     )
     $Verbose = ($VerbosePreference -eq 'Continue') ; 
     if (-not($Demo) -AND -not($Combo) -AND -not($Random)) {
@@ -6045,6 +6007,11 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     } ;
     $colorcombo[$i] = $defaultPSCombo ; 
     write-verbose "(colorcombo[$($i)] reflects PSDefault scheme)" ; 
+    if($Combo){
+        if($Combo -gt ($colorcombo.keys | measure -Maximum).Maximum){
+            $smsg = "-Combo $($Combo) out of range: Please specify a combo between 0 and $(($colorcombo.keys | measure -Maximum).Maximum)" ; 
+        } ; 
+    } ; 
     if ($Demo) {
         write-host "(-Demo specified: Dumping a table of range from Combo 0 to $($colorcombo.count-1))" ;
         $a = 00 ;
@@ -6052,15 +6019,31 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
             $plt = $colorcombo[$a].clone() ;
             write-host "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" @plt ;
             $a++ ;
-        }  While ($a -lt $colorcombo.count) ;
-    }
-    elseif ($Random) {
-        $colorcombo[(get-random -minimum 0 -maximum $colorcombo.count)] | write-output ;
-    }
-    else {
+        }  While ($a -le ($colorcombo.keys | measure -Maximum).Maximum) ;
+    } elseif ($Random) {
+        $Combo = (get-random -minimum 0 -maximum $colorcombo.count) ; 
+        write-verbose "-Random Combo:#$($combo):`n$(($colorcombo[$Combo]|out-string).trim())" ; 
+        $colorcombo[$Combo] | write-output ;
+    }else {
         write-verbose "-Combo:$($combo) specified:`n$(($colorcombo[$Combo]|out-string).trim())" ; 
         $colorcombo[$Combo] | write-output ;
     } ;
+    if($Splat -AND $Combo){
+        if(-Not $Demo){
+            $smsg = "--Splat:Constructing Static ScriptBlock reflecting:$($combo):`n$(($colorcombo[$Combo]|out-string).trim())" ; 
+            write-verbose $smsg ; 
+        $hsSB=@"
+
+# constructed Splat for write-host using Combo $($Combo):
+`$pltWH$($Combo) = @{BackgroundColor = '$($colorcombo[$Combo].BackgroundColor)' ; ForegroundColor = '$($colorcombo[$Combo].ForegroundColor)' ; } ; 
+write-host @pltWH$($Combo) "Msg" ; 
+
+"@ ; 
+            $hsSB | write-output  ; 
+        } else { 
+            write-warning "-Demo & -Splat specified: Please use one or the other." ; 
+        }
+    } ; 
 }
 
 #*------^ get-colorcombo.ps1 ^------
@@ -10768,6 +10751,72 @@ function push-HostIndent {
 #*------^ push-HostIndent.ps1 ^------
 
 
+#*------v Read-FolderBrowserDialog.ps1 v------
+function Read-FolderBrowserDialog {
+    <#
+    .SYNOPSIS
+    Read-FolderBrowserDialog - Show an Open Folder Dialog and return the directory selected by the user.
+    .NOTES
+    Version     : 0.0.1
+    Author      : Daniel Schroeder
+    Website     : https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/
+    Twitter     : @deadlydog / https://twitter.com/deadlydog
+    CreatedDate : 2024-05-10
+    FileName    : Read-FolderBrowserDialog.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-Network
+    Tags        : Powershell,Input,Prompt
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS   :
+    * 4:45 PM 5/10/2024 add CBH; add param valid; pushed params into explicit block; added param Validation; shifted to OTB syntax; pretested type load; moved the examples into CBH 
+    * 5/2/2013 - Daniel Schroeder posted vers
+    .DESCRIPTION
+    Read-FolderBrowserDialog - Show an Open Folder Dialog and return the directory selected by the user.
+    This is based on [a post the Scripting Guy made](http://blogs.technet.com/b/heyscriptingguy/archive/2009/09/01/hey-scripting-guy-september-1.aspx)
+    .PARAMETER Message
+    Prompt text shown above textbox and below title box[-Message 'Strings']
+    .PARAMETER InitialDirectory
+    Initial directory from which to browse[-InitialDirectory 'C:\']
+    .PARAMETER NoNewFolderButton
+    Switch to suppress display of the New Folder creation button[-NoNewFolderButton]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Object
+    .EXAMPLE
+    PS> $directoryPath = Read-FolderBrowserDialog -Message "Please select a directory" -InitialDirectory 'C:\' -NoNewFolderButton ; 
+    PS> if (![string]::IsNullOrEmpty($directoryPath)) { Write-Host "You selected the directory: $directoryPath" }
+    PS> else { "You did not select a directory." } ; 
+    .LINK
+    https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/  
+    https://github.com/tostka/verb-IO
+    #>
+    # [Alias('gclr')]
+    [CmdletBinding()]
+    Param(
+        [Parameter(HelpMessage = "Prompt text shown above textbox and below title box[-Message 'Strings']")]
+            [string]$Message,
+        [Parameter(HelpMessage = "Initial directory from which to browse[-InitialDirectory 'C:\']")]
+            [ValidateScript({Test-Path $_ -PathType 'Container'})]
+            [string]$InitialDirectory, 
+        [Parameter(HelpMessage = "Switch to suppress display of the New Folder creation button[-NoNewFolderButton]")]
+            [switch]$NoNewFolderButton
+    )
+    $browseForFolderOptions = 0 ; 
+    if ($NoNewFolderButton) { $browseForFolderOptions += 512 } ; 
+    $app = New-Object -ComObject Shell.Application ; 
+    $folder = $app.BrowseForFolder(0, $Message, $browseForFolderOptions, $InitialDirectory) ; 
+    if ($folder) { $selectedDirectory = $folder.Self.Path } else { $selectedDirectory = '' } ; 
+    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($app) > $null ; 
+    return $selectedDirectory ;   
+}
+
+#*------^ Read-FolderBrowserDialog.ps1 ^------
+
+
 #*------v read-Host2.ps1 v------
 Function Read-Host2 {
     <#
@@ -10920,6 +10969,1350 @@ Function Read-Host2 {
 #*------^ read-Host2.ps1 ^------
 
 
+#*------v Read-InputBoxChoice.ps1 v------
+function Read-InputBoxChoice {
+    <#
+    .SYNOPSIS
+    Read-InputBoxChoice - Prompt offering multiple selection options to users (uses `$host.ui). 
+    .NOTES
+    Version     : 0.0.1
+    Author      : Dirk/DBremen
+    Website     : https://powershellone.wordpress.com/
+    Twitter     : 
+    CreatedDate : 2024-05-11
+    FileName    : Read-InputBoxChoice.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-Network
+    Tags        : Powershell,Input,Prompt
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS   :
+    * 4:47 PM 5/16/2024 add: CBH, param HelpMessages; added explicit return, but otherwise it's intact as posted.
+    * 9/10/15 Dirk (powershellone.wordpress.com) posted Get-Choice()
+    .DESCRIPTION
+    Read-InputBoxChoice - Prompt offering multiple selection options to users (uses `$host.ui)
+
+    Preceding a Choicelabel with an underscore will create a keyboard accelerator (_Undo will accelerate via Alt+U)
+
+    .PARAMETER WindowTitle
+    Title of the prompt window[-WindowTitle 'Title']
+    .PARAMETER ChoiceLabels
+    Label strings to be used on each choice (specify string array, one per desired label)[-ChoiceLabels 'Spring','Summer','Fall','Winter']
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Object
+    .EXAMPLE
+    PS> $picked = Read-InputBoxChoice -WindowTitle 'Travel Planning' -ChoiceLabels 'Spring','Summer','Fall','Winter' ; 
+    PS> write-host "Chose: $($picked)" ; 
+    .LINK
+    https://powershellone.wordpress.com/2015/09/10/a-nicer-promptforchoice-for-the-powershell-console-host/comment-page-1/
+    https://gist.github.com/DBremen/73d7999094e7ac342ad6#file-get-choice-ps1
+    https://github.com/tostka/verb-IO
+    #>
+    # [Alias('gclr')]
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true,Position=0,HelpMessage = "Title of the prompt window[-WindowTitle 'Title']")]
+            $WindowTitle,
+        [Parameter(Mandatory=$true,Position=1,HelpMessage = "Label strings to be used on each choice (specify string array, one per desired label)[-ChoiceLabels 'Spring','Summer','Fall','Winter']")]
+            [String[]]$ChoiceLabels,
+        [Parameter(Position=2,HelpMessage = "ChoiceLabel to be selected by default[-DefaultChoice 1]")]
+            $DefaultChoice = -1
+    ) ;
+    $assy = [System.AppDomain]::CurrentDomain.GetAssemblies(); 
+    if($assy | ?{$_.ManifestModule -like 'System.Drawing*'}){} else { 
+        Add-Type -AssemblyName System.Drawing
+    } ; 
+    if($assy | ?{$_.ManifestModule -like 'System.Windows.Forms*'}){} else { 
+        Add-Type -AssemblyName System.Windows.Forms
+    } ; 
+
+    [System.Windows.Forms.Application]::EnableVisualStyles()   ; 
+    $script:result = ""   ; 
+    $form = New-Object System.Windows.Forms.Form ; 
+    $form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog   ;
+    $form.BackColor = [Drawing.Color]::White   ;
+    $form.TopMost = $True   ;
+    $form.Text = $WindowTitle   ;
+    $form.ControlBox = $False   ;
+    $form.StartPosition = [Windows.Forms.FormStartPosition]::CenterScreen   ;
+    #calculate width required based on longest option text and form title
+    $minFormWidth = 100   ;
+    $formHeight = 44   ;
+    $minButtonWidth = 70   ;
+    $buttonHeight = 23   ;
+    $buttonY = 12   ;
+    $spacing = 10   ;
+    $buttonWidth = [Windows.Forms.TextRenderer]::MeasureText((($ChoiceLabels | sort Length)[-1]),$form.Font).Width + 1   ;
+    $buttonWidth = [Math]::Max($minButtonWidth, $buttonWidth)   ;
+    $formWidth =  [Windows.Forms.TextRenderer]::MeasureText($WindowTitle,$form.Font).Width ;
+    $spaceWidth = ($ChoiceLabels.Count+1) * $spacing   ;
+    $formWidth = ($formWidth, $minFormWidth, ($buttonWidth * $ChoiceLabels.Count + $spaceWidth) | Measure-Object -Maximum).Maximum ;
+    $form.ClientSize = New-Object System.Drawing.Size($formWidth,$formHeight)   ;
+    $index = 0   ;
+    #create the buttons dynamically based on the ChoiceLabels
+    foreach ($option in $ChoiceLabels){
+        Set-Variable "button$index" -Value (New-Object System.Windows.Forms.Button)   ; 
+        $temp = Get-Variable "button$index" -ValueOnly   ; 
+        $temp.Size = New-Object System.Drawing.Size($buttonWidth,$buttonHeight)   ; 
+        $temp.UseVisualStyleBackColor = $True   ; 
+        $temp.Text = $option   ; 
+        $buttonX = ($index + 1) * $spacing + $index * $buttonWidth   ; 
+        $temp.Add_Click({
+            $script:result = $this.Text 
+            $form.Close()   ; 
+        })   ; 
+        $temp.Location = New-Object System.Drawing.Point($buttonX,$buttonY)   ; 
+        $form.Controls.Add($temp)   ; 
+        $index++   ; 
+    }   ; 
+    $shownString = '$this.Activate()'   ; 
+    if ($DefaultChoice -ne -1){
+        $shownString += '(Get-Variable "button$($DefaultChoice-1)" -ValueOnly).Focus()'   ; 
+    }   ; 
+    $shownSB = [ScriptBlock]::Create($shownString)   ; 
+    $form.Add_Shown($shownSB)   ; 
+    [void]$form.ShowDialog()   ; 
+    Return $result ; 
+}
+
+#*------^ Read-InputBoxChoice.ps1 ^------
+
+
+#*------v Read-InputBoxChoiceHostUI.ps1 v------
+function Read-InputBoxChoiceHostUI {
+    <#
+    .SYNOPSIS
+    Read-InputBoxChoiceHostUI - Prompt offering multiple selection options to users (uses `$host.ui). 
+    .NOTES
+    Version     : 0.0.1
+    Author      : Iris K
+    Website     : https://techadviz.com/author/iriskim000/
+    Twitter     : 
+    CreatedDate : 2024-05-11
+    FileName    : Read-InputBoxChoiceHostUI.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-Network
+    Tags        : Powershell,Input,Prompt
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS   :
+    * 4:34 PM 5/16/2024 ren Read-InputBoxChoice -> Read-InputBoxChoiceUI (found a WinForms variant to put under main name)
+    * 4:45 PM 5/10/2024 rounded 3 line demo out into complete function; 
+    * 1/29/22 Iris K posted demo
+    .DESCRIPTION
+    Read-InputBoxChoiceHostUI - Prompt offering multiple selection options to users (uses `$host.ui)
+
+    Rounded out from bare bones demo by Iris K.
+
+    .PARAMETER WindowTitle
+    Title of the prompt window[-WindowTitle 'Title']
+    .PARAMETER ChoiceLabels
+    Label strings to be used on each choice (specify string array, one per desired label)[-ChoiceLabels 'Spring','Summer','Fall','Winter']
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Object
+    .EXAMPLE
+    PS> $picked = Read-InputBoxChoiceHostUI -WindowTitle 'Travel Planning' -Message 'Choose By Season : ' -ChoiceLabels 'Spring','Summer','Fall','Winter' ; 
+    PS> write-host "Chose: $($picked)" ; 
+    .LINK
+    https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/  
+    https://github.com/tostka/verb-IO
+    #>
+    # [Alias('gclr')]
+    [CmdletBinding()]
+    Param(
+        [Parameter(HelpMessage = "Title of the prompt window[-WindowTitle 'Title']")]
+            [string]$WindowTitle,
+        [Parameter(HelpMessage = "Prompt text shown above textbox and below title box[-Message 'Strings']")]
+            [string]$Message,
+        [Parameter(HelpMessage = "Label strings to be used on each choice (specify string array, one per desired label)[-ChoiceLabels 'Spring','Summer','Fall','Winter']")]
+            [string[]]$ChoiceLabels
+    )
+    $res = $host.ui.PromptForChoice($WindowTitle, $Message, $ChoiceLabels, 0)
+    return $ChoiceLabels[$res]
+}
+
+#*------^ Read-InputBoxChoiceHostUI.ps1 ^------
+
+
+#*------v Read-InputBoxDialog.ps1 v------
+function Read-InputBoxDialog {
+    <#
+    .SYNOPSIS
+    Read-InputBoxDialog - Prompt for single-line user input
+    .NOTES
+    Version     : 0.0.1
+    Author      : Daniel Schroeder
+    Website     : https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/
+    Twitter     : @deadlydog / https://twitter.com/deadlydog
+    CreatedDate : 2024-05-10
+    FileName    : Read-InputBoxDialog.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-Network
+    Tags        : Powershell,Input,Prompt
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS   :
+    * 4:45 PM 5/10/2024 add CBH; add param valid; pushed params into explicit block; added param Validation; shifted to OTB syntax; pretested type load; moved the examples into CBH 
+    * 5/2/2013 - Daniel Schroeder posted vers
+    .DESCRIPTION
+    Read-InputBoxDialog - Prompt for single-line user input
+    .PARAMETER WindowTitle
+    Title of the prompt window[-WindowTitle 'Title']
+    .PARAMETER Message
+    Prompt text shown above textbox and below title box[-Message 'Strings']
+    .PARAMETER DefaultText
+    Optional semple text to be pre-populated into the input box[-DefaultText 'Apple']
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Object
+    .EXAMPLE
+    PS> $textEntered = Read-InputBoxDialog -Message "Please enter the word 'Banana'" -WindowTitle "Input Box Example" -DefaultText "Apple"
+    PS> if ($textEntered -eq $null) { Write-Host "You clicked Cancel" }
+    PS> elseif ($textEntered -eq "Banana") { Write-Host "Thanks for typing Banana" }
+    PS> else { Write-Host "You entered $textEntered" }    
+    .LINK
+    https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/  
+    https://github.com/tostka/verb-IO
+    #>
+    # [Alias('gclr')]
+    [CmdletBinding()]
+    Param(
+        [Parameter(HelpMessage = "Title of the prompt window[-WindowTitle 'Title']")]
+            [string]$WindowTitle,
+        [Parameter(HelpMessage = "Prompt text shown above textbox and below title box[-Message 'Strings']")]
+            [string]$Message,
+        [Parameter(HelpMessage = "Optional semple text to be pre-populated into the input box[-DefaultText 'Apple']")]
+            [string]$DefaultText
+    )
+    $assy = [System.AppDomain]::CurrentDomain.GetAssemblies(); 
+    if($assy | ?{$_.ManifestModule -like 'Microsoft.VisualBasic*'}){} else { 
+        Add-Type -AssemblyName Microsoft.VisualBasic
+    } ; 
+    return [Microsoft.VisualBasic.Interaction]::InputBox($Message, $WindowTitle, $DefaultText) 
+}
+
+#*------^ Read-InputBoxDialog.ps1 ^------
+
+
+#*------v Read-MessageBoxDialog.ps1 v------
+function Read-MessageBoxDialog {
+    <#
+    .SYNOPSIS
+    Read-MessageBoxDialog - Show message box popup and return the button clicked by the user.
+    .NOTES
+    Version     : 0.0.1
+    Author      : Daniel Schroeder
+    Website     : https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/
+    Twitter     : @deadlydog / https://twitter.com/deadlydog
+    CreatedDate : 2024-05-10
+    FileName    : Read-MessageBoxDialog.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-Network
+    Tags        : Powershell,Input,Prompt
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS   :
+    * 3:34 PM 5/11/2024 documented the -icon & -buttons enums, add validateset's for avail values
+    * 4:45 PM 5/10/2024 add CBH; add param valid; pushed params into explicit block; added param Validation; shifted to OTB syntax; pretested type load; moved the examples into CBH 
+    * 5/2/2013 - Daniel Schroeder posted vers
+    .DESCRIPTION
+    Read-MessageBoxDialog - Show message box popup and return the button clicked by the user.
+
+    -Buttons param supports following options: 
+
+    |Type | Enum | Desc |  
+    |---|---|---|
+    |AbortRetryIgnore |2|The message box contains Abort, Retry, and Ignore buttons.|
+    |CancelTryContinue |6|Specifies that the message box contains Cancel, Try Again, and Continue buttons.|
+    |OK |0|The message box contains an OK button.|
+    |OKCancel |1|The message box contains OK and Cancel buttons.|
+    |RetryCancel |5|The message box contains Retry and Cancel buttons.|
+    |YesNo |4|The message box contains Yes and No buttons.|
+    |YesNoCancel |3|The message box contains Yes, No, and Cancel buttons.|
+
+    [MessageBoxButtons Enum (System.Windows.Forms) | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.messageboxbuttons?view=windowsdesktop-8.0)
+
+    -Icon param supports following options: 
+
+    |Type | Enum | Desc |
+    |---|---|---|
+    |Asterisk |64|The message box contains a symbol consisting of a lowercase letter i in a circle.|
+    |Error |16|The message box contains a symbol consisting of white X in a circle with a red background.|
+    |Exclamation |48|The message box contains a symbol consisting of an exclamation point in a triangle with a yellow background.|
+    |Hand |16|The message box contains a symbol consisting of a white X in a circle with a red background.|
+    |Information |64|The message box contains a symbol consisting of a lowercase letter i in a circle.|
+    |None |0|The message box contains no symbols.|
+    |Question |32|The message box contains a symbol consisting of a question mark in a circle. The question mark message icon is no longer recommended because it does not clearly represent a specific type of message and because the phrasing of a message as a question could apply to any message type. In addition, users can confuse the question mark symbol with a help information symbol. Therefore, do not use this question mark symbol in your message boxes. The system continues to support its inclusion only for backward compatibility.|
+    |Stop |16|The message box contains a symbol consisting of white X in a circle with a red background.|
+    |Warning |48|The message box contains a symbol consisting of an exclamation point in a triangle with a yellow background.| 
+
+    [MessageBoxIcon Enum (System.Windows.Forms) | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.messageboxicon?view=windowsdesktop-8.0)   
+
+    .PARAMETER WindowTitle
+    Title of the prompt window[-WindowTitle 'Title']
+    .PARAMETER Message
+    Prompt text shown above textbox and below title box[-Message 'Strings']
+    .PARAMETER Buttons
+    Specifies Button combo to display (AbortRetryIgnore|CancelTryContinue|OK|OKCancel|RetryCancel|YesNo|YesNoCancel)[-Buttons 'OKCancel']
+    .PARAMETER Icon
+    Specifies Form Icon to display (Asterisk|Exclamation|Hand|Information|Question|Warning|None*) [-Icon Exclamation]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Object
+    .EXAMPLE
+    PS> $buttonClicked = Read-MessageBoxDialog -Message "Please press the OK button." -WindowTitle "Message Box Example" -Buttons OKCancel -Icon Exclamation ; 
+    PS> if ($buttonClicked -eq "OK") { Write-Host "Thanks for pressing OK" }
+    PS> else { Write-Host "You clicked $buttonClicked" } ; 
+    Demo simple OK/Cancel prompt.   
+    .LINK
+    https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/  
+    https://github.com/tostka/verb-IO
+    #>
+    # [Alias('gclr')]
+    [CmdletBinding()]
+    Param(
+        [Parameter(HelpMessage = "Title of the prompt window[-WindowTitle 'Title']")]
+            [string]$WindowTitle,
+        [Parameter(HelpMessage = "Prompt text shown above textbox and below title box[-Message 'Strings']")]
+            [string]$Message,
+        [Parameter(HelpMessage = "Specifies Button combo to display (AbortRetryIgnore|CancelTryContinue|OK|OKCancel|RetryCancel|YesNo|YesNoCancel)[-Buttons 'OKCancel']")]
+            [ValidateSet('AbortRetryIgnore','CancelTryContinue','OK','OKCancel','RetryCancel','YesNo','YesNoCancel')]
+            [System.Windows.Forms.MessageBoxButtons]$Buttons = [System.Windows.Forms.MessageBoxButtons]::OK,
+        [Parameter(HelpMessage = "Specifies Form Icon to display (Asterisk|Exclamation|Hand|Information|Question|Warning|None*) [-Icon Exclamation]")]
+            [ValidateSet('Asterisk','Exclamation','Hand','Information','Question','Warning')]
+            [System.Windows.Forms.MessageBoxIcon]$Icon = [System.Windows.Forms.MessageBoxIcon]::None
+    )
+    $assy = [System.AppDomain]::CurrentDomain.GetAssemblies(); 
+    if($assy | ?{$_.ManifestModule -like 'System.Windows.Forms*'}){} else { 
+        Add-Type -AssemblyName System.Windows.Forms
+    } ; 
+    Return [System.Windows.Forms.MessageBox]::Show($Message, $WindowTitle, $Buttons, $Icon) ; 
+}
+
+#*------^ Read-MessageBoxDialog.ps1 ^------
+
+
+#*------v Read-MultiLineInputBoxDialog.ps1 v------
+function read-MultiLineInputDialogAdvanced {
+    <#
+    .SYNOPSIS
+    read-MultiLineInputDialogAdvanced - Prompts the user with a multi-line input box and returns the text they enter, or null if they cancelled the prompt.
+    .NOTES
+    Version     : 0.0.2
+    Author      : iAvoe
+    Website     : https://github.com/iAvoe
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2024-05-10
+    FileName    : read-MultiLineInputDialogAdvanced.ps1
+    License     : Mozilla Public License 2.0
+    Copyright   : (c) 2024 Todd Kadrie
+    Github      : https://github.com/tostka/verb-Network
+    Tags        : Powershell,Input,Prompt
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS   :
+    * 9:37 AM 5/22/2024 correction, examples work  fine, validated on the jb; 
+    * 4:45 PM 5/10/2024 works in ISE, doesn't in win10 native psv5 - appears it's not getting desktop metrics back, doesn't populate the form size or the buttons ; add CBH; add param valid; pushed params into explicit block; added param Validation; shifted to OTB syntax; moved the examples into CBH (refactored as more readable splats); consolidated param test code into simpler -match comparisons; 
+    * 10/16/23 - iAvoe posted vers
+    .DESCRIPTION
+    read-MultiLineInputDialogAdvanced - Prompts the user with a multi-line input box and returns the text they enter, or null if they cancelled the prompt.
+
+    Note: 
+    - Appears to be a DPI-aware extension of Daniel Schroeder's original 5/2/2013 Read-MultiLineInputBoxDialog() (his name appears in the first comment). 
+        from: [PowerShell Multi-Line Input Box Dialog, Open File Dialog, Folder Browser Dialog, Input Box, and Message Box - Daniel Schroeder’s Programming Blog](https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/)
+    (Cites C#, but visibly, what it's doing on that front is leveaging common system API calls)
+
+    Supports a couple of input modes: InboxType:
+        str (alias '1') : Default MultiLine Input Dialog; 
+        dnd (alias '2') : Drag & Drop (files selection) MultiLine Path Input Dialog
+    And a couple of data return formats:ReturnType:
+        str (alias '1') :Return a single multi-line string of the inputs, empty lines are scrubbed; 
+        ary (alias '2') :Return the input split into an array of lines, empty array items are scrubbed
+
+    
+    - Displays correctly on both Low & high DPI display
+    - Built-in empty-line scrubbing feature, only return valid lines
+    - Automatically scales window size according to monitor resolution
+    - Automatically compensates rendering error inbetween PowerShell Console & ISE
+    - -FixSquareBrkts Option to escape square brackes (\``[, \``]) so permits cmdlets that have issues with [] charas in path names, can function (get-childitem, get-item)
+     
+    - ESC key → Cancel key binding
+    - (List-Box Mode) DEL key → Remove selected item feature
+
+    .PARAMETER WindowTitle
+    Title of the prompt window[-WindowTitle 'Title']
+    .PARAMETER Message
+    Prompt text shown above textbox and below title box[-Message 'Strings']
+    .PARAMETER InboxType
+    InboxType (str|1: Default MultiLine Input Dialog; dnd|2:Drag & Drop MultiLine Path Input Dialog)[-InboxType txt]
+    .PARAMETER FontSize
+    Default textbox font size[-FontSize 12]
+    .PARAMETER ReturnType
+    ReturnType (str|1:Return a multi-line string of items, empty lines are scrubbed; ary|2:Return an array of items, empty array items are scrubbed)[-ReturnType str]
+    .PARAMETER ShowDebug
+    ShowDebug[-ShowDebug `$true]
+    .PARAMETER FixSquareBrkts
+    Escapes square brackes (\``[, \``]) to permit cmdlets that won't accomodate path '[]' chars, to function[-FixSquareBrkts `$true]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Collections.Hashtable
+    .EXAMPLE
+PS> write-verbose 'Always pre-Enable DPI-Aware Windows Forms' ; 
+PS> TRY{[ProcessDPI] | out-null }catch{
+PS>     Add-Type -TypeDefinition @'
+using System.Runtime.InteropServices;
+public class ProcessDPI {
+    [DllImport("user32.dll", SetLastError=true)]
+    public static extern bool SetProcessDPIAware();      
+}
+'@ 
+    PS> } ; 
+    PS> $null = [ProcessDPI]::SetProcessDPIAware() ; 
+    PS> write-verbose "Normal Prompting (allows empty output) - Textbox mode - String output" ; 
+    PS> $pltRdMLIDA=[ordered]@{
+    PS>     Message = "Put your text items here, separated by line breaks`nThis box allows up to 2 lines of text for extra notes" ;
+    PS>     WindowTitle = "Prompt: (Textbox: String return)" ;
+    PS>     InboxType = "txt" ;
+    PS>     ReturnType = "str" ;
+    PS>     ShowDebug = $true ;
+    PS> } ;
+    PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
+    PS> write-host -foregroundcolor green $smsg  ;
+    PS> $mLineVarStrA = read-MultiLineInputDialogAdvanced @pltRdMLIDA ; 
+    PS> write-host "`r`n-----Return-String:`r`n"+$mLineVarStrA+"`r`n-----End of Return" ; 
+    Demo spawning a text box form, with string return ; 
+
+    .EXAMPLE
+    PS> write-verbose 'Always pre-Enable DPI-Aware Windows Forms' ; 
+    PS> TRY{[ProcessDPI] | out-null }catch{
+    PS>     Add-Type -TypeDefinition @'
+    using System.Runtime.InteropServices;
+    public class ProcessDPI {
+        [DllImport("user32.dll", SetLastError=true)]
+        public static extern bool SetProcessDPIAware();      
+    }
+    '@ 
+    PS> } ; 
+    PS> $null = [ProcessDPI]::SetProcessDPIAware() ; 
+    PS> write-verbose "Normal Prompting (allows empty output) - Textbox mode - String output; escape any square brackets returned" ; 
+    PS> $pltRdMLIDA=[ordered]@{
+    PS>     Message = "Put your text items here, separated by line breaks`nThis box allows up to 2 lines of text for extra notes" ;
+    PS>     WindowTitle = "Prompt:" ;
+    PS>     InboxType = "txt" ;
+    PS>     ReturnType = "str" ;
+    PS>     FixSquareBrkts = $true ; 
+    PS>     ShowDebug = $true ;
+    PS> } ;
+    PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
+    PS> write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)"  ;
+    PS> $mLineVarStrB = read-MultiLineInputDialogAdvanced @pltRdMLIDA ; 
+    PS> write-host "`r`n-----Return-String:`r`n"+$mLineVarStrB+"`r`n-----End of Return" ; 
+    Demo spawning a text box form, with string return, and any square brackets in the return are escaped ; 
+
+    .EXAMPLE
+    PS> write-verbose 'Always pre-Enable DPI-Aware Windows Forms' ; 
+    PS> TRY{[ProcessDPI] | out-null }catch{
+    PS>     Add-Type -TypeDefinition @'
+    using System.Runtime.InteropServices;
+    public class ProcessDPI {
+        [DllImport("user32.dll", SetLastError=true)]
+        public static extern bool SetProcessDPIAware();      
+    }
+    '@ 
+    PS> } ; 
+    PS> $null = [ProcessDPI]::SetProcessDPIAware() ; 
+    PS> write-verbose "Normal Prompting (allows empty output) - Drag & drop mode - String output" ; 
+    PS> $pltRdMLIDA=[ordered]@{
+    PS>     Message = "Drag each of your file items here`nThis box allows up to 2 lines of text for extra notes" ;
+    PS>     WindowTitle = "Prompt: (Drag&drop mode)" ;
+    PS>     InboxType = "dnd" ;
+    PS>     ReturnType = "str" ;
+    PS>     ShowDebug = $true ;
+    PS> } ;
+    PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
+    PS> write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)"  ;
+    PS> $dDropVarStr = read-MultiLineInputDialogAdvanced @pltRdMLIDA ; 
+    PS> write-host "`r`n-----Return-String:`r`n"+$dDropVarStr+"`r`n-----End of Return" ; 
+    Demo drag & drop file prompt, with string output
+
+    .EXAMPLE
+    PS> write-verbose 'Always pre-Enable DPI-Aware Windows Forms' ; 
+    PS> TRY{[ProcessDPI] | out-null }catch{
+    PS>     Add-Type -TypeDefinition @'
+    using System.Runtime.InteropServices;
+    public class ProcessDPI {
+        [DllImport("user32.dll", SetLastError=true)]
+        public static extern bool SetProcessDPIAware();      
+    }
+    '@ 
+    PS> } ; 
+    PS> $null = [ProcessDPI]::SetProcessDPIAware() ; 
+    PS> write-verbose "Normal Prompting (allows empty output) - Drag & drop mode - Array output" ; 
+    PS> $pltRdMLIDA=[ordered]@{
+    PS>     Message = "Drag each of your file items here`nThis box allows up to 2 lines of text for extra notes" ;
+    PS>     WindowTitle = "Prompt: (Drag&drop mode)" ;
+    PS>     InboxType = "dnd" ;
+    PS>     ReturnType = "2" ;
+    PS>     ShowDebug = $true ;
+    PS> } ;
+    PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
+    PS> write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)"  ;
+    PS> $dDropVarAry = read-MultiLineInputDialogAdvanced @pltRdMLIDA ; 
+    PS> 
+    PS> if($dDropVarAry.Count -lt 25){
+    PS>     $smsg = "Return-Array:`r`n"
+    PS>     $smsg += "`n$(($dDropVarAry|out-string).trim())" ; 
+    PS>     $smsg += "`nEnd of return" ; 
+    PS> } else { 
+    PS>     $smsg = "`r`n-----First item of array:"
+    PS>     if ($dDropVarAry.Count -gt 0) {
+    PS>         $smsg += "`n$($dDropVarAry[0])" ; 
+    PS>     }  else {
+    PS>         $smsg += "`n× Array length == 0, skipped" ; 
+    PS>     }
+    PS>     $smsg += "`n-----Last item of array:" ; 
+    PS>     if ($dDropVarAry.Count -gt 0) {
+    PS>         $smsg += "`n$($dDropVarAry[-1])" ; 
+    PS>     } else {
+    PS>         $smsg += "`r`n× Array length == 0, skipped";
+    PS>     };
+    PS>     $smsg += "`n`-----Counting items of array: $($dDropVarAry.Count)" ; 
+    PS> } ; 
+    PS> write-host $smsg ; 
+    PS> 
+    Demo drag & drop file prompt, with array output    
+    .LINK
+    https://github.com/iAvoe/Multi-Line-Input-Dialog-Advanced/blob/main/MultiLine-Input-Dialog-Advanced.ps1    
+    https://github.com/tostka/verb-IO
+    #>
+    # [Alias('gclr')]
+    [CmdletBinding()]
+    Param(
+        [Parameter(HelpMessage = "Title of the prompt window[-WindowTitle 'Title']")]
+            [string]$WindowTitle,
+        [Parameter(HelpMessage = "Prompt text shown above textbox and below title box[-Message 'Strings']")]
+            [string]$Message,
+        [Parameter(HelpMessage = "InboxType (str|1: Default MultiLine Input Dialog; dnd|2:Drag & Drop MultiLine Path Input Dialog)[-InboxType txt]")]
+            [ValidateSet("1","2","txt","dnd")]
+            [string]$InboxType="txt",
+        [Parameter(HelpMessage = "Default textbox font size[-FontSize 12]")] 
+            [int]$FontSize=12, 
+        [Parameter(HelpMessage = "ReturnType (str|1:Return a multi-line string of items, empty lines are scrubbed; ary|2:Return an array of items, empty array items are scrubbed)[-ReturnType str]")]
+            [ValidateSet("1","2","str","ary")]
+            [string]$ReturnType="str", 
+        [Parameter(HelpMessage = "ShowDebug[-ShowDebug `$true]")]
+            [switch]$ShowDebug=$false, 
+        [Parameter(HelpMessage = "Escapes square brackes (\``[, \``]) to permit cmdlets that won't accomodate path '[]' chars, to function[-FixSquareBrkts `$true]")]
+            [switch]$FixSquareBrkts
+    )
+    $Verbose = ($VerbosePreference -eq 'Continue') ; 
+    #「@Daniel Schroeder」
+    $DebugPreference = 'Continue'
+    if (($host.name -match 'consolehost')) {
+        if ($ShowDebug -eq $true) {Write-Debug "Running inside PowerShell Console, using resolution data from GWMI"}
+        $oWidth  = gwmi win32_videocontroller | select-object CurrentHorizontalResolution -first 1
+        $oHeight = gwmi win32_videocontroller | select-object CurrentVerticalResolution -first 1
+        [int]$mWidth  = [Convert]::ToInt32($oWidth.CurrentHorizontalResolution)
+        [int]$mHeight = [Convert]::ToInt32($oHeight.CurrentVerticalResolution)
+        #Write-Debug "$mWidth x $mHeight"
+    } else {
+        if ($ShowDebug -eq $true) {Write-Debug "Running inside PowerShell ISE, using resolution data from SysInfo"}
+        [int]$mWidth  = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.Width
+        [int]$mHeight = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.Height
+    }
+
+    $assy = [System.AppDomain]::CurrentDomain.GetAssemblies(); 
+    if($assy | ?{$_.ManifestModule -like 'System.Drawing*'}){} else { 
+        Add-Type -AssemblyName System.Drawing
+    } ; 
+    if($assy | ?{$_.ManifestModule -like 'System.Windows.Forms*'}){} else { 
+        Add-Type -AssemblyName System.Windows.Forms
+    } ; 
+
+    #Converting from monitor resolution: position of window label text
+    [int]$LBStartX = [math]::Round($mWidth /192)
+    [int]$LBStartY = [math]::Round($mHeight/108)
+    [int]$LblSizeX = [math]::Round($mWidth /19)
+    [int]$LblSizeY = [math]::Round($mHeight/54)
+    #Label text under the GUI title, with content from $Message
+    $label = New-Object System.Windows.Forms.Label -Property @{
+        AutoSize = $true
+        Text     = $Message
+        Location = New-Object System.Drawing.Size($LBStartX,$LBStartY) #Label text starting position
+        Size     = New-Object System.Drawing.Size($LblSizeX,$LblSizeY) #Label text box size
+    }
+    #Converting from monitor resolution: position & size of input textbox & listbox
+    [int]$LBStartX = [int]$TBStartX = [math]::Round($mWidth /192)
+    [int]$LBStartY = [int]$TBStartY = [math]::Round($mHeight/27)
+    [int]$TblSizeX = [math]::Round($mWidth /3.728)
+    [int]$LblSizeX = [math]::Round($mWidth /3.792)
+    [int]$LblSizeY = [int]$TblSizeY = [math]::Round($mHeight/2.6)
+    if (($host.name -match 'consolehost')) {$TblSizeX-=3; $LblSizeX-=3} #Compensate width rendering difference in PowerShell Console
+    
+    #Drawing textbox 1 / listbox 2
+    if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {
+        $textBox          = New-Object System.Windows.Forms.TextBox -Property @{
+            Location      = New-Object System.Drawing.Size($TBStartX,$TBStartY) #Draw starting postiton
+            Size          = New-Object System.Drawing.Size($TblSizeX,$TblSizeY) #Size of textbox
+            Font          = New-Object System.Drawing.Font((New-Object System.Windows.Forms.Form).font.Name,$FontSize)
+            AcceptsReturn = $true
+            AcceptsTab    = $false
+            Multiline     = $true
+            ScrollBars    = 'Both'
+            Text          = "" #Leave default text blank in order to check if user has typed / pasted nothing and (accidentally) clicks OK, which can mitigated userby Do-While loop checking and prevents a script startover of frustration
+        }
+    } elseif (($InboxType -eq "dnd") -or ($InboxType -eq "2")) {
+        $listBox = New-Object Windows.Forms.ListBox -Property @{
+            Location            = New-Object System.Drawing.Size($LBStartX,$LBStartY) #Draw starting postiton
+            Size                = New-Object System.Drawing.Size($LblSizeX,$LblSizeY) #Size of textbox
+            Font                = New-Object System.Drawing.Font((New-Object System.Windows.Forms.Form).font.Name,$FontSize)
+            Anchor              = ([System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right -bor [System.Windows.Forms.AnchorStyles]::Top)
+            AutoSize            = $true
+            IntegralHeight      = $false
+            AllowDrop           = $true
+            ScrollAlwaysVisible = $false
+        }
+        #Create Drag-&-Drop events with effects to actually get the GUI working, not the copy-to-CLI side
+        $listBox_DragOver = [System.Windows.Forms.DragEventHandler]{
+	        if ($_.Data.GetDataPresent([Windows.Forms.DataFormats]::FileDrop)) {$_.Effect = 'Copy'}                       #$_=[System.Windows.Forms.DragEventArgs]
+	        else                                                               {$_.Effect = 'None'}
+        }
+        $listBox_DragDrop = [System.Windows.Forms.DragEventHandler]{
+	        foreach ($filename in $_.Data.GetData([Windows.Forms.DataFormats]::FileDrop)) {$listBox.Items.Add($filename)} #$_=[System.Windows.Forms.DragEventArgs]
+        }
+        #Create "Delete" keydown event to delete selected items in listBox mode
+        $listBox.Add_KeyDown({
+            if (($PSItem.KeyCode -eq "Delete") -and ($listBox.Items.Count -gt 0)) {$listBox.Items.Remove($listBox.SelectedItems[0])}
+        })
+    }
+    #Converting from monitor resolution: OK button's starting position & size
+    [int]$OKStartX = [math]::Round($mWidth /4.7)
+    [int]$OKStartY = [math]::Round($mHeight/108)
+    [int]$OKbSizeX = [math]::Round($mWidth /34.92)
+    [int]$OKbSizeY = [math]::Round($mHeight/47)
+    if (($host.name -match 'consolehost')) {$OKStartX-=3} #Compensate width rendering difference in PowerShell Console
+    #Drawing the OK button
+    $okButton = New-Object System.Windows.Forms.Button -Property @{
+        Location     = New-Object System.Drawing.Size($OKStartX,$OKStartY) #OK button position
+        Size         = New-Object System.Drawing.Size($OKbSizeX,$OKbSizeY) #OK button size
+        DialogResult = [System.Windows.Forms.DialogResult]::OK
+        Text         = "OK"
+    }
+    if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {$okButton.Add_Click({$form.Tag = $textBox.Text;  $form.Close()})}
+    elseif (($InboxType -eq "dnd") -or ($InboxType -eq "2")) {$okButton.Add_Click({$form.Tag = $listBox.Items; $form.Close()})}
+
+    #Converting from monitor resolution: Cancel button's starting position
+    [int]$ClStartX = [math]::Round($mWidth /4.08)
+    [int]$ClStartY = $OKStartY #Same Height as the OK button
+    [int]$ClbSizeX = $OKbSizeX #Same size as the OK button
+    [int]$ClbSizeY = $OKbSizeY #Same size as the OK button
+    if (($host.name -match 'consolehost')) {$ClStartX-=3} #Compensate width rendering difference in PowerShell Console
+    #Drawing the Cancel / Clear button
+    $cancelButton = New-Object System.Windows.Forms.Button -Property @{
+        Location     = New-Object System.Drawing.Size($ClStartX,$ClStartY)
+        Size         = New-Object System.Drawing.Size($ClbSizeX,$ClbSizeY)
+        Text         = "Cancel"
+        DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    }
+    $cancelButton.Add_Click({$form.Tag = $null; Try{$listBox.Items.Clear()}Catch [Exception]{}; $form.Close()})
+
+    #Converting from monitor resolution: size of the prompt/form window
+    [int]$formSizeX = [math]::Round($mWidth /3.56)
+    [int]$formSizeY = [math]::Round($mHeight/2.18)
+    if (($host.name -match 'consolehost')) {$formSizeX+=2} #Compensate width rendering difference in PowerShell Console
+    #Draw the form window
+    $form = New-Object System.Windows.Forms.Form -Property @{
+        Text = $WindowTitle
+        Size = New-Object System.Drawing.Size($formSizeX,$formSizeY) #Form window size
+        FormBorderStyle = 'FixedSingle'
+        StartPosition = 'CenterScreen'
+        AutoSizeMode = 'GrowAndShrink'
+        Topmost = $false
+        AcceptButton = $okButton
+        CancelButton = $cancelButton
+        ShowInTaskbar = $true
+    }
+    #Add control elements to the prompt/form window
+    $form.Controls.Add($label); $form.Controls.Add($okButton); $form.Controls.Add($cancelButton)
+    if     ($InboxType -match "txt|1") {
+        if ($ShowDebug -eq $true) {Write-Debug "! Mode == MultiLine textBox Form"}
+        $form.Controls.Add($textBox)
+    } elseif ($InboxType -match "dnd|2") {
+        if ($ShowDebug -eq $true) {Write-Debug "! Mode == Drag&Drop listBox From"}
+        $form.Controls.Add($listBox)
+        #Add form Closing events for drag-&-drop events only, basically to remove data from listBox
+        $form_FormClosed = {
+	        TRY {
+                $listBox.remove_Click($button_Click)
+		        $listBox.remove_DragOver($listBox_DragOver)
+		        $listBox.remove_DragDrop($listBox_DragDrop)
+                $listBox.remove_DragDrop($listBox_DragDrop)
+		        $form.remove_FormClosed($Form_Cleanup_FormClosed)
+	        }
+	        catch [Exception] {}
+        }
+        #Load Drag-&-Drop events into the form
+        $listBox.Add_DragOver($listBox_DragOver)
+        $listBox.Add_DragDrop($listBox_DragDrop)
+        $form.Add_FormClosed($form_FormClosed)
+    }
+    #Load Add_Shown event used by both textbox & drag-&-drop events into form
+    $form.Add_Shown({$form.Activate()})
+    #Load Key_Down event for closing with ESC button
+    $form.Add_KeyDown({
+        if ($PSItem.KeyCode -eq "Escape") {$cancelButton.PerformClick()}
+    })
+    #Normal prompting, user can proceed with $null return by clicking Cancel or ×, or empty string by clicking OK
+    $form.ShowDialog() | Out-Null #Supress "OK/Cancel" text from returned in Dialog
+
+    #An early-skip to prevent an empty listBox from not come with all of available methods
+    if     ( ($InboxType -match "txt|1") -and ($textBox.Text -eq "") )       {
+        if ($ReturnType -match "str|1") {return ""}
+        if ($ReturnType -match "ary|2") {return $null}
+    }elseif  ( ($InboxType -match "dnd|2") -and ($listBox.Items.Count -eq 0)) {
+        if ($ReturnType -match "str|1") {return ""}
+        if ($ReturnType -match "ary|2") {return $null}
+    }
+
+    #Scrub Empty lines & DialogResult (OK) from returning
+    if     ($FixSquareBrkts -eq $true) {
+        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()).replace('[','``[').replace(']','``]').replace('``][','``]``[') | 
+            where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+    }
+    elseif ($FixSquareBrkts -eq $false){
+        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | 
+            where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+    }
+
+    #Format result into multi-line string / array based on user definition
+    if     ($ReturnType -match "str|1") {return ($ScrbDiagRslt | Out-String).TrimEnd()} #String out, TrimEnd is very important as output would otherwise have an empty line in the end
+    elseif ($ReturnType -match "ary|2") {return  $ScrbDiagRslt }                        #Array out
+}
+
+#*------^ Read-MultiLineInputBoxDialog.ps1 ^------
+
+
+#*------v read-MultiLineInputDialogAdvanced.ps1 v------
+function read-MultiLineInputDialogAdvanced {
+    <#
+    .SYNOPSIS
+    read-MultiLineInputDialogAdvanced - Prompts the user with a multi-line input box and returns the text they enter, or null if they cancelled the prompt.
+    .NOTES
+    Version     : 0.0.2
+    Author      : iAvoe
+    Website     : https://github.com/iAvoe
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2024-05-10
+    FileName    : read-MultiLineInputDialogAdvanced.ps1
+    License     : Mozilla Public License 2.0
+    Copyright   : (c) 2024 Todd Kadrie
+    Github      : https://github.com/tostka/verb-Network
+    Tags        : Powershell,Input,Prompt
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS   :
+    * 4:45 PM 5/10/2024 add CBH; add param valid; pushed params into explicit block; added param Validation; shifted to OTB syntax; moved the examples into CBH (refactored as more readable splats); consolidated param test code into simpler -match comparisons; 
+    * 10/16/23 - iAvoe posted vers
+    .DESCRIPTION
+    read-MultiLineInputDialogAdvanced - Prompts the user with a multi-line input box and returns the text they enter, or null if they cancelled the prompt.
+
+    Note: 
+    - Appears to be a DPI-aware extension of Daniel Schroeder's original 5/2/2013 Read-MultiLineInputBoxDialog() (his name appears in the first comment). 
+        from: [PowerShell Multi-Line Input Box Dialog, Open File Dialog, Folder Browser Dialog, Input Box, and Message Box - Daniel Schroeder’s Programming Blog](https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/)
+    (Cites C#, but visibly, what it's doing on that front is leveaging common system API calls)
+
+    Supports a couple of input modes: InboxType:
+        str (alias '1') : Default MultiLine Input Dialog; 
+        dnd (alias '2') : Drag & Drop (files selection) MultiLine Path Input Dialog
+    And a couple of data return formats:ReturnType:
+        str (alias '1') :Return a single multi-line string of the inputs, empty lines are scrubbed; 
+        ary (alias '2') :Return the input split into an array of lines, empty array items are scrubbed
+
+    
+    - Displays correctly on both Low & high DPI display
+    - Built-in empty-line scrubbing feature, only return valid lines
+    - Automatically scales window size according to monitor resolution
+    - Automatically compensates rendering error inbetween PowerShell Console & ISE
+    - -FixSquareBrkts Option to escape square brackes (\``[, \``]) so permits cmdlets that have issues with [] charas in path names, can function (get-childitem, get-item)
+     
+    - ESC key → Cancel key binding
+    - (List-Box Mode) DEL key → Remove selected item feature
+
+    .PARAMETER WindowTitle
+    Title of the prompt window[-WindowTitle 'Title']
+    .PARAMETER Message
+    Prompt text shown above textbox and below title box[-Message 'Strings']
+    .PARAMETER InboxType
+    InboxType (str|1: Default MultiLine Input Dialog; dnd|2:Drag & Drop MultiLine Path Input Dialog)[-InboxType txt]
+    .PARAMETER FontSize
+    Default textbox font size[-FontSize 12]
+    .PARAMETER ReturnType
+    ReturnType (str|1:Return a multi-line string of items, empty lines are scrubbed; ary|2:Return an array of items, empty array items are scrubbed)[-ReturnType str]
+    .PARAMETER ShowDebug
+    ShowDebug[-ShowDebug `$true]
+    .PARAMETER FixSquareBrkts
+    Escapes square brackes (\``[, \``]) to permit cmdlets that won't accomodate path '[]' chars, to function[-FixSquareBrkts `$true]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Collections.Hashtable
+    .EXAMPLE
+PS> write-verbose 'Always pre-Enable DPI-Aware Windows Forms' ; 
+PS> TRY{[ProcessDPI] | out-null }catch{
+PS>     Add-Type -TypeDefinition @'
+using System.Runtime.InteropServices;
+public class ProcessDPI {
+    [DllImport("user32.dll", SetLastError=true)]
+    public static extern bool SetProcessDPIAware();      
+}
+'@ 
+    PS> } ; 
+    PS> $null = [ProcessDPI]::SetProcessDPIAware() ; 
+    PS> write-verbose "Normal Prompting (allows empty output) - Textbox mode - String output" ; 
+    PS> $pltRdMLIDA=[ordered]@{
+    PS>     Message = "Put your text items here, separated by line breaks`nThis box allows up to 2 lines of text for extra notes" ;
+    PS>     WindowTitle = "Prompt: (Textbox: String return)" ;
+    PS>     InboxType = "txt" ;
+    PS>     ReturnType = "str" ;
+    PS>     ShowDebug = $true ;
+    PS> } ;
+    PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
+    PS> write-host -foregroundcolor green $smsg  ;
+    PS> $mLineVarStrA = read-MultiLineInputDialogAdvanced @pltRdMLIDA ; 
+    PS> write-host "`r`n-----Return-String:`r`n"+$mLineVarStrA+"`r`n-----End of Return" ; 
+    Demo spawning a text box form, with string return ; 
+
+    .EXAMPLE
+    PS> write-verbose 'Always pre-Enable DPI-Aware Windows Forms' ; 
+    PS> TRY{[ProcessDPI] | out-null }catch{
+    PS>     Add-Type -TypeDefinition @'
+    using System.Runtime.InteropServices;
+    public class ProcessDPI {
+        [DllImport("user32.dll", SetLastError=true)]
+        public static extern bool SetProcessDPIAware();      
+    }
+    '@ 
+    PS> } ; 
+    PS> $null = [ProcessDPI]::SetProcessDPIAware() ; 
+    PS> write-verbose "Normal Prompting (allows empty output) - Textbox mode - String output; escape any square brackets returned" ; 
+    PS> $pltRdMLIDA=[ordered]@{
+    PS>     Message = "Put your text items here, separated by line breaks`nThis box allows up to 2 lines of text for extra notes" ;
+    PS>     WindowTitle = "Prompt:" ;
+    PS>     InboxType = "txt" ;
+    PS>     ReturnType = "str" ;
+    PS>     FixSquareBrkts = $true ; 
+    PS>     ShowDebug = $true ;
+    PS> } ;
+    PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
+    PS> write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)"  ;
+    PS> $mLineVarStrB = read-MultiLineInputDialogAdvanced @pltRdMLIDA ; 
+    PS> write-host "`r`n-----Return-String:`r`n"+$mLineVarStrB+"`r`n-----End of Return" ; 
+    Demo spawning a text box form, with string return, and any square brackets in the return are escaped ; 
+
+    .EXAMPLE
+    PS> write-verbose 'Always pre-Enable DPI-Aware Windows Forms' ; 
+    PS> TRY{[ProcessDPI] | out-null }catch{
+    PS>     Add-Type -TypeDefinition @'
+    using System.Runtime.InteropServices;
+    public class ProcessDPI {
+        [DllImport("user32.dll", SetLastError=true)]
+        public static extern bool SetProcessDPIAware();      
+    }
+    '@ 
+    PS> } ; 
+    PS> $null = [ProcessDPI]::SetProcessDPIAware() ; 
+    PS> write-verbose "Normal Prompting (allows empty output) - Drag & drop mode - String output" ; 
+    PS> $pltRdMLIDA=[ordered]@{
+    PS>     Message = "Drag each of your file items here`nThis box allows up to 2 lines of text for extra notes" ;
+    PS>     WindowTitle = "Prompt: (Drag&drop mode)" ;
+    PS>     InboxType = "dnd" ;
+    PS>     ReturnType = "str" ;
+    PS>     ShowDebug = $true ;
+    PS> } ;
+    PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
+    PS> write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)"  ;
+    PS> $dDropVarStr = read-MultiLineInputDialogAdvanced @pltRdMLIDA ; 
+    PS> write-host "`r`n-----Return-String:`r`n"+$dDropVarStr+"`r`n-----End of Return" ; 
+    Demo drag & drop file prompt, with string output
+
+    .EXAMPLE
+    PS> write-verbose 'Always pre-Enable DPI-Aware Windows Forms' ; 
+    PS> TRY{[ProcessDPI] | out-null }catch{
+    PS>     Add-Type -TypeDefinition @'
+    using System.Runtime.InteropServices;
+    public class ProcessDPI {
+        [DllImport("user32.dll", SetLastError=true)]
+        public static extern bool SetProcessDPIAware();      
+    }
+    '@ 
+    PS> } ; 
+    PS> $null = [ProcessDPI]::SetProcessDPIAware() ; 
+    PS> write-verbose "Normal Prompting (allows empty output) - Drag & drop mode - Array output" ; 
+    PS> $pltRdMLIDA=[ordered]@{
+    PS>     Message = "Drag each of your file items here`nThis box allows up to 2 lines of text for extra notes" ;
+    PS>     WindowTitle = "Prompt: (Drag&drop mode)" ;
+    PS>     InboxType = "dnd" ;
+    PS>     ReturnType = "2" ;
+    PS>     ShowDebug = $true ;
+    PS> } ;
+    PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
+    PS> write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)"  ;
+    PS> $dDropVarAry = read-MultiLineInputDialogAdvanced @pltRdMLIDA ; 
+    PS> 
+    PS> if($dDropVarAry.Count -lt 25){
+    PS>     $smsg = "Return-Array:`r`n"
+    PS>     $smsg += "`n$(($dDropVarAry|out-string).trim())" ; 
+    PS>     $smsg += "`nEnd of return" ; 
+    PS> } else { 
+    PS>     $smsg = "`r`n-----First item of array:"
+    PS>     if ($dDropVarAry.Count -gt 0) {
+    PS>         $smsg += "`n$($dDropVarAry[0])" ; 
+    PS>     }  else {
+    PS>         $smsg += "`n× Array length == 0, skipped" ; 
+    PS>     }
+    PS>     $smsg += "`n-----Last item of array:" ; 
+    PS>     if ($dDropVarAry.Count -gt 0) {
+    PS>         $smsg += "`n$($dDropVarAry[-1])" ; 
+    PS>     } else {
+    PS>         $smsg += "`r`n× Array length == 0, skipped";
+    PS>     };
+    PS>     $smsg += "`n`-----Counting items of array: $($dDropVarAry.Count)" ; 
+    PS> } ; 
+    PS> write-host $smsg ; 
+    PS> 
+    Demo drag & drop file prompt, with array output    
+    .LINK
+    https://github.com/iAvoe/Multi-Line-Input-Dialog-Advanced/blob/main/MultiLine-Input-Dialog-Advanced.ps1    
+    https://github.com/tostka/verb-IO
+    #>
+    # [Alias('gclr')]
+    [CmdletBinding()]
+    Param(
+        [Parameter(HelpMessage = "Title of the prompt window[-WindowTitle 'Title']")]
+            [string]$WindowTitle,
+        [Parameter(HelpMessage = "Prompt text shown above textbox and below title box[-Message 'Strings']")]
+            [string]$Message,
+        [Parameter(HelpMessage = "InboxType (str|1: Default MultiLine Input Dialog; dnd|2:Drag & Drop MultiLine Path Input Dialog)[-InboxType txt]")]
+            [ValidateSet("1","2","txt","dnd")]
+            [string]$InboxType="txt",
+        [Parameter(HelpMessage = "Default textbox font size[-FontSize 12]")] 
+            [int]$FontSize=12, 
+        [Parameter(HelpMessage = "ReturnType (str|1:Return a multi-line string of items, empty lines are scrubbed; ary|2:Return an array of items, empty array items are scrubbed)[-ReturnType str]")]
+            [ValidateSet("1","2","str","ary")]
+            [string]$ReturnType="str", 
+        [Parameter(HelpMessage = "ShowDebug[-ShowDebug `$true]")]
+            [switch]$ShowDebug=$false, 
+        [Parameter(HelpMessage = "Escapes square brackes (\``[, \``]) to permit cmdlets that won't accomodate path '[]' chars, to function[-FixSquareBrkts `$true]")]
+            [switch]$FixSquareBrkts
+    )
+    $Verbose = ($VerbosePreference -eq 'Continue') ; 
+    #「@Daniel Schroeder」
+    $DebugPreference = 'Continue'
+    if (($host.name -match 'consolehost')) {
+        if ($ShowDebug -eq $true) {Write-Debug "Running inside PowerShell Console, using resolution data from GWMI"}
+        $oWidth  = gwmi win32_videocontroller | select-object CurrentHorizontalResolution -first 1
+        $oHeight = gwmi win32_videocontroller | select-object CurrentVerticalResolution -first 1
+        [int]$mWidth  = [Convert]::ToInt32($oWidth.CurrentHorizontalResolution)
+        [int]$mHeight = [Convert]::ToInt32($oHeight.CurrentVerticalResolution)
+        #Write-Debug "$mWidth x $mHeight"
+    } else {
+        if ($ShowDebug -eq $true) {Write-Debug "Running inside PowerShell ISE, using resolution data from SysInfo"}
+        [int]$mWidth  = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.Width
+        [int]$mHeight = [System.Windows.Forms.SystemInformation]::PrimaryMonitorSize.Height
+    }
+
+    $assy = [System.AppDomain]::CurrentDomain.GetAssemblies(); 
+    if($assy | ?{$_.ManifestModule -like 'System.Drawing*'}){} else { 
+        Add-Type -AssemblyName System.Drawing
+    } ; 
+    if($assy | ?{$_.ManifestModule -like 'System.Windows.Forms*'}){} else { 
+        Add-Type -AssemblyName System.Windows.Forms
+    } ; 
+
+    #Converting from monitor resolution: position of window label text
+    [int]$LBStartX = [math]::Round($mWidth /192)
+    [int]$LBStartY = [math]::Round($mHeight/108)
+    [int]$LblSizeX = [math]::Round($mWidth /19)
+    [int]$LblSizeY = [math]::Round($mHeight/54)
+    #Label text under the GUI title, with content from $Message
+    $label = New-Object System.Windows.Forms.Label -Property @{
+        AutoSize = $true
+        Text     = $Message
+        Location = New-Object System.Drawing.Size($LBStartX,$LBStartY) #Label text starting position
+        Size     = New-Object System.Drawing.Size($LblSizeX,$LblSizeY) #Label text box size
+    }
+    #Converting from monitor resolution: position & size of input textbox & listbox
+    [int]$LBStartX = [int]$TBStartX = [math]::Round($mWidth /192)
+    [int]$LBStartY = [int]$TBStartY = [math]::Round($mHeight/27)
+    [int]$TblSizeX = [math]::Round($mWidth /3.728)
+    [int]$LblSizeX = [math]::Round($mWidth /3.792)
+    [int]$LblSizeY = [int]$TblSizeY = [math]::Round($mHeight/2.6)
+    if (($host.name -match 'consolehost')) {$TblSizeX-=3; $LblSizeX-=3} #Compensate width rendering difference in PowerShell Console
+    
+    #Drawing textbox 1 / listbox 2
+    if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {
+        $textBox          = New-Object System.Windows.Forms.TextBox -Property @{
+            Location      = New-Object System.Drawing.Size($TBStartX,$TBStartY) #Draw starting postiton
+            Size          = New-Object System.Drawing.Size($TblSizeX,$TblSizeY) #Size of textbox
+            Font          = New-Object System.Drawing.Font((New-Object System.Windows.Forms.Form).font.Name,$FontSize)
+            AcceptsReturn = $true
+            AcceptsTab    = $false
+            Multiline     = $true
+            ScrollBars    = 'Both'
+            Text          = "" #Leave default text blank in order to check if user has typed / pasted nothing and (accidentally) clicks OK, which can mitigated userby Do-While loop checking and prevents a script startover of frustration
+        }
+    } elseif (($InboxType -eq "dnd") -or ($InboxType -eq "2")) {
+        $listBox = New-Object Windows.Forms.ListBox -Property @{
+            Location            = New-Object System.Drawing.Size($LBStartX,$LBStartY) #Draw starting postiton
+            Size                = New-Object System.Drawing.Size($LblSizeX,$LblSizeY) #Size of textbox
+            Font                = New-Object System.Drawing.Font((New-Object System.Windows.Forms.Form).font.Name,$FontSize)
+            Anchor              = ([System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right -bor [System.Windows.Forms.AnchorStyles]::Top)
+            AutoSize            = $true
+            IntegralHeight      = $false
+            AllowDrop           = $true
+            ScrollAlwaysVisible = $false
+        }
+        #Create Drag-&-Drop events with effects to actually get the GUI working, not the copy-to-CLI side
+        $listBox_DragOver = [System.Windows.Forms.DragEventHandler]{
+	        if ($_.Data.GetDataPresent([Windows.Forms.DataFormats]::FileDrop)) {$_.Effect = 'Copy'}                       #$_=[System.Windows.Forms.DragEventArgs]
+	        else                                                               {$_.Effect = 'None'}
+        }
+        $listBox_DragDrop = [System.Windows.Forms.DragEventHandler]{
+	        foreach ($filename in $_.Data.GetData([Windows.Forms.DataFormats]::FileDrop)) {$listBox.Items.Add($filename)} #$_=[System.Windows.Forms.DragEventArgs]
+        }
+        #Create "Delete" keydown event to delete selected items in listBox mode
+        $listBox.Add_KeyDown({
+            if (($PSItem.KeyCode -eq "Delete") -and ($listBox.Items.Count -gt 0)) {$listBox.Items.Remove($listBox.SelectedItems[0])}
+        })
+    }
+    #Converting from monitor resolution: OK button's starting position & size
+    [int]$OKStartX = [math]::Round($mWidth /4.7)
+    [int]$OKStartY = [math]::Round($mHeight/108)
+    [int]$OKbSizeX = [math]::Round($mWidth /34.92)
+    [int]$OKbSizeY = [math]::Round($mHeight/47)
+    if (($host.name -match 'consolehost')) {$OKStartX-=3} #Compensate width rendering difference in PowerShell Console
+    #Drawing the OK button
+    $okButton = New-Object System.Windows.Forms.Button -Property @{
+        Location     = New-Object System.Drawing.Size($OKStartX,$OKStartY) #OK button position
+        Size         = New-Object System.Drawing.Size($OKbSizeX,$OKbSizeY) #OK button size
+        DialogResult = [System.Windows.Forms.DialogResult]::OK
+        Text         = "OK"
+    }
+    if     (($InboxType -eq "txt") -or ($InboxType -eq "1")) {$okButton.Add_Click({$form.Tag = $textBox.Text;  $form.Close()})}
+    elseif (($InboxType -eq "dnd") -or ($InboxType -eq "2")) {$okButton.Add_Click({$form.Tag = $listBox.Items; $form.Close()})}
+
+    #Converting from monitor resolution: Cancel button's starting position
+    [int]$ClStartX = [math]::Round($mWidth /4.08)
+    [int]$ClStartY = $OKStartY #Same Height as the OK button
+    [int]$ClbSizeX = $OKbSizeX #Same size as the OK button
+    [int]$ClbSizeY = $OKbSizeY #Same size as the OK button
+    if (($host.name -match 'consolehost')) {$ClStartX-=3} #Compensate width rendering difference in PowerShell Console
+    #Drawing the Cancel / Clear button
+    $cancelButton = New-Object System.Windows.Forms.Button -Property @{
+        Location     = New-Object System.Drawing.Size($ClStartX,$ClStartY)
+        Size         = New-Object System.Drawing.Size($ClbSizeX,$ClbSizeY)
+        Text         = "Cancel"
+        DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    }
+    $cancelButton.Add_Click({$form.Tag = $null; Try{$listBox.Items.Clear()}Catch [Exception]{}; $form.Close()})
+
+    #Converting from monitor resolution: size of the prompt/form window
+    [int]$formSizeX = [math]::Round($mWidth /3.56)
+    [int]$formSizeY = [math]::Round($mHeight/2.18)
+    if (($host.name -match 'consolehost')) {$formSizeX+=2} #Compensate width rendering difference in PowerShell Console
+    #Draw the form window
+    $form = New-Object System.Windows.Forms.Form -Property @{
+        Text = $WindowTitle
+        Size = New-Object System.Drawing.Size($formSizeX,$formSizeY) #Form window size
+        FormBorderStyle = 'FixedSingle'
+        StartPosition = 'CenterScreen'
+        AutoSizeMode = 'GrowAndShrink'
+        Topmost = $false
+        AcceptButton = $okButton
+        CancelButton = $cancelButton
+        ShowInTaskbar = $true
+    }
+    #Add control elements to the prompt/form window
+    $form.Controls.Add($label); $form.Controls.Add($okButton); $form.Controls.Add($cancelButton)
+    if     ($InboxType -match "txt|1") {
+        if ($ShowDebug -eq $true) {Write-Debug "! Mode == MultiLine textBox Form"}
+        $form.Controls.Add($textBox)
+    } elseif ($InboxType -match "dnd|2") {
+        if ($ShowDebug -eq $true) {Write-Debug "! Mode == Drag&Drop listBox From"}
+        $form.Controls.Add($listBox)
+        #Add form Closing events for drag-&-drop events only, basically to remove data from listBox
+        $form_FormClosed = {
+	        TRY {
+                $listBox.remove_Click($button_Click)
+		        $listBox.remove_DragOver($listBox_DragOver)
+		        $listBox.remove_DragDrop($listBox_DragDrop)
+                $listBox.remove_DragDrop($listBox_DragDrop)
+		        $form.remove_FormClosed($Form_Cleanup_FormClosed)
+	        }
+	        catch [Exception] {}
+        }
+        #Load Drag-&-Drop events into the form
+        $listBox.Add_DragOver($listBox_DragOver)
+        $listBox.Add_DragDrop($listBox_DragDrop)
+        $form.Add_FormClosed($form_FormClosed)
+    }
+    #Load Add_Shown event used by both textbox & drag-&-drop events into form
+    $form.Add_Shown({$form.Activate()})
+    #Load Key_Down event for closing with ESC button
+    $form.Add_KeyDown({
+        if ($PSItem.KeyCode -eq "Escape") {$cancelButton.PerformClick()}
+    })
+    #Normal prompting, user can proceed with $null return by clicking Cancel or ×, or empty string by clicking OK
+    $form.ShowDialog() | Out-Null #Supress "OK/Cancel" text from returned in Dialog
+
+    #An early-skip to prevent an empty listBox from not come with all of available methods
+    if     ( ($InboxType -match "txt|1") -and ($textBox.Text -eq "") )       {
+        if ($ReturnType -match "str|1") {return ""}
+        if ($ReturnType -match "ary|2") {return $null}
+    }elseif  ( ($InboxType -match "dnd|2") -and ($listBox.Items.Count -eq 0)) {
+        if ($ReturnType -match "str|1") {return ""}
+        if ($ReturnType -match "ary|2") {return $null}
+    }
+
+    #Scrub Empty lines & DialogResult (OK) from returning
+    if     ($FixSquareBrkts -eq $true) {
+        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()).replace('[','``[').replace(']','``]').replace('``][','``]``[') | 
+            where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+    }
+    elseif ($FixSquareBrkts -eq $false){
+        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | 
+            where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+    }
+
+    #Format result into multi-line string / array based on user definition
+    if     ($ReturnType -match "str|1") {return ($ScrbDiagRslt | Out-String).TrimEnd()} #String out, TrimEnd is very important as output would otherwise have an empty line in the end
+    elseif ($ReturnType -match "ary|2") {return  $ScrbDiagRslt }                        #Array out
+}
+
+#*------^ read-MultiLineInputDialogAdvanced.ps1 ^------
+
+
+#*------v Read-OpenFileDialog.ps1 v------
+function Read-OpenFileDialog {
+    <#
+    .SYNOPSIS
+    Read-OpenFileDialog - Show an Open File Dialog and return the file selected by the user.
+    .NOTES
+    Version     : 0.0.1
+    Author      : Daniel Schroeder
+    Website     : https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/
+    Twitter     : @deadlydog / https://twitter.com/deadlydog
+    CreatedDate : 2024-05-10
+    FileName    : Read-OpenFileDialog.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-Network
+    Tags        : Powershell,Input,Prompt
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS   :
+    * 4:45 PM 5/10/2024 add CBH; add param valid; pushed params into explicit block; added param Validation; shifted to OTB syntax; pretested type load; moved the examples into CBH 
+    * 5/2/2013 - Daniel Schroeder posted vers
+    .DESCRIPTION
+    Read-OpenFileDialog - Show an Open File Dialog and return the file selected by the user.
+    This is based on [a post the Scripting Guy made](http://blogs.technet.com/b/heyscriptingguy/archive/2009/09/01/hey-scripting-guy-september-1.aspx)
+    .PARAMETER WindowTitle
+    Title of the prompt window[-WindowTitle 'Title']
+    .PARAMETER InitialDirectory
+    Initial directory from which to browse[-InitialDirectory 'C:\']
+    .PARAMETER Filter
+    File filter[-Filter 'Text files (*.txt)|*.txt']
+    .PARAMETER AllowMultiSelect
+    Switch to permit selection of multiple files[-AllowMultiSelect]
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Object
+    .EXAMPLE
+    PS> $filePath = Read-OpenFileDialog -WindowTitle "Select Text File Example" -InitialDirectory 'C:\' -Filter "Text files (*.txt)|*.txt" ; 
+    PS> if (![string]::IsNullOrEmpty($filePath)) { Write-Host "You selected the file: $filePath" }
+    PS> else { "You did not select a file." } ; 
+    .LINK
+    https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/  
+    https://github.com/tostka/verb-IO
+    #>
+    # [Alias('gclr')]
+    [CmdletBinding()]
+    Param(
+        <#
+        [string]$InitialDirectory, 
+        [string]$Filter = "All files (*.*)|*.*", 
+        [switch]$AllowMultiSelect
+        #>
+        [Parameter(HelpMessage = "Title of the prompt window[-WindowTitle 'Title']")]
+            [string]$WindowTitle,
+        [Parameter(HelpMessage = "Initial directory from which to browse[-InitialDirectory 'C:\']")]
+            [ValidateScript({Test-Path $_ -PathType 'Container'})]
+            [string]$InitialDirectory, 
+        [Parameter(HelpMessage = "File filter[-Filter 'Text files (*.txt)|*.txt']")]
+            [string]$Filter = "All files (*.*)|*.*", 
+        [Parameter(HelpMessage = "Switch to permit selection of multiple files[-AllowMultiSelect]")]
+            [switch]$AllowMultiSelect
+    )
+    $assy = [System.AppDomain]::CurrentDomain.GetAssemblies(); 
+    if($assy | ?{$_.ManifestModule -like 'System.Windows.Forms*'}){} else { 
+        Add-Type -AssemblyName System.Windows.Forms
+    } ; 
+    $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog ; 
+    $openFileDialog.Title = $WindowTitle ; 
+    if (![string]::IsNullOrWhiteSpace($InitialDirectory)) { $openFileDialog.InitialDirectory = $InitialDirectory } ; 
+    $openFileDialog.Filter = $Filter ; 
+    if ($AllowMultiSelect) { $openFileDialog.MultiSelect = $true } ; 
+    $openFileDialog.ShowHelp = $true    # Without this line the ShowDialog() function may hang depending on system configuration and running from console vs. ISE.
+    $openFileDialog.ShowDialog() > $null ; 
+    if ($AllowMultiSelect) { return $openFileDialog.Filenames } else { return $openFileDialog.Filename }    
+}
+
+#*------^ Read-OpenFileDialog.ps1 ^------
+
+
+#*------v Read-PasswordInputBoxDialog.ps1 v------
+function Read-PasswordInputBoxDialog {
+    <#
+    .SYNOPSIS
+    Read-PasswordInputBoxDialog - Prompts the user with a secure Password input box and returns the entered string as a SecureString
+    .NOTES
+    Version     : 0.0.1
+    Author      : Iris K
+    Website     : https://techadviz.com/author/iriskim000/
+    Twitter     : 
+    CreatedDate : 2024-05-11
+    FileName    : Read-PasswordInputBoxDialog.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-Network
+    Tags        : Powershell,Input,Prompt
+    AddedCredit : Todd Kadrie
+    AddedWebsite: http://www.toddomation.com
+    AddedTwitter: @tostka / http://twitter.com/tostka
+    REVISIONS   :
+    * 4:14 PM 5/11/2024 Tweaked version of Iris K's original: Added CBH, converted to full func with defaulted input parameters ; 
+        added test & load missing Types; onclick close, conversion to [securestring], and return of the obj; try catch conversion, blank inputs before exit
+    * * 1/29/22 Iris K posted demo
+    .DESCRIPTION
+    Read-PasswordInputBoxDialog - Prompts the user with a secure Password input box and returns the entered string as a SecureString
+    .PARAMETER Message
+    The message to display to the user explaining what text we are asking them to enter.
+    .PARAMETER WindowTitle
+    The text to display on the prompt window's title.
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Object
+
+    .EXAMPLE
+    PS> $pw = Read-PasswordInputBoxDialog ; 
+    PS> $smsg = "$($pw.length) character Password entered" ; 
+    PS> $smsg += "`nPlainText: $([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pw)))" ;  
+    PS> write-host $smsg ; 
+    Demo obtaining password from user, returned as a securestring, and converting the SecureString back to plain text.
+    .LINK
+    https://techadviz.com/author/iriskim000/
+    https://github.com/tostka/verb-IO
+    #>
+    # [Alias('gclr')]
+    [CmdletBinding()]
+    Param(
+        [Parameter(HelpMessage = "Title of the prompt window (defaults to 'Validate')[-WindowTitle 'Title']")]
+            [string]$WindowTitle = 'Password request',
+        [Parameter(HelpMessage = "Prompt text shown above textbox and below title box[-Message 'Strings']")]
+            [string]$Message = 'Enter Password :'
+    )
+    $assy = [System.AppDomain]::CurrentDomain.GetAssemblies(); 
+    if($assy | ?{$_.ManifestModule -like 'System.Drawing*'}){} else { 
+        Add-Type -AssemblyName System.Drawing
+    } ; 
+    if($assy | ?{$_.ManifestModule -like 'System.Windows.Forms*'}){} else { 
+        Add-Type -AssemblyName System.Windows.Forms
+    } ; 
+    
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Point(50,50)
+    $label.Size = New-Object System.Drawing.Size(200,20)
+    $label.Text = $Message ; 
+
+    # Password Input
+    $password = New-Object Windows.Forms.MaskedTextBox
+    $password.Size = New-Object System.Drawing.Size(200,20)
+    $password.PasswordChar = '*'
+    $password.Top  = 50
+    $password.Left = 200
+
+    # OK Button
+    $OKButton = New-Object System.Windows.Forms.Button
+    $OKButton.Size = New-Object System.Drawing.Size(100,30)
+    $OKButton.Top  = 100
+    $OKButton.Left = 250
+    $OKButton.Text = 'OK'
+    $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $okButton.Add_Click({ $form.Tag = $password.Text; $form.Close() }) ; 
+    
+    # Create the form.
+    
+    $form = New-Object System.Windows.Forms.Form
+    # Title
+    $form.Text = $WindowTitle
+    $form.Size = New-Object System.Drawing.Size(500,200)
+    $form.StartPosition = 'CenterScreen'
+    $form.AutoSize = $true
+
+    # Add all of the controls to the form.
+    $form.Controls.Add($label)
+    $form.Controls.Add($password)
+    $form.AcceptButton = $OKButton
+    $form.Controls.Add($OKButton)
+
+
+    # Initialize and show the form.
+    #$form.Add_Shown({$form.Activate()}) ; 
+    #$form.ShowDialog() > $null  # Trash the text of the button that was clicked.
+
+    # Show Form
+    $form.Add_Shown({$form.Activate()}) ; 
+    $res = $form.ShowDialog()
+
+    if ($res -eq 'OK' -AND $form.Tag ){
+        TRY{ 
+            # convert entered masked text to [securestring], clear the plaintext entry fields, & return the securestring.
+            $SecurePassword = $form.Tag  | ConvertTo-SecureString -AsPlainText -Force -ErrorAction STOP ;
+            $password.text = $form.Tag = $null ; 
+            Write-Host "$($SecurePassword.length) character Password Entered"
+            #$Form.Tag can be used for validation logic
+            Return $SecurePassword
+        } CATCH {
+            $ErrTrapd=$Error[0] ;
+            $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+            write-warning $smsg ;
+        } ; 
+    } ; 
+}
+
+#*------^ Read-PasswordInputBoxDialog.ps1 ^------
+
+
 #*------v rebuild-PSTitleBar.ps1 v------
 Function rebuild-PSTitleBar {
     <#
@@ -10941,6 +12334,7 @@ Function rebuild-PSTitleBar {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Console
     REVISIONS
+    * 9:24 AM 7/11/2024 yanked $showdebug exemption; ISE won't work at all, just throws an error, only run in console host
     * 11:53 AM 7/26/2021 refactor for verbose/begin/proc/whatif etc
     * 10:15 AM 7/22/2021 init vers
     .DESCRIPTION
@@ -10967,7 +12361,8 @@ Function rebuild-PSTitleBar {
     } 
     PROCESS{
         #only use on console host; since ISE shares the WindowTitle across multiple tabs, this information is misleading in the ISE.
-        If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
+        #If ( $host.name -eq 'ConsoleHost' -OR ($showDebug)) {
+        If ( $host.name -eq 'ConsoleHost') { # no point in running in ISE even w $showdebug; just creates an error
             # doing it with rgx
             #if($host.ui.rawui.windowtitle -match '(PS|PSc)\s(ADMIN|Console)\s-\s(.*)\s-(.*)'){
             #     $conshost,$consrole,$consdom=$matches[1..3]; 
@@ -13337,6 +14732,365 @@ When the context includes a match, the MatchInfo object for each match includes 
 #*------^ Select-StringAll.ps1 ^------
 
 
+#*------v set-AuthenticodeSignatureTDO.ps1 v------
+function set-AuthenticodeSignatureTDO {
+    <#
+    .SYNOPSIS
+    set-AuthenticodeSignatureTDO - wrapper for Set-AuthenticodeSignature, adds an Authenticode signature to any file that supports Subject Interface Package (SIP). Discovers & validates usablility of installed local codesigning certificate in CU\my or LM\my
+    .NOTES
+    Version     : 1.0.0
+    Author: Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : set-AuthenticodeSignatureTDO.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Authenticode,Signature,CodeSigning,Developoment
+    REVISIONS   :
+    * 8:57 AM 8/22/2024 Make it ones fully tooled up solution for all code signing; ren to proper verb set-AuthenticodeSignatureTDO() -> set-AuthenticodeSignatureTDO set orig as alias; added call to new Test-CertificateTDO; add test Authenticode prior to signing; 
+    10:45 AM 10/14/2020 added cert hunting into cert:\LocalMachine\my -codesigning as well as currentuser
+    7:56 AM 6/19/2018 added -whatif & -showdebug params
+    10:46 AM 1/16/2015 corrected $oReg|$oRet typo that broke status attrib
+    10:20 AM 1/15/2015 rewrote into pipeline format
+    9:50 AM 1/15/2015 added a $f.name echo to see if it's doing anything
+    8:54 AM 1/8/2015 - added play-beep to end
+    10:01 AM 12/30/2014
+    .PARAMETER file
+    file name(s) to appl authenticode signature into.
+    .PARAMETER whatIf
+    Whatif Flag  [-whatIf]
+    .INPUTS
+    Accepts piped input (computername).
+    .OUTPUTS
+    Outputs CustomObject to pipeline
+    .DESCRIPTION
+    set-AuthenticodeSignatureTDO - wrapper for Set-AuthenticodeSignature, adds an Authenticode signature to any file that supports Subject Interface Package (SIP). Discovers & validates usablility of installed local codesigning certificate in CU\my or LM\my
+    .EXAMPLE
+    PS> $rgxfiles='\.(CAT|MSI|JAR,OCX|PS1|PSM1|PSD1|PS1XML|PSC1|MSP|CMD|BAT|VBS)`$' ;
+    PS> $files = gci c:\pathto* -recur |?{`$_.extension -match `$rgxfiles}  ;
+    PS> verb-IO\set-AuthenticodeSignatureTDO -file `$files.fullname ;
+    Sign signable file types extentions in checked tree
+    .EXAMPLE
+    PS> get-childitem *.ps1,*.psm1,*.psd1,*.psd1,*.ps1xml | Get-AuthenticodeSignature | Where {!(Test-AuthenticodeSignature $_ -Valid)} | gci | Set-AuthenticodeSignature
+    Set sigs on all ps files with invalid sigs (for ps, it's: ps1, psm1, psd1, dll, exe, and ps1xml files)
+    .EXAMPLE
+    PS> set-AuthenticodeSignatureTDO C:\usr\work\lync\scripts\*-luser.ps1
+    .EXAMPLE
+    PS> get-childitem C:\usr\work\lync\scripts\*-luser.ps1 | %{set-AuthenticodeSignatureTDO $_}
+    .EXAMPLE
+    PS> get-childitem c:\usr\local\bin\*.ps1 | set-AuthenticodeSignatureTDO ; 
+    Pipeline demo
+    #>
+    [CmdletBinding()]
+    [Alias('sign-file')]
+    Param(
+        [Parameter(Mandatory = $True, ValueFromPipeline = $True, HelpMessage = 'What file(s) would you like to sign?')]
+            [system.io.fileinfo[]]$file, 
+        [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
+            [switch] $whatIf
+    ) ;
+    # alt: the simplest option:
+    # $cert = @(get-childitem cert:\currentuser\my -codesigning)[0] ; Set-AuthenticodeSignature -filepath c:\usr\work\ps\scripts\authenticate-profile.ps1 -Certificate $cert
+    BEGIN {
+        if(-not(get-command Test-CertificateTDO)){
+            #*------v Function test-CertificateTDO v------
+            function test-CertificateTDO {
+                <#
+                .SYNOPSIS
+                test-CertificateTDO -  Tests specified certificate for certificate chain and revocation
+                .NOTES
+                Version     : 0.63
+                Author      : Vadims Podans
+                Website     : http://www.sysadmins.lv/
+                Twitter     : 
+                CreatedDate : 2024-08-22
+                FileName    : test-CertificateTDO.ps1
+                License     : (none asserted)
+                Copyright   : Vadims Podans (c) 2009
+                Github      : https://github.com/tostka/verb-IO
+                Tags        : Powershell,FileSystem,File,Lock
+                AddedCredit : Todd Kadrie
+                AddedWebsite: http://www.toddomation.com
+                AddedTwitter: @tostka / http://twitter.com/tostka
+                REVISIONS
+                * 2:29 PM 8/22/2024 fixed process looping (lacked foreach); added to verb-Network; retoololed to return a testable summary report object (summarizes Subject,Issuer,Not* dates,thumbprint,Usage (FriendlyName),isSelfSigned,Status,isValid,and the full TrustChain); 
+                    added param valid on [ValidateSet, CRLMode, CRLFlag, VerificationFlags ; updated CBH; added support for .p12 files (OpenSSL pfx variant ext), rewrite to return a status object
+                * 9:34 AM 8/22/2024 Vadims Podans posted poshcode.org copy from web.archive.org, grabbed 11/2016 (orig dates from 2009, undated beyond copyright line)
+                .DESCRIPTION
+                test-CertificateTDO -  Tests specified certificate for certificate chain and revocation status for each certificate in chain
+                    exluding Root certificates
+    
+                    Based on Vadim Podan's 2009-era Test-Certificate function, expanded/reworked to return a testable summary report object (summarizes Subject,Issuer,NotBefore|After dates,thumbprint,Usage(FriendlyName),isSelfSigned,Status,isValid
+
+
+                    ## Note:Powershell v4+ includes a native Test-Certificate cmdlet that returns a boolean, and supports -DNSName to test a given fqdn against the CN/SANs list on the certificate. 
+                    Limitations of that alternate, for non-public certs, include that it lacks the ability to suppress CRL-testing to evaluate *private/internal-CA-issued certs, which lack a publcly resolvable CRL url. 
+                    Those certs, will always fail the bundled Certificate Revocation List checks. 
+
+                    This code does not have that issue: test-CertificateTDO used with -CRLMode NoCheck & -CRLFlag EntireChain validates a given internal Cert is...
+                    - in daterange, 
+                    - and has a locally trusted chain, 
+                    ...where psv4+ test-certificate will always fail a non-CRL-accessible cert.
+
+                    ### Examples of use of that cmdlet:
+    
+                    Demo 1:
+
+                    PS C:\>Get-ChildItem -Path Cert:\localMachine\My | Test-Certificate -Policy SSL -DNSName "dns=contoso.com"
+
+                    This example verifies each certificate in the MY store of the local machine and verifies that it is valid for SSL
+                    with the DNS name specified.
+
+
+                    Demo 2:
+
+                    PS C:\>Test-Certificate –Cert cert:\currentuser\my\191c46f680f08a9e6ef3f6783140f60a979c7d3b -AllowUntrustedRoot
+                    -EKU "1.3.6.1.5.5.7.3.1" –User
+
+                    This example verifies that the provided EKU is valid for the specified certificate and its chain. Revocation
+                    checking is not performed.
+        
+                .PARAMETER Certificate
+                Specifies the certificate to test certificate chain. This parameter may accept X509Certificate, X509Certificate2 objects or physical file path. this paramter accept pipeline input
+                .PARAMETER Password
+                Specifies PFX file password. Password must be passed as SecureString.
+                .PARAMETER CRLMode
+                Sets revocation check mode. May contain on of the following values:
+       
+                    - Online - perform revocation check downloading CRL from CDP extension ignoring cached CRLs. Default value
+                    - Offline - perform revocation check using cached CRLs if they are already downloaded
+                    - NoCheck - specified certificate will not checked for revocation status (not recommended)
+                .PARAMETER CRLFlag
+                Sets revocation flags for chain elements. May contain one of the following values:
+       
+                    - ExcludeRoot - perform revocation check for each certificate in chain exluding root. Default value
+                    - EntireChain - perform revocation check for each certificate in chain including root. (not recommended)
+                    - EndCertificateOnly - perform revocation check for specified certificate only.
+                .PARAMETER VerificationFlags
+                Sets verification checks that will bypassed performed during certificate chaining engine
+                check. You may specify one of the following values:
+       
+                - NoFlag - No flags pertaining to verification are included (default).
+                - IgnoreNotTimeValid - Ignore certificates in the chain that are not valid either because they have expired or they are not yet in effect when determining certificate validity.
+                - IgnoreCtlNotTimeValid - Ignore that the certificate trust list (CTL) is not valid, for reasons such as the CTL has expired, when determining certificate verification.
+                - IgnoreNotTimeNested - Ignore that the CA (certificate authority) certificate and the issued certificate have validity periods that are not nested when verifying the certificate. For example, the CA cert can be valid from January 1 to December 1 and the issued certificate from January 2 to December 2, which would mean the validity periods are not nested.
+                - IgnoreInvalidBasicConstraints - Ignore that the basic constraints are not valid when determining certificate verification.
+                - AllowUnknownCertificateAuthority - Ignore that the chain cannot be verified due to an unknown certificate authority (CA).
+                - IgnoreWrongUsage - Ignore that the certificate was not issued for the current use when determining certificate verification.
+                - IgnoreInvalidName - Ignore that the certificate has an invalid name when determining certificate verification.
+                - IgnoreInvalidPolicy - Ignore that the certificate has invalid policy when determining certificate verification.
+                - IgnoreEndRevocationUnknown - Ignore that the end certificate (the user certificate) revocation is unknown when determining     certificate verification.
+                - IgnoreCtlSignerRevocationUnknown - Ignore that the certificate trust list (CTL) signer revocation is unknown when determining certificate verification.
+                - IgnoreCertificateAuthorityRevocationUnknown - Ignore that the certificate authority revocation is unknown when determining certificate verification.
+                - IgnoreRootRevocationUnknown - Ignore that the root revocation is unknown when determining certificate verification.
+                - AllFlags - All flags pertaining to verification are included.   
+                .INPUTS
+                None. Does not accepted piped input.
+                .OUTPUTS
+                This script return general info about certificate chain status 
+                .EXAMPLE
+                PS> Get-ChilItem cert:\CurrentUser\My | test-CertificateTDO -CRLMode "NoCheck"
+                Will check certificate chain for each certificate in current user Personal container.
+                Specifies certificates will not be checked for revocation status.
+                .EXAMPLE
+                PS> $output = test-CertificateTDO C:\Certs\certificate.cer -CRLFlag "EndCertificateOnly"
+                Will check certificate chain for certificate that is located in C:\Certs and named
+                as Certificate.cer and revocation checking will be performed for specified certificate oject
+                .EXAMPLE
+                PS> $output = gci Cert:\CurrentUser\My -CodeSigningCert | Test-CertificateTDO -CRLMode NoCheck -CRLFlag EntireChain -verbose ;
+                Demo Self-signed codesigning tests from CU\My, skips CRL revocation checks (which self-signed wouldn't have); validates that the entire chain is trusted.
+                .EXAMPLE
+                PS> if( gci Cert:\CurrentUser\My -CodeSigningCert | Test-CertificateTDO -CRLMode NoCheck -CRLFlag EntireChain |  ?{$_.valid -AND $_.Usage -contains 'Code Signing'} ){
+                PS>         write-host "A-OK for code signing!"
+                PS> } else { write-warning 'Bad Cert for code signing!'} ; 
+                Demo conditional branching on basis of output valid value.
+                .LINK
+                https://web.archive.org/web/20160715110022/poshcode.org/1633
+                .LINK
+                https://github.com/tostka/verb-io
+                #>
+                [CmdletBinding()]
+                [Alias('rol','restart-Outlook')]
+                PARAM(
+                    #[Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Path to file[-path 'c:\pathto\file.txt']")]
+                    #[Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0,HelpMessage="Specifies the certificate to test certificate chain. This parameter may accept X509Certificate, X509Certificate2 objects or physical file path. this paramter accept pipeline input)"]
+                    [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Specifies the certificate to test certificate chain. This parameter may accept X509Certificate, X509Certificate2 objects or physical file path. this paramter accepts pipeline input")]
+                        $Certificate,
+                    [Parameter(HelpMessage="Specifies PFX|P12 file password. Password must be passed as SecureString.")]
+                        [System.Security.SecureString]$Password,
+                    [Parameter(HelpMessage="Sets revocation check mode (Online|Offline|NoCheck)")]
+                        [ValidateSet('Online','Offline','NoCheck')]
+                        [System.Security.Cryptography.X509Certificates.X509RevocationMode]$CRLMode = "Online",
+                    [Parameter(HelpMessage="Sets revocation flags for chain elements ('ExcludeRoot|EntireChain|EndCertificateOnly')")]
+                        [ValidateSet('ExcludeRoot','EntireChain','EndCertificateOnly')]
+                        [System.Security.Cryptography.X509Certificates.X509RevocationFlag]$CRLFlag = "ExcludeRoot",
+                    [Parameter(HelpMessage="Sets verification checks that will bypassed performed during certificate chaining engine check (NoFlag|IgnoreNotTimeValid|IgnoreCtlNotTimeValid|IgnoreNotTimeNested|IgnoreInvalidBasicConstraints|AllowUnknownCertificateAuthority|IgnoreWrongUsage|IgnoreInvalidName|IgnoreInvalidPolicy|IgnoreEndRevocationUnknown|IgnoreCtlSignerRevocationUnknown|IgnoreCertificateAuthorityRevocationUnknown|IgnoreRootRevocationUnknown|AllFlags)")]
+                        [validateset('NoFlag','IgnoreNotTimeValid','IgnoreCtlNotTimeValid','IgnoreNotTimeNested','IgnoreInvalidBasicConstraints','AllowUnknownCertificateAuthority','IgnoreWrongUsage','IgnoreInvalidName','IgnoreInvalidPolicy','IgnoreEndRevocationUnknown','IgnoreCtlSignerRevocationUnknown','IgnoreCertificateAuthorityRevocationUnknown','IgnoreRootRevocationUnknown','AllFlags')]
+                        [System.Security.Cryptography.X509Certificates.X509VerificationFlags]$VerificationFlags = "NoFlag"
+                ) ;
+                BEGIN { 
+                    $Verbose = ($VerbosePreference -eq 'Continue') 
+                    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 ; 
+                    $chain = New-Object System.Security.Cryptography.X509Certificates.X509Chain ; 
+                    $chain.ChainPolicy.RevocationFlag = $CRLFlag ; 
+                    $chain.ChainPolicy.RevocationMode = $CRLMode ; 
+                    $chain.ChainPolicy.VerificationFlags = $VerificationFlags ; 
+                    #*------v Function _getstatus_ v------
+                    function _getstatus_ ($status, $chain, $cert){
+                        # add a returnable output object
+                        if($host.version.major -ge 3){$oReport=[ordered]@{Dummy = $null ;} }
+                        else {$oReport=@{Dummy = $null ;}} ;
+                        If($oReport.Contains("Dummy")){$oReport.remove("Dummy")} ;
+                        $oReport.add('Subject',$cert.Subject); 
+                        $oReport.add('Issuer',$cert.Issuer); 
+                        $oReport.add('NotBefore',$cert.NotBefore); 
+                        $oReport.add('NotAfter',$cert.NotAfter);
+                        $oReport.add('Thumbprint',$cert.Thumbprint); 
+                        $oReport.add('Usage',$cert.EnhancedKeyUsageList.FriendlyName) ; 
+                        $oReport.add('isSelfSigned',$false) ; 
+                        $oReport.add('Status',$status); 
+                        $oReport.add('Valid',$false); 
+                        if($cert.Issuer -eq $cert.Subject){
+                            $oReport.SelfSigned = $true ;
+                            write-host -foregroundcolor yellow "NOTE⚠️:Current certificate $($cert.SerialNumber) APPEARS TO BE *SELF-SIGNED* (SUBJECT==ISSUER)" ; 
+                        } ; 
+                        # Return the list of certificates in the chain (the root will be the last one)
+                        $oReport.add('TrustChain',($chain.ChainElements | ForEach-Object {$_.Certificate})) ; 
+                        write-verbose "Certificate Trust Chain`n$(($chain.ChainElements | ForEach-Object {$_.Certificate}|out-string).trim())" ; 
+                        if ($status) {
+                            $smsg = "Current certificate $($cert.SerialNumber) chain and revocation status is valid" ; 
+                            if($CRLMode -eq 'NoCheck'){
+                                $smsg += "`n(NOTE:-CRLMode:'NoCheck', no Certificate Revocation Check performed)" ; 
+                            } ; 
+                            write-host -foregroundcolor green $smsg;
+                            $oReport.valid = $true ; 
+                        } else {
+                            Write-Warning "Current certificate $($cert.SerialNumber) chain is invalid due of the following errors:" ; 
+                            $chain.ChainStatus | foreach-object{Write-Host $_.StatusInformation.trim() -ForegroundColor Red} ; 
+                            $oReport.valid = $false ; 
+                        } ; 
+                        New-Object PSObject -Property $oReport | write-output ;
+                    } ; 
+                    #*------^ END Function _getstatus_ ^------
+                } ;
+                PROCESS {
+                    foreach($item in $Certificate){
+                        if ($item -is [System.Security.Cryptography.X509Certificates.X509Certificate2]) {
+                            $status = $chain.Build($item)   ; 
+                            $report = _getstatus_ $status $chain $item   ; 
+                            return $report ;
+                        } else {
+                            if (!(Test-Path $item)) {
+                                Write-Warning "Specified path is invalid" #return
+                                $valid = $false ; 
+                                return $false ; 
+                            } else {
+                                if ((Resolve-Path $item).Provider.Name -ne "FileSystem") {
+                                    Write-Warning "Spicifed path is not recognized as filesystem path. Try again" ; #return   ; 
+                                    return $false ; 
+                                } else {
+                                    $item = get-item $(Resolve-Path $item)   ; 
+                                    switch -regex ($item.Extension) {
+                                        "\.CER|\.DER|\.CRT" {$cert.Import($item.FullName)}  
+                                        "\.PFX|\.P12" {
+                                                if (!$Password) {$Password = Read-Host "Enter password for PFX file $($item)" -AsSecureString}
+                                                        $cert.Import($item.FullName, $password, "UserKeySet")  ;  
+                                        }  
+                                        "\.P7B|\.SST" {
+                                                $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection ; 
+                                                $cert.Import([System.IO.File]::ReadAllBytes($item.FullName))   ; 
+                                        }  
+                                        default {
+                                            Write-Warning "Looks like your specified file is not a certificate file" #return
+                                            return $false ; 
+                                        }  
+                                    }  
+                                    $cert | foreach-object{
+                                            $status = $chain.Build($_)  
+                                            $report = _getstatus_ $status $chain $_   ; 
+                                            return $report ;
+                                    }  
+                                    $cert.Reset()  
+                                    $chain.Reset()  
+                                } ; 
+                            } ; 
+                        }   ; 
+                    } ;  # loop-E $Certificate
+                } ;  # PROC-E
+                END {} ; 
+            } ; 
+            #*------^ END Function test-CertificateTDO ^------
+        } ;         
+        $error.clear() ;
+        TRY {
+            if($cert = @(get-childitem cert:\currentuser\my -codesigning -ea 0 )[0]){
+                write-verbose "found matching -codesigning CU\My cert:`n$(($cert|out-string).trim())" ; 
+            } elseif($cert = @(get-childitem cert:\LocalMachine\my -codesigning -ea 0 )[0]){
+                write-verbose "found -codesigning  matching LM\My cert:`n$(($cert|out-string).trim())" ; 
+            } else { 
+                throw "Unable to locate a Signing Cert in either`ncert:\currentuser\my -codesigning`nor cert:\LocalMachine\my -codesigning. ABORTING!" ; 
+            } 
+            # if( gci Cert:\CurrentUser\My -CodeSigningCert | Test-CertificateTDO -CRLMode NoCheck -CRLFlag EntireChain |  ?{$_.valid -AND $_.Usage -contains 'Code Signing'} ){
+            # Signing cert currently used is a locally-signed private cert, which won't pass public CRL checks, so we suppress the CRL check, but have the full chain validated
+            $pltTCT=[ordered]@{
+                Certificate = $cert ;
+                CRLMode = 'NoCheck' ;
+                CRLFlag = 'EntireChain' ;
+            } ;
+            $smsg = "test-CertificateTDO w`n$(($pltTCT|out-string).trim())" ; 
+            write-verbose $smsg ; 
+            if($bRet = test-CertificateTDO @pltTCT |  ?{$_.valid -AND $_.Usage -contains 'Code Signing'} ){
+                write-verbose "Certificate...`n`n$(($bret.TrustChain | %{$_| ft -a subject,notbefore,notafter,issuer}|out-string).trim())`n`n... is valid for CodeSigning" ; 
+            } else { 
+                $smsg = "Unable to locate a usable -codesigning certificate in either CU\My or LM\My! ABORTING!" ; 
+                write-warning $smsg ; 
+                throw $smsg ;
+                break ; 
+            } ; 
+        } CATCH {
+            Write-Warning "$(get-date -format 'HH:mm:ss'): Failed processing $($_.Exception.ItemName). `nError Message: $($_.Exception.Message)`nError Details: $($_)" ;
+            Exit #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
+        } ; 
+
+        # check if using Pipeline input or explicit params:
+        if ($rPSCmdlet.MyInvocation.ExpectingInput) {
+            $smsg = "Data received from pipeline input: '$($InputObject)'" ;
+            if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+            else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+        } else {
+            # doesn't actually return an obj in the echo
+            #$smsg = "Data received from parameter input: '$($InputObject)'" ;
+            #if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+            #else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+        } ;
+    }  # BEG-E
+    PROCESS {
+        foreach ($f in $file) {
+            #$continue = $true
+            $oRet = $null ; 
+            TRY {
+                if (-not ((Get-AuthenticodeSignature -FilePath $f.fullname).status -eq 'Valid') ){
+                    $oRet = Set-AuthenticodeSignature -filepath $f -Certificate $cert -whatif:$($whatif) ;
+                }else{
+                    write-host "($($f.fullname) has a valid existing AuthenticodeSignature, skipping)" ; 
+                } ; 
+            }CATCH {
+                Write "$((get-date).ToString('HH:mm:ss')): Error Details: $($_)"
+            } # try/cat-E
+            if ($oRet) {
+                #write-verbose "returning updated Sig to pipeline" ; 
+                #Write-Output $oRet
+                write-host "`n$(($oRet|ft -a |out-string).trim())" ; 
+            } 
+        } # loop-E
+    } # Proc-E
+}
+
+#*------^ set-AuthenticodeSignatureTDO.ps1 ^------
+
+
 #*------v set-ConsoleColors.ps1 v------
 Function set-ConsoleColors {
     <#
@@ -14572,108 +16326,60 @@ function Show-MsgBox {
 #*------^ Show-MsgBox.ps1 ^------
 
 
-#*------v Sign-File.ps1 v------
-function Sign-File {
+#*------v Start-SleepCountdown.ps1 v------
+function Start-SleepCountdown {
     <#
     .SYNOPSIS
-    Sign-File - adds an Authenticode signature to any file that supports Subject Interface Package (SIP).
+    Start-SleepCountdown - Countdown variant of start-sleep: Counts down seconds to finish.
     .NOTES
     Version     : 1.0.0
-    Author: Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
-    FileName    : 
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-12-12
+    FileName    : Start-SleepCountdown.ps1
     License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
-    Tags        : Powershell,Certificate,Developoment
-    REVISIONS   :
-    10:45 AM 10/14/2020 added cert hunting into cert:\LocalMachine\my -codesigning as well as currentuser
-    7:56 AM 6/19/2018 added -whatif & -showdebug params
-    10:46 AM 1/16/2015 corrected $oReg|$oRet typo that broke status attrib
-    10:20 AM 1/15/2015 rewrote into pipeline format
-    9:50 AM 1/15/2015 added a $f.name echo to see if it's doing anything
-    8:54 AM 1/8/2015 - added play-beep to end
-    10:01 AM 12/30/2014
-    .PARAMETER file
-    file name(s) to appl authenticode signature into.
-    .PARAMETER cert
-    The path and filename of a text file where failed computers will be logged. Defaults to c:\retries.txt.
-    .INPUTS
-    Accepts piped input (computername).
-    .OUTPUTS
-    Outputs CustomObject to pipeline
+    Copyright   : (c) 2024 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell,Time
+    REVISION
+    * 1:19 PM 12/14/2023 init
     .DESCRIPTION
-    Sign-File - adds an Authenticode signature to any file that supports Subject Interface Package (SIP).
+    Start-SleepCountdown - Countdown variant of start-sleep: Counts down seconds to finish.
+    
+    Though there's not a lot of point, if you pipeline in an integer array, it will run a pass for each value.
+    
+    .PARAMETER Seconds
+    Specifies how long the resource sleeps in seconds. You can omit the parameter name ( Seconds ), or you can abbreviate it as s
+    .INPUTS
+    Accepts pipeline input
+    .OUTPUTS
+    No output.
     .EXAMPLE
-      get-childitem *.ps1,*.psm1,*.psd1,*.psd1,*.ps1xml | Get-AuthenticodeSignature | Where {!(Test-AuthenticodeSignature $_ -Valid)} | gci | Set-AuthenticodeSignature
-      Set sigs on all ps files with invalid sigs (for ps, it's: ps1, psm1, psd1, dll, exe, and ps1xml files)
-    .EXAMPLE
-    Get-ADComputer -filter * | Select @{label='computername';expression={$_.name}} | Get-Info
-    .EXAMPLE
-    Get-Info -computername SERVER2,SERVER3
-    .EXAMPLE
-    sign-file C:\usr\work\lync\scripts\enable-luser.ps1
-    .EXAMPLE
-    sign-file C:\usr\work\lync\scripts\*-luser.ps1
-    .EXAMPLE
-    get-childitem C:\usr\work\lync\scripts\*-luser.ps1 | %{sign-file $_}
-    .EXAMPLE
-    get-childitem c:\usr\local\bin\*.ps1 | sign-file
+    PS> '5' | Start-SleepCountdown ;
+    
+        Waiting 5 seconds...
+        START[.5.4.3.2.1]DONE
+    
+    Wait 5 seconds with a countdown in seconds
+    .LINK
+    https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelinebyPropertyName = $True, HelpMessage = 'What file(s) would you like to sign?')]
-        $file,
-        [Parameter(HelpMessage = "Debugging Flag [-showDebug]")]
-        [switch] $showDebug,
-        [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
-        [switch] $whatIf
-    ) ;
-    # alt: the simplest option:
-    # $cert = @(get-childitem cert:\currentuser\my -codesigning)[0] ; Set-AuthenticodeSignature -filepath c:\usr\work\ps\scripts\authenticate-profile.ps1 -Certificate $cert
-    BEGIN {
-        $error.clear() ;
-        TRY {
-            if($cert = @(get-childitem cert:\currentuser\my -codesigning -ea 0 )[0]){
-            
-            } elseif($cert = @(get-childitem cert:\LocalMachine\my -codesigning -ea 0 )[0]){
-            
-            } else { 
-                throw "Unable to locate a Signing Cert in either`ncert:\currentuser\my -codesigning`nor cert:\LocalMachine\my -codesigning. ABORTING!" ; 
-            } 
-        } CATCH {
-            Write-Warning "$(get-date -format 'HH:mm:ss'): Failed processing $($_.Exception.ItemName). `nError Message: $($_.Exception.Message)`nError Details: $($_)" ;
-            Exit #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
-        } ; 
-    }  # BEG-E
-    PROCESS {
-        foreach ($f in $file) {
-            $continue = $true
-            try {
-                #$f.name
-                $oRet = Set-AuthenticodeSignature -filepath $f -Certificate $cert -whatif:$($whatif) ;
-            }
-            catch {
-                Write "$((get-date).ToString('HH:mm:ss')): Error Details: $($_)"
-            } # try/cat-E
-            if ($continue) {
-                $sig = Get-AuthenticodeSignature -filepath $f
-                # create a hashtable with your output info
-                $info = @{
-                    'file'       = $oRet.Path;
-                    'Thumbprint' = $oRet.SignerCertificate.Thumbprint;
-                    'Subject'    = $oRet.SignerCertificate.Subject;
-                    'status'     = $oRet.Status.Status
-                } ;
-                Write-Output $oRet
-            } 
-        } # loop-E
-    } # Proc-E
+    PARAM([Parameter(Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Specifies how long the resource sleeps in seconds. You can omit the parameter name ( Seconds ), or you can abbreviate it as s")]
+        [Alias('s')]
+        [System.Int32]$Seconds) ;
+    PROCESS{
+        $smsg +="`nWaiting $($Seconds) seconds...`nSTART[" ; 
+        write-host -foregroundcolor yellow -NoNewline $smsg ;
+        $a=1 ; 
+        Do {write-host -NoNewline ".$($Seconds)" ; start-sleep -Seconds 1 ; $Seconds--} 
+        While ($Seconds -gt 0) ;
+        write-host -foregroundcolor yellow "]DONE" ;
+    } ;
 }
 
-#*------^ Sign-File.ps1 ^------
+#*------^ Start-SleepCountdown.ps1 ^------
 
 
 #*------v stop-driveburn.ps1 v------
@@ -14929,6 +16635,81 @@ Function stop-driveburn {
 }
 
 #*------^ stop-driveburn.ps1 ^------
+
+
+#*------v test-FileLock.ps1 v------
+function test-FileLock {
+    <#
+    .SYNOPSIS
+    test-FileLock - Check for lock status on a file
+    .NOTES
+    Version     : 1.0.1
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2020-11-23
+    FileName    : test-FileLock.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-IO
+    Tags        : Powershell,FileSystem,File,Lock
+    AddedCredit : Henri Benoit (StreamReader error on lock)
+    AddedWebsite: https://benohead.com/blog/2014/12/08/powershell-check-whether-file-locked/
+    REVISIONS
+    * 10:32 AM 7/23/2024 ren std verb: check-FileLock -> test-FileLock, alias orig name
+    * 11:30 AM 11/23/2020 minor updates, reformated into fuunc
+    * 12/8/14 posted version
+    .DESCRIPTION
+    .PARAMETER  Path
+    Path to file[-path 'c:\pathto\file.txt'
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.Boolean
+    .EXAMPLE
+    PS> test-FileLock -path 'c:\pathto\file.txt' 
+    Check lock status on specified file
+    .EXAMPLE
+    PS> if(test-FileLock -path $file){
+    PS>     $smsg = "($file) is currently *LOCKED*!`nQueuing DELETION on next reboot." ; 
+    PS>     write-warning $smsg ;
+    PS>     move-FileOnReboot -path $file ;
+    PS> } else { 
+    PS>     TRY {remove-item -path $file} 
+    PS>     CATCH {
+    PS>         $smsg = "Failed processing $($_.Exception.ItemName). `nError Message: $($_.Exception.Message)`nError Details: $($_)" ;
+    PS>         write-warning $smsg ;
+    PS>     } ; 
+    PS> } ; 
+    Expanded demo of use with verb-IO:move-FileOnReboot()
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    [Alias('check-FileLock')]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Path to file[-path 'c:\pathto\file.txt']")]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({Test-Path $_})]
+        $Path
+    ) ;
+    BEGIN { $Verbose = ($VerbosePreference -eq 'Continue') } ;
+    PROCESS {
+        $Error.Clear() ; 
+        Write-verbose "(Checking lock on file: $path)" ;
+        $LockedFile = $false ; 
+        $file = get-item (Resolve-Path $path) -Force ;
+        if ($file.exists){
+            TRY{
+              $stream = New-Object system.IO.StreamReader $file ;
+              if ($stream) {$stream.Close()} ; 
+            } catch {$LockedFile = $true } ; 
+        } ;
+    } ;  # PROC-E
+    END { $LockedFile | write-output } ; 
+}
+
+#*------^ test-FileLock.ps1 ^------
 
 
 #*------v test-FileSysAutomaticVariables.ps1 v------
@@ -16007,6 +17788,7 @@ function Test-PendingReboot {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
+    * 12:19 PM 6/24/2024 new box, pre WinRM remote config, fails hard; so cut in quick & dirty workaroun: -Local param, steers through the tests wo the PSSesssion working
     * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
     * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
     * 5:03 PM 1/14/2021 init, minor CBH mods
@@ -16017,11 +17799,24 @@ function Test-PendingReboot {
     Array of computernames to be tested for pending reboot
     .PARAMETER  Credential
     windows Credential [-credential (get-credential)]
+    .PARAMETER Local
+    Switch to force check of local computer only (not dependant on PSSession or WinRM config, on new machines)
+    .PARAMETER IgnoreFileRename
+    Switch to skip  tests of *PendingFileRenameOperations*[-ignorefilerename]
     .OUTPUT
     System.Collections.Hashtable
     .EXAMPLE
     if((Test-PendingReboot -ComputerName $env:Computername).IsPendingReboot){write-warning "$env:computername is PENDING REBOOT!"} ;
-    Test for pending reboot.
+    Test for pending reboot remotely
+    .EXAMPLE
+    PS> if((Test-PendingReboot -ComputerName $env:Computername -Local -IgnoreFileRename).IsPendingReboot){
+    PS>     $smsg = "$env:computername is PENDING REBOOT!" ; 
+    PS>     $smsg += "`nreboot and relaunch..." ; 
+    PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } 
+    PS>     else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+    PS>     break ; 
+    PS> } ;
+    Local only test with demo'd echo, and -IgnoreFileRename specified.
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -16029,11 +17824,15 @@ function Test-PendingReboot {
     #[Alias('get-ScheduledTaskReport')]
     PARAM(
         [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string[]]$ComputerName,
+            [ValidateNotNullOrEmpty()]
+            [string[]]$ComputerName,
         [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [pscredential]$Credential
+            [ValidateNotNullOrEmpty()]
+            [pscredential]$Credential,
+        [Parameter(HelpMessage="Switch to skip remote PSSession connection (which will fail on new build unconfigured WinRM)[-Local]")]
+            [switch]$Local,
+        [Parameter(HelpMessage="Switch to skip  tests of *PendingFileRenameOperations*[-ignorefilerename]")]
+            [switch]$IgnoreFileRename
     ) ;
     $ErrorActionPreference = 'Stop'
 
@@ -16146,10 +17945,59 @@ function Test-PendingReboot {
                 ComputerName    = $computer ;
                 IsPendingReboot = $false ;
             } ;
-            $psRemotingSession = New-PSSession @connParams ;
-            if (-not ($output.IsPendingReboot = Invoke-Command -Session $psRemotingSession -ScriptBlock $scriptBlock)) {
-                $output.IsPendingReboot = $false ;
-            } ;
+            if($Local){
+                #if (-not ($output.IsPendingReboot = Invoke-Command -ScriptBlock $scriptBlock)) {
+                #    $output.IsPendingReboot = $false ;
+                #} ;
+                $tests = @(
+                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' }
+                    { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootInProgress' }
+                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired' }
+                    { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\PackagesPending' }
+                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\PostRebootReporting' }
+                    { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations' }
+                    { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations2' }
+                    {
+                        # Added test to check first if key exists, using "ErrorAction ignore" will incorrectly return $true
+                        'HKLM:\SOFTWARE\Microsoft\Updates' | Where-Object { test-path $_ -PathType Container } | ForEach-Object {
+                            (Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' | Select-Object -ExpandProperty UpdateExeVolatile) -ne 0
+                        }
+                    }
+                    { Test-RegistryValue -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Value 'DVDRebootSignal' }
+                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\ServerManager\CurrentRebootAttemps' }
+                    { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'JoinDomain' }
+                    { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'AvoidSpnSet' }
+                    {
+                        # Added test to check first if keys exists, if not each group will return $Null
+                        # May need to evaluate what it means if one or both of these keys do not exist
+                        ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ActiveComputerName' | Where-Object { test-path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } ) -ne
+                        ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ComputerName' | Where-Object { Test-Path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } )
+                    }
+                    {
+                        # Added test to check first if key exists
+                        'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending' | Where-Object {
+                            (Test-Path $_) -and (Get-ChildItem -Path $_) } | ForEach-Object { $true }
+                    }
+                ) ; # scriptblock-E
+                # cycle the list and break on first match
+                foreach ($test in $tests) {
+                    # $tests | ?{$_ -like '*PendingFileRenameOperations*'}
+                    if($IgnoreFileRename -and ($test -like '*PendingFileRenameOperations*')){
+                        write-verbose "-IgnoreFileRename: skipping PendingFileRenameOperations" ; 
+                    } else { 
+                        Write-Verbose "Running scriptblock: [$($test.ToString())]"
+                        if (& $test) {
+                            $output.IsPendingReboot = $true ;
+                            break
+                        }
+                    } ; 
+                }
+            } else { 
+                $psRemotingSession = New-PSSession @connParams ;
+                if (-not ($output.IsPendingReboot = Invoke-Command -Session $psRemotingSession -ScriptBlock $scriptBlock)) {                
+                    $output.IsPendingReboot = $false ;
+                } ;
+            } ; 
             [pscustomobject]$output | write-output ;
         } catch {
             Write-Error -Message $_.Exception.Message
@@ -16604,6 +18452,73 @@ function unless {
 #*------^ unless.ps1 ^------
 
 
+#*------v write-hostColorMatch.ps1 v------
+function write-hostColorMatch {
+    <#
+    .SYNOPSIS
+    write-hostColorMatch.ps1 - Write-Host variant: Accepts piped input, with a regex as a parameter, and highlights any text matching the regex
+    .NOTES
+    Author: latkin
+    Website:	https://stackoverflow.com/users/1366219/latkin
+    Updated By: Todd Kadrie
+    Website:	http://www.toddomation.com
+    Twitter:	@tostka, http://twitter.com/tostka
+    Additional Credits: REFERENCE
+    Website:	URL
+    Twitter:	URL
+    REVISIONS   :
+    * 12:37 PM 7/12/2024 ren (& alias) to verb-noun std: ColorMatch -> write-hostColorMatch
+    * 9/26/2012 - Posted version
+    .DESCRIPTION
+    Write-Host variant: Accepts piped input, with a regex as a parameter, and highlights any text matching the regex
+    .PARAMETER  InputObject
+    Object to be highlit & write-host'd
+    .PARAMETER  Pattern
+    Regex for the text to be highlit
+    .PARAMETER  Color
+    Write-host -foregroundcolor to be used for the highlight
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    Write-hosts highlit content to console
+    .EXAMPLE
+    "$mailbox" | write-hostColorMatch "Item count: [0-9]*" ;
+    Highlight the $mailbox object with portion matching the regex (Position 0 is pattern)
+    .LINK
+    https://stackoverflow.com/questions/12609760
+    #>
+    [CmdletBinding()]
+    [Alias('ColorMatch')]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [string] $InputObject,
+
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $Pattern,
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [string] $Color='Red'
+    )
+    begin{ $r = [regex]$Pattern }
+    process {
+        $ms = $r.matches($inputObject) ;
+        $startIndex = 0 ;
+        foreach($m in $ms) {
+            $nonMatchLength = $m.Index - $startIndex ;
+            Write-Host $inputObject.Substring($startIndex, $nonMatchLength) -NoNew ;
+            Write-Host $m.Value -Fore $Color -NoNew ;
+            $startIndex = $m.Index + $m.Length ;
+        } ;
+        if($startIndex -lt $inputObject.Length) {
+            Write-Host $inputObject.Substring($startIndex) -NoNew ;
+        } ;
+        Write-Host ;
+    }
+}
+
+#*------^ write-hostColorMatch.ps1 ^------
+
+
 #*------v write-HostIndent.ps1 v------
 function write-HostIndent {
     <#
@@ -16957,33 +18872,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,check-FileLock,clear-HostIndent,Close-IfAlreadyRunning,ColorMatch,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-Host2,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Sign-File,stop-driveburn,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Start-SleepCountdown,stop-driveburn,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
-
-# SIG # Begin signature block
-# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
-# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUuJJcQg3nens85Kp9dRhFH03T
-# XGGgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
-# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
-# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
-# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
-# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
-# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
-# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
-# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
-# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
-# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
-# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
-# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
-# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
-# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
-# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRJWT48
-# YUTVgxdOeWyk23rjK/Ji/DANBgkqhkiG9w0BAQEFAASBgCU22UoVqsk31rRhgRcZ
-# /R42nU7ieYUTECyFY0udRDdylPlkRVhZw89mSzuHZieL8y4TvwB3tXzF02bk1ezH
-# P0YHgM8BT2rtx9rztp0lCt8yOrHfAjk74mew/jQQtATaNDI3iccXO97RuqzsZROc
-# 5Y/yt7CbwEKQj/MHa/cVBLvF
-# SIG # End signature block

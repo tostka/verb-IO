@@ -800,9 +800,7 @@ s-hi:OutBuffer
 s-hi:ob
 s-hi:PipelineVariable
 s-hi:pv
-sign-file:filepath
-sign-file:File
-sign-file:showDebug
+sign-file:file
 sign-file:whatIf
 sign-file:Verbose
 sign-file:vb
