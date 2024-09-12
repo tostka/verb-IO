@@ -19,6 +19,7 @@ function write-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 8:34 AM 9/12/2024 cbh typo fix
     * 3:07 PM 2/17/2023 splice over -flatten, and other updates from w-l's fixes and workarounds
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat); 
@@ -32,7 +33,7 @@ function write-HostIndent {
     * 2:06 PM 1/9/2023 add: CBH, $indentname driving this is is a parent funciton variable, tweak it on the fly to move cursor left or right.
     .DESCRIPTION
 
-    write-HostIndent - write-host wrapper that adds a stock $env:HostIndentSpaces to the left of each line of text sent (splits lines prior to indenting
+    write-HostIndent - write-host wrapper that adds a stock $env:HostIndentSpaces to the left of each line of text sent (splits lines prior to indenting)
 
     Part of the verb-HostIndent set:
     write-HostIndent # write-host wrapper that indents/pads each line of output a fixed amount (driven by $env:HostIndentSpaces common variable). 
