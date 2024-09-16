@@ -8,6 +8,9 @@ function get-ProfileFilesTDO {
     Website:	http://www.toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 9:59 AM 9/16/2024 updated CBH, added CBH to _get-BackFileFiles.ps1; removed more rem'd cmds.
+    * 2:08 PM 9/13/2024 parameterized range of $profilefile arrays(ProfileBaseFiles,ProfileDYNFiles,profileCorefiles,profileSVCfiles,profileADDLfiles,ProfileUIDFiles,backFillFileFilter,backFillFileExclude );
+     duped helpmsg into CBH; also purged some block rems; 
     * 4:51 PM 9/12/2024 add -force, to recopy everything regardless of update/sync status; move into verb-io
     * 8:46 AM 9/11/2024 set $doHashes default $false; added 'Directory' (parent dir leaf folder name) to $prpFiles; 
         added timers ($swM,$sw); flip all to the $prpfiles prop subset, don't need all the extra overhead, which means, always use an [array], not [system.io.fileinfo[] or [string[]]
@@ -24,15 +27,33 @@ function get-ProfileFilesTDO {
     8:07 AM 6/12/2015 - functionalize copy code from the EMS block
     .DESCRIPTION
     get-ProfileFilesTDO() - Gather source $SourceProfileMachine WindowsPowershell profile dir contents for copying to other machine(s), from local git Repository directory (C:\sc\powershell\PSProfileUID\)
-
+    
     Intent is to can-up and segregate the logic that assembles the profile files, to recycle them for both copying entire profile to remote machines, and for copying them to cached access paths.
+
     .PARAMETER SourceProfileMachine
     Source Name or IP address of the source Profile computer
     .PARAMETER MinProfile
     Switch that copies least admin-related files[-MinProfile]
+    .PARAMETER ProfileBaseFiles 
+    Array of profile file names that are the core essentials in every profile [-ProfileBaseFiles 'profile.ps1']
+    .PARAMETER ProfileDYNFiles 
+    Array of profile file with 'USERNAME' name substrings that are to be dynamically replaced w `$env:USERNAME in every profile [-ProfileDYNFiles 'profile_USERNAME.ps1']
+    .PARAMETER profileCorefiles 
+    Array of profile file names that are the included in every profile [-profileCorefiles 'profilex1.ps1']
+    .PARAMETER profileSVCfiles 
+    Array of profile file names that are the included in ServiceAccount profiles [-profileSVCfiles 'profileSvc.ps1']
+    .PARAMETER profileADDLfiles 
+    Array of profile file names that are the included in ServiceAccount profiles [-profileADDLfiles 'profileExtra.ps1']
+    .PARAMETER ProfileUIDFiles 
+    Array of profile file names that are the included in ServiceAccount profiles [-ProfileUIDFiles 'profileUID.ps1']
     .PARAMETER inclBackFill
     switch to buffer in backfill uwes\verb-xxx.ps1 module backups (source module .psm1 files renamed to .ps1)[-showDebug]
     .PARAMETER backFillDir
+    Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
+    .PARAMETER backFillFileFilter 
+    Array of BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]
+    .PARAMETER backFillFileExclude 
+    BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']
     Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
     .PARAMETER ProfileSourcePath
     Directory that holds source profile files (defaults to c`$\sc\powershell\PSProfileUID\, normally within a git source repo) [-ProfileSourcePath c:\pathto\]    
@@ -45,9 +66,9 @@ function get-ProfileFilesTDO {
     .PARAMETER Credential
     Credential object for use in accessing the computers.
     .INPUTS
-    Accepts piped input.
+    None. Doesn't accept pipeline input.
     .OUTPUTS
-    Returns an object with uptime data to the pipeline.
+    System.Array returns array of matched file properties ('Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory')
     .EXAMPLE
     PS> $tpfiles = get-ProfileFilesTDO -inclBackFill -verbose ;
     PS> $tpfiles | cp -Destination c:\tmp\test -verbose ; 
@@ -92,12 +113,38 @@ function get-ProfileFilesTDO {
             [System.Management.Automation.PSCredential]$Credential,
         [Parameter(HelpMessage='Switch that copies least admin-related files[-MinProfile]')]
             [switch] $MinProfile ,
+        # new params tied to file include arrays (make them cmdline able for dyn updates wo mod rebuild)
+        [Parameter(HelpMessage="Array of profile file names that are the core essentials in every profile [-ProfileBaseFiles 'profile.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$ProfileBaseFiles = @('profile.ps1','Microsoft.PowerShellISE_profile.ps1','tor-incl-infrastrings.ps1'), 
+        [Parameter(HelpMessage="Array of profile file with 'USERNAME' name substrings that are to be dynamically replaced w `$env:USERNAME in every profile [-ProfileDYNFiles 'profile_USERNAME.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$ProfileDYNFiles = @("tor-incl-infrastrings_$($env:USERNAME).ps1"),
+        [Parameter(HelpMessage="Array of profile file names that are the included in every profile [-profileCorefiles 'profilex1.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$profileCorefiles = @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1') , 
+        [Parameter(HelpMessage="Array of profile file names that are the included in ServiceAccount profiles [-profileSVCfiles 'profileSvc.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$profileSVCfiles = @('admin-prof.ps1','adminsid-incl-ServerCore.ps1','adminsid-incl-ServerApp.ps1'),
+        [Parameter(HelpMessage="Array of profile file names that are the included in ServiceAccount profiles [-profileADDLfiles 'profileExtra.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$profileADDLfiles = @('tor-incl-html-TOR-logo-graybar.ps1','tor-incl-html.ps1'),
+        [Parameter(HelpMessage="Array of profile file names that are the included in ServiceAccount profiles [-ProfileUIDFiles 'profileUID.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$ProfileUIDFiles = @('home-incl-infrastrings.ps1'),
+        # backfill driver params
         [Parameter(HelpMessage='switch to buffer in backfill uwes\verb-xxx.ps1 module backups (source module .psm1 files renamed to .ps1)[-showDebug]')]
             [switch] $inclBackFill,
         [Parameter(Mandatory=$False,HelpMessage="Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]")]
             [ValidateNotNullOrEmpty()]
             [ValidateScript({Test-Path $_ -PathType 'Container'})]
             [System.IO.DirectoryInfo]$backFillDir = 'c:\usr\work\exch\scripts\',
+         [Parameter(Mandatory=$false,HelpMessage="Array of BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$backFillFileFilter = 'verb-*.ps1',
+        [Parameter(Mandatory=$false,HelpMessage="BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$backFillFileExclude = '-pub\.ps1$',
         [Parameter(Mandatory=$False,HelpMessage="Directory that holds source profile files (defaults to c`$\sc\powershell\PSProfileUID\, normally within a git source repo) [-ProfileSourcePath c:\pathto\]")]
             [ValidateNotNullOrEmpty()]
             [ValidateScript({Test-Path $_ -PathType 'Container'})]
@@ -124,6 +171,59 @@ function get-ProfileFilesTDO {
 
         #*------v Function _get-BackFileFiles v------
         function _get-BackFileFiles {
+            <#
+            .SYNOPSIS
+            _get-BackFileFiles.ps1 - Internal function (within get-ProfileFilesTDO) that encapsulates the backfile profile copy source selection logic (these files are verb-* module .psm1's renamed to .ps1  and copied to the uwes dir), only specifies files that have a matching locally installed matching module. 
+            .NOTES
+            Version     : 0.0.
+            Author      : Todd Kadrie
+            Website     : http://www.toddomation.com
+            Twitter     : @tostka / http://twitter.com/tostka
+            CreatedDate : 2024-
+            FileName    : _get-BackFileFiles.ps1
+            License     : MIT License
+            Copyright   : (c) 2024 Todd Kadrie
+            Github      : https://github.com/tostka/verb-XXX
+            Tags        : Powershell
+            AddedCredit : REFERENCE
+            AddedWebsite: URL
+            AddedTwitter: URL
+            REVISIONS
+            * 9:42 AM 9/16/2024 added CBH
+            *  1:43 PM 9/13/2024 Add: -backFillFileFilter, -backFillFileExclude (both shift static strings into params, where they can be managed on the fly)
+            .DESCRIPTION
+            _get-BackFileFiles.ps1 - Internal function (within get-ProfileFilesTDO) that encapsulates the backfile profile copy source selection logic (these files are verb-* module .psm1's renamed to .ps1  and copied to the uwes dir), only specifies files that have a matching locally installed matching module. 
+            .PARAMETER SourceProfileMachine
+            Source Profile Machine [-SourceProfileMachine CLIENT]
+            .PARAMETER backFillDir
+            Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
+            .PARAMETER backFillFileFilter
+            BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]
+            .PARAMETER backFillFileExclude
+            BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']
+            .PARAMETER doHashes
+            Switch to generate & return File hashes (via get-fileHash cmdlet)[-doHashes]
+            .INPUTS
+            None. Does not accepted piped input
+            .OUTPUTS
+            System.Array Returns an array of file summary properties (subset of full system.io.fileinfo)
+            System.Boolean
+            [| get-member the output to see what .NET obj TypeName is returned, to use here]
+            .EXAMPLE
+            PS> .\_get-BackFileFiles.ps1 -whatif -verbose
+            EXSAMPLEOUTPUT
+            Run with whatif & verbose
+            .EXAMPLE
+            PS> .\_get-BackFileFiles.ps1
+            EXSAMPLEOUTPUT
+            EXDESCRIPTION
+            .LINK
+            https://github.com/tostka/verb-XXX
+            .LINK
+            https://bitbucket.org/tostka/powershell/
+            .LINK
+            [ name related topic(one keyword per topic), or http://|https:// to help, or add the name of 'paired' funcs in the same niche (enable/disable-xxx)]
+            #>
             [CmdletBinding()]
             PARAM(
                 [Parameter(Mandatory=$true,HelpMessage="Source Profile Machine [-SourceProfileMachine CLIENT]")]
@@ -135,10 +235,15 @@ function get-ProfileFilesTDO {
                     [ValidateNotNullOrEmpty()]
                     #[ValidateScript({Test-Path $_ -PathType 'Container'})]
                     [System.IO.DirectoryInfo]$backFillDir,
+                [Parameter(Mandatory=$false,HelpMessage="BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]")]
+                    [ValidateNotNullOrEmpty()]
+                    [string]$backFillFileFilter = 'verb-*.ps1',
+                [Parameter(Mandatory=$false,HelpMessage="BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']")]
+                    [ValidateNotNullOrEmpty()]
+                    [string]$backFillFileExclude = '-pub\.ps1$',
                 [Parameter(HelpMessage='Switch to generate & return File hashes (via get-fileHash cmdlet)[-doHashes]')]
                     [switch] $doHashes
             ) ; 
-            #$backFillDir = 'c:\usr\work\exch\scripts\'
             #if(-not (Test-Connection -ComputerName $SourceProfileMachine -Quiet -Count 2)){
             #    write-warning "hostname $($SourceProfileMachine) isn't ICMP-able, retrying via \\tsclient\..." ; 
             if($SourceProfileMachine -eq 'tsclient'){
@@ -155,19 +260,19 @@ function get-ProfileFilesTDO {
             } ; 
             $sw = [Diagnostics.Stopwatch]::StartNew();
             write-verbose "-inclBackFill: resolve backfill dir uwes\verb-*.ps1 files into those with actual modules installed locally" ; 
-            # get-childitem c:\usr\work\exch\scripts\verb-*.ps1 |?{$_.name -notmatch '-pub\.ps1$'}
-            #$backfillfiles = get-childitem (join-path -path $backFillDir.fullname -childpath 'verb-*.ps1') -ea STOP |?{$_.name -notmatch '-pub\.ps1$'}  ; 
             if($doHashes){
                 $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory',
                     @{name="Hash";expression={(Get-FileHash $_.FullName -Algorithm MD5).hash}}  ; 
-                $backfillfiles = get-childitem  (join-path -path $SourcePath -ChildPath 'verb-*.ps1') |
-                    ?{$_.name -notmatch '-pub\.ps1$'} | 
-                    Select-Object -Property $prpFiles ; 
+                $backfillfiles = @() ; 
+                $backfillfiles += get-childitem  (join-path -path $SourcePath -ChildPath $backFillFileFilter) |
+                    ?{$_.name -notmatch $backFillFileFilter} | 
+                        Select-Object -Property $prpFiles ; 
             } else {
                 $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory' ; 
-                $backfillfiles = get-childitem  (join-path -path $SourcePath -ChildPath 'verb-*.ps1') |
-                    ?{$_.name -notmatch '-pub\.ps1$'} | 
-                    Select-Object -Property $prpFiles ;
+                $backfillfiles = @() ; 
+                $backfillfiles += get-childitem  (join-path -path $SourcePath -ChildPath $backFillFileFilter) |
+                    ?{$_.name -notmatch $backFillFileFilter} | 
+                    Select-Object -Property $prpFiles ; 
             } ; 
             write-verbose "gather installed verb-* modules" ; 
             $gmols = gmo verb-* -list -ea STOP ;
@@ -195,8 +300,6 @@ function get-ProfileFilesTDO {
                     $rBackFileFiles += $bkfile #.fullname ; 
                 } ; 
             } ; 
-            #$smsg = "Resolved base Profile Files + additional -inclBackFill:" ; 
-            #$smsg += " $(($BackFileFiles |  measure | select -expand count |out-string).trim()) files" ; 
             $smsg = "Resolved Backfiles: $(($rBackFileFiles |  measure | select -expand count |out-string).trim()) files" ; 
             $smsg += "`nTypes:`n$(($rBackFileFiles | group extension | ft -a count,name |out-string).trim()) files" ; 
             write-host -foregroundcolor green $smsg ; 
@@ -271,7 +374,8 @@ function get-ProfileFilesTDO {
 
 
                 [string[]]$profileFiles = @() ; 
-                $profilefiles += @('profile.ps1','Microsoft.PowerShellISE_profile.ps1','tor-incl-infrastrings.ps1') 
+                #$profilefiles += @('profile.ps1','Microsoft.PowerShellISE_profile.ps1','tor-incl-infrastrings.ps1') 
+                $profilefiles += $ProfileBaseFiles ; # from new param
 
                 if($targetProfileName){
                     write-host "-targetProfileName: $($targetProfileName)" ; 
@@ -288,14 +392,19 @@ function get-ProfileFilesTDO {
                             # sources from hard-coded git repo root path (fr a dev box)
                             #$profileFiles += get-childitem -path (join-path -path $SourcePath -childpath "*") -ea STOP |?{$_.name -match $rgxJumpboxFiles} | select -expand name ; # | select -expand fullname  ; 
                             # add the full stack for work related
-                            $profilefiles += @("tor-incl-infrastrings_$($env:USERNAME).ps1") ;  
-                            $profilefiles += @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1') ; 
-                            $profilefiles += @('admin-prof.ps1','adminsid-incl-ServerCore.ps1','adminsid-incl-ServerApp.ps1') ;
+                            #$profilefiles += @("tor-incl-infrastrings_$($env:USERNAME).ps1") ;  
+                            $profilefiles += ($ProfileDYNFiles.replace('USERNAME',$ENV:username)) ;  
+                            #$profilefiles += @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1') ; 
+                            $profilefiles += $profileCorefiles # param
+                            #$profilefiles += @('admin-prof.ps1','adminsid-incl-ServerCore.ps1','adminsid-incl-ServerApp.ps1') ;
+                            $profilefiles +=$profileSVCfiles # param
                             # 4:25 PM 9/8/2024: add common html foramtting/reporting support files:
-                            $profilefiles += @('tor-incl-html-TOR-logo-graybar.ps1','tor-incl-html.ps1') ;
+                            #$profilefiles += @('tor-incl-html-TOR-logo-graybar.ps1','tor-incl-html.ps1') ;
+                            $profilefiles += $profileADDLfiles ; # param
                             # is this being executed on a non-work machine?
                             if( !($env:computername -match $rgxProdServers) -AND !($env:computername -match $rgxLabServers) -AND !($env:computername -match $rgxWorkstation) -AND !($env:computername -match $rgxJumpBoxes) ) {
-                                $profilefiles += @('home-incl-infrastrings.ps1') ; 
+                                #$profilefiles += @('home-incl-infrastrings.ps1') ; 
+                                $profilefiles += $ProfileUIDFiles
                             } ; 
                         } else { 
                             write-host -foregroundcolor green "-MinProfile: use reduced minimum remote profile.." ; 
@@ -344,25 +453,6 @@ function get-ProfileFilesTDO {
                 } ; 
                 
                 $sw = [Diagnostics.Stopwatch]::StartNew();
-                <#
-                $profilefiles | select -unique | foreach-object{
-                    if($doHashes){
-                        if($rfile = get-childitem -path (join-path -path $SourcePath -childpath $_) | 
-                                Select-Object -Property *,@{name="Hash";expression={(Get-FileHash $_.FullName -Algorithm MD5).hash}}){                 
-                            $rProfilefiles += @($rfile)
-                        } else { 
-                            throw "Unable to get-childitem -path $(join-path -path $SourcePath -childpath $_)" ; 
-                        } ; 
-                    }else{
-                        if($rfile = get-childitem -path (join-path -path $SourcePath -childpath $_)){                 
-                            $rProfilefiles += @($rfile)
-                        } else { 
-                            throw "Unable to get-childitem -path $(join-path -path $SourcePath -childpath $_)" ; 
-                        } ; 
-                    } ; 
-
-                } ; 
-                #>
                 # use -include skip the loop: $profilefiles | select -unique ; seamlessly includes hashes if they're defined in $prpFiles, skips them if not
                 $rProfilefiles = @(
                     get-childitem -path "$($SourcePath)\*" -Include ($profilefiles | select -unique ) | 
@@ -379,27 +469,6 @@ function get-ProfileFilesTDO {
                 } ;
                 write-host -foregroundcolor gray "$((get-date).ToString('HH:mm:ss')):$($smsg)" ; 
 
-                <#
-                #[array]$profileFiles = "\\$SourceProfileMachine\c$\usr\work\exch\scripts\profile.ps1","\\$SourceProfileMachine\c$\usr\work\exch\scripts\Microsoft.PowerShellISE_profile.ps1" ; 
-                # 2:22 PM 8/19/2024 these should source in primaries, not 2ndary out of band's (long out of date when checked)
-                #[array]$profileFiles = @( [system.io.fileinfo[]](join-path -path $SourcePath -childpath "profile.ps1"),[system.io.fileinfo[]](join-path -path $SourcePath -childpath "Microsoft.PowerShellISE_profile.ps1")) ; 
-                [system.io.fileinfo[]]$profileFiles = @( (join-path -path $SourcePath -childpath "profile.ps1"),(join-path -path $SourcePath -childpath "Microsoft.PowerShellISE_profile.ps1")) ; 
-                
-                # 3:27 PM 6/22/2020 update to cover admin files
-                if(-not $MinProfile){
-                    write-host -foregroundcolor green "Adding full remote profile.." ; 
-                    #$rgxJumpboxFiles = '^((tor|tsk|admin|(tsk|admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
-                    # sources from hard-coded git repo root path (fr a dev box)
-                    $profileFiles += get-childitem -path (join-path -path $SourcePath -childpath "*") -ea STOP |?{$_.name -match $rgxJumpboxFiles} # | select -expand fullname  ; 
-                } else { 
-                    write-host -foregroundcolor green "-MinProfile: use reduced minimum remote profile.." ; 
-                    # minprofile drop tsk-related items
-                    #$rgxJumpboxAdminFiles = '^((tor|admin|(admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
-                    # sources from hard-coded git repo root path (fr a dev box)
-                    $profileFiles += get-childitem -path (join-path -path $SourcePath -childpath "*") -ea STOP  |?{$_.name -match $rgxJumpboxAdminFiles} # | select -expand fullname  ; 
-                } ; 
-                #>
-
                 $smsg = "Resolved base Profile Files:" ; 
                 $smsg += " $(($rProfilefiles |  measure | select -expand count |out-string).trim()) files" ; 
                 $smsg += "`nTypes:`n$(($rProfilefiles | group extension | ft -a count,name |out-string).trim()) files" ; 
@@ -408,30 +477,21 @@ function get-ProfileFilesTDO {
                 write-verbose $smsg ;
                 if($inclBackFill -AND -not $MinProfile){
                     write-verbose "-inclBackFill: resolve backfill dir uwes\verb-*.ps1 files into those with actual modules installed locally" ; 
-                    # get-childitem c:\usr\work\exch\scripts\verb-*.ps1 |?{$_.name -notmatch '-pub\.ps1$'}
-                    #$backfillfiles = get-childitem (join-path -path $backFillDir.fullname -childpath 'verb-*.ps1') -ea STOP |?{$_.name -notmatch '-pub\.ps1$'}  ; 
-                    <#
-                    $backfillfiles = get-childitem  (join-path -path ("\\$(join-path -path $SourceProfileMachine -ChildPath $backFillDir.fullname.replace(':','$'))") -ChildPath 'verb-*.ps1') |?{$_.name -notmatch '-pub\.ps1$'} ; 
-                    write-verbose "gather installed verb-* modules" ; 
-                    $gmols = gmo verb-* -list -ea STOP ;
-                    write-verbose "test backfillfiles for matching installed modules" ; 
-                    $hasmods = @() ; 
-                    $backfillfiles.name.replace('.ps1','') |foreach-object{
-                        $name = $_ ;
-                        write-verbose "==$($name)" ;
-                        if($gmols.name -contains $name){
-                            write-verbose "Y:$($name)";
-                            $hasmods+=@("$($name).ps1") ; 
-                        }else {write-verbose "N:$($name)"}  
-                    } ; 
-                    foreach($bkfile in $backfillfiles){
-                        if($hasmods -contains $bkfile.name){
-                            write-verbose "Add:`$profileFiles += $($bkfile.fullname)" ; 
-                            $profileFiles += $bkfile #.fullname ; 
-                        } ; 
-                    } ; 
+                    #$backfillfiles = _get-BackFileFiles -SourceProfileMachine $SourceProfileMachine -backFillDir $backFillDir.fullname -Verbose:($PSBoundParameters['Verbose'] -eq $true)
+                    <# new params, IN BOTH _get-BackFileFiles() & get-ProfileFilesTDO()
+                    $backFillFileFilter = @('verb-*.ps1')
+                    $backFillFileExclude = '-pub\.ps1$'
                     #>
-                    $backfillfiles = _get-BackFileFiles -SourceProfileMachine $SourceProfileMachine -backFillDir $backFillDir.fullname -Verbose:($PSBoundParameters['Verbose'] -eq $true)
+                    $pltgBFF=[ordered]@{
+                        SourceProfileMachine = $SourceProfileMachine ;
+                        backFillDir = $backFillDir.fullname ;
+                        Verbose = ($PSBoundParameters['Verbose'] -eq $true)
+                        backFillFileFilter = ($backFillFileFilter | Out-String) ;
+                        backFillFileExclude = ($backFillFileExclude | Out-String) ; 
+                    } ;
+                    $smsg = "_get-BackFileFiles w`n$(($pltgBFF|out-string).trim())" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    $backfillfiles = _get-BackFileFiles @pltgBFF ; 
                     $rProfilefiles = $(@($rProfilefiles;$backfillfiles)) ; 
                     $smsg = "Resolved base Profile Files + additional -inclBackFill:" ; 
                     $smsg += " $(($rProfilefiles |  measure | select -expand count |out-string).trim()) files" ; 
@@ -451,9 +511,6 @@ function get-ProfileFilesTDO {
         
     } # PROC-E
     END {
-        #$rProfilefiles.fullname | write-output ;
-        #$prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','Hash','LinkType','PSParentPath','PSPath','Directory' ; 
-        #$rProfilefiles | select $prpFiles | write-output ;
         $rProfilefiles | write-output ;
         # master timer reporting
         #write-verbose "Timer Stop:Master" ;
