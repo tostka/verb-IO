@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 15.0.0.0.0
+Version     : 15.1.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -8633,6 +8633,7 @@ function get-ProfileFilesTDO {
     Website:	http://www.toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 2:08 PM 9/17/2024 fixed path expansion bug, created by subing in paramss for strings
     * 9:59 AM 9/16/2024 updated CBH, added CBH to _get-BackFileFiles.ps1; removed more rem'd cmds.
     * 2:08 PM 9/13/2024 parameterized range of $profilefile arrays(ProfileBaseFiles,ProfileDYNFiles,profileCorefiles,profileSVCfiles,profileADDLfiles,ProfileUIDFiles,backFillFileFilter,backFillFileExclude );
      duped helpmsg into CBH; also purged some block rems; 
@@ -8814,6 +8815,7 @@ function get-ProfileFilesTDO {
             AddedWebsite: URL
             AddedTwitter: URL
             REVISIONS
+            * 2:08 PM 9/17/2024 fixed path expansion bug, created by subing in paramss for strings
             * 9:42 AM 9/16/2024 added CBH
             *  1:43 PM 9/13/2024 Add: -backFillFileFilter, -backFillFileExclude (both shift static strings into params, where they can be managed on the fly)
             .DESCRIPTION
@@ -8885,20 +8887,17 @@ function get-ProfileFilesTDO {
             } ; 
             $sw = [Diagnostics.Stopwatch]::StartNew();
             write-verbose "-inclBackFill: resolve backfill dir uwes\verb-*.ps1 files into those with actual modules installed locally" ; 
+            # 2:02 PM 9/17/2024 move all but $prpFiles differentiating code outside of the if/then
             if($doHashes){
                 $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory',
                     @{name="Hash";expression={(Get-FileHash $_.FullName -Algorithm MD5).hash}}  ; 
-                $backfillfiles = @() ; 
-                $backfillfiles += get-childitem  (join-path -path $SourcePath -ChildPath $backFillFileFilter) |
-                    ?{$_.name -notmatch $backFillFileFilter} | 
-                        Select-Object -Property $prpFiles ; 
             } else {
                 $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory' ; 
-                $backfillfiles = @() ; 
-                $backfillfiles += get-childitem  (join-path -path $SourcePath -ChildPath $backFillFileFilter) |
-                    ?{$_.name -notmatch $backFillFileFilter} | 
-                    Select-Object -Property $prpFiles ; 
             } ; 
+            $backfillfiles = @() ; 
+            $backfillfiles += gci -Path "$($SourcePath)\*" -Include "verb-*.ps1" |
+                ?{$_.name -notmatch $backFillFileFilter} | 
+                    Select-Object -Property $prpFiles ; 
             write-verbose "gather installed verb-* modules" ; 
             $gmols = gmo verb-* -list -ea STOP ;
             write-verbose "test backfillfiles for matching installed modules" ; 
@@ -8911,6 +8910,8 @@ function get-ProfileFilesTDO {
                     $hasmods+=@("$($name).ps1") ; 
                 }else {write-verbose "N:$($name)"}  
             } ; 
+            
+            <#
             if($doHashes){
                 # cant use fileinfo, if we add a hash prop
                 [array]$rBackFileFiles = @() ; 
@@ -8919,6 +8920,8 @@ function get-ProfileFilesTDO {
                 # always use array, to support varying properties in the schema
                 [array]$rBackFileFiles = @() ; 
             } ; 
+            #>
+            [array]$rBackFileFiles = @() ; 
             foreach($bkfile in $backfillfiles){
                 if($hasmods -contains $bkfile.name){
                     write-verbose "Add:`$BackFileFiles += $($bkfile.fullname)" ; 
@@ -9064,21 +9067,18 @@ function get-ProfileFilesTDO {
 
                 # resolve them out into full unc paths
                 # 3:05 PM 9/10/2024 flip all to the $prpfiles prop subset, don't need all the extra overhead, which means, always use an [array], not [system.io.fileinfo[] or [string[]]
+                # 2:05 PM 9/17/2024 move all but the $prpFiles varying specs out of the if/then
                 if($doHashes){
                     write-verbose "(calculating and including hashes on each file)" ; 
-                    # can't use [system.io.fileinfo[]] if we add hash property
-                    [array]$rProfilefiles = @() ; 
                     $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory',
                         @{name="Hash";expression={(Get-FileHash $_.FullName -Algorithm MD5).hash}}  ;
                 } else { 
-                    #[system.io.fileinfo[]]$rProfilefiles = @() ; 
-                    # 3:05 PM 9/10/2024 flip all to the $prpfiles prop subset, don't need all the extra overhead, which means, always use an [array], not [system.io.fileinfo[] or [string[]]
-                    [array]$rProfilefiles = @() ; 
                     $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory' ; 
                 } ; 
                 
                 $sw = [Diagnostics.Stopwatch]::StartNew();
                 # use -include skip the loop: $profilefiles | select -unique ; seamlessly includes hashes if they're defined in $prpFiles, skips them if not
+                [array]$rProfilefiles = @() ; 
                 $rProfilefiles = @(
                     get-childitem -path "$($SourcePath)\*" -Include ($profilefiles | select -unique ) | 
                         select-object -property $prpFiles

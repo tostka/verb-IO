@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 15.1.0.0.0
+Version     : 15.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -8633,7 +8633,6 @@ function get-ProfileFilesTDO {
     Website:	http://www.toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
-    * 2:08 PM 9/17/2024 fixed path expansion bug, created by subing in paramss for strings
     * 9:59 AM 9/16/2024 updated CBH, added CBH to _get-BackFileFiles.ps1; removed more rem'd cmds.
     * 2:08 PM 9/13/2024 parameterized range of $profilefile arrays(ProfileBaseFiles,ProfileDYNFiles,profileCorefiles,profileSVCfiles,profileADDLfiles,ProfileUIDFiles,backFillFileFilter,backFillFileExclude );
      duped helpmsg into CBH; also purged some block rems; 
@@ -8815,7 +8814,6 @@ function get-ProfileFilesTDO {
             AddedWebsite: URL
             AddedTwitter: URL
             REVISIONS
-            * 2:08 PM 9/17/2024 fixed path expansion bug, created by subing in paramss for strings
             * 9:42 AM 9/16/2024 added CBH
             *  1:43 PM 9/13/2024 Add: -backFillFileFilter, -backFillFileExclude (both shift static strings into params, where they can be managed on the fly)
             .DESCRIPTION
@@ -8887,17 +8885,20 @@ function get-ProfileFilesTDO {
             } ; 
             $sw = [Diagnostics.Stopwatch]::StartNew();
             write-verbose "-inclBackFill: resolve backfill dir uwes\verb-*.ps1 files into those with actual modules installed locally" ; 
-            # 2:02 PM 9/17/2024 move all but $prpFiles differentiating code outside of the if/then
             if($doHashes){
                 $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory',
                     @{name="Hash";expression={(Get-FileHash $_.FullName -Algorithm MD5).hash}}  ; 
+                $backfillfiles = @() ; 
+                $backfillfiles += get-childitem  (join-path -path $SourcePath -ChildPath $backFillFileFilter) |
+                    ?{$_.name -notmatch $backFillFileFilter} | 
+                        Select-Object -Property $prpFiles ; 
             } else {
                 $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory' ; 
-            } ; 
-            $backfillfiles = @() ; 
-            $backfillfiles += gci -Path "$($SourcePath)\*" -Include "verb-*.ps1" |
-                ?{$_.name -notmatch $backFillFileFilter} | 
+                $backfillfiles = @() ; 
+                $backfillfiles += get-childitem  (join-path -path $SourcePath -ChildPath $backFillFileFilter) |
+                    ?{$_.name -notmatch $backFillFileFilter} | 
                     Select-Object -Property $prpFiles ; 
+            } ; 
             write-verbose "gather installed verb-* modules" ; 
             $gmols = gmo verb-* -list -ea STOP ;
             write-verbose "test backfillfiles for matching installed modules" ; 
@@ -8910,8 +8911,6 @@ function get-ProfileFilesTDO {
                     $hasmods+=@("$($name).ps1") ; 
                 }else {write-verbose "N:$($name)"}  
             } ; 
-            
-            <#
             if($doHashes){
                 # cant use fileinfo, if we add a hash prop
                 [array]$rBackFileFiles = @() ; 
@@ -8920,8 +8919,6 @@ function get-ProfileFilesTDO {
                 # always use array, to support varying properties in the schema
                 [array]$rBackFileFiles = @() ; 
             } ; 
-            #>
-            [array]$rBackFileFiles = @() ; 
             foreach($bkfile in $backfillfiles){
                 if($hasmods -contains $bkfile.name){
                     write-verbose "Add:`$BackFileFiles += $($bkfile.fullname)" ; 
@@ -9067,18 +9064,21 @@ function get-ProfileFilesTDO {
 
                 # resolve them out into full unc paths
                 # 3:05 PM 9/10/2024 flip all to the $prpfiles prop subset, don't need all the extra overhead, which means, always use an [array], not [system.io.fileinfo[] or [string[]]
-                # 2:05 PM 9/17/2024 move all but the $prpFiles varying specs out of the if/then
                 if($doHashes){
                     write-verbose "(calculating and including hashes on each file)" ; 
+                    # can't use [system.io.fileinfo[]] if we add hash property
+                    [array]$rProfilefiles = @() ; 
                     $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory',
                         @{name="Hash";expression={(Get-FileHash $_.FullName -Algorithm MD5).hash}}  ;
                 } else { 
+                    #[system.io.fileinfo[]]$rProfilefiles = @() ; 
+                    # 3:05 PM 9/10/2024 flip all to the $prpfiles prop subset, don't need all the extra overhead, which means, always use an [array], not [system.io.fileinfo[] or [string[]]
+                    [array]$rProfilefiles = @() ; 
                     $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory' ; 
                 } ; 
                 
                 $sw = [Diagnostics.Stopwatch]::StartNew();
                 # use -include skip the loop: $profilefiles | select -unique ; seamlessly includes hashes if they're defined in $prpFiles, skips them if not
-                [array]$rProfilefiles = @() ; 
                 $rProfilefiles = @(
                     get-childitem -path "$($SourcePath)\*" -Include ($profilefiles | select -unique ) | 
                         select-object -property $prpFiles
@@ -20432,8 +20432,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUYrIypByJOsPt8ftujK2doNkz
-# W/WgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUoqQ8hfey2Bv0szfh+gt+vrSa
+# H2+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -20448,9 +20448,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRc9YRj
-# DvOUlPnIG09VLCL2GcXk0zANBgkqhkiG9w0BAQEFAASBgGEa0kBcUg64U6/L9IdO
-# PIdgEWi28C2voY6K7oqWhvEnqs+9wCXWVuvIaPIIn/+dceVg+5dFE1Kg0tMtDvuy
-# 8Wb0fg2wThF1ZBR0mfXGOkC7h2arfDOVuMbUVLtvfLkVn05FDR9NKD4EeiGy1QJG
-# qJOFAEO/hPEEj4Zqgbi37HQM
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQ3I1zk
+# npOUG2QoEeDfQ2Gr6RuqDTANBgkqhkiG9w0BAQEFAASBgLhIG795dFVlVebJWzTW
+# 00VV/zc4NR1bQvsNz5GVZ/OYibS1lqMYKCCOrUjuBCd4MO45xPzXzL6nPgNQ/5Mh
+# jg9td5ngae4ePJD8H0A4Rb0O9d0xXzhBfRMEKrqXyKUKHMBEaDI24dyKzcR47SIV
+# YVIvy5Uza2QNF+JQ7TaG+HHt
 # SIG # End signature block
