@@ -19,6 +19,7 @@ function write-hostCallOutTDO {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 2:36 PM 10/9/2024 add: write-hostCallOut alias (vs full write-hostCallOutTDO)
     * 10:15 AM 9/17/2024 added -backgroundcolor/-foregroundcolor overrides of the per-type defaults; updated the 'demo', CBH expl to use the new -type Demo ; added a fg/bg override exmpl
     * 3:22 PM 9/16/2024 add: -LabelOverride -type: Joke, Reference, Dead, UnlTrophy, Medal, Demo (demo full set on specified text); added CBH demos for Stupid Prize & Achivement Unlocked, using new -LabelOverride; 
     * 3:49 PM 9/12/2024 corrected Important emoji; added Tcase to the $type user entered (as it's used in some, to drive labeling variants); fixed high ascii in the face ascii emojis (dash wasn't a stock -) ; init
@@ -401,7 +402,7 @@ function write-hostCallOutTDO {
     Demo -BackgroundColor -ForegroundColorDead override, with Type Random Callout and -Tight switch.
     #>
     [CmdletBinding()]
-    [Alias('w-hCO','write-hostAlert')]
+    [Alias('w-hCO','write-hostCallOut','write-hostAlert')]
     PARAM(
         [Parameter(
             HelpMessage="The string representations of the input objects are concatenated to form the output. No spaces or newlines are inserted between
