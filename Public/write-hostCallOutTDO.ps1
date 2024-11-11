@@ -19,6 +19,7 @@ function write-hostCallOutTDO {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 11:08 AM 11/11/2024 added MS 'alerts' Callout variant info to CBH, for reference
     * 2:36 PM 10/9/2024 add: write-hostCallOut alias (vs full write-hostCallOutTDO)
     * 10:15 AM 9/17/2024 added -backgroundcolor/-foregroundcolor overrides of the per-type defaults; updated the 'demo', CBH expl to use the new -type Demo ; added a fg/bg override exmpl
     * 3:22 PM 9/16/2024 add: -LabelOverride -type: Joke, Reference, Dead, UnlTrophy, Medal, Demo (demo full set on specified text); added CBH demos for Stupid Prize & Achivement Unlocked, using new -LabelOverride; 
@@ -115,6 +116,55 @@ function write-hostCallOutTDO {
     > Negative potential consequences of an action.
     ```
 
+Microsoft Documentation ('Learn') calls these 'Alerts', and supports the following:
+[Markdown reference for Microsoft Learn - Contributor guide - Alerts | Microsoft Learn](https://learn.microsoft.com/en-us/contribute/content/markdown-reference#alerts-note-tip-important-caution-warning)
+
+    ```markdown
+    > [!NOTE]
+    > Information the user should notice even if skimming.
+
+    > [!TIP]
+    > Optional information to help a user be more successful.
+
+    > [!IMPORTANT]
+    > Essential information required for user success.
+
+    > [!CAUTION]
+    > Negative potential consequences of an action.
+
+    > [!WARNING]
+    > Dangerous certain consequences of an action.
+    ```
+
+    Which render in as output markdown as: (Below doesn't depict the icon and automatic color schemes asserted on browser rendering at Microsoft)
+    
+    ```markdown
+    [purple #3B2E58 bg]
+    (!) Note
+    
+    Information the user should notice even if skimming.
+
+    [green #054B16 bg]
+    [bulb] Tip
+
+    Optional information to help a user be more successful.
+
+    [blue #004173 bg]
+    (i) Important
+
+    Essential information required for user success.
+
+    [red #630001 bg]
+    (x) Caution
+
+    Negative potential consequences of an action.
+
+    [lighter green #6A4B16 bg]
+    /!\ Warning
+
+    Dangerous certain consequences of an action.
+    ```
+    
     This implementation aims to emulate the output, while substiting common emoji/unicode character alternatives (in WinTerm or ISE/VSC), or approximating keyboard characters (in native Console, which lacks high-code support).
         
 
