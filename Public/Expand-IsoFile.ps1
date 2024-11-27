@@ -19,6 +19,7 @@ Function Expand-ISOFileTDO {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,development,verbs
     REVISION
+    * 9:36 AM 11/27/2024 pulled duped [Alias('PsPath')] on param:$Destination (was generating 'get-help : The alias "PsPath" is declared multiple times.' errs)
     * 1:19 PM 12/14/2023 init
     .DESCRIPTION
     Expand-ISOFileTDO.ps1 - Unpacks an .iso file out to a a new *parallel* 'unpacked' subdir of the ISO's current directory (e.g. if the file is in c:\tmp\file.iso, the unpacked copy will be in c:\tmp\file\unpacked)
@@ -47,7 +48,6 @@ Function Expand-ISOFileTDO {
             [ValidateScript({Test-Path $_})]
             [system.io.fileinfo[]]$Path,
         [Parameter(Mandatory = $False,Position = 1, HelpMessage = "Destination for unpack (creates new 'unpacked' dir below specified location; defaults to a new folder parallel to source .iso, named for the iso file basename)paths[-path c:\pathto\file.ext]")]
-            [Alias('PsPath')]
             #[ValidateScript({Test-Path $_ -PathType 'Container'})]
             [System.IO.DirectoryInfo]$Destination
             #[string[]]$Path,
