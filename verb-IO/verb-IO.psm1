@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 15.1.0.0.0
+Version     : 15.1.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -5768,6 +5768,7 @@ Function Expand-ISOFileTDO {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,development,verbs
     REVISION
+    * 9:36 AM 11/27/2024 pulled duped [Alias('PsPath')] on param:$Destination (was generating 'get-help : The alias "PsPath" is declared multiple times.' errs)
     * 1:19 PM 12/14/2023 init
     .DESCRIPTION
     Expand-ISOFileTDO.ps1 - Unpacks an .iso file out to a a new *parallel* 'unpacked' subdir of the ISO's current directory (e.g. if the file is in c:\tmp\file.iso, the unpacked copy will be in c:\tmp\file\unpacked)
@@ -5796,7 +5797,6 @@ Function Expand-ISOFileTDO {
             [ValidateScript({Test-Path $_})]
             [system.io.fileinfo[]]$Path,
         [Parameter(Mandatory = $False,Position = 1, HelpMessage = "Destination for unpack (creates new 'unpacked' dir below specified location; defaults to a new folder parallel to source .iso, named for the iso file basename)paths[-path c:\pathto\file.ext]")]
-            [Alias('PsPath')]
             #[ValidateScript({Test-Path $_ -PathType 'Container'})]
             [System.IO.DirectoryInfo]$Destination
             #[string[]]$Path,
@@ -15793,7 +15793,7 @@ function set-AuthenticodeSignatureTDO {
                 PS> } else { write-warning 'Bad Cert for code signing!'} ; 
                 Demo conditional branching on basis of output valid value.
                 .LINK
-                https://web.archive.org/web/20160715110022/poshcode.org/1633
+                https://web.archive.org/web/20160715.1.122/poshcode.org/1633
                 .LINK
                 https://github.com/tostka/verb-io
                 #>
@@ -17213,7 +17213,7 @@ function Show-MsgBox {
 
 
 #*------v Start-SleepCountdown.ps1 v------
-function Start-SleepCountdown {
+function start-sleepcountdown {
     <#
     .SYNOPSIS
     Start-SleepCountdown - Countdown variant of start-sleep: Counts down seconds to finish.
@@ -17229,12 +17229,13 @@ function Start-SleepCountdown {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Time
     REVISION
+    * 10:44 AM 10/15/2024 add -useMins to make it do a minutes countdown (still requires seconds input)
     * 1:19 PM 12/14/2023 init
     .DESCRIPTION
     Start-SleepCountdown - Countdown variant of start-sleep: Counts down seconds to finish.
-    
+
     Though there's not a lot of point, if you pipeline in an integer array, it will run a pass for each value.
-    
+
     .PARAMETER Seconds
     Specifies how long the resource sleeps in seconds. You can omit the parameter name ( Seconds ), or you can abbreviate it as s
     .INPUTS
@@ -17243,23 +17244,49 @@ function Start-SleepCountdown {
     No output.
     .EXAMPLE
     PS> '5' | Start-SleepCountdown ;
-    
+
         Waiting 5 seconds...
         START[.5.4.3.2.1]DONE
-    
+
     Wait 5 seconds with a countdown in seconds
+    .EXAMPLE
+    PS> Start-SleepCountdown -Seconds 13020 -useMins ; 
+    Demo use of -useMins, to perform a minute-at-a-time coundown (still requires raw -Seconds input)
     .LINK
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    PARAM([Parameter(Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Specifies how long the resource sleeps in seconds. You can omit the parameter name ( Seconds ), or you can abbreviate it as s")]
-        [Alias('s')]
-        [System.Int32]$Seconds) ;
+    PARAM(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Specifies how long the resource sleeps in seconds. You can omit the parameter name ( Seconds ), or you can abbreviate it as s")]
+            [Alias('s')]
+            [System.Int32]$Seconds,
+        [Parameter(Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Specifies how long the resource sleeps in seconds. You can omit the parameter name ( Seconds ), or you can abbreviate it as s")]
+            [switch]$useMins
+    ) ;
+    
     PROCESS{
         $smsg +="`nWaiting $($Seconds) seconds...`nSTART[" ; 
         write-host -foregroundcolor yellow -NoNewline $smsg ;
-        $a=1 ; 
-        Do {write-host -NoNewline ".$($Seconds)" ; start-sleep -Seconds 1 ; $Seconds--} 
+        $a=1 ; $thisMin = 60 ;
+        Do {
+            <#Var â€“ Is $a a multiple of $b?
+            Using the % modulus (remainder of a division) operator. 
+            Tests if ($a % $b) returns zero ($b divides evenly into $a, with no remainder)
+            $a=100; $b=5 ; if(!($a % $b)){"$a is a multiple of $b "}else{"$a is not a multiple of $b "};
+            #>
+            $thisMin-- ; 
+            if($useMins){
+                if($thisMin -eq 0){
+                #if($Seconds % 60){ # mod isn't working right
+                    #write-host -NoNewline ".$($Seconds)" ; 
+                    write-host -NoNewline ".$([int]($Seconds/60))" ; 
+                    $thisMin = 60 ;
+                } ; 
+            }else {
+                write-host -NoNewline ".$($Seconds)" ; 
+            } ; 
+            start-sleep -Seconds 1 ; $Seconds--
+        } 
         While ($Seconds -gt 0) ;
         write-host -foregroundcolor yellow "]DONE" ;
     } ;
@@ -19358,6 +19385,8 @@ function write-hostCallOutTDO {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 11:08 AM 11/11/2024 added MS 'alerts' Callout variant info to CBH, for reference
+    * 2:36 PM 10/9/2024 add: write-hostCallOut alias (vs full write-hostCallOutTDO)
     * 10:15 AM 9/17/2024 added -backgroundcolor/-foregroundcolor overrides of the per-type defaults; updated the 'demo', CBH expl to use the new -type Demo ; added a fg/bg override exmpl
     * 3:22 PM 9/16/2024 add: -LabelOverride -type: Joke, Reference, Dead, UnlTrophy, Medal, Demo (demo full set on specified text); added CBH demos for Stupid Prize & Achivement Unlocked, using new -LabelOverride; 
     * 3:49 PM 9/12/2024 corrected Important emoji; added Tcase to the $type user entered (as it's used in some, to drive labeling variants); fixed high ascii in the face ascii emojis (dash wasn't a stock -) ; init
@@ -19453,6 +19482,55 @@ function write-hostCallOutTDO {
     > Negative potential consequences of an action.
     ```
 
+Microsoft Documentation ('Learn') calls these 'Alerts', and supports the following:
+[Markdown reference for Microsoft Learn - Contributor guide - Alerts | Microsoft Learn](https://learn.microsoft.com/en-us/contribute/content/markdown-reference#alerts-note-tip-important-caution-warning)
+
+    ```markdown
+    > [!NOTE]
+    > Information the user should notice even if skimming.
+
+    > [!TIP]
+    > Optional information to help a user be more successful.
+
+    > [!IMPORTANT]
+    > Essential information required for user success.
+
+    > [!CAUTION]
+    > Negative potential consequences of an action.
+
+    > [!WARNING]
+    > Dangerous certain consequences of an action.
+    ```
+
+    Which render in as output markdown as: (Below doesn't depict the icon and automatic color schemes asserted on browser rendering at Microsoft)
+    
+    ```markdown
+    [purple #3B2E58 bg]
+    (!) Note
+    
+    Information the user should notice even if skimming.
+
+    [green #054B16 bg]
+    [bulb] Tip
+
+    Optional information to help a user be more successful.
+
+    [blue #004173 bg]
+    (i) Important
+
+    Essential information required for user success.
+
+    [red #630001 bg]
+    (x) Caution
+
+    Negative potential consequences of an action.
+
+    [lighter green #6A4B16 bg]
+    /!\ Warning
+
+    Dangerous certain consequences of an action.
+    ```
+    
     This implementation aims to emulate the output, while substiting common emoji/unicode character alternatives (in WinTerm or ISE/VSC), or approximating keyboard characters (in native Console, which lacks high-code support).
         
 
@@ -19740,7 +19818,7 @@ function write-hostCallOutTDO {
     Demo -BackgroundColor -ForegroundColorDead override, with Type Random Callout and -Tight switch.
     #>
     [CmdletBinding()]
-    [Alias('w-hCO','write-hostAlert')]
+    [Alias('w-hCO','write-hostCallOut','write-hostAlert')]
     PARAM(
         [Parameter(
             HelpMessage="The string representations of the input objects are concatenated to form the output. No spaces or newlines are inserted between
@@ -20424,7 +20502,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Start-SleepCountdown,stop-driveburn,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,stop-driveburn,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -20432,8 +20510,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUYrIypByJOsPt8ftujK2doNkz
-# W/WgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUjOEKY1uWVcos177S4CHmkfyr
+# Tn+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -20448,9 +20526,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRc9YRj
-# DvOUlPnIG09VLCL2GcXk0zANBgkqhkiG9w0BAQEFAASBgGEa0kBcUg64U6/L9IdO
-# PIdgEWi28C2voY6K7oqWhvEnqs+9wCXWVuvIaPIIn/+dceVg+5dFE1Kg0tMtDvuy
-# 8Wb0fg2wThF1ZBR0mfXGOkC7h2arfDOVuMbUVLtvfLkVn05FDR9NKD4EeiGy1QJG
-# qJOFAEO/hPEEj4Zqgbi37HQM
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSrxqPf
+# EJE1nA+V+bniOM3Xpq7aMjANBgkqhkiG9w0BAQEFAASBgLHUJqyjy2Dj9YVejfzp
+# DuZd05rfAjRBa3SskfFGifOIcoCu60crkqZRAA5M1kn31pemANCvCOmiuOSP9nUc
+# I946PUQQ7bxxaSA5G8wcYXz3ZBRrTAUiQ0K1IbeYkPoYz49wMLTxytZQXyPKHN0b
+# Gc/UkspQxeAxe9GxOZiXQ7j0
 # SIG # End signature block

@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 12.2.1.0.0
+Version     : 15.1.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -4850,6 +4850,361 @@ function copy-Profile {
 #*------^ copy-Profile.ps1 ^------
 
 
+#*------v copy-ProfileTDO.ps1 v------
+function copy-ProfileTDO {
+    <#
+    .SYNOPSIS
+    copy-ProfileTDO() - Copies $SourceProfileMachine WindowsPowershell profile dir to the specified machine(s)
+    .NOTES
+    Author: Todd Kadrie
+    Website:	http://www.toddomation.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    * 4:51 PM 9/12/2024 add -force, to recopy everything regardless of update/sync status; move into verb-io
+    * 8:46 AM 9/11/2024 set $doHashes default $false; 
+        added processing grouping brackets ; 
+        added 'Directory' (parent dir leaf folder name) to $prpFiles; 
+        coded the non $doHashes blocks to process $targetset filtered on $profilefiles names, & Compare-Object -Ref $profilefiles  -Dif $targetset -Property Name,Length,LastWriteTime ;  ; 
+        updated all of the CATCH blocks to latest ; 
+        added timers ($swM,$sw); flip all to the $prpfiles prop subset, don't need all the extra overhead, which means,
+         always use an [array], not [system.io.fileinfo[] or [string[]]
+    * 2:33 PM 9/10/2024 jb debugging updates: sub'd out unreachable test-connection validatescripts (can't ismp from jb to admin devbox) ; 
+        conditionally flip the type of return: [array] for hash inclusion, and [system.io.fileinfo[]] for stock object, if returning a subset, just do array; 
+        added timers for comparing hash use etc to copy everything; added the html related profile files to the mix; 
+        simplified the backdown, to use gci -path \* -incl ($profilefiles.name | select -unique), to autoresolve and pull the pendant hashes, wo sublooping
+        expanded all gci -> get-childitem ; flipped return to array of fullnames, to returning the object, and then to returning key properties of the full object
+    * 3:43 PM 9/9/2024 coded in hash checking, and run from 7330, trying to speed 
+        up outcopy: they have icmp cmpltely blocked in to admin laptops, and clientsvcs 
+        also doesn't have them registered in internal dns; so had to recode to use 
+        \\tsclient 
+        unfort, speed accessing down into vpn is even slower, than speed copying out of vpn, on every target. Hash checking also appears to be as slow as copying back and copmaring the existing files... so it's a bust too
+        Prob only speed improve can make would be to buffer back target name, length, LastWriteTime , and trigger copy if they don't match the source. Moving on for now. 
+        added new -dohashes param; coded in code to compare-object file hashes, to selectively copy only the differenced files ; sub'd out all Exit -> Break ; 
+    * 8:21 PM 9/8/2024 save out to git
+    * 12:08 PM 9/6/2024 subd out the profile file collection logic into new get-ProfileFilesTDO()
+    *2:49 PM 9/5/2024 ren $pltProDir -> $pltMkDir, to make clear what it's doing; rename actual file copy-Profile.ps1 -> copy-ProfileTDO.ps1 (match revised func name)
+    * 2:14 PM 8/19/2024 ren to copy-ProfileTDO, and alias copy-profile orig name
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
+    * 9:47 AM 9/24/2020 updated CBH, copied to verb-IO mod; added -MinProfile to drive admin/svcacct copying 
+    * 10:41 AM 3/26/2020 rewrote, added verbose support, condensed 
+    8:07 AM 6/12/2015 - functionalize copy code from the EMS block
+    .DESCRIPTION
+    copy-ProfileTDO() - Copies $SourceProfileMachine WindowsPowershell profile dir to the specified machine(s)
+    .PARAMETER  ComputerName
+    Name or IP address of the target computer
+    .PARAMETER SourceProfileMachine
+    Source Name or IP address of the source Profile computer
+    .PARAMETER TargetProfile
+    Target Account for Profile copy process [domain\logon]
+    .PARAMETER showProgress
+    Show Progress bar reflecting progress toward completion
+    .PARAMETER doHashes
+    Switch to generate & return File hashes (via get-fileHash cmdlet; *slower*)[-doHashes]
+    .PARAMETER Force
+    Switch to recopy *all* content, whether updated or not (trumps -doHashes, or default checks for chgs in name,length,LastWriteTime).[-force]
+    .PARAMETER showDebug
+    Show Debugging messages
+    .PARAMETER whatIf
+    Execute solely a test pass
+    .PARAMETER Credential
+    Credential object for use in accessing the computers.
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    Returns an object with uptime data to the pipeline.
+    .EXAMPLE
+    PS> $Exs=(get-exchangeserver | ?{(($_.IsMailboxServer) -OR ($_.IsHubTransportServer))} )
+    PS> if($Exs){
+    PS>     copy-ProfileTDO -ComputerName $Exs -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    PS> } else {write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):No Mbx or HT servers found)"} ;
+    Copy targetprofile to all Exchange servers (leveraging ExchMgmtShell cmd)
+    .EXAMPLE
+    PS> if($AdminJumpBox ){
+    PS>     write-verbose -verbose:$true "$((get-date).ToString('HH:mm:ss')):AdminJumpBox..."
+    PS>     copy-ProfileTDO -ComputerName $AdminJumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $TargetProfileAcct -JumpBox -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    PS> } ; 
+    Perform a full 'admin' profile copy into target jumpbox (specifies -JumpBox param)
+    .EXAMPLE
+    PS> copy-ProfileTDO -ComputerName $JumpBox -SourceProfileMachine $SourceProfileMachine -TargetProfile $SvcAcctProf -JumpBox -MinProfile -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    # Copy the minimum profile to specified Service Account Profile on jumpboxes
+    #>
+    [CmdletBinding()]
+    [Alias('copy-Profile')]
+    PARAM (
+        [parameter(ValueFromPipeline=$true,Mandatory=$True,HelpMessage="Specify Target Computer for Profile Copy[-ComputerName SERVER]")]
+            [Alias('__ServerName','Server','Computer','Name','IPAddress','CN')]   
+            [string[]]$ComputerName = $env:COMPUTERNAME,
+        [Parameter(Mandatory=$True,HelpMessage="Source Profile Machine [-SourceProfileMachine CLIENT]")]
+            [ValidateNotNullOrEmpty()]
+            [string]$SourceProfileMachine,    
+        [parameter(Mandatory=$True,HelpMessage="Target Account for Profile copy process (alt specify a path to cache a full profile copy) [-TargetProfile DOMAIN\LOGON]")]
+            [ValidatePattern('^\w*\\[A-Za-z0-9-]*$')]
+            [string]$TargetProfile,      
+        [parameter(HelpMessage="Credential object for use in accessing the computers")]
+            [System.Management.Automation.PSCredential]$Credential,
+        [Parameter(HelpMessage='-JumpBox  Flag [-JumpBox]')]
+            [switch] $JumpBox ,
+        [Parameter(HelpMessage='-MinProfile  Flag (copies least admin-related files)[-JumpBox]')]
+            [switch] $MinProfile ,
+        [Parameter(HelpMessage='Switch to generate & return File hashes (via get-fileHash cmdlet; *slower*)[-doHashes]')]
+            [switch] $doHashes,
+        [Parameter(HelpMessage='Switch to recopy *all* content, whether updated or not (trumps -doHashes, or default checks for chgs in name,length,LastWriteTime).[-force]')]
+            [switch]$Force,
+        [Parameter(HelpMessage='Debugging Flag [-showDebug]')]
+            [switch] $showDebug,
+        [Parameter(HelpMessage='Whatif Flag  [-whatif]')]
+            [switch] $whatIf
+    ) ;  # PARAM-E
+    BEGIN {
+        $verbose = ($VerbosePreference -eq 'Continue') ; 
+        If ($whatIf){write-host "`$whatIf is $true" ; $bWhatif=$true}; 
+        
+        # master timer
+        $swM = [Diagnostics.Stopwatch]::StartNew();
+
+        $AdminLogon=$TargetProfile.split("\")[1] ;
+        #"SAMACCOUNTNAME" ; 
+        $AdminDomain=$TargetProfile.split("\")[0] ;
+        #"DOMAIN" ; 
+        $TargetProfileAcct=$TargetProfile ;
+        #"$($AdminDomain)\$($AdminLogon)";
+        
+        $iProcd=0; 
+
+        # copy the same profile files to all dests, resolve the set once, not each loop
+
+        $gPFTDO=[ordered]@{
+            SourceProfileMachine = $null ; #$mybox[0] ;
+            targetProfileName = $AdminLogon ;
+            MinProfile = $null ; #$true ;
+            inclBackFill = $null ; #$true ;
+            #backFillDir = 'c:\usr\work\exch\scripts\' ;
+            #ProfileSourcePath = "c`$\sc\powershell\PSProfileUID\" ;
+            Verbose = $($PSBoundParameters['Verbose'] -eq $true) ;
+            #Credential = $Credential     
+        } ;
+        if($SourceProfileMachine){
+            $gPFTDO.SourceProfileMachine = $SourceProfileMachine ; 
+        } ; 
+        if($MinProfile){
+            $gPFTDO.MinProfile = $MinProfile ; 
+        } ;
+        if($doHashes){
+            $gPFTDO.add('doHashes',$dohashes) ; 
+        } 
+        $gPFTDO.inclBackFill = $true ; 
+        $smsg = "get-ProfileFilesTDO w`n$(($gPFTDO|out-string).trim())" ; 
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+        [array]$masterprofilefiles = get-ProfileFilesTDO @gPFTDO
+
+    }  # BEG-E
+    PROCESS {
+        $ttl = $Computername |  measure | select -expand count ; 
+        $procNo = 0 ; 
+        
+        $whBnr5 =@{BackgroundColor = 'White' ; ForegroundColor = 'DarkRed' } ;
+        foreach ($Computer in $Computername) {
+            $procNo++ ; 
+            $continue = $true
+            $error.clear() ;
+            TRY { 
+                $ErrorActionPreference = "Stop" ;
+
+                $sBnr5="`n#*______v PROCESSING : $($Computer) v______" ; 
+                write-host @whBnr5 -obj "$((get-date).ToString('HH:mm:ss')):$($sBnr5)" ;
+
+                $pltMkdir=[ordered]@{
+                    path="\\$Computer\c$\Users\$AdminLogon\Documents\WindowsPowerShell" ;
+                    itemtype="directory" ;
+                    Force=$true ;
+                    whatif=$($whatif) ;
+                } ; 
+                if(!(test-path "\\$Computer\c$\Users\$AdminLogon\Documents\WindowsPowerShell")) {
+                    $smsg = "new-item w`n$(($pltMkdir|out-string).trim())" ; 
+                    if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+                    new-item @pltMkdir ; 
+                };
+
+                #[array]$profileFiles = "\\$SourceProfileMachine\c$\usr\work\exch\scripts\profile.ps1","\\$SourceProfileMachine\c$\usr\work\exch\scripts\Microsoft.PowerShellISE_profile.ps1" ; 
+                # 12:07 PM 9/6/2024 moved the logic into get-ProfileFilesTDO()
+                # 2:22 PM 8/19/2024 these should source in primaries, not 2ndary out of band's (long out of date when checked)
+                #[array]$profileFiles = "\\$SourceProfileMachine\c$\sc\powershell\PSProfileUID\profile.ps1","\\$SourceProfileMachine\c$\sc\powershell\PSProfileUID\Microsoft.PowerShellISE_profile.ps1" ; 
+
+                $pltGPF=[ordered]@{
+                    path="\\$Computer\c$\Users\$AdminLogon\Documents\WindowsPowerShell" ;
+                    itemtype="directory" ;
+                    Force=$true ;
+                    whatif=$($whatif) ;
+                } ; 
+                if(!(test-path "\\$Computer\c$\Users\$AdminLogon\Documents\WindowsPowerShell")) {
+                    $smsg = "new-item w`n$(($pltGPF|out-string).trim())" ; 
+                    if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+                    new-item @pltGPF ; 
+                };
+
+                <# disabled - we have a set, don't need to re-resolve, outside of adminjumpboxes
+                $gPFTDO=[ordered]@{
+                    SourceProfileMachine = $null ; #$mybox[0] ;
+                    targetProfileName = $AdminLogon ;
+                    MinProfile = $null ; #$true ;
+                    inclBackFill = $null ; #$true ;
+                    #backFillDir = 'c:\usr\work\exch\scripts\' ;
+                    #ProfileSourcePath = "c`$\sc\powershell\PSProfileUID\" ;
+                    Verbose = $($PSBoundParameters['Verbose'] -eq $true) ;
+                    #Credential = $Credential     
+                } ;
+                if($SourceProfileMachine){
+                    $gPFTDO.SourceProfileMachine = $SourceProfileMachine ; 
+                } ; 
+                if($MinProfile){
+                    $gPFTDO.MinProfile = $MinProfile ; 
+                } ;
+                if($doHashes){
+                    $gPFTDO.add('doHashes',$dohashes) ; 
+                } 
+                $smsg = "get-ProfileFilesTDO w`n$(($gPFTDO|out-string).trim())" ; 
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                $profilefiles = get-ProfileFilesTDO @gPFTDO ; 
+                #>
+
+                if($JumpBox -OR ($Computer -match $rgxAdminJumpBoxes)){
+                
+                    write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):-JumpBox specified: Adding full remote profile.." ; 
+                    # 3:27 PM 6/22/2020 update to cover admin files
+                    if(-not $MinProfile){
+                        #$rgxJumpboxFiles = '^((tor|tsk|admin|(tsk|admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
+                        # sources from hard-coded git repo root path (fr a dev box)
+                        #$profileFiles += gci -path "\\$SourceProfileMachine\c$\sc\powershell\PSProfileUID\*" |?{$_.name -match $rgxJumpboxFiles} | select -expand fullname  ; 
+                        #[array]$profileFiles = get-ProfileFilesTDO -inclBackFill:$true -verbose ;
+                        $gPFTDO.inclBackFill = $true 
+                    } else { 
+                        # minprofile drop tsk-related items
+                        $rgxJumpboxAdminFiles = '^((tor|admin|(admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
+                        # sources from hard-coded git repo root path (fr a dev box)
+                        #$profileFiles += gci -path "\\$SourceProfileMachine\c$\sc\powershell\PSProfileUID\*" |?{$_.name -match $rgxJumpboxAdminFiles} | select -expand fullname  ; 
+                        #[array]$profileFiles = get-ProfileFilesTDO -MinProfile -verbose ;
+                        $gPFTDO.MinProfile = $true 
+                    } ; 
+
+                    $smsg = "get-ProfileFilesTDO w`n$(($gPFTDO|out-string).trim())" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    [array]$profilefiles = get-ProfileFilesTDO @gPFTDO
+
+                } else {
+                    # 2:31 PM 8/19/2024 above was only copying in the profile.ps1 & the ise profile, nothing else being updated, so we need to use the Minprofile option for any non-jumpbox, non SID acct
+                    # should always copy the full set, if not -minprofile
+                    write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):no -MinProfile specified: Adding full remote profile.." ; 
+                    if(-not $MinProfile){
+                        #$rgxJumpboxFiles = '^((tor|tsk|admin|(tsk|admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
+                        # sources from hard-coded git repo root path (fr a dev box)
+                        #$profileFiles += gci -path "\\$SourceProfileMachine\c$\sc\powershell\PSProfileUID\*" |?{$_.name -match $rgxJumpboxFiles} | select -expand fullname  ; 
+                        #[array]$profileFiles = get-ProfileFilesTDO -inclBackFill:$true -verbose ;
+                        $gPFTDO.inclBackFill = $true 
+                    } else { 
+                        # minprofile drop tsk-related items
+                        $rgxJumpboxAdminFiles = '^((tor|admin|(admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
+                        # sources from hard-coded git repo root path (fr a dev box)
+                        #$profileFiles += gci -path "\\$SourceProfileMachine\c$\sc\powershell\PSProfileUID\*" |?{$_.name -match $rgxJumpboxAdminFiles} | select -expand fullname  ; 
+                        #[array]$profileFiles = get-ProfileFilesTDO -MinProfile -verbose ;
+                        $gPFTDO.MinProfile = $true 
+                    } ; 
+                    $profilefiles = $masterprofilefiles ; 
+                } ;  
+
+                if($profilefiles){
+                    $sw = [Diagnostics.Stopwatch]::StartNew();
+                    $pltCopy = [ordered]@{
+                        path= $null ; #$profileFiles ; 
+                        destination=$pltMkdir.path ;
+                        force=$true ;
+                        verbose = $true ; 
+                        whatif=$($whatif) ;
+                    } ; 
+                    if($dohashes){
+                        $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory',
+                                @{name="Hash";expression={(Get-FileHash $_.FullName -Algorithm MD5).hash}}  ; 
+                        $targetset = get-childitem "$($pltCopy.destination)\*" -Include $profilefiles.name | 
+                            Select-Object -Property $prpFiles ; 
+                        $nomatch = Compare-Object -Ref $profilefiles  -Dif $targetset -Property Name,Hash ; 
+                        if($toCopy = $profilefiles |?{$nomatch.name -contains $_.name} | select -expand fullname ){
+                            $pltCopy.Path = $toCopy  ; 
+                        } else {
+                            $smsg = "(all files match by name & hash)" ; 
+                            write-host -foregroundcolor green $smsg ;
+                        } ; 
+                    }elseif($force){
+                        write-host -foregroundcolor yellow "-force specified:re-copying *all* files, regardless of update status" ; 
+                        $pltCopy.path = $profileFiles.fullname ; 
+                    } else { 
+                        # # condintional update copy: attribute level compare-object
+                        $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory' ;
+                        $targetset = get-childitem "$($pltCopy.destination)\*" -Include $profilefiles.name | 
+                            Select-Object -Property $prpFiles ; 
+                        $nomatch = Compare-Object -Ref $profilefiles  -Dif $targetset -Property Name,Length,LastWriteTime ; 
+                        #$pltCopy.path = $profileFiles.fullname ; 
+                        if($toCopy = $profilefiles |?{$nomatch.name -contains $_.name} | select -expand fullname ){
+                            $pltCopy.Path = $toCopy  ; 
+                        } else {
+                            $smsg = "(all files match by Name,Length,LastWriteTime)" ;
+                            write-host -foregroundcolor green $smsg ;
+                        } ; 
+                    } ; 
+                    if($pltCopy.path){
+                        $smsg = "copy-item w`n$(($pltCopy|out-string).trim())`n`$pltCopy.path:`n$(($pltCopy.path|out-string).trim())" ; 
+                        if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+                        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+                        copy-item @pltCopy ; 
+                        $iProcd++
+                    } else {
+                        write-verbose "(nothing out of sync to copy)" ; 
+                    } ;
+                    #write-verbose "Timer Stop" ;
+                    $sw.Stop() ;
+                    $smsg =  "Elapsed Time: " ;
+                    #$smsg = "$($iProcd) items converted in: " ;
+                    if($host.version.major -ge 3){
+                        $smsg =  ("$($smsg) {0:dd}d {0:hh}h {0:mm}m {0:ss}s {0:fff}ms" -f $sw.Elapsed) ; #outputs: Elapsed Time: 0d 0h 0m 10s 101ms
+                    } else {
+                        $smsg = "$($smsg) $($sw.Elapsed.ToString()))" ; # outputs: Elapsed Time: (HH:MM:SS.ms) 00:00:15.8418655
+                    } ;
+                    write-host -foregroundcolor gray "$((get-date).ToString('HH:mm:ss')):$($smsg)" ; 
+                    
+                } ; 
+            } CATCH {
+                $ErrTrapd=$Error[0] ;
+                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+                else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                Continue ; 
+            } ; 
+            
+            write-host @whBnr5 -obj "$((get-date).ToString('HH:mm:ss')):$($sBnr5.replace('_v','_^').replace('v_','^_'))`n" ;
+        } # loop-E
+    } # PROC-E
+    END {
+        $smsg = "PROCESSED $($iProcd) machines" ; 
+        if($verbose){ if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+        else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+        $iProcd | write-output ; 
+        # master timer reporting
+        #write-verbose "Timer Stop:Master" ;
+        $swM.Stop() ;
+        $smsg =  $smsg =  "$($pscmdlet.MyInvocation.InvocationName):Elapsed Time: " ; 
+        #$smsg = "$($iProcd) items converted in: " ;
+        if($host.version.major -ge 3){
+            $smsg =  ("$($smsg) {0:dd}d {0:hh}h {0:mm}m {0:ss}s {0:fff}ms" -f $swM.Elapsed) ; #outputs: Elapsed Time: 0d 0h 0m 10s 101ms
+        } else {
+            $smsg = "$($smsg) $($swM.Elapsed.ToString()))" ; # outputs: Elapsed Time: (HH:MM:SS.ms) 00:00:15.8418655
+        } ;
+        write-host -foregroundcolor gray "$((get-date).ToString('HH:mm:ss')):$($smsg)" ; 
+    } ; 
+}
+
+#*------^ copy-ProfileTDO.ps1 ^------
+
+
 #*------v count-object.ps1 v------
 function Count-Object {
     <#
@@ -8266,6 +8621,537 @@ function Get-ProductItems {
 }
 
 #*------^ Get-ProductItems.ps1 ^------
+
+
+#*------v get-ProfileFilesTDO.ps1 v------
+function get-ProfileFilesTDO {
+    <#
+    .SYNOPSIS
+    get-ProfileFilesTDO() - Gather source $SourceProfileMachine WindowsPowershell profile dir contents for copying to other machine(s), from local git Repository directory (C:\sc\powershell\PSProfileUID\)
+    .NOTES
+    Author: Todd Kadrie
+    Website:	http://www.toddomation.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    * 2:08 PM 9/17/2024 fixed path expansion bug, created by subing in paramss for strings
+    * 9:59 AM 9/16/2024 updated CBH, added CBH to _get-BackFileFiles.ps1; removed more rem'd cmds.
+    * 2:08 PM 9/13/2024 parameterized range of $profilefile arrays(ProfileBaseFiles,ProfileDYNFiles,profileCorefiles,profileSVCfiles,profileADDLfiles,ProfileUIDFiles,backFillFileFilter,backFillFileExclude );
+     duped helpmsg into CBH; also purged some block rems; 
+    * 4:51 PM 9/12/2024 add -force, to recopy everything regardless of update/sync status; move into verb-io
+    * 8:46 AM 9/11/2024 set $doHashes default $false; added 'Directory' (parent dir leaf folder name) to $prpFiles; 
+        added timers ($swM,$sw); flip all to the $prpfiles prop subset, don't need all the extra overhead, which means, always use an [array], not [system.io.fileinfo[] or [string[]]
+        flip all [system.io.fileinfo[]] -> [array], as we're now returning key subset of file obj properties, slim down data size, and fileinfo doesn't support hashes;
+    * 10:17 AM 9/9/2024 added -doHashes and calc'd hash prop return on files ; flipped return from array of UNC paths, to the full details including hash
+    * 8:25 PM 9/8/2024 buffer out chgs to git
+    * 4:21 PM 9/6/2024 debuged the updated logic on targetprofilename, working, need to build the calls into copy-profiletdo() ; 
+       init, created to break out copy-ProfileTDO()'s file collecting logic into a portable separate function
+    *2:49 PM 9/5/2024 ren $pltProDir -> $pltMkDir, to make clear what it's doing
+    * 2:14 PM 8/19/2024 ren to get-ProfileFilesTDO, and alias copy-profile orig name
+    * 10:35 AM 2/21/2022 CBH example ps> adds 
+    * 9:47 AM 9/24/2020 updated CBH, copied to verb-IO mod; added -MinProfile to drive admin/svcacct copying 
+    * 10:41 AM 3/26/2020 rewrote, added verbose support, condensed 
+    8:07 AM 6/12/2015 - functionalize copy code from the EMS block
+    .DESCRIPTION
+    get-ProfileFilesTDO() - Gather source $SourceProfileMachine WindowsPowershell profile dir contents for copying to other machine(s), from local git Repository directory (C:\sc\powershell\PSProfileUID\)
+    
+    Intent is to can-up and segregate the logic that assembles the profile files, to recycle them for both copying entire profile to remote machines, and for copying them to cached access paths.
+
+    .PARAMETER SourceProfileMachine
+    Source Name or IP address of the source Profile computer
+    .PARAMETER MinProfile
+    Switch that copies least admin-related files[-MinProfile]
+    .PARAMETER ProfileBaseFiles 
+    Array of profile file names that are the core essentials in every profile [-ProfileBaseFiles 'profile.ps1']
+    .PARAMETER ProfileDYNFiles 
+    Array of profile file with 'USERNAME' name substrings that are to be dynamically replaced w `$env:USERNAME in every profile [-ProfileDYNFiles 'profile_USERNAME.ps1']
+    .PARAMETER profileCorefiles 
+    Array of profile file names that are the included in every profile [-profileCorefiles 'profilex1.ps1']
+    .PARAMETER profileSVCfiles 
+    Array of profile file names that are the included in ServiceAccount profiles [-profileSVCfiles 'profileSvc.ps1']
+    .PARAMETER profileADDLfiles 
+    Array of profile file names that are the included in ServiceAccount profiles [-profileADDLfiles 'profileExtra.ps1']
+    .PARAMETER ProfileUIDFiles 
+    Array of profile file names that are the included in ServiceAccount profiles [-ProfileUIDFiles 'profileUID.ps1']
+    .PARAMETER inclBackFill
+    switch to buffer in backfill uwes\verb-xxx.ps1 module backups (source module .psm1 files renamed to .ps1)[-showDebug]
+    .PARAMETER backFillDir
+    Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
+    .PARAMETER backFillFileFilter 
+    Array of BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]
+    .PARAMETER backFillFileExclude 
+    BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']
+    Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
+    .PARAMETER ProfileSourcePath
+    Directory that holds source profile files (defaults to c`$\sc\powershell\PSProfileUID\, normally within a git source repo) [-ProfileSourcePath c:\pathto\]    
+    .PARAMETER doHashes
+    Switch to generate & return File hashes (via get-fileHash cmdlet)[-doHashes]
+    .PARAMETER showDebug
+    Show Debugging messages
+    .PARAMETER whatIf
+    Execute solely a test pass
+    .PARAMETER Credential
+    Credential object for use in accessing the computers.
+    .INPUTS
+    None. Doesn't accept pipeline input.
+    .OUTPUTS
+    System.Array returns array of matched file properties ('Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory')
+    .EXAMPLE
+    PS> $tpfiles = get-ProfileFilesTDO -inclBackFill -verbose ;
+    PS> $tpfiles | cp -Destination c:\tmp\test -verbose ; 
+    Demo collecting profile files with -inclBackfill, verbose and issuing a copy on the results.
+    .EXAMPLE
+    PS> $tpfiles = get-ProfileFilesTDO -MinProfile -verbose ;
+    PS> $tpfiles | cp -Destination c:\tmp\test -verbose ; 
+    Demo collecting -MinProfile profile files, verbose, and issuing a copy on the results.
+    Perform a full 'admin' profile copy into target jumpbox (specifies -JumpBox param)
+    .EXAMPLE
+    PS> get-ProfileFilesTDO -SourceProfileMachine $SourceProfileMachine -TargetProfile $SvcAcctProf -JumpBox -MinProfile -showDebug:$($showdebug) -whatIf:$($whatif) -verbose:($VerbosePreference -eq "Continue") ;  
+    # Copy the minimum profile to specified Service Account Profile on jumpboxes
+    .EXAMPLE
+    PS> $gPFTDO=[ordered]@{
+    PS>     SourceProfileMachine = $mybox[0] ;
+    PS>     targetProfileName = $SIDuid.split('\')[1] ;
+    PS>     MinProfile = $true ;
+    PS>     inclBackFill = $true ;
+    PS>     backFillDir = 'c:\usr\work\exch\scripts\' ;
+    PS>     ProfileSourcePath = "c`$\sc\powershell\PSProfileUID\" ;
+    PS>     Verbose = $($PSBoundParameters['Verbose'] -eq $true) ;
+    PS>     Credential = $Credential     
+    PS> } ;
+    PS> $smsg = "get-ProfileFilesTDO w`n$(($gPFTDO|out-string).trim())" ; 
+    PS> if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    PS> $profilefiles = get-ProfileFilesTDO @gPFTDO ; 
+    Splatted demo
+    #>
+    [CmdletBinding()]
+    [Alias('Get-ProfileFiles')]
+    PARAM (
+        [Parameter(HelpMessage="Source Profile Machine [-SourceProfileMachine CLIENT]")]
+            # default a value but ensure user doesn't override with null/empty value, don't use Mandetory, but use [ValidateNotNullOrEmpty()]
+            [ValidateNotNullOrEmpty()]
+            #isPingable
+            #[validatescript({Test-Connection -ComputerName $_ -Quiet -Count 2})] 
+            # disable, blocked validate - [redacted] in network/sec have blocked icmp to vpn'd admin workstations, and desktop have laptops not registering themselves properly in internal DNS!
+            [string]$SourceProfileMachine = $mybox[0],    
+        [Parameter(HelpMessage="UserProfile destation to use for filtering profile files [-targetProfileName domain\logon]")]
+            [string]$targetProfileName,   
+        [parameter(HelpMessage="Credential object for use in accessing the computers")]
+            [System.Management.Automation.PSCredential]$Credential,
+        [Parameter(HelpMessage='Switch that copies least admin-related files[-MinProfile]')]
+            [switch] $MinProfile ,
+        # new params tied to file include arrays (make them cmdline able for dyn updates wo mod rebuild)
+        [Parameter(HelpMessage="Array of profile file names that are the core essentials in every profile [-ProfileBaseFiles 'profile.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$ProfileBaseFiles = @('profile.ps1','Microsoft.PowerShellISE_profile.ps1','tor-incl-infrastrings.ps1'), 
+        [Parameter(HelpMessage="Array of profile file with 'USERNAME' name substrings that are to be dynamically replaced w `$env:USERNAME in every profile [-ProfileDYNFiles 'profile_USERNAME.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$ProfileDYNFiles = @("tor-incl-infrastrings_$($env:USERNAME).ps1"),
+        [Parameter(HelpMessage="Array of profile file names that are the included in every profile [-profileCorefiles 'profilex1.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$profileCorefiles = @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1') , 
+        [Parameter(HelpMessage="Array of profile file names that are the included in ServiceAccount profiles [-profileSVCfiles 'profileSvc.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$profileSVCfiles = @('admin-prof.ps1','adminsid-incl-ServerCore.ps1','adminsid-incl-ServerApp.ps1'),
+        [Parameter(HelpMessage="Array of profile file names that are the included in ServiceAccount profiles [-profileADDLfiles 'profileExtra.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$profileADDLfiles = @('tor-incl-html-TOR-logo-graybar.ps1','tor-incl-html.ps1'),
+        [Parameter(HelpMessage="Array of profile file names that are the included in ServiceAccount profiles [-ProfileUIDFiles 'profileUID.ps1']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$ProfileUIDFiles = @('home-incl-infrastrings.ps1'),
+        # backfill driver params
+        [Parameter(HelpMessage='switch to buffer in backfill uwes\verb-xxx.ps1 module backups (source module .psm1 files renamed to .ps1)[-showDebug]')]
+            [switch] $inclBackFill,
+        [Parameter(Mandatory=$False,HelpMessage="Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]")]
+            [ValidateNotNullOrEmpty()]
+            [ValidateScript({Test-Path $_ -PathType 'Container'})]
+            [System.IO.DirectoryInfo]$backFillDir = 'c:\usr\work\exch\scripts\',
+         [Parameter(Mandatory=$false,HelpMessage="Array of BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$backFillFileFilter = 'verb-*.ps1',
+        [Parameter(Mandatory=$false,HelpMessage="BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']")]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$backFillFileExclude = '-pub\.ps1$',
+        [Parameter(Mandatory=$False,HelpMessage="Directory that holds source profile files (defaults to c`$\sc\powershell\PSProfileUID\, normally within a git source repo) [-ProfileSourcePath c:\pathto\]")]
+            [ValidateNotNullOrEmpty()]
+            [ValidateScript({Test-Path $_ -PathType 'Container'})]
+            [System.IO.DirectoryInfo]$ProfileSourcePath = "c:\sc\powershell\PSProfileUID\",
+        [Parameter(HelpMessage='Switch to generate & return File hashes (via get-fileHash cmdlet)[-doHashes]')]
+            [switch] $doHashes,
+        [Parameter(HelpMessage='Debugging Flag [-showDebug]')]
+            [switch] $showDebug,
+        [Parameter(HelpMessage='Whatif Flag  [-whatif]')]
+            [switch] $whatIf
+    ) ;  # PARAM-E
+    BEGIN {
+        $verbose = ($VerbosePreference -eq 'Continue') ; 
+        $rgxJumpboxFiles =      '^((tor|tsk|admin|(tsk|admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
+        $rgxJumpboxAdminFiles = '^((tor|admin|(admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
+        $rgxSamAcctNameTOR = "^[-A-Za-z0-9]{2,20}$"
+        $rgxSamAcctName = "^(?![\.-])(?:[a-zA-Z0-9-.](?!\.$)){1,21}$"
+        $rgxDomainSamAcctName = "^[a-zA-Z][a-zA-Z0-9\-\.]{0,61}[a-zA-Z]\\(?![\.-])(?:[a-zA-Z0-9-.](?!\.$)){1,21}$" ; 
+        # updated for 2-63 .tlds in email addr spec
+        $rgxUPN = "^([0-9a-zA-Z]+[-._+&'])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,63}$J" ; 
+        $prpFTA = 'name','length','lastwritetime' ; 
+        # master timer
+        $swM = [Diagnostics.Stopwatch]::StartNew();
+
+        #*------v Function _get-BackFileFiles v------
+        function _get-BackFileFiles {
+            <#
+            .SYNOPSIS
+            _get-BackFileFiles.ps1 - Internal function (within get-ProfileFilesTDO) that encapsulates the backfile profile copy source selection logic (these files are verb-* module .psm1's renamed to .ps1  and copied to the uwes dir), only specifies files that have a matching locally installed matching module. 
+            .NOTES
+            Version     : 0.0.
+            Author      : Todd Kadrie
+            Website     : http://www.toddomation.com
+            Twitter     : @tostka / http://twitter.com/tostka
+            CreatedDate : 2024-
+            FileName    : _get-BackFileFiles.ps1
+            License     : MIT License
+            Copyright   : (c) 2024 Todd Kadrie
+            Github      : https://github.com/tostka/verb-XXX
+            Tags        : Powershell
+            AddedCredit : REFERENCE
+            AddedWebsite: URL
+            AddedTwitter: URL
+            REVISIONS
+            * 2:08 PM 9/17/2024 fixed path expansion bug, created by subing in paramss for strings
+            * 9:42 AM 9/16/2024 added CBH
+            *  1:43 PM 9/13/2024 Add: -backFillFileFilter, -backFillFileExclude (both shift static strings into params, where they can be managed on the fly)
+            .DESCRIPTION
+            _get-BackFileFiles.ps1 - Internal function (within get-ProfileFilesTDO) that encapsulates the backfile profile copy source selection logic (these files are verb-* module .psm1's renamed to .ps1  and copied to the uwes dir), only specifies files that have a matching locally installed matching module. 
+            .PARAMETER SourceProfileMachine
+            Source Profile Machine [-SourceProfileMachine CLIENT]
+            .PARAMETER backFillDir
+            Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
+            .PARAMETER backFillFileFilter
+            BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]
+            .PARAMETER backFillFileExclude
+            BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']
+            .PARAMETER doHashes
+            Switch to generate & return File hashes (via get-fileHash cmdlet)[-doHashes]
+            .INPUTS
+            None. Does not accepted piped input
+            .OUTPUTS
+            System.Array Returns an array of file summary properties (subset of full system.io.fileinfo)
+            System.Boolean
+            [| get-member the output to see what .NET obj TypeName is returned, to use here]
+            .EXAMPLE
+            PS> .\_get-BackFileFiles.ps1 -whatif -verbose
+            EXSAMPLEOUTPUT
+            Run with whatif & verbose
+            .EXAMPLE
+            PS> .\_get-BackFileFiles.ps1
+            EXSAMPLEOUTPUT
+            EXDESCRIPTION
+            .LINK
+            https://github.com/tostka/verb-XXX
+            .LINK
+            https://bitbucket.org/tostka/powershell/
+            .LINK
+            [ name related topic(one keyword per topic), or http://|https:// to help, or add the name of 'paired' funcs in the same niche (enable/disable-xxx)]
+            #>
+            [CmdletBinding()]
+            PARAM(
+                [Parameter(Mandatory=$true,HelpMessage="Source Profile Machine [-SourceProfileMachine CLIENT]")]
+                    [ValidateNotNullOrEmpty()]
+                    #isPingable
+                    #[validatescript({Test-Connection -ComputerName $_ -Quiet -Count 2})]
+                    [string]$SourceProfileMachine,
+                [Parameter(Mandatory=$true,HelpMessage="Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]")]
+                    [ValidateNotNullOrEmpty()]
+                    #[ValidateScript({Test-Path $_ -PathType 'Container'})]
+                    [System.IO.DirectoryInfo]$backFillDir,
+                [Parameter(Mandatory=$false,HelpMessage="BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]")]
+                    [ValidateNotNullOrEmpty()]
+                    [string]$backFillFileFilter = 'verb-*.ps1',
+                [Parameter(Mandatory=$false,HelpMessage="BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']")]
+                    [ValidateNotNullOrEmpty()]
+                    [string]$backFillFileExclude = '-pub\.ps1$',
+                [Parameter(HelpMessage='Switch to generate & return File hashes (via get-fileHash cmdlet)[-doHashes]')]
+                    [switch] $doHashes
+            ) ; 
+            #if(-not (Test-Connection -ComputerName $SourceProfileMachine -Quiet -Count 2)){
+            #    write-warning "hostname $($SourceProfileMachine) isn't ICMP-able, retrying via \\tsclient\..." ; 
+            if($SourceProfileMachine -eq 'tsclient'){
+                $SourcePath = "\\$(join-path -path $SourceProfileMachine -ChildPath $backFillDir.fullname.replace(':',''))" ; 
+            } else { 
+                $SourcePath = "\\$(join-path -path $SourceProfileMachine -ChildPath $backFillDir.fullname.replace(':','$'))" ; 
+            } ; 
+            if(test-path $SourcePath -PathType Container){
+                write-verbose "Resolved `$SourcePath:$($SourcePath)" ; 
+            }else{
+                $smsg = "`$SourcePath does *NOT* resolve to an accessible UNC path!"
+                write-warning $smsg ;
+                throw $smsg ;
+            } ; 
+            $sw = [Diagnostics.Stopwatch]::StartNew();
+            write-verbose "-inclBackFill: resolve backfill dir uwes\verb-*.ps1 files into those with actual modules installed locally" ; 
+            # 2:02 PM 9/17/2024 move all but $prpFiles differentiating code outside of the if/then
+            if($doHashes){
+                $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory',
+                    @{name="Hash";expression={(Get-FileHash $_.FullName -Algorithm MD5).hash}}  ; 
+            } else {
+                $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory' ; 
+            } ; 
+            $backfillfiles = @() ; 
+            $backfillfiles += gci -Path "$($SourcePath)\*" -Include "verb-*.ps1" |
+                ?{$_.name -notmatch $backFillFileFilter} | 
+                    Select-Object -Property $prpFiles ; 
+            write-verbose "gather installed verb-* modules" ; 
+            $gmols = gmo verb-* -list -ea STOP ;
+            write-verbose "test backfillfiles for matching installed modules" ; 
+            $hasmods = @() ; 
+            $backfillfiles.name.replace('.ps1','') |foreach-object{
+                $name = $_ ;
+                write-verbose "==$($name)" ;
+                if($gmols.name -contains $name){
+                    write-verbose "Y:$($name)";
+                    $hasmods+=@("$($name).ps1") ; 
+                }else {write-verbose "N:$($name)"}  
+            } ; 
+            
+            <#
+            if($doHashes){
+                # cant use fileinfo, if we add a hash prop
+                [array]$rBackFileFiles = @() ; 
+            } else { 
+                #[system.io.fileinfo[]]$rBackFileFiles = @() ; 
+                # always use array, to support varying properties in the schema
+                [array]$rBackFileFiles = @() ; 
+            } ; 
+            #>
+            [array]$rBackFileFiles = @() ; 
+            foreach($bkfile in $backfillfiles){
+                if($hasmods -contains $bkfile.name){
+                    write-verbose "Add:`$BackFileFiles += $($bkfile.fullname)" ; 
+                    $rBackFileFiles += $bkfile #.fullname ; 
+                } ; 
+            } ; 
+            $smsg = "Resolved Backfiles: $(($rBackFileFiles |  measure | select -expand count |out-string).trim()) files" ; 
+            $smsg += "`nTypes:`n$(($rBackFileFiles | group extension | ft -a count,name |out-string).trim()) files" ; 
+            write-host -foregroundcolor green $smsg ; 
+            $smsg = "`$rBackFileFiles:`n$(($rBackFileFiles | sort LastWriteTime | ft -a $prpFTA|out-string).trim())" ; 
+            write-verbose $smsg ;
+            $rBackFileFiles | write-output ; 
+            #$prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','Hash','LinkType','PSParentPath','PSPath','Directory' ; 
+            #$rBackFileFiles | select $prpFiles | write-output ; 
+
+            write-verbose "Timer Stop" ;
+            $sw.Stop() ;
+            $smsg =  "Elapsed Time: " ;
+            #$smsg = "$($iProcd) items converted in: " ;
+            if($host.version.major -ge 3){
+                $smsg =  ("$($smsg) {0:dd}d {0:hh}h {0:mm}m {0:ss}s {0:fff}ms" -f $sw.Elapsed) ; #outputs: Elapsed Time: 0d 0h 0m 10s 101ms
+            } else {
+                $smsg = "$($smsg) $($sw.Elapsed.ToString()))" ; # outputs: Elapsed Time: (HH:MM:SS.ms) 00:00:15.8418655
+            } ;
+            write-host -foregroundcolor gray "$((get-date).ToString('HH:mm:ss')):$($smsg)" ; 
+
+        } ;
+        #*------^ END Function _get-BackFileFiles ^------
+        
+    }  # BEG-E
+    PROCESS {
+            $continue = $true
+            $error.clear() ;
+            TRY { 
+                $ErrorActionPreference = "Stop" ;
+
+                switch ($targetProfileName){
+                    # with hyphen support (SIDs use them in later rev)
+                    $rgxSamAcctName {
+                        $smsg = "(-targetProfileName matches a SamAccountname)" ; 
+                        write-verbose $smsg ; 
+                    }
+                    $rgxDomainSamAcctName {
+                        $smsg = "Domain\SamAccountName matched: trimming to user SamAccountName" ; 
+                        write-warning $smsg ; 
+                        $targetProfileName = $targetProfileName.split('\')[-1] ; 
+                    }
+                    $rgxUPN {
+                        $smsg = "-targetProfileName matches a UserPrincipalName/SmtpAddress, please specify a DOMAIN\samaccountname string" ; 
+                        write-warning $smsg ; 
+                        throw $smsg ;
+                        break ; 
+                    } ; 
+                } ; 
+                
+                if(-not (Test-Connection -ComputerName $SourceProfileMachine -Quiet -Count 2)){
+                    write-warning "hostname $($SourceProfileMachine) isn't ICMP-able, retrying via \\tsclient\..." ; 
+                    if(test-path $(join-path -path "\\tsclient" -ChildPath $ProfileSourcePath.fullname.replace(':',''))){
+                        $SourceProfileMachine = 'tsclient' ; 
+                    }else {
+                        $smsg = "UNABLE TO CONNECT TO DESIGATED $(join-path -path "\\tsclient" -ChildPath $ProfileSourcePath.fullname.replace(':',''))!" ;
+                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent}
+                        else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    } ; 
+                } ; 
+                if($SourceProfileMachine -eq 'tsclient'){
+                    $SourcePath = "\\$(join-path -path $SourceProfileMachine -ChildPath $ProfileSourcePath.fullname.replace(':',''))" ; 
+                } else { 
+                    $SourcePath = "\\$(join-path -path $SourceProfileMachine -ChildPath $ProfileSourcePath.fullname.replace(':','$'))" ; 
+                } ; 
+                if(test-path $SourcePath -PathType Container){
+                    write-verbose "Resolved `$SourcePath:$($SourcePath)" ; 
+                }else{
+                    $smsg = "`$SourcePath does *NOT* resolve to an accessible UNC path!"
+                    write-warning $smsg ;
+                    throw $smsg ;
+                } ; 
+
+
+                [string[]]$profileFiles = @() ; 
+                #$profilefiles += @('profile.ps1','Microsoft.PowerShellISE_profile.ps1','tor-incl-infrastrings.ps1') 
+                $profilefiles += $ProfileBaseFiles ; # from new param
+
+                if($targetProfileName){
+                    write-host "-targetProfileName: $($targetProfileName)" ; 
+                } else {
+                    $targetProfileName = 'ALL' ; 
+                } ; 
+
+                switch ($targetProfileName){
+                    'All' {
+                        if(-not $MinProfile){
+                            
+                            write-host -foregroundcolor green "Adding full remote profile.." ; 
+                            #$rgxJumpboxFiles = '^((tor|tsk|admin|(tsk|admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
+                            # sources from hard-coded git repo root path (fr a dev box)
+                            #$profileFiles += get-childitem -path (join-path -path $SourcePath -childpath "*") -ea STOP |?{$_.name -match $rgxJumpboxFiles} | select -expand name ; # | select -expand fullname  ; 
+                            # add the full stack for work related
+                            #$profilefiles += @("tor-incl-infrastrings_$($env:USERNAME).ps1") ;  
+                            $profilefiles += ($ProfileDYNFiles.replace('USERNAME',$ENV:username)) ;  
+                            #$profilefiles += @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1') ; 
+                            $profilefiles += $profileCorefiles # param
+                            #$profilefiles += @('admin-prof.ps1','adminsid-incl-ServerCore.ps1','adminsid-incl-ServerApp.ps1') ;
+                            $profilefiles +=$profileSVCfiles # param
+                            # 4:25 PM 9/8/2024: add common html foramtting/reporting support files:
+                            #$profilefiles += @('tor-incl-html-TOR-logo-graybar.ps1','tor-incl-html.ps1') ;
+                            $profilefiles += $profileADDLfiles ; # param
+                            # is this being executed on a non-work machine?
+                            if( !($env:computername -match $rgxProdServers) -AND !($env:computername -match $rgxLabServers) -AND !($env:computername -match $rgxWorkstation) -AND !($env:computername -match $rgxJumpBoxes) ) {
+                                #$profilefiles += @('home-incl-infrastrings.ps1') ; 
+                                $profilefiles += $ProfileUIDFiles
+                            } ; 
+                        } else { 
+                            write-host -foregroundcolor green "-MinProfile: use reduced minimum remote profile.." ; 
+                            # minprofile drop tsk-related items
+                            #$rgxJumpboxAdminFiles = '^((tor|admin|(admin)sid|vscode|ISE)-|GitHub|profile_).*.(ps1|ps?1|css|html)$'
+                            # sources from hard-coded git repo root path (fr a dev box)
+                            $profileFiles += get-childitem -path (join-path -path $SourcePath -childpath "*") -ea STOP  |?{$_.name -match $rgxJumpboxAdminFiles} | select -expand name ;  # | select -expand fullname  ; 
+                        } ;                           
+                    }
+
+                    default {
+                        # explicit account specified
+                        write-verbose "add:tor-incl-infrastrings_USERNAME.ps1"
+                        $profilefiles += @("tor-incl-infrastrings_$($env:USERNAME).ps1") ;  
+                        if( ($targetProfileName.split('\')[-1] -match $rgxAcctNameAnySID) -OR ($targetProfileName.split('\')[-1] -match $rgxAcctNameAnyUID)){
+                            $profilefiles += @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1') ; 
+                        } else {
+                            $profilefiles += @('admin-prof.ps1','adminsid-incl-ServerCore.ps1','adminsid-incl-ServerApp.ps1') ;
+                        } ; 
+                        # 2a. is it a known UID acct?
+                        if($targetProfileName -match $rgxAcctNameAnyUID){
+                            $profilefiles += @('tsk-incl-Desktop.ps1','tsk-incl-Toys.ps1','tsk-incl-Home.ps1') ; 
+                        } ; 
+                        # is this being executed on a non-work machine
+                        if( !($env:computername -match $rgxProdServers) -AND !($env:computername -match $rgxLabServers) -AND !($env:computername -match $rgxWorkstation) -AND !($env:computername -match $rgxJumpBoxes) ) {
+                            $profilefiles += @('home-incl-infrastrings.ps1') ; 
+                        } ; 
+                        # 4:25 PM 9/8/2024: add common html foramtting/reporting support files:
+                        $profilefiles += @('tor-incl-html-TOR-logo-graybar.ps1','tor-incl-html.ps1') ;
+                    } ; 
+                } ; 
+
+                # resolve them out into full unc paths
+                # 3:05 PM 9/10/2024 flip all to the $prpfiles prop subset, don't need all the extra overhead, which means, always use an [array], not [system.io.fileinfo[] or [string[]]
+                # 2:05 PM 9/17/2024 move all but the $prpFiles varying specs out of the if/then
+                if($doHashes){
+                    write-verbose "(calculating and including hashes on each file)" ; 
+                    $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory',
+                        @{name="Hash";expression={(Get-FileHash $_.FullName -Algorithm MD5).hash}}  ;
+                } else { 
+                    $prpFiles = 'Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory' ; 
+                } ; 
+                
+                $sw = [Diagnostics.Stopwatch]::StartNew();
+                # use -include skip the loop: $profilefiles | select -unique ; seamlessly includes hashes if they're defined in $prpFiles, skips them if not
+                [array]$rProfilefiles = @() ; 
+                $rProfilefiles = @(
+                    get-childitem -path "$($SourcePath)\*" -Include ($profilefiles | select -unique ) | 
+                        select-object -property $prpFiles
+                ) ; 
+                #write-verbose "Timer Stop" ;
+                $sw.Stop() ;
+                $smsg =  "Elapsed Time: " ;
+                #$smsg = "$($iProcd) items converted in: " ;
+                if($host.version.major -ge 3){
+                    $smsg =  ("$($smsg) {0:dd}d {0:hh}h {0:mm}m {0:ss}s {0:fff}ms" -f $sw.Elapsed) ; #outputs: Elapsed Time: 0d 0h 0m 10s 101ms
+                } else {
+                    $smsg = "$($smsg) $($sw.Elapsed.ToString()))" ; # outputs: Elapsed Time: (HH:MM:SS.ms) 00:00:15.8418655
+                } ;
+                write-host -foregroundcolor gray "$((get-date).ToString('HH:mm:ss')):$($smsg)" ; 
+
+                $smsg = "Resolved base Profile Files:" ; 
+                $smsg += " $(($rProfilefiles |  measure | select -expand count |out-string).trim()) files" ; 
+                $smsg += "`nTypes:`n$(($rProfilefiles | group extension | ft -a count,name |out-string).trim()) files" ; 
+                write-host -foregroundcolor green $smsg ; 
+                $smsg = "`$rProfilefiles:`n$(($rProfilefiles | sort LastWriteTime | ft -a $prpFTA|out-string).trim())" ; 
+                write-verbose $smsg ;
+                if($inclBackFill -AND -not $MinProfile){
+                    write-verbose "-inclBackFill: resolve backfill dir uwes\verb-*.ps1 files into those with actual modules installed locally" ; 
+                    #$backfillfiles = _get-BackFileFiles -SourceProfileMachine $SourceProfileMachine -backFillDir $backFillDir.fullname -Verbose:($PSBoundParameters['Verbose'] -eq $true)
+                    <# new params, IN BOTH _get-BackFileFiles() & get-ProfileFilesTDO()
+                    $backFillFileFilter = @('verb-*.ps1')
+                    $backFillFileExclude = '-pub\.ps1$'
+                    #>
+                    $pltgBFF=[ordered]@{
+                        SourceProfileMachine = $SourceProfileMachine ;
+                        backFillDir = $backFillDir.fullname ;
+                        Verbose = ($PSBoundParameters['Verbose'] -eq $true)
+                        backFillFileFilter = ($backFillFileFilter | Out-String) ;
+                        backFillFileExclude = ($backFillFileExclude | Out-String) ; 
+                    } ;
+                    $smsg = "_get-BackFileFiles w`n$(($pltgBFF|out-string).trim())" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    $backfillfiles = _get-BackFileFiles @pltgBFF ; 
+                    $rProfilefiles = $(@($rProfilefiles;$backfillfiles)) ; 
+                    $smsg = "Resolved base Profile Files + additional -inclBackFill:" ; 
+                    $smsg += " $(($rProfilefiles |  measure | select -expand count |out-string).trim()) files" ; 
+                    $smsg += "`nTypes:`n$(($rProfilefiles | group extension | ft -a count,name |out-string).trim()) files" ; 
+                    write-host -foregroundcolor green $smsg ; 
+                    $smsg = "`$rProfilefiles:`n$(($rProfilefiles | sort LastWriteTime | ft -a $prpFTA|out-string).trim())" ; 
+                    write-verbose $smsg ;
+                } ; 
+               
+            } CATCH {
+                $ErrTrapd=$Error[0] ;
+                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+                else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                Break ;
+            } ; 
+        
+    } # PROC-E
+    END {
+        $rProfilefiles | write-output ;
+        # master timer reporting
+        #write-verbose "Timer Stop:Master" ;
+        $swM.Stop() ;
+        $smsg =  $smsg =  "$($pscmdlet.MyInvocation.InvocationName):Elapsed Time: " ; 
+        #$smsg = "$($iProcd) items converted in: " ;
+        if($host.version.major -ge 3){
+            $smsg =  ("$($smsg) {0:dd}d {0:hh}h {0:mm}m {0:ss}s {0:fff}ms" -f $swM.Elapsed) ; #outputs: Elapsed Time: 0d 0h 0m 10s 101ms
+        } else {
+            $smsg = "$($smsg) $($swM.Elapsed.ToString()))" ; # outputs: Elapsed Time: (HH:MM:SS.ms) 00:00:15.8418655
+        } ;
+        write-host -foregroundcolor gray "$((get-date).ToString('HH:mm:ss')):$($smsg)" ; 
+    } ; 
+}
+
+#*------^ get-ProfileFilesTDO.ps1 ^------
 
 
 #*------v get-RegistryValue.ps1 v------
@@ -18452,6 +19338,671 @@ function unless {
 #*------^ unless.ps1 ^------
 
 
+#*------v write-hostCallOutTDO.ps1 v------
+function write-hostCallOutTDO {
+    <#
+    .SYNOPSIS
+    write-hostCallOutTDO - wrapper for write-host that implements a formatted 'markdown-style' Callout console output. 
+    .NOTES
+    Version     : 0.0.5
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-01-12
+    FileName    : write-hostCallOutTDO.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Host,Console,Output,Formatting
+    AddedCredit : L5257
+    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedTwitter: URL
+    REVISIONS
+    * 10:15 AM 9/17/2024 added -backgroundcolor/-foregroundcolor overrides of the per-type defaults; updated the 'demo', CBH expl to use the new -type Demo ; added a fg/bg override exmpl
+    * 3:22 PM 9/16/2024 add: -LabelOverride -type: Joke, Reference, Dead, UnlTrophy, Medal, Demo (demo full set on specified text); added CBH demos for Stupid Prize & Achivement Unlocked, using new -LabelOverride; 
+    * 3:49 PM 9/12/2024 corrected Important emoji; added Tcase to the $type user entered (as it's used in some, to drive labeling variants); fixed high ascii in the face ascii emojis (dash wasn't a stock -) ; init
+
+    .DESCRIPTION
+
+    write-hostCallOutTDO - wrapper for write-host that implements a formatted 'markdown-style' Callout console output. 
+
+    Under WinTerm, ISE or VSCode, displays suitable Unicode Icon/Emoji. 
+    Under stock Console, displays a plain text alterantive. 
+
+    Supports following types, 
+    (first 5 are Github's standard types)
+
+        - Caution
+        - Note
+        - Tip
+        - Important
+        - Warning
+        - Dead
+        - Example
+        - Error
+        - Fix
+        - Info
+        - Joke
+        - Label
+        - Medal
+        - OK
+        - Reference
+        - Success
+        - Trophy
+        - Unlock
+        - Demo
+        - Random
+
+    ...emulating Markdown Callouts, a typical implementation, the GitHub flavor, is described here:
+
+    [New Markdown extension: Alerts provide distinctive styling for significant content - GitHub Changelog](https://github.blog/changelog/2023-12-14-new-markdown-extension-alerts-provide-distinctive-styling-for-significant-content/)
+
+    With formal documentation here:
+
+    [Basic writing and formatting syntax - GitHub Docs](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts)
+
+    And discussed further here:
+
+    [Callouts - Example of markdown callouts](https://davidwells.io/typography/callouts)
+
+    Which, in the above examples are syntaxed in Markdown as:
+
+    ```markdown
+    > [!NOTE]  
+    > Highlights information that users should take into account, even when skimming.
+
+    > [!TIP]
+    > Optional information to help a user be more successful.
+
+    > [!IMPORTANT]  
+    > Crucial information necessary for users to succeed.
+
+    > [!WARNING]  
+    > Critical content demanding immediate user attention due to potential risks.
+
+    > [!CAUTION]
+    > Negative potential consequences of an action.
+    ```
+
+    Which in the implementation above render in as output markdown as: (Below doesn't depict the icon and automatic color schemes asserted on browser rendering at Github)
+
+    ```markdown
+    
+    > Note
+    > 
+    > Highlights information that users should take into account, even when skimming.
+    > 
+
+    > Tip
+    > 
+    > Optional information to help a user be more successful.
+    > 
+
+    > Important
+    > 
+    > Crucial information necessary for users to succeed.
+    > 
+
+    > Warning
+    > 
+    > Critical content demanding immediate user attention due to potential risks.
+    > 
+
+    > Caution
+    > 
+    > Negative potential consequences of an action.
+    ```
+
+    This implementation aims to emulate the output, while substiting common emoji/unicode character alternatives (in WinTerm or ISE/VSC), or approximating keyboard characters (in native Console, which lacks high-code support).
+        
+
+    ## Raw Text Emoji References (for expanding down the road, when looking for raw text emoji equivelents for native console)
+
+    #-=Alt emojis to approximate status in raw text-=-=-=-=-=-=-=
+    | Sideways Latin-only emoticons Icon |Emoji |Meaning|
+    |---|---|---|
+    |:-)|
+    |:) |:-]|
+    |:] |:->|
+    |:> |8-)|
+    |8) |:-}|
+    |:} |:^) |=] |=) |☺️🙂😊😀😁 |Smiley, happy face[3][4][5][6]|
+    |:-D|
+    |:D |8-D|
+    |8D |=D |=3 |B^D |c: |C: |😃😄😎 |Laughing,[3] big grin,[4][5] grinning with glasses[7]|
+    |x-D|
+    |xD |X-D|
+    |XD |😆😂 |Laughing[8][9][10]|
+    |:-))|
+    |:))|
+    |||Very happy or double chin[7]|
+    |:-(|
+    |:( |:-c|
+    |:c |:-<|
+    |:< |:-[|
+    |:[ |:-|| |:{ |:@ |:( |;( |☹️🙁😞😟😣😖 |Frown,[3][4][5] sad,[11] pouting|
+    |:'-(|
+    |:'( |:=( |😢😭 |Crying[11]|
+    |:'-)|
+    |:') |:"D |🥲🥹😂 |Tears of happiness[11]|
+    |>:( |>:[ |😠😡 |Angry[12]|
+    |D-': |D:< |D: |D8 |D; |D= |DX |😨😧😦😱😫😩 |Horror, disgust, sadness, great dismay[4][5] (right to left)|
+    |:-O|
+    |:O |:-o|
+    |:o |:-0|
+    |:0 |8-0 |>:O |=O|
+    |=o |=0 ||😮😯😲 |Surprise,[4] shock|
+    |:-3|
+    |:3 |=3 |x3|
+    |X3 |😺😸🐱 |Cat face, curled mouth, cutesy,[13][14][15] playful, mischievous[16]|
+    |>:3 |😼 |Lion smile,[16] evil cat, playfulness|
+    |:-*|
+    |:*
+    |:x |😗😙😚😘😍 |Kiss[3]|
+    |;-)|
+    |;) |*-)|
+    |*) |;-]|
+    |;] |;^)|
+    |;>|
+    ||:-, |;D |;3 |😉😜😘 |Wink,[3][4][5] smirk[17][3]|
+    |:-P|
+    |:P |X-P|
+    |XP |x-p|
+    |xp |:-p|
+    |:p |:-Þ|
+    |:Þ |:-þ|
+    |:þ |:-b|
+    |:b |d: |=p |>:P |😛😝😜🤑 |Tongue sticking out, cheeky/playful,[3] blowing a raspberry|
+    |:-/|
+    |:/ |:-. |>:\ |>:/ |:\ |=/ |=\ |:L |=L |:S |🫤🤔😕😟 |Skeptical, annoyed, undecided, uneasy, hesitant[3]|
+    |:-
+    |:| |😐😑 |Straight face[4] no expression, indecision[11]|
+    |:$ |://)|
+    |://3 |😳😞😖 |Embarrassed,[5] blushing[7]|
+    |:-X|
+    |:X |:-#|
+    |:# |:-&|
+    |:& |🤐😶 |Sealed lips, wearing braces,[3] tongue-tied[11]|
+    |O:-)|
+    |O:) |0:-3|
+    |0:3 |0:-)|
+    |0:) |0;^) |😇👼 |Angel,[3][4][17] halo, saint,[11] innocent|
+    |>:-)|
+    |>:) |}:-)|
+    |}:) |3:-)|
+    |3:) |>;-)|
+    |>;) |>:3|
+    |>;3 |😈 |Evil,[4] devilish[11]|
+    ||;-) ||-O |B-) |😎😪 |Cool,[11] bored, yawning[17]|
+    |:-J |😏😒 |Tongue-in-cheek[18]|
+    |#-) ||Partied all night[11]|
+    |%-)|
+    |%) |😵😵‍💫😕🤕 |Drunk,[11] confused|
+    |:-###..|
+    |:###.. |🤒😷🤢 |Being sick[11]|
+    |<:-| ||Dumb, dunce-like[17]|
+    |',:-| |',:-l |🤨 |Scepticism, disbelief, disapproval[19][20]|
+    |:E |😬 |Grimacing, nervous, awkward[21]|
+    |8-X |8=X |x-3 |x=3 |☠️💀🏴‍☠️ |Skull and crossbones[22]|
+    |~:> |🐔🐓 |Chicken[23] |
+    #-=-=-=-=-=-=-=-=
+    #-=-=-=-=-=-=-=-=
+    (^_^) or (^-^) 	smile.
+    (`_^) or (^_~) 	wink.
+    (>_<) 	in pain.
+    (<_>) 	sad.
+    (^o^) 	singing.
+    \(^o^)/ 	very excited (rasing hands).
+    (-_-) or (~_~) or (=_=) 	annoyance, sleeping.
+    (-.-)zzZ 	sleeping.
+    (?_?) 	eyeing something or someone, rolling one's eyes.
+    (<_<) or (>_>) or (c_c) 	skepticism, looking around suspiciously.
+    (;_;) or (T_T) 	crying.
+    (@_@) 	dazed.
+    (o_O) 	confused, surprise, disbelief.
+    (O_O) 	shocked.
+    (0_<) 	flinch, nervous wink.
+    (._.) 	intimidated, sad, ashamed.
+    ($_$) 	chaching!
+    (x_x) or (+_+) 	dead, knocked out or giving up.
+    (n_n) 	pleased.
+    (u_u) 	annoyance, sarcasm, sometimes disappointment.
+    (9_9) or (+_+) 	rolleyes.
+    (e_e) 	up to mischief.
+    (o_e) 	twitching eye.
+    (*_*) 	starstruck.
+    ;o; or ;O; 	crying loudly.
+    (I_I) 	"What?", mellow.
+    t(^.^t) Giving you the finger
+    or t(-.-t)
+    or t(o.ot)
+    or
+    _!_(`_`)_!_
+    or ???(?_?)???
+    or ,,l,, (o_o),,l,, 	
+    #-=-=-=-=-=-=-=-=
+
+   
+    .PARAMETER NoNewline <System.Management.Automation.SwitchParameter>
+    The string representations of the input objects are concatenated to form the output. No spaces or newlines are inserted between
+    the output strings. No newline is added after the last output string.
+    .PARAMETER Object
+    Objects to display in the host.
+    .PARAMETER Separator <System.Object>
+    Specifies a separator string to insert between objects displayed by the host.
+     .PARAMETER Type
+    Callout type to display (Important|Note|Info|Label|Tip|Warning|Caution|Example|Error|Fix|OK|Success|Reference|Random)[-Type 'Note']
+    .PARAMETER BackgroundColor
+    (Optional) Overrides default background color for given type. The acceptable values for this parameter are:
+    (Black | DarkBlue | DarkGreen | DarkCyan | DarkRed | DarkMagenta | DarkYellow | Gray | DarkGray | Blue | Green | Cyan | Red | Magenta | Yellow | White)
+    .PARAMETER ForegroundColor <System.ConsoleColor>
+    (Optional) Overrides default text color for given type. The acceptable values for this parameter are:
+    (Black | DarkBlue | DarkGreen | DarkCyan | DarkRed | DarkMagenta | DarkYellow | Gray | DarkGray | Blue | Green | Cyan | Red | Magenta | Yellow | White)
+    .PARAMETER NoWrap
+    Switch to disable all auto-wrapping[-NoWrap]
+    .PARAMETER WrapChars
+    Integer number of characters at which to autowrap -Object (defaults to 60)[-Type '-WrapChars 30
+    .PARAMETER Tight
+    Switch that suppresses vertical extra lines in the output.
+    .EXAMPLE
+    PS> write-hostCallOutTDO -Object (new-loremstring -minWords 25 -minSentences 2 -numParagraphs 2) -Type Info -verbose 
+    
+        > ℹ **Information**
+        >
+        >	Diam laoreet consectetuer nibh ipsum nonummy ipsum sed nibh
+        >	magna amet consectetuer dolore ipsum magna sit nibh sed nibh
+        >	laoreet magna adipiscing amet ipsum elit. Laoreet lorem
+        >	euismod tincidunt diam ut adipiscing laoreet aliquam nibh
+        >	dolore dolor laoreet ut consectetuer ipsum laoreet tincidunt
+        >	adipiscing dolore ut euismod sed nonummy consectetuer.
+        >	
+        >	
+        >	Sed nibh sit consectetuer consectetuer laoreet amet
+        >	magna ut nonummy ipsum aliquam tincidunt ut tincidunt
+        >	nonummy nibh erat nibh euismod elit tincidunt laoreet ipsum
+        >	tincidunt. Lorem laoreet diam dolor diam laoreet dolore ut
+        >	magna sed laoreet sit nibh diam elit dolor euismod ipsum
+        >	amet elit sit amet tincidunt nibh erat.
+        >
+
+    Simple Info indented text demo (fed from verb-text\new-Lorem())
+    .EXAMPLE
+    PS> $smsg = "Useful information that users should know, even when skimming content." ; 
+    PS> write-hostCallOutTDO -Object $smsg -Type Note -Nowrap ; 
+
+
+        > ℹ **Note**
+        >
+        >	Useful information that users should know, even when skimming content.
+        >
+
+    Demo -type:Note with typical sample Callout (-NoWrap, to suppress default 60char wrapping)
+    .EXAMPLE
+    PS> $smsg = "Helpful advice for doing things better or more easily." ; 
+    PS> write-hostCallOutTDO -Object $smsg -Type TIP -Nowrap ; 
+
+
+        > 💡 **Tip**
+        >
+        >	Helpful advice for doing things better or more easily.
+        >
+
+    Demo -type:Tip with typical sample Callout (-NoWrap, to suppress default 60char wrapping)
+    .EXAMPLE
+    PS> $smsg = "Key information users need to know to achieve their goal." ; 
+    PS> write-hostCallOutTDO -Object $smsg -Type Important -Nowrap ; 
+
+
+        > 🗯 **Important**
+        >
+        >	Key information users need to know to achieve their goal.
+        >
+        
+    Demo -type:Important with typical sample Callout (-NoWrap, to suppress default 60char wrapping)
+    .EXAMPLE
+    PS> $smsg = "Urgent info that needs immediate user attention to avoid problems." ; 
+    PS> write-hostCallOutTDO -Object $smsg -Type Warning -Nowrap ; 
+
+
+        > ⚠ **Warning**
+        >
+        >	Urgent info that needs immediate user attention to avoid problems.
+        >
+        
+    Demo -type:Warning with typical sample Callout (-NoWrap, to suppress default 60char wrapping)
+    .EXAMPLE
+    PS> $smsg = "Advises about risks or negative outcomes of certain actions." ; 
+    PS> write-hostCallOutTDO -Object $smsg -Type Caution -Nowrap ; 
+
+
+        > 🛑 **Caution**
+        >
+        >	Advises about risks or negative outcomes of certain actions.
+        >
+        
+    Demo -type:Caution with typical sample Callout (-NoWrap, to suppress default 60char wrapping)
+
+    .EXAMPLE
+    PS> write-verbose "Pull random text via verb-text\new-loremString()" ; 
+    PS> $smsg = (new-loremstring -minWords 6 -minSentences 1 ) ; 
+    PS> write-verbose "Cycle the variant Types through the text, using the Alias for write-hostCalloutTDO" ; 
+    PS> w-hCO -obj $smsg -Type Demo -verbose ;
+
+        > 🛑 **Caution**
+        >
+        >	Diam lorem diam erat laoreet diam.
+        >
+
+        > ℹ **Note**
+        >
+        >	Diam lorem diam erat laoreet diam.
+        >
+        [continues, trimmed]
+
+    Demo each of the Callouts, in series, (using my verb-text\new-loremstring() as the object/text source), with verbose output.
+    .EXAMPLE
+    PS> get-fortune |  ?{$_} | w-hCO -type Random -NoWrap ;
+
+
+        > ⚠️ **Warning**
+        >
+        >        (1) Everything depends. (2) Nothing is always. (3) Everything is
+        >       sometimes.
+        >
+
+    Completely silly Callout, fed by a fortune app, outputing into a Random type Callout
+    .EXAMPLE
+    PS> write-hostCallOutTDO -Object FAFO -LabelOverride "✨Achievement Unlocked 🔒✨" -type Trophy
+
+
+        > 🏆 **✨Achievement Unlocked 🔒✨**
+        >
+        >	FAFO
+        >
+
+    Demo -LabelOverride use with existing Trophy Callout, to create an Achievement Unlocked Callout
+    .EXAMPLE
+    PS> write-hostCallOutTDO -Object "Play stupid games. Win stupid prizes." -LabelOverride "✨Stupid Prize✨: $([char]0x26B0) " -type Dead
+
+        > ☠ **✨Stupid Prize✨: ⚰ **
+        >
+        >	Play Stupid GAMES. Win Stupid PRIZES.
+        >
+
+    Demo -LabelOverride use with existing Dead Callout, to create a Stupid Prize Callout
+    .EXAMPLE
+    PS> write-hostCallOutTDO -Object "[Your pithy thought here]" -BackgroundColor DarkMagenta -ForegroundColor DarkYellow -type Random -Tight 
+
+        > 👍 **OK**
+        >	[Your pithy thought here]
+
+
+    Demo -BackgroundColor -ForegroundColorDead override, with Type Random Callout and -Tight switch.
+    #>
+    [CmdletBinding()]
+    [Alias('w-hCO','write-hostAlert')]
+    PARAM(
+        [Parameter(
+            HelpMessage="The string representations of the input objects are concatenated to form the output. No spaces or newlines are inserted between
+the output strings. No newline is added after the last output string.")]
+            [System.Management.Automation.SwitchParameter]$NoNewline,
+        [Parameter(Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,
+            HelpMessage="Objects to display in the host")]
+            [System.Object]$Object,
+        [Parameter(
+            HelpMessage="String that overrides a given type's default Label string[-LabelOverride 'Achievement Unlocked']")]
+            [string]$LabelOverride,
+        [Parameter(
+            HelpMessage="Specifies a separator string to insert between objects displayed by the host.")]
+            [System.Object]$Separator,
+        [Parameter(
+            HelpMessage="Callout type to display (Caution|Note|Tip|Important|Warning|Dead|Example|Error|Fix|Info|Joke|Label|Medal|OK|Reference|Success|Trophy|Unlock|Demo|Random)[-Type 'Note']")]
+            [ValidateSet('Caution','Note','Tip','Important','Warning','Dead','Example','Error','Fix','Info','Joke','Label','Medal','OK','Reference','Success','Trophy','Unlock','Demo','Random')]
+            [string]$Type,
+         [Parameter(
+            HelpMessage="Specifies the background color. There is no default. The acceptable values for this parameter are:
+            (Black | DarkBlue | DarkGreen | DarkCyan | DarkRed | DarkMagenta | DarkYellow | Gray | DarkGray | Blue | Green | Cyan | Red | Magenta | Yellow | White)")]
+            [System.ConsoleColor]$BackgroundColor,
+        [Parameter(
+            HelpMessage="Specifies the text color. There is no default. The acceptable values for this parameter are:
+            (Black | DarkBlue | DarkGreen | DarkCyan | DarkRed | DarkMagenta | DarkYellow | Gray | DarkGray | Blue | Green | Cyan | Red | Magenta | Yellow | White)")]
+            [System.ConsoleColor]$ForegroundColor,
+        [Parameter(
+            HelpMessage="Switch to disable all auto-wrapping[-NoWrap]")]
+            [switch]$NoWrap,
+        [Parameter(
+            HelpMessage="Integer number of characters at which to autowrap -Object (defaults to 60)[-Type '-WrapChars 30']")]
+            [int]$WrapChars=80,
+        [Parameter(
+            HelpMessage="Switch that suppresses vertical extra lines in the output.[-Tight]")]
+            [switch]$Tight
+    ) ;
+    BEGIN {
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        if(($PSBoundParameters.keys).count -ne 0){
+            $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+            write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        } ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;
+        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+
+        $pltWH = @{} ;
+
+        if ($PSBoundParameters.ContainsKey('NoNewline')) {
+            $pltWH.add('NoNewline',$NoNewline) ;
+        } ;
+        if ($PSBoundParameters.ContainsKey('Separator')) {
+            $pltWH.add('Separator',$Separator) ;
+        } ;
+        
+        <# if $object has multiple lines, split it:
+        TRY{
+            #$Object = $Object.Split([Environment]::NewLine) ;
+            [string[]]$Object = [string[]]$Object.ToString().Split([Environment]::NewLine) ; 
+        } CATCH{
+            write-verbose "Workaround err: The variable cannot be validated because the value System.String[] is not a valid value for the Object variable." ; 
+            [string[]]$Object = ($Object|out-string).trim().Split([Environment]::NewLine) ; 
+        } ; 
+        #>
+
+        # type is frequently used as the $Label, pre TitleCase it (to ensure consistent casing, regardless of case user uses on -Type spec)
+        $txtInfo=(get-culture).TextInfo ;
+        $type = $($txtInfo.ToTitleCase($type.toLower())) ; 
+
+        if($Type -eq 'Random'){
+            $Types = 'Caution','Note','Tip','Important','Warning','Dead','Example','Error','Fix','Info','Joke','Label','Medal','OK','Reference','Success','Trophy','Unlock' | get-random ; 
+            write-verbose "-type:Random -> picked '$($Type)'" ; 
+        } elseif($Type -eq 'Demo'){
+            $Types = 'Caution','Note','Tip','Important','Warning','Dead','Example','Error','Fix','Info','Joke','Label','Medal','OK','Reference','Success','Trophy','Unlock' ; 
+            write-verbose "-type:Demo: cycling full set'" ; 
+        } else {
+            $Types = $Type ; 
+        } ; 
+
+    } ;  # BEG-E
+    PROCESS{
+        
+        $whCallOut = @{
+            Object= $null ; 
+            BackgroundColor=$null ; 
+            ForegroundColor=$null ; 
+            NoNewLine = $($NoNewLine) ; 
+        } ;
+        foreach($CType in $Types){
+            switch -regex ($CType){
+                'Important' {
+                    # Note: PsCodePoint is an array: 0:the unicode string; 1: an alternate 'raw text' string to use for down-rev output (non-WinTerm/ISE)
+                    $PsCodePoint='0X1F5EF','{!}' ; # 💬
+                    $Label = 'Important'
+                    $whCallOut.BackgroundColor = 'Magenta' ;
+                    $whCallOut.ForegroundColor = 'Yellow' ;
+                }
+                'Note|Info|Label|Reference' {
+                    switch ($CType){
+                        'Note' {
+                            $PsCodePoint='0x2139','(i)' ; # ℹ
+                            $Label = $CType
+                        }
+                        'Info' {
+                            $PsCodePoint='0x2139','(i)' ; # ℹ
+                            $Label = 'Information' ; 
+                        }
+                        'Label' {
+                            $PsCodePoint='0x1f3f7','(i)' ;  # 🏷
+                            $Label = 'Note' ; 
+                        } ;
+                        'Reference' {
+                            $PsCodePoint='0x1F4D8','[Ref]' ; # 📘
+                            $Label = $CType ; 
+                        } ;
+                    } ; 
+                    $whCallOut.BackgroundColor = 'White' ;
+                    $whCallOut.ForegroundColor = 'DarkGreen' ;
+                }
+                'Tip' {
+                    $PsCodePoint='0x1F4A1',';-)' ; # 💡
+                    $Label = $CType ; 
+                    $whCallOut.BackgroundColor = 'DarkGreen' ;
+                    $whCallOut.ForegroundColor = 'yellow' ;
+                }
+                'Warning|Caution' {
+                    switch ($CType){
+                        'Warning' {
+                            $PsCodePoint='0x26A0','/!\' ; # ⚠
+                            $Label = $CType
+                        }
+                        'Caution' {
+                            $PsCodePoint='0x1F6D1','/!\' ; # 🛑️ Caution
+                            $Label = $CType ; 
+                        }
+                    } ; 
+                    $whCallOut.BackgroundColor = 'Yellow' ;
+                    $whCallOut.ForegroundColor = 'Black' ;
+                }
+                'Example' {
+                    $PsCodePoint='0x1F4F7','[1.2.3.]' ; #  📷
+                    $Label = 'Example'
+                    $whCallOut.BackgroundColor = 'White' ;
+                    $whCallOut.ForegroundColor = 'Blue' ;
+                }
+                'Error' {
+                    $PsCodePoint='0x1F6D1',">:(" ; #  🛑
+                    $Label = $CType ; 
+                    $whCallOut.BackgroundColor = 'DarkRed' ;
+                    $whCallOut.ForegroundColor = 'Yellow' ;
+                }
+                'Fix' {
+                    $PsCodePoint='0x1F6E0','>:\' ; # 🛠 
+                    $Label = 'Fix'
+                    $whCallOut.BackgroundColor = 'DarkYellow' ;
+                    $whCallOut.ForegroundColor = 'Black' ;
+                }
+                'OK|Success' {
+                    switch ($CType){
+                        'OK' {
+                            $PsCodePoint='0x1F44D',':-)' ; #  👍 
+                        }
+                        'Success' {
+                            $PsCodePoint='0x2705',':-D' ; #  ✅
+                        }                    
+                    } ; 
+                    $Label = $CType ; 
+                    $whCallOut.BackgroundColor = 'DarkGreen' ;
+                    $whCallOut.ForegroundColor = 'White' ;
+                }
+                'Dead' {
+                    $PsCodePoint='0x2620',"(+_+)" ; #  ☠
+                    $Label = $CType ; 
+                    $whCallOut.BackgroundColor = 'Black' ;
+                    $whCallOut.ForegroundColor = 'White' ;
+                }
+                'Unlock|Trophy|Medal' {
+                    switch ($CType){
+                        'Unlock' {
+                            $PsCodePoint='0x1F513',"c█" ; # 🔓
+                            $Label = 'Unlocked' ; 
+                        } 
+                        'Trophy' {
+                            $PsCodePoint='0x1F3C6','\(^o^)/' ; #  🏆
+                            $Label = 'Achievement Unlocked' ; 
+                        }
+                        'Medal' {
+                            $PsCodePoint='0x1F396','\(^o^)/' ; #  🎖️
+                            $Label = 'Achievement Unlocked' ; 
+                        }
+                    }
+                    $whCallOut.BackgroundColor = 'DarkYellow' ;
+                    $whCallOut.ForegroundColor = 'DarkBlue' ;
+                } 
+                'Joke' {
+                    $PsCodePoint='0x1F921',"(^O^)" ; #  🤡
+                    $Label = $CType ; 
+                    $whCallOut.BackgroundColor = 'Blue' ;
+                    $whCallOut.ForegroundColor = 'Yellow' ;
+                }
+                default{
+                    throw "Unrecognized -Type:$($CType)" ; 
+                    break ; 
+                }
+            } ; 
+            foreach($obj in $Object){
+                $glyph = if (($env:WT_SESSION) -OR ($psise) -OR ($env:TERM_PROGRAM -eq 'vscode')){ try{[char]$PsCodePoint[0] }catch{ [char]::ConvertFromUtf32($PsCodePoint[0])} }else { $PsCodePoint[1] } ;
+                            
+                if(-not $NoWrap){
+                    write-verbose "-NoWrap: Suppressing auto-linewrapping" ; 
+                    if((get-command wrap-text -ea 0) -AND $obj -notcontains "`n"){$obj = ($obj | wrap-text -Characters $WrapChars).trim() } ;    
+                } ; 
+                if(-not $Tight){
+                    $prompt = "`n>`n>`t$(($obj.split("`n") ) -join "`n>`t")`n>`n"
+                } else { 
+                    #$prompt = "`n>`t$(($obj.split("`n") ) -join "`n>`t")`n>"
+                    # drop trailing >
+                    $prompt = "`n>`t$(($obj.split("`n") ) -join "`n>`t")`n"
+                } ; 
+
+                <#$whCallOut = @{
+                    Object= "`n`n> $($glyph) **$($Label)**$($prompt)`n`n" ;
+                    BackgroundColor=$BackgroundColor ; 
+                    ForegroundColor=$ForegroundColor ; 
+                    NoNewLine = $($NoNewLine) ; 
+                } ;
+                #>
+                if(-not $Tight){
+                    $whCallOut.Object= "`n`n> $($glyph) **$($Label)**$($prompt)`n`n" ;
+                } else { 
+                    $whCallOut.Object= "`n> $($glyph) **$($Label)**$($prompt)`n" ;
+                } ; 
+
+                # override default values, via parameters:
+                if($LabelOverride){
+                     $whCallOut.Object= "`n`n> $($glyph) **$($LabelOverride)**$($prompt)`n`n" ;
+                } ; 
+                if($BackgroundColor){
+                     $whCallOut.BackgroundColor= $BackgroundColor ;
+                } ; 
+                if($ForegroundColor){
+                     $whCallOut.ForegroundColor= $ForegroundColor ;
+                } ; 
+                $smsg = "write-host w`n$(($whCallOut|out-string).trim())" ; 
+                $smsg += "`n`$Object`n$(($Object|out-string).trim())" ; 
+                write-verbose $smsg ; 
+                write-host @whCallOut ;         
+        
+                <#
+                foreach ($obj in $obj){
+                    Write-Host -NoNewline $($PadChar * $CurrIndent)  ;
+                    write-host @pltWH -object $obj ;
+                } ;
+                #>
+            } ;
+        } ;; 
+    } ;  # PROC-E
+}
+
+#*------^ write-hostCallOutTDO.ps1 ^------
+
+
 #*------v write-hostColorMatch.ps1 v------
 function write-hostColorMatch {
     <#
@@ -18539,6 +20090,7 @@ function write-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 8:34 AM 9/12/2024 cbh typo fix
     * 3:07 PM 2/17/2023 splice over -flatten, and other updates from w-l's fixes and workarounds
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat); 
@@ -18552,7 +20104,7 @@ function write-HostIndent {
     * 2:06 PM 1/9/2023 add: CBH, $indentname driving this is is a parent funciton variable, tweak it on the fly to move cursor left or right.
     .DESCRIPTION
 
-    write-HostIndent - write-host wrapper that adds a stock $env:HostIndentSpaces to the left of each line of text sent (splits lines prior to indenting
+    write-HostIndent - write-host wrapper that adds a stock $env:HostIndentSpaces to the left of each line of text sent (splits lines prior to indenting)
 
     Part of the verb-HostIndent set:
     write-HostIndent # write-host wrapper that indents/pads each line of output a fixed amount (driven by $env:HostIndentSpaces common variable). 
@@ -18872,7 +20424,33 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Start-SleepCountdown,stop-driveburn,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,Start-SleepCountdown,stop-driveburn,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUYrIypByJOsPt8ftujK2doNkz
+# W/WgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRc9YRj
+# DvOUlPnIG09VLCL2GcXk0zANBgkqhkiG9w0BAQEFAASBgGEa0kBcUg64U6/L9IdO
+# PIdgEWi28C2voY6K7oqWhvEnqs+9wCXWVuvIaPIIn/+dceVg+5dFE1Kg0tMtDvuy
+# 8Wb0fg2wThF1ZBR0mfXGOkC7h2arfDOVuMbUVLtvfLkVn05FDR9NKD4EeiGy1QJG
+# qJOFAEO/hPEEj4Zqgbi37HQM
+# SIG # End signature block
