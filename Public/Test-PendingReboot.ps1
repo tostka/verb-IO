@@ -18,6 +18,7 @@ function Test-PendingReboot {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
+    * 9:38 AM 12/26/2024 tab-indent & caps'd the param blocks, flipped $Computername to nonmando wo notnullorempty, defaulted to $env:computername; added coerced -local when $computername -eq $env:computername, now runs on mybox, failed trying to do unconfig'd remoteps prev
     * 12:19 PM 6/24/2024 new box, pre WinRM remote config, fails hard; so cut in quick & dirty workaroun: -Local param, steers through the tests wo the PSSesssion working
     * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
     * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
@@ -53,9 +54,9 @@ function Test-PendingReboot {
     [CmdletBinding()]
     #[Alias('get-ScheduledTaskReport')]
     PARAM(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
             [ValidateNotNullOrEmpty()]
-            [string[]]$ComputerName,
+            [string[]]$ComputerName= $env:computername,
         [Parameter()]
             [ValidateNotNullOrEmpty()]
             [pscredential]$Credential,
@@ -76,11 +77,10 @@ function Test-PendingReboot {
         function Test-RegistryKey {
             [OutputType('bool')]
             [CmdletBinding()]
-            param
-            (
+            PARAM(
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Key
             )
             $ErrorActionPreference = 'Stop'
             if (Get-Item -Path $Key -ErrorAction Ignore) {
@@ -90,14 +90,13 @@ function Test-PendingReboot {
         function Test-RegistryValue {
             [OutputType('bool')]
             [CmdletBinding()]
-            param
-            (
+            PARAM(
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key,
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Key,
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Value
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Value
             )
             $ErrorActionPreference = 'Stop'
             if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
@@ -107,14 +106,13 @@ function Test-PendingReboot {
         function Test-RegistryValueNotNull {
             [OutputType('bool')]
             [CmdletBinding()]
-            param
-            (
+            PARAM(
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key,
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Key,
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Value
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Value
             )
             $ErrorActionPreference = 'Stop'
             if (($regVal = Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) -and $regVal.($Value)) {
@@ -175,6 +173,11 @@ function Test-PendingReboot {
                 ComputerName    = $computer ;
                 IsPendingReboot = $false ;
             } ;
+            # test & force local - fails on mybox
+            if(-not $Local -AND ($computer -eq $env:COMPUTERNAME)){
+                write-verbose "coercing local run -Local:$true" ; 
+                $local = $true ; 
+            } ; 
             if($Local){
                 #if (-not ($output.IsPendingReboot = Invoke-Command -ScriptBlock $scriptBlock)) {
                 #    $output.IsPendingReboot = $false ;
