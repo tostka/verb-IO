@@ -1,11 +1,11 @@
-﻿# verb-io.psm1
+﻿# verb-IO.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 15.1.1.0.0
+Version     : 15.2.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -15793,7 +15793,7 @@ function set-AuthenticodeSignatureTDO {
                 PS> } else { write-warning 'Bad Cert for code signing!'} ; 
                 Demo conditional branching on basis of output valid value.
                 .LINK
-                https://web.archive.org/web/20160715.1.122/poshcode.org/1633
+                https://web.archive.org/web/20160715110022/poshcode.org/1633
                 .LINK
                 https://github.com/tostka/verb-io
                 #>
@@ -18701,6 +18701,7 @@ function Test-PendingReboot {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
+    * 9:38 AM 12/26/2024 tab-indent & caps'd the param blocks, flipped $Computername to nonmando wo notnullorempty, defaulted to $env:computername; added coerced -local when $computername -eq $env:computername, now runs on mybox, failed trying to do unconfig'd remoteps prev
     * 12:19 PM 6/24/2024 new box, pre WinRM remote config, fails hard; so cut in quick & dirty workaroun: -Local param, steers through the tests wo the PSSesssion working
     * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
     * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
@@ -18736,9 +18737,9 @@ function Test-PendingReboot {
     [CmdletBinding()]
     #[Alias('get-ScheduledTaskReport')]
     PARAM(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
             [ValidateNotNullOrEmpty()]
-            [string[]]$ComputerName,
+            [string[]]$ComputerName= $env:computername,
         [Parameter()]
             [ValidateNotNullOrEmpty()]
             [pscredential]$Credential,
@@ -18759,11 +18760,10 @@ function Test-PendingReboot {
         function Test-RegistryKey {
             [OutputType('bool')]
             [CmdletBinding()]
-            param
-            (
+            PARAM(
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Key
             )
             $ErrorActionPreference = 'Stop'
             if (Get-Item -Path $Key -ErrorAction Ignore) {
@@ -18773,14 +18773,13 @@ function Test-PendingReboot {
         function Test-RegistryValue {
             [OutputType('bool')]
             [CmdletBinding()]
-            param
-            (
+            PARAM(
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key,
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Key,
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Value
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Value
             )
             $ErrorActionPreference = 'Stop'
             if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
@@ -18790,14 +18789,13 @@ function Test-PendingReboot {
         function Test-RegistryValueNotNull {
             [OutputType('bool')]
             [CmdletBinding()]
-            param
-            (
+            PARAM(
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key,
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Key,
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Value
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Value
             )
             $ErrorActionPreference = 'Stop'
             if (($regVal = Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) -and $regVal.($Value)) {
@@ -18858,6 +18856,11 @@ function Test-PendingReboot {
                 ComputerName    = $computer ;
                 IsPendingReboot = $false ;
             } ;
+            # test & force local - fails on mybox
+            if(-not $Local -AND ($computer -eq $env:COMPUTERNAME)){
+                write-verbose "coercing local run -Local:$true" ; 
+                $local = $true ; 
+            } ; 
             if($Local){
                 #if (-not ($output.IsPendingReboot = Invoke-Command -ScriptBlock $scriptBlock)) {
                 #    $output.IsPendingReboot = $false ;
@@ -20510,8 +20513,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUjOEKY1uWVcos177S4CHmkfyr
-# Tn+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUJeWWwA3yBvT+jf9D/VUP8UEH
+# rmygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -20526,9 +20529,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSrxqPf
-# EJE1nA+V+bniOM3Xpq7aMjANBgkqhkiG9w0BAQEFAASBgLHUJqyjy2Dj9YVejfzp
-# DuZd05rfAjRBa3SskfFGifOIcoCu60crkqZRAA5M1kn31pemANCvCOmiuOSP9nUc
-# I946PUQQ7bxxaSA5G8wcYXz3ZBRrTAUiQ0K1IbeYkPoYz49wMLTxytZQXyPKHN0b
-# Gc/UkspQxeAxe9GxOZiXQ7j0
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT7E4VV
+# QDn+j2+rm5KqeSnn6cWcVTANBgkqhkiG9w0BAQEFAASBgEaPJgvqd4hF3CYunjXT
+# 9GF0ldoUKML9w4i3qRbigdgPCsXGkhPBmFOlsqA0tJwYVBkF0CQNCiXarCQe6pvR
+# W05P5Z1jhvYWl3+CSZxDEdEQvkNcpQHXHUO9N6jr2cUcEWExKk1C21sarJdPFYFL
+# CPDyDwwAfdVESqbNJt8N5Dyf
 # SIG # End signature block
