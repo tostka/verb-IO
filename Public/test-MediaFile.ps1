@@ -2,69 +2,69 @@
 Function test-MediaFile {
     <#
     .SYNOPSIS
-    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
-    then compares key A/V metrics against (my arbitrary) thresholds for suitability, 
-    and finally outputs a summary report of the metrics. 
+    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, then compares key A/V metrics against (my arbitrary) thresholds for suitability,and finally outputs a summary report of the metrics. 
     .NOTES
-    Version     : 1.0.0
+    Version     : 0.0.
     Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
     CreatedDate : 2021-10-12
     FileName    : test-MediaFile.ps1
     License     : MIT License
-    Copyright   : (c) 2021 Todd Kadrie
+    Copyright   : (c) 2024 Todd Kadrie
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
+    AddedCredit : REFERENCE
+    AddedWebsite: URL
+    AddedTwitter: URL
     REVISIONS
+    * 8:10 PM 2/13/2025 retooled borked CBH, now properly outputs via get-help
     * 8:43 AM 3/9/2022 fixed consecutive $smsg's wo += to trigger string addition.
-    * 10:25 AM 2/21/2022 updated CBH, added an example sample output. Not sure if worked before, but CBH currently doesn't seem to get-hepl correctly. Needs debugging, but can't determine issue source.
-    * 8:08 PM 12/11/2021 added simpler pipeline example 
-    * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
-    * 8:15 PM 11/19/2021 added tmr alias
-    * 7:37 PM 11/12/2021 added example for doing a full dir of files ; flip $path param test-path to use -literalpath - too many square brackets in sources
-    * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
-    * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
-    * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
-    * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
+        * 10:25 AM 2/21/2022 updated CBH, added an example sample output. Not sure if worked before, but CBH currently doesn't seem to get-hepl correctly. Needs debugging, but can't determine issue source.
+        * 8:08 PM 12/11/2021 added simpler pipeline example 
+        * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
+        * 8:15 PM 11/19/2021 added tmr alias
+        * 7:37 PM 11/12/2021 added example for doing a full dir of files ; flip $path param test-path to use -literalpath - too many square brackets in sources
+        * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
+        * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
+        * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
+        * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
     .DESCRIPTION
-    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
-    then compares key A/V metrics against (my arbitrary) thresholds for suitability, 
-    and finally outputs a summary report of the metrics. 
+    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, then compares key A/V metrics against (my arbitrary) thresholds for suitability,and finally outputs a summary report of the metrics. 
 
     This is a wrapper function for my Get-MediaINfoRaw() cmdlet, which is part of my [Get-MediaInfo](https://github.com/tostka/Get-MediaInfo)
-    module, which is forked from Frank Skare/stax76's Get-MediaInfoSummary() function (part of his [get-MediaInfo module](https://github.com/stax76/Get-MediaInfo)).
-    which in turn leverages the [MediaInfo.dll](https://mediaarea.net/en/MediaInfo/Support/SDK/ReadFirst),
-    development component made available by the open source [MediaInfo](https://mediaarea.net/en/MediaInfo) project 
-    (which has a nifty free-standing .exe gui version as their core tool). 
-    
-    1) This wrapper function calls Get-MediaInfoRaw(), to retrieve desciptive media metadata on the file specified by the -Path param.
-    
-    2) It then and processes the returned media metadata, checking the following thresholds:
-    
-    - Has all of the following General stream properties populated:
-        CompleteNamem, OverallBitRate_String and OverallBitRate_kbps 
-        (last 2 are my Get-MediaInfoRaw() decimal-parsed variants of the xxx_String properties).
-    
-    - Has a 'mb-Per-Minute' ratio of _2_ or better (specified via the -Threshmbpm parameter).  
-        I calulate 'mb-Per-Minute' as: General stream 'FileSize_MB' / General stream 'Duration_Mins' 
-        (both are my numeric parses of the underlying xxx_String properties)
-
-        Goal of this metric is flagging 'bogus' files, that don't have 
-        enough "size to metadata minutes" to reflect a typical "legit" video file.    
+        module, which is forked from Frank Skare/stax76's Get-MediaInfoSummary() function (part of his [get-MediaInfo module](https://github.com/stax76/Get-MediaInfo)).
+        which in turn leverages the [MediaInfo.dll](https://mediaarea.net/en/MediaInfo/Support/SDK/ReadFirst),
+        development component made available by the open source [MediaInfo](https://mediaarea.net/en/MediaInfo) project 
+        (which has a nifty free-standing .exe gui version as their core tool). 
         
-    - Has a minimum vertical resolution of at least 480 pixels (specified via the -ThresholdMinVerticalRes parameter), 
-        as reported in the Video stream Height_String property.
-  
-    - Has all of the following Video stream properties populated:
-        Format_String, CodecID, Duration_Mins, BitRate_kbps, FrameRate_fps 
-        (the trailing three are numeric parses of the matching _String properties). 
-    
-    - Has all of the following Audio stream properties populated:
-      Format_String, CodecID, SamplingRate_bit
-      (last is my numeric parse of SamplingRate_String).
+        1) This wrapper function calls Get-MediaInfoRaw(), to retrieve desciptive media metadata on the file specified by the -Path param.
+        
+        2) It then and processes the returned media metadata, checking the following thresholds:
+        
+        - Has all of the following General stream properties populated:
+            CompleteNamem, OverallBitRate_String and OverallBitRate_kbps 
+            (last 2 are my Get-MediaInfoRaw() decimal-parsed variants of the xxx_String properties).
+        
+        - Has a 'mb-Per-Minute' ratio of _2_ or better (specified via the -Threshmbpm parameter).  
+            I calulate 'mb-Per-Minute' as: General stream 'FileSize_MB' / General stream 'Duration_Mins' 
+            (both are my numeric parses of the underlying xxx_String properties)
 
-    3) It then outputs a summary report to console.
+            Goal of this metric is flagging 'bogus' files, that don't have 
+            enough "size to metadata minutes" to reflect a typical "legit" video file.    
+            
+        - Has a minimum vertical resolution of at least 480 pixels (specified via the -ThresholdMinVerticalRes parameter), 
+            as reported in the Video stream Height_String property.
+      
+        - Has all of the following Video stream properties populated:
+            Format_String, CodecID, Duration_Mins, BitRate_kbps, FrameRate_fps 
+            (the trailing three are numeric parses of the matching _String properties). 
+        
+        - Has all of the following Audio stream properties populated:
+          Format_String, CodecID, SamplingRate_bit
+          (last is my numeric parse of SamplingRate_String).
+
+        3) It then outputs a summary report to console.
 
     .PARAMETER Path
     Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]
@@ -72,13 +72,16 @@ Function test-MediaFile {
     [float] Cutoff threshold for ratio of 'file size in mb'/'minutes duration' (defaults 2).[-ThresholdMbPerMin 1.5]
     .PARAMETER ThresholdMinVerticalRes
     [int] Cutoff threshold for minimum video lines of resolution (in pixels the underlying video stream 'Height_String').[-ThresholdMinVerticalRes 300]
-    .OUTPUT
+
+    .INPUTS
+    System.String.ARray Accepts piped media file path input
+    .OUTPUTS
     None. Outputs summary to console. 
     .EXAMPLE
-    PS> test-MediaFile -Path c:\pathto\video.mp4
-    Example summarizing a video file
-    .EXAMPLE
-    PS> if(test-mediafile "C:\users\USER\Documents\Reflections Video.mp4"){write-host "Valid, meets specs"}else{write-warning "INVALID, DOES not meets specs" }  ;
+    PS> if(test-mediafile "C:\users\USER\Documents\Reflections Video.mp4"){
+    PS>     write-host "Valid, meets specs"}else{write-warning "INVALID, DOES not meets specs" ;
+    PS> }  ;
+
         (writing metadata to matching -media.XML file)
         09:42:35:-----
         FileName
@@ -91,6 +94,7 @@ Function test-MediaFile {
         2 channel |        | AAC LC | 174 Kbps  | 48.0
         -----
         Valid, meets specs
+
     Example testing the validity of a video file, to output a descriptive output to console.
     .EXAMPLE
     PS> 'c:\pathto\video.mp4'| test-MediaFile ; 
@@ -106,6 +110,7 @@ Function test-MediaFile {
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [CmdletBinding()]
     [Alias('tmf')]
     PARAM(
             #[Parameter(Position=0,Mandatory=$True,ValueFromPipelineByPropertyName=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
