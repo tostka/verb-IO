@@ -73,6 +73,7 @@ function New-TemporaryFileTyped{
 			[string]$Extension
     ) ; 
     BEGIN {
+		# autopopulate -Extension, around Alias use.
 		If ($MyInvocation.Line -match 'New-TemporaryFileCsv') {
 			write-verbose "Alias:New-TemporaryFileCsv was used, using -extension .csv" ;
 			$Extension = 'csv' ; 
