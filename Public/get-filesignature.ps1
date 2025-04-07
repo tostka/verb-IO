@@ -68,7 +68,6 @@ Function get-filesignature {
     .LINK
     [Investigating File Signatures Using PowerShell -- Microsoft Certified Professional Magazine Online](https://mcpmag.com/articles/2018/07/25/file-signatures-using-powershell.aspx)
     #>
-    #Requires -Version 3.0
     [CmdletBinding()]
     PARAM(
         [Parameter(Position=0,Mandatory=$true, ValueFromPipelineByPropertyName=$true,ValueFromPipeline=$True)]

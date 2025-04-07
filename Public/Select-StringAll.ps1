@@ -117,7 +117,6 @@ When the context includes a match, the MatchInfo object for each match includes 
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    ##requires -version 3
     #[Alias('convert-
     [CmdletBinding(DefaultParameterSetName='File')]
   param(

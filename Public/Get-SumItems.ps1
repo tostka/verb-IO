@@ -28,7 +28,6 @@ function Get-SumItems {
     .LINK
     http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
     #>
-    ##requires -version 2
     BEGIN { $x = 0 }
     PROCESS { $x += $_ }
     END { $x }

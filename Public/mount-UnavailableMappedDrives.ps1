@@ -46,7 +46,6 @@ multiple values, use the array syntax. For example, "-parameter value1,value2,va
     .LINK
     https://github.com/tostka/verb-io
     #>
-    ##Requires -Version 5
     #Requires -Modules SmbShare
     PARAM(
         [Parameter(HelpMessage="Regex of RemotePath 'hosts' to be re-mounted in session[-rgxRemoteHosts '(Host1|host2)']")]

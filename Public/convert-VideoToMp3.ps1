@@ -241,7 +241,6 @@ function convert-VideoToMp3 {
             .LINK
             https://github.com/tostka/verb-io
             #>
-                #Requires -Version 2.0
                 #[CmdletBinding(HelpURI='https://gallery.technet.microsoft.com/scriptcenter/Remove-Invalid-Characters-39fa17b1')]
                 # defer to updated local CBH
                 [CmdletBinding()]
