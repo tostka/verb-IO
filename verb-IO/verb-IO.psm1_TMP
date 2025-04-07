@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 15.3.1.0.0
+Version     : 15.3.8.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -307,8 +307,8 @@ Function Add-PSTitleBar {
     * 10:30 AM 7/26/2021 reworked, added whatif, showdebug, verbose echos, working on array-supp in the inputs
     * 3:11 PM 4/19/2021 added cmdletbinding/verbose supp & alias add-PSTitle
     * 4:37 PM 2/27/2020 updated CBH
-    # 8:44 AM 3/15.3.17 ren Update-PSTitleBar => Add-PSTitleBar, so that we can have a Remove-PSTitleBar, to subtract
-    # 8:42 AM 3/15.3.17 Add-PSTitleBar for addition, before adding
+    # 8:44 AM 3/15.3.87 ren Update-PSTitleBar => Add-PSTitleBar, so that we can have a Remove-PSTitleBar, to subtract
+    # 8:42 AM 3/15.3.87 Add-PSTitleBar for addition, before adding
     # 11/12/2014 - posted version
     .DESCRIPTION
     Add-PSTitleBar.ps1 - Append specified identifying Tag string to the end of the powershell console Titlebar
@@ -4462,7 +4462,6 @@ function convert-VideoToMp3 {
             .LINK
             https://github.com/tostka/verb-io
             #>
-                #Requires -Version 2.0
                 #[CmdletBinding(HelpURI='https://gallery.technet.microsoft.com/scriptcenter/Remove-Invalid-Characters-39fa17b1')]
                 # defer to updated local CBH
                 [CmdletBinding()]
@@ -6525,7 +6524,7 @@ function Get-AverageItems {
     Github      : 
     Tags        : Powershell,Math
     REVISIONS
-    12:29 PM 5/15.3.13 revised
+    12:29 PM 5/15.3.83 revised
     17:10 1/3/2010 posted rev
     .DESCRIPTION
     Get-AverageItems.ps1 - Avg input items
@@ -7573,7 +7572,6 @@ Function get-filesignature {
     .LINK
     [Investigating File Signatures Using PowerShell -- Microsoft Certified Professional Magazine Online](https://mcpmag.com/articles/2018/07/25/file-signatures-using-powershell.aspx)
     #>
-    #Requires -Version 3.0
     [CmdletBinding()]
     PARAM(
         [Parameter(Position=0,Mandatory=$true, ValueFromPipelineByPropertyName=$true,ValueFromPipeline=$True)]
@@ -8453,7 +8451,7 @@ Function Get-KnownFolderTDO {
         Links                    | {BFB9D5E0-C6A9-404C-B2B2-AE6DB6AF4968} | %USERPROFILE%\Links
         Local                    | {F1B32785-6FBA-4FCF-9D55-7B8E7F157091} | %LOCALAPPDATA% (%USERPROFILE%\AppData\Local)
         LocalLow                 | {A520A1A4-1780-4FF6-BD18-167343C5AF16} | %USERPROFILE%\AppData\LocalLow
-        Microsoft Office Outlook | {98EC0E18-2098-4D44-8644-66979315.3.1} | virtual folder
+        Microsoft Office Outlook | {98EC0E18-2098-4D44-8644-66979315.3.8} | virtual folder
         Music                    | {2112AB0A-C86A-4FFE-A368-0DE96E47012E} | %APPDATA%\Microsoft\Windows\Libraries\Music.library-ms
         Music                    | {4BD8D571-6D19-48D3-BE97-422220080E43} | %USERPROFILE%\Music
         Network                  | {D20BEEC4-5CA8-4905-AE3B-BF251EA09B53} | virtual folder
@@ -9611,7 +9609,7 @@ function Get-SumItems {
     Tags        : Powershell,Math
     REVISIONS
     * 12:37 PM 10/25/2021 rem'd req version
-    12:29 PM 5/15.3.13 revised
+    12:29 PM 5/15.3.83 revised
     17:10 1/3/2010 posted rev
     .DESCRIPTION
     Get-SumItems.ps1 - Sum input items
@@ -9624,7 +9622,6 @@ function Get-SumItems {
     .LINK
     http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
     #>
-    ##requires -version 2
     BEGIN { $x = 0 }
     PROCESS { $x += $_ }
     END { $x }
@@ -10098,7 +10095,7 @@ Function Invoke-Pause2() {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
-    # vers: 10:49 AM 1/15.3.15 variant that uses cmd; the ui.rawui combo ISN'T BREAKABLE IN A LOOP!
+    # vers: 10:49 AM 1/15.3.85 variant that uses cmd; the ui.rawui combo ISN'T BREAKABLE IN A LOOP!
     # vers: 11:04 AM 11/6/2013
     .DESCRIPTION
     Invoke-Pause2.ps1 - Press any key to continue prompting function
@@ -10767,7 +10764,6 @@ multiple values, use the array syntax. For example, "-parameter value1,value2,va
     .LINK
     https://github.com/tostka/verb-io
     #>
-    ##Requires -Version 5
     #Requires -Modules SmbShare
     PARAM(
         [Parameter(HelpMessage="Regex of RemotePath 'hosts' to be re-mounted in session[-rgxRemoteHosts '(Host1|host2)']")]
@@ -14117,7 +14113,6 @@ function Remove-InvalidFileNameCharsTDO{
     .LINK
     https://github.com/tostka/verb-io
     #>
-    #Requires -Version 2.0
     #[CmdletBinding(HelpURI='https://gallery.technet.microsoft.com/scriptcenter/Remove-Invalid-Characters-39fa17b1')]
     # defer to updated local CBH
     [CmdletBinding()]
@@ -14530,7 +14525,7 @@ Function Remove-PSTitleBar {
     REVISIONS
     * 8:15 AM 7/27/2021 sub'd in $rgxQ for duped rgx
     * 4:37 PM 2/27/2020 updated CBH
-    # 8:46 AM 3/15.3.17 Remove-PSTitleBar: initial version
+    # 8:46 AM 3/15.3.87 Remove-PSTitleBar: initial version
     # 11/12/2014 - posted version
     .DESCRIPTION
     Remove-PSTitleBar.ps1 - Append specified string to the end of the powershell console Titlebar
@@ -16617,7 +16612,6 @@ When the context includes a match, the MatchInfo object for each match includes 
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    ##requires -version 3
     #[Alias('convert-
     [CmdletBinding(DefaultParameterSetName='File')]
   param(
@@ -16725,8 +16719,8 @@ function set-AuthenticodeSignatureTDO {
     10:45 AM 10/14/2020 added cert hunting into cert:\LocalMachine\my -codesigning as well as currentuser
     7:56 AM 6/19/2018 added -whatif & -showdebug params
     10:46 AM 1/16/2015 corrected $oReg|$oRet typo that broke status attrib
-    10:20 AM 1/15.3.15 rewrote into pipeline format
-    9:50 AM 1/15.3.15 added a $f.name echo to see if it's doing anything
+    10:20 AM 1/15.3.85 rewrote into pipeline format
+    9:50 AM 1/15.3.85 added a $f.name echo to see if it's doing anything
     8:54 AM 1/8/2015 - added play-beep to end
     10:01 AM 12/30/2014
     .PARAMETER file

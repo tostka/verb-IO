@@ -12,7 +12,7 @@
 RootModule = 'verb-IO.psm1'
 
 # Version number of this module.
-ModuleVersion = '15.3.1'
+ModuleVersion = '15.3.8'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()

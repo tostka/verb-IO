@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 15.1.1.0.0
+Version     : 15.2.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -11119,6 +11119,78 @@ https://github.com/tostka/verb-IO
 #*------^ Out-Excel-Events.ps1 ^------
 
 
+#*------v Output-XMLRendered.ps1 v------
+function Output-XMLRendered {
+    <#
+    .SYNOPSIS
+    Output-XMLRendered.ps1 - function to render an XML objectinto rendered XML code.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2023-
+    FileName    : 
+    License     : MIT License
+    Copyright   : (c) 2023 Todd Kadrie
+    Github      : https://github.com/tostka/verb-XXX
+    Tags        : Powershell
+    AddedCredit : samaspin
+    AddedWebsite:	https://stackoverflow.com/users/763163/samaspin
+    AddedTwitter:	URL
+    REVISIONS
+    * 7:56 PM 1/14/2025 minor tweaks, added CBH, adv function, pipeline support, removed default [xml] type coercian from declare
+    .DESCRIPTION
+    Output-XMLRendered.ps1 - function to render an XML objectinto rendered XML code.
+
+    Adapted from samaspin's posted code sample in a stackoverflow discussion::
+    [Powershell, output xml to screen - Stack Overflow](https://stackoverflow.com/questions/6142053/powershell-output-xml-to-screen)
+
+    .PARAMETER xml
+    XML object or code to be rendered[-xml '<root><so><user name=`"john`">thats me</user><user name=`"jane`">do you like her?</user></so></root>']
+    .EXAMPLE
+    PS> $xml = [xml]'<root><so><user name="john">thats me</user><user name="jane">do you like her?</user></so></root>' ; 
+    PS> Output-XMLRendered $xml ; 
+    OPTSAMPLEOUTPUT
+    OPTDESCRIPTION
+    .LINK
+    https://stackoverflow.com/questions/6142053/powershell-output-xml-to-screen
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="XML object or code to be rendered[-xml '<root><so><user name=`"john`">thats me</user><user name=`"jane`">do you like her?</user></so></root>']")]
+        $xml
+    )
+    PROCESS{
+        foreach ($item in $xml){
+            switch ($item.gettype().fullname){
+                'System.Xml.XmlDocument'{
+                    write-verbose "XmlDcument detected" ;                         
+                }
+                'System.String'{
+                    write-verbose "coercing [string] to [xml]" 
+                    [xml]$item = $item ; 
+                }
+                default {
+                    throw "unrecognized object type:$($item.gettype().fullname)" ; 
+                }
+            } ; 
+            $StringWriter = New-Object System.IO.StringWriter ;
+            $XmlWriter = New-Object System.Xml.XmlTextWriter $StringWriter ;
+            $XmlWriter.Formatting = "indented" ;
+            #$xml.WriteTo($XmlWriter) ;
+            $item.WriteTo($XmlWriter) ;
+            $XmlWriter.Flush() ;
+            $StringWriter.Flush() ;
+            $StringWriter.ToString() | Write-Output ;
+        } ; 
+    } ; 
+}
+
+#*------^ Output-XMLRendered.ps1 ^------
+
+
 #*------v parse-PSTitleBar.ps1 v------
 Function parse-PSTitleBar {
     <#
@@ -15793,7 +15865,7 @@ function set-AuthenticodeSignatureTDO {
                 PS> } else { write-warning 'Bad Cert for code signing!'} ; 
                 Demo conditional branching on basis of output valid value.
                 .LINK
-                https://web.archive.org/web/20160715.1.122/poshcode.org/1633
+                https://web.archive.org/web/20160715110022/poshcode.org/1633
                 .LINK
                 https://github.com/tostka/verb-io
                 #>
@@ -18701,6 +18773,7 @@ function Test-PendingReboot {
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell,System,Reboot
     REVISIONS
+    * 9:38 AM 12/26/2024 tab-indent & caps'd the param blocks, flipped $Computername to nonmando wo notnullorempty, defaulted to $env:computername; added coerced -local when $computername -eq $env:computername, now runs on mybox, failed trying to do unconfig'd remoteps prev
     * 12:19 PM 6/24/2024 new box, pre WinRM remote config, fails hard; so cut in quick & dirty workaroun: -Local param, steers through the tests wo the PSSesssion working
     * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
     * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
@@ -18736,9 +18809,9 @@ function Test-PendingReboot {
     [CmdletBinding()]
     #[Alias('get-ScheduledTaskReport')]
     PARAM(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
             [ValidateNotNullOrEmpty()]
-            [string[]]$ComputerName,
+            [string[]]$ComputerName= $env:computername,
         [Parameter()]
             [ValidateNotNullOrEmpty()]
             [pscredential]$Credential,
@@ -18759,11 +18832,10 @@ function Test-PendingReboot {
         function Test-RegistryKey {
             [OutputType('bool')]
             [CmdletBinding()]
-            param
-            (
+            PARAM(
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Key
             )
             $ErrorActionPreference = 'Stop'
             if (Get-Item -Path $Key -ErrorAction Ignore) {
@@ -18773,14 +18845,13 @@ function Test-PendingReboot {
         function Test-RegistryValue {
             [OutputType('bool')]
             [CmdletBinding()]
-            param
-            (
+            PARAM(
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key,
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Key,
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Value
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Value
             )
             $ErrorActionPreference = 'Stop'
             if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
@@ -18790,14 +18861,13 @@ function Test-PendingReboot {
         function Test-RegistryValueNotNull {
             [OutputType('bool')]
             [CmdletBinding()]
-            param
-            (
+            PARAM(
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Key,
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Key,
                 [Parameter(Mandatory=$true)]
-                [ValidateNotNullOrEmpty()]
-                [string]$Value
+                    [ValidateNotNullOrEmpty()]
+                    [string]$Value
             )
             $ErrorActionPreference = 'Stop'
             if (($regVal = Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) -and $regVal.($Value)) {
@@ -18858,6 +18928,11 @@ function Test-PendingReboot {
                 ComputerName    = $computer ;
                 IsPendingReboot = $false ;
             } ;
+            # test & force local - fails on mybox
+            if(-not $Local -AND ($computer -eq $env:COMPUTERNAME)){
+                write-verbose "coercing local run -Local:$true" ; 
+                $local = $true ; 
+            } ; 
             if($Local){
                 #if (-not ($output.IsPendingReboot = Invoke-Command -ScriptBlock $scriptBlock)) {
                 #    $output.IsPendingReboot = $false ;
@@ -20502,7 +20577,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,stop-driveburn,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,stop-driveburn,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -20510,8 +20585,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUjOEKY1uWVcos177S4CHmkfyr
-# Tn+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU9Rx8ZXl9WwcsWAB3dCUa+C76
+# uUSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -20526,9 +20601,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSrxqPf
-# EJE1nA+V+bniOM3Xpq7aMjANBgkqhkiG9w0BAQEFAASBgLHUJqyjy2Dj9YVejfzp
-# DuZd05rfAjRBa3SskfFGifOIcoCu60crkqZRAA5M1kn31pemANCvCOmiuOSP9nUc
-# I946PUQQ7bxxaSA5G8wcYXz3ZBRrTAUiQ0K1IbeYkPoYz49wMLTxytZQXyPKHN0b
-# Gc/UkspQxeAxe9GxOZiXQ7j0
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRbqCJ2
+# 71GuhYRakmuXvTf/F9smgDANBgkqhkiG9w0BAQEFAASBgHD8KVpbSrrOrFtzG7gM
+# vX7yD5WEXH+BLCptqlhAgvdpQv7IU2zfjC47qT/Y3BTgvhu6IvONUSSOxf+P5WmO
+# H0nb1GYBIBdbapuLzzVojySn0f+2B6Pj1YNxwUnY5jai5SW9guBp9Xby16lOclS4
+# MVkpqEt2SJbNx009YVp96Xan
 # SIG # End signature block
