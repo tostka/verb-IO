@@ -19,6 +19,7 @@ function get-LoremName {
     AddedTwitter:	@tostka / http://twitter.com/tostka
     Inspired to create by: https://twitter.com/MichaelBender/status/1101921078350413825?s=20
     REVISIONS
+    * 10:02 AM 4/11/2025 rem'd empty alias line
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     * 2019-03-03 
@@ -57,7 +58,7 @@ function get-LoremName {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding(PositionalBinding = $false)]
-    [Alias()]
+    #[Alias()]
     [OutputType([String])]
     Param
     (

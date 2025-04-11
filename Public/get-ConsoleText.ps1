@@ -19,6 +19,7 @@ Function get-ConsoleText {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Clipboard,Text
     REVISIONS
+    * 9:42 AM 4/11/2025 fixed err Alias: tmf -> gconsole (test-mediafile conflict)
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 9:27 AM 2/2/2022 added -topipeline switch & post-split code (pipeline return returns text block, not lines, and os-agnostic split pads with spaces between lines unless explicitly supressed); fixed output: was just dumping console text to pipeline (and back into console buffer), piped it into set-clipboard ; minor tweaks OTB fmt, added CBH ; added else clause to echo non-support of VsCode.
     * 6/5/2019 posted AutomatedLab revision (non-functional, doesn't copy to cb)
@@ -42,12 +43,11 @@ Function get-ConsoleText {
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    [Alias('tmf')]
+    [Alias('gconsole')]
     PARAM(
         [Parameter(HelpMessage="switch to return the text to the pipeline (rather than default 'copy to clipboard' behavior)[-toPipeline]")]
         [switch] $toPipeline
-    ) ;
-    
+    ) ;    
     # Check the host name and exit if the host is not the Windows PowerShell console host.
     if ($host.Name -eq 'Windows PowerShell ISE Host') {
         write-verbose "(`$host.Name:Windows PowerShell ISE Host detected)" ;

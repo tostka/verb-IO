@@ -11,6 +11,7 @@ function Compress-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 9:40 AM 4/11/2025 add alias: 'cmZipFile','cmzip'
     * 9:01 AM 5/23/20 24 added fully rounded out example
     * 12:36 PM 12/15/2022: add: BH example wrapping up a ticket's output files.
     * 1:54 PM 8/30/2022 looks functionally equiv compress-archive & .net calls, at least in the three use cases in the example: they produce substantially similar content in the resultant zip; expanded echos;
@@ -155,7 +156,7 @@ function Compress-ArchiveFile {
     https://github.com/tostka/verb-XXX
     #>
     [CmdletBinding()]
-    [Alias('Compress-ZipFile')]
+    [Alias('Compress-ZipFile','cmZipFile','cmzip')]
     Param(
         [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Specifies the path or paths to the files that you want to add to the archive zipped file. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. [-Path c:\path-to\file.ext,c:\pathto\file2.ext]")]
         [ValidateScript( { Test-Path $_ })]

@@ -19,6 +19,7 @@ function get-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 10:01 AM 4/11/2025 fixed Alias s-hi -> g-hi
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat); 
     * 2:13 PM 2/3/2023 init
@@ -44,7 +45,7 @@ function get-HostIndent {
     Simple retrieval demo    
     #>
     [CmdletBinding()]
-    [Alias('s-hi')]
+    [Alias('g-hi')]
     PARAM(
         [Parameter(
             HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]

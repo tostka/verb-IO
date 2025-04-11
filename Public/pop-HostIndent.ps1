@@ -19,6 +19,7 @@ function pop-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 10:03 AM 4/11/2025 removed duped CmdletBinding & Alias lines
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat). 
     * 2:01 PM 2/1/2023 add: -PID param
@@ -68,8 +69,6 @@ function pop-HostIndent {
     PS>  pop-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
     Demo typical usage.
     #>
-    [CmdletBinding()]
-    [Alias('pop-hi')]
     [CmdletBinding()]
     [Alias('pop-hi')]
     PARAM(

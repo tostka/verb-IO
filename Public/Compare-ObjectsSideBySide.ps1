@@ -18,6 +18,7 @@ function Compare-ObjectsSideBySide{
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole
     REVISIONS   :
+    * 9:38 AM 4/11/2025 add AdvFunc pre; alias: crObjectsSideBySide
     * 11:04 AM 4/25/2022 added CBH example output, and another example using Exchange Get-MailboxDatabaseCopyStatus results, between a pair of DAG nodes.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 fixed typo in params, moved to full param block, and added lhs/rhs as aliases; expanded CBH
@@ -76,6 +77,8 @@ function Compare-ObjectsSideBySide{
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [CmdletBinding()]
+    [alias('crObjectsSideBySide')]    
     PARAM(
         [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj1]")]
         [Alias('lhs')]

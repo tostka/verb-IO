@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 15.3.8.0.0
+Version     : 16.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -307,8 +307,8 @@ Function Add-PSTitleBar {
     * 10:30 AM 7/26/2021 reworked, added whatif, showdebug, verbose echos, working on array-supp in the inputs
     * 3:11 PM 4/19/2021 added cmdletbinding/verbose supp & alias add-PSTitle
     * 4:37 PM 2/27/2020 updated CBH
-    # 8:44 AM 3/15.3.87 ren Update-PSTitleBar => Add-PSTitleBar, so that we can have a Remove-PSTitleBar, to subtract
-    # 8:42 AM 3/15.3.87 Add-PSTitleBar for addition, before adding
+    # 8:44 AM 3/15/2017 ren Update-PSTitleBar => Add-PSTitleBar, so that we can have a Remove-PSTitleBar, to subtract
+    # 8:42 AM 3/15/2017 Add-PSTitleBar for addition, before adding
     # 11/12/2014 - posted version
     .DESCRIPTION
     Add-PSTitleBar.ps1 - Append specified identifying Tag string to the end of the powershell console Titlebar
@@ -811,6 +811,7 @@ function Compare-ObjectsSideBySide{
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole
     REVISIONS   :
+    * 9:38 AM 4/11/2025 add AdvFunc pre; alias: crObjectsSideBySide
     * 11:04 AM 4/25/2022 added CBH example output, and another example using Exchange Get-MailboxDatabaseCopyStatus results, between a pair of DAG nodes.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 fixed typo in params, moved to full param block, and added lhs/rhs as aliases; expanded CBH
@@ -869,6 +870,8 @@ function Compare-ObjectsSideBySide{
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [CmdletBinding()]
+    [alias('crObjectsSideBySide')]    
     PARAM(
         [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj1]")]
         [Alias('lhs')]
@@ -1107,6 +1110,7 @@ function Compress-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 9:40 AM 4/11/2025 add alias: 'cmZipFile','cmzip'
     * 9:01 AM 5/23/20 24 added fully rounded out example
     * 12:36 PM 12/15/2022: add: BH example wrapping up a ticket's output files.
     * 1:54 PM 8/30/2022 looks functionally equiv compress-archive & .net calls, at least in the three use cases in the example: they produce substantially similar content in the resultant zip; expanded echos;
@@ -1251,7 +1255,7 @@ function Compress-ArchiveFile {
     https://github.com/tostka/verb-XXX
     #>
     [CmdletBinding()]
-    [Alias('Compress-ZipFile')]
+    [Alias('Compress-ZipFile','cmZipFile','cmzip')]
     Param(
         [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Specifies the path or paths to the files that you want to add to the archive zipped file. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. [-Path c:\path-to\file.ext,c:\pathto\file2.ext]")]
         [ValidateScript( { Test-Path $_ })]
@@ -2329,6 +2333,7 @@ Function convertFrom-MarkdownTable {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 9:33 AM 4/11/2025 add alias: cfmdt (reflects standard verbalias)
     * 12:33 PM 5/17/2024 fixed odd bug, was failing to trim trailing | on some rows, which caused convertfrom-csv to drop that column.
     * 9:04 AM 9/27/2023 cbh demo output tweaks (unindented, results in 1st line de-indent and rest indented.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
@@ -2371,7 +2376,7 @@ Function convertFrom-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [alias('convertfrom-mdt','in-markdowntable','in-mdt')]    
+    [alias('convertfrom-mdt','in-markdowntable','in-mdt','cfmdt')]    
     Param (
         [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Markdown-formated table to be converted into an object [-markdowntext 'title text']")]
         $markdowntext
@@ -3643,6 +3648,7 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 9:33 AM 4/11/2025 add alias: ctmdt (reflects standard verbalias)
     * 8:31 AM 9/27/2023 Expl8 isn't rendering (blank PS>): unwrapped the pipe-wrap to see if it works better (though less readable).
     * 10:58 AM 7/13/2022 added -NoPadding to suppress column alignment; added CBH examples: one that demos prettying up handbuilt md tables comboing convertfrom-md | convertto-mdt, and one that demos -NoPadding use with -Tight (produce tightest md tbl output)
     * 10:35 AM 2/21/2022 CBH example ps> adds
@@ -3768,7 +3774,7 @@ Function convertTo-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [Alias('out-markdowntable','out-mdt','convertfrom-mdt')]
+    [Alias('out-markdowntable','out-mdt','convertfrom-mdt','ctmdt')]
     [OutputType([string])]
     Param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
@@ -6524,7 +6530,7 @@ function Get-AverageItems {
     Github      : 
     Tags        : Powershell,Math
     REVISIONS
-    12:29 PM 5/15.3.83 revised
+    12:29 PM 5/15/2013 revised
     17:10 1/3/2010 posted rev
     .DESCRIPTION
     Get-AverageItems.ps1 - Avg input items
@@ -7175,6 +7181,7 @@ Function get-ConsoleText {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Clipboard,Text
     REVISIONS
+    * 9:42 AM 4/11/2025 fixed err Alias: tmf -> gconsole (test-mediafile conflict)
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 9:27 AM 2/2/2022 added -topipeline switch & post-split code (pipeline return returns text block, not lines, and os-agnostic split pads with spaces between lines unless explicitly supressed); fixed output: was just dumping console text to pipeline (and back into console buffer), piped it into set-clipboard ; minor tweaks OTB fmt, added CBH ; added else clause to echo non-support of VsCode.
     * 6/5/2019 posted AutomatedLab revision (non-functional, doesn't copy to cb)
@@ -7198,12 +7205,11 @@ Function get-ConsoleText {
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    [Alias('tmf')]
+    [Alias('gconsole')]
     PARAM(
         [Parameter(HelpMessage="switch to return the text to the pipeline (rather than default 'copy to clipboard' behavior)[-toPipeline]")]
         [switch] $toPipeline
-    ) ;
-    
+    ) ;    
     # Check the host name and exit if the host is not the Windows PowerShell console host.
     if ($host.Name -eq 'Windows PowerShell ISE Host') {
         write-verbose "(`$host.Name:Windows PowerShell ISE Host detected)" ;
@@ -8251,6 +8257,7 @@ function get-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 10:01 AM 4/11/2025 fixed Alias s-hi -> g-hi
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat); 
     * 2:13 PM 2/3/2023 init
@@ -8276,7 +8283,7 @@ function get-HostIndent {
     Simple retrieval demo    
     #>
     [CmdletBinding()]
-    [Alias('s-hi')]
+    [Alias('g-hi')]
     PARAM(
         [Parameter(
             HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
@@ -8451,7 +8458,7 @@ Function Get-KnownFolderTDO {
         Links                    | {BFB9D5E0-C6A9-404C-B2B2-AE6DB6AF4968} | %USERPROFILE%\Links
         Local                    | {F1B32785-6FBA-4FCF-9D55-7B8E7F157091} | %LOCALAPPDATA% (%USERPROFILE%\AppData\Local)
         LocalLow                 | {A520A1A4-1780-4FF6-BD18-167343C5AF16} | %USERPROFILE%\AppData\LocalLow
-        Microsoft Office Outlook | {98EC0E18-2098-4D44-8644-66979315.3.8} | virtual folder
+        Microsoft Office Outlook | {98EC0E18-2098-4D44-8644-66979315A281} | virtual folder
         Music                    | {2112AB0A-C86A-4FFE-A368-0DE96E47012E} | %APPDATA%\Microsoft\Windows\Libraries\Music.library-ms
         Music                    | {4BD8D571-6D19-48D3-BE97-422220080E43} | %USERPROFILE%\Music
         Network                  | {D20BEEC4-5CA8-4905-AE3B-BF251EA09B53} | virtual folder
@@ -8592,6 +8599,7 @@ function get-LoremName {
     AddedTwitter:	@tostka / http://twitter.com/tostka
     Inspired to create by: https://twitter.com/MichaelBender/status/1101921078350413825?s=20
     REVISIONS
+    * 10:02 AM 4/11/2025 rem'd empty alias line
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     * 2019-03-03 
@@ -8630,7 +8638,7 @@ function get-LoremName {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding(PositionalBinding = $false)]
-    [Alias()]
+    #[Alias()]
     [OutputType([String])]
     Param
     (
@@ -9609,7 +9617,7 @@ function Get-SumItems {
     Tags        : Powershell,Math
     REVISIONS
     * 12:37 PM 10/25/2021 rem'd req version
-    12:29 PM 5/15.3.83 revised
+    12:29 PM 5/15/2013 revised
     17:10 1/3/2010 posted rev
     .DESCRIPTION
     Get-SumItems.ps1 - Sum input items
@@ -10095,7 +10103,7 @@ Function Invoke-Pause2() {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
-    # vers: 10:49 AM 1/15.3.85 variant that uses cmd; the ui.rawui combo ISN'T BREAKABLE IN A LOOP!
+    # vers: 10:49 AM 1/15/2015 variant that uses cmd; the ui.rawui combo ISN'T BREAKABLE IN A LOOP!
     # vers: 11:04 AM 11/6/2013
     .DESCRIPTION
     Invoke-Pause2.ps1 - Press any key to continue prompting function
@@ -11702,6 +11710,7 @@ function pop-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 10:03 AM 4/11/2025 removed duped CmdletBinding & Alias lines
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat). 
     * 2:01 PM 2/1/2023 add: -PID param
@@ -11751,8 +11760,6 @@ function pop-HostIndent {
     PS>  pop-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
     Demo typical usage.
     #>
-    [CmdletBinding()]
-    [Alias('pop-hi')]
     [CmdletBinding()]
     [Alias('pop-hi')]
     PARAM(
@@ -14525,7 +14532,7 @@ Function Remove-PSTitleBar {
     REVISIONS
     * 8:15 AM 7/27/2021 sub'd in $rgxQ for duped rgx
     * 4:37 PM 2/27/2020 updated CBH
-    # 8:46 AM 3/15.3.87 Remove-PSTitleBar: initial version
+    # 8:46 AM 3/15/2017 Remove-PSTitleBar: initial version
     # 11/12/2014 - posted version
     .DESCRIPTION
     Remove-PSTitleBar.ps1 - Append specified string to the end of the powershell console Titlebar
@@ -16719,8 +16726,8 @@ function set-AuthenticodeSignatureTDO {
     10:45 AM 10/14/2020 added cert hunting into cert:\LocalMachine\my -codesigning as well as currentuser
     7:56 AM 6/19/2018 added -whatif & -showdebug params
     10:46 AM 1/16/2015 corrected $oReg|$oRet typo that broke status attrib
-    10:20 AM 1/15.3.85 rewrote into pipeline format
-    9:50 AM 1/15.3.85 added a $f.name echo to see if it's doing anything
+    10:20 AM 1/15/2015 rewrote into pipeline format
+    9:50 AM 1/15/2015 added a $f.name echo to see if it's doing anything
     8:54 AM 1/8/2015 - added play-beep to end
     10:01 AM 12/30/2014
     .PARAMETER file

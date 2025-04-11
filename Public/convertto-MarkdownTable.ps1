@@ -24,6 +24,7 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 9:33 AM 4/11/2025 add alias: ctmdt (reflects standard verbalias)
     * 8:31 AM 9/27/2023 Expl8 isn't rendering (blank PS>): unwrapped the pipe-wrap to see if it works better (though less readable).
     * 10:58 AM 7/13/2022 added -NoPadding to suppress column alignment; added CBH examples: one that demos prettying up handbuilt md tables comboing convertfrom-md | convertto-mdt, and one that demos -NoPadding use with -Tight (produce tightest md tbl output)
     * 10:35 AM 2/21/2022 CBH example ps> adds
@@ -149,7 +150,7 @@ Function convertTo-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [Alias('out-markdowntable','out-mdt','convertfrom-mdt')]
+    [Alias('out-markdowntable','out-mdt','convertfrom-mdt','ctmdt')]
     [OutputType([string])]
     Param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
