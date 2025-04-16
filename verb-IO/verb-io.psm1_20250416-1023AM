@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 15.2.1.0.0
+Version     : 16.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -811,6 +811,7 @@ function Compare-ObjectsSideBySide{
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole
     REVISIONS   :
+    * 9:38 AM 4/11/2025 add AdvFunc pre; alias: crObjectsSideBySide
     * 11:04 AM 4/25/2022 added CBH example output, and another example using Exchange Get-MailboxDatabaseCopyStatus results, between a pair of DAG nodes.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 fixed typo in params, moved to full param block, and added lhs/rhs as aliases; expanded CBH
@@ -869,6 +870,8 @@ function Compare-ObjectsSideBySide{
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [CmdletBinding()]
+    [alias('crObjectsSideBySide')]    
     PARAM(
         [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj1]")]
         [Alias('lhs')]
@@ -1107,6 +1110,7 @@ function Compress-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 9:40 AM 4/11/2025 add alias: 'cmZipFile','cmzip'
     * 9:01 AM 5/23/20 24 added fully rounded out example
     * 12:36 PM 12/15/2022: add: BH example wrapping up a ticket's output files.
     * 1:54 PM 8/30/2022 looks functionally equiv compress-archive & .net calls, at least in the three use cases in the example: they produce substantially similar content in the resultant zip; expanded echos;
@@ -1251,7 +1255,7 @@ function Compress-ArchiveFile {
     https://github.com/tostka/verb-XXX
     #>
     [CmdletBinding()]
-    [Alias('Compress-ZipFile')]
+    [Alias('Compress-ZipFile','cmZipFile','cmzip')]
     Param(
         [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Specifies the path or paths to the files that you want to add to the archive zipped file. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. [-Path c:\path-to\file.ext,c:\pathto\file2.ext]")]
         [ValidateScript( { Test-Path $_ })]
@@ -2329,6 +2333,7 @@ Function convertFrom-MarkdownTable {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 9:33 AM 4/11/2025 add alias: cfmdt (reflects standard verbalias)
     * 12:33 PM 5/17/2024 fixed odd bug, was failing to trim trailing | on some rows, which caused convertfrom-csv to drop that column.
     * 9:04 AM 9/27/2023 cbh demo output tweaks (unindented, results in 1st line de-indent and rest indented.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
@@ -2371,7 +2376,7 @@ Function convertFrom-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [alias('convertfrom-mdt','in-markdowntable','in-mdt')]    
+    [alias('convertfrom-mdt','in-markdowntable','in-mdt','cfmdt')]    
     Param (
         [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Markdown-formated table to be converted into an object [-markdowntext 'title text']")]
         $markdowntext
@@ -3643,6 +3648,7 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 9:33 AM 4/11/2025 add alias: ctmdt (reflects standard verbalias)
     * 8:31 AM 9/27/2023 Expl8 isn't rendering (blank PS>): unwrapped the pipe-wrap to see if it works better (though less readable).
     * 10:58 AM 7/13/2022 added -NoPadding to suppress column alignment; added CBH examples: one that demos prettying up handbuilt md tables comboing convertfrom-md | convertto-mdt, and one that demos -NoPadding use with -Tight (produce tightest md tbl output)
     * 10:35 AM 2/21/2022 CBH example ps> adds
@@ -3768,7 +3774,7 @@ Function convertTo-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [Alias('out-markdowntable','out-mdt','convertfrom-mdt')]
+    [Alias('out-markdowntable','out-mdt','convertfrom-mdt','ctmdt')]
     [OutputType([string])]
     Param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
@@ -4229,6 +4235,7 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 12:38 AM 3/2/2025 added support for Remove-InvalidFileNameCharsTDO, cleaning output filenames of garbage yt adds to titles etc
     * 8:09 PM 11/15/2023 recoded around vlc conversion bugs; moved output into $env:temp, then post-move back to target dir; also add retry: noticed on zero-len outfile, that rerunning sometimes properly processed the file.
     * 1:41 PM 7/26/2023 add: $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; flipped extension refs to using that combo to detect pre-transcode YT content
     * 10:32 AM 7/21/2023 add both aliases convert-toMp3 & convertTo-Mp3(proper verb); fixed alias; removed unused params & showdebug support (v write-verbose) added xmpl; worked on path [] in latest pass ; add: rename nested 
@@ -4329,6 +4336,8 @@ function convert-VideoToMp3 {
         [Parameter(Mandatory = $false, HelpMessage = "Specify Encoder forconversion (F(MPEG), VLC; defaults VLC)[-encoder F")]
             [ValidateSet("F", "VLC")]
             [string]$encoder = "VLC",
+        [Parameter(HelpMessage = 'Switch to remove invalid filename characters from output names (as default naming of source video files, using online tags, can frequently result in invalid characters in the filenames)[$switch]')]
+            [switch] $fixFileNames = $true ,
         [Parameter(HelpMessage = 'Debugging Flag [$switch]')]
             [switch] $showDebug,
         [Parameter(HelpMessage = 'Whatif Flag  [$switch]')]
@@ -4340,6 +4349,256 @@ function convert-VideoToMp3 {
     #>
 
     BEGIN {
+
+        #*======v FUNCTIONS v======
+
+        #*----------v Function Remove-InvalidFileNameCharsTDO() v----------
+        if(-not (get-command Remove-InvalidFileNameCharsTDO -ea 0)){
+            function Remove-InvalidFileNameCharsTDO{                                                                                                                                                                                                                                                                                                                                                                                                                                                <#
+            .SYNOPSIS
+            Remove-InvalidFileNameCharsTDO.ps1 - Removes characters from a string that are not valid in Windows file names.
+            .NOTES
+            Version     : 1.1.2
+            Author      : Todd Kadrie
+            Website     :	http://www.toddomation.com
+            Twitter     :	@tostka / http://twitter.com/tostka
+            CreatedDate : 2025-03-01
+            FileName    : Remove-InvalidFileNameCharsTDO.ps1
+            License     : http://creativecommons.org/licenses/by-sa/4.0/
+            Copyright   : 2016 Chris Carter
+            Github      : https://github.com/tostka/verb-io
+            Tags        : Powershell,RegularExpression,String,filesystem
+            AddedCredit : Chris Carter
+            AddedWebsite:	https://gallery.technet.microsoft.com/Remove-Invalid-Characters-39fa17b1
+            AddedTwitter:	URL
+            REVISIONS
+            * 7:15 PM 3/1/2025 spliced in missing -ReplaceBrackets & -dashReplaceChars handling pieces in the unpathed else block (wasn't doing those removals as intended); 
+                added -ReplaceBrackets (sub square brackets with parenthesis), and -DashReplaceChars (characters to be replaced with chars specified by the new -DashReplacement character or string); 
+                added additional exmpl with pipeline support
+            * 10:56 PM 2/13/2025 converted to function, expanded CBH
+            * August 8, 2016 v1.5.1  CC posted latest copy
+            .DESCRIPTION
+            Remove-InvalidFileNameCharsTDO accepts a string and removes characters that are invalid in Windows file names. 
+
+            This is an extension of Chris Carter's original simpler function, extended with support for replacement of brackets (to parenthesis) and configurable additional characters. 
+
+            The -Name parameter can also clean file paths. If the string begins with "\\" or a drive like "C:\", it will then treat the string as a file path and clean the strings between "\". This has the side effect of removing the ability to actually remove the "\" character from strings since it will then be considered a divider.
+    
+            Use of -RemoveSpace will crush out all space charcters (replace with nothing). 
+
+            Use of the additional -ReplaceBrackets switch will replace square brackets ([]) with matching paranthesis characters. 
+
+            You can optionally use the -DashReplacement parameter to specifify a string array of characters to be replaced with a character/string specified by the new -DashReplaceChars parameter. 
+
+            The resulting cleaned string or path will be returned to the pipeline. 
+ 
+            The Replacement parameter will replace the invalid characters with the specified string. To remove rather than replace the invalid characters, use 
+ 
+            The Name parameter can also clean file paths. If the string begins with "\\" or a drive like "C:\", it will then treat the string as a file path and clean the strings between "\". This has the side effect of removing the ability to actually remove the "\" character from strings since it will then be considered a divider.
+    
+            .PARAMETER Name
+            Array of filenames or fullnames to strip of invalid characters.[-name @('filename.ext','c:\pathto\file.ext')]
+            .PARAMETER Replacement
+            Specifies the string to use as a replacement for the invalid characters (leave blank to delete without replacement).[-Replacement ' ']
+            .PARAMETER RemoveSpace
+            Switch to include the space character (U+0020) in the removal process.[-Removespace]
+            .PARAMETER ReplaceBrackets
+            Switch to replace square brackets with paranthesis characters[-ReplaceBrackets]
+            .PARAMETER DashReplaceChars
+            Characters to be replaced with the -DashReplacement specification[-DashReplaceChars @('|','~')]
+            .PARAMETER DashReplacement
+            Character to use for all -DashReplacement characters (defaults to dash '-')[-DashReplacement 'x']
+            .INPUTS
+            System.String
+            Remove-InvalidFileNameCharsTDO accepts System.String objects in the pipeline.
+ 
+            Remove-InvalidFileNameCharsTDO accepts System.String objects in a property Name from objects in the pipeline.
+ 
+            .OUTPUTS
+            System.String 
+            .EXAMPLE
+            PS> Remove-InvalidFileNameCharsTDO -Name "<This /name \is* an :illegal ?filename>.txt"
+            Output: This name is an illegal filename.txt
+ 
+            This command will strip the invalid characters from the string and output a clean string.
+            .EXAMPLE
+            PS> Remove-InvalidFileNameCharsTDO -Name "<This /name \is* an :illegal ?filename>.txt" -RemoveSpace
+            Output: Thisnameisanillegalfilename.txt
+ 
+            This command will strip the invalid characters from the string and output a clean string, removing the space character (U+0020) as well.
+            .EXAMPLE
+            PS> Remove-InvalidFileNameCharsTDO -Name '\\Path/:|?*<\With:*?>\:Illegal /Characters>?*.txt"'
+            Output: \\Path\With\Illegal Characters.txt
+ 
+            This command will strip the invalid characters from the path and output a valid path. Note: it would not be able to remove the "\" character.
+            .EXAMPLE
+            PS> Remove-InvalidFileNameCharsTDO -Name '\\Path/:|?*<\With:*?>\:Illegal /Characters>?*.txt"' -RemoveSpace
+            Output: \\Path\With\IllegalCharacters.txt
+ 
+            This command will strip the invalid characters from the path and output a valid path, also removing the space character (U+0020) as well. Note: it would not be able to remove the "\" character.
+            .EXAMPLE
+            PS> Remove-InvalidFileNameCharsTDO -Name "<This /name \is* an :illegal ?filename>.txt" -Replacement +
+            Output: +This +name +is+ an +illegal +filename+.txt
+ 
+            This command will strip the invalid characters from the string, replacing them with a "+", and outputting the result string.
+            .EXAMPLE
+            PS> Remove-InvalidFileNameCharsTDO -Name "<This /name \is* an :illegal ?filename>.txt" -Replacemet + -RemoveOnly "*", 58, 0x3f
+            Output: +This +name +is an illegal filename+.txt
+ 
+            This command will strip the invalid characters from the string, replacing them with a "+", except the "*", the charcter with a decimal value of 58 (:), and the character with a hexidecimal value of 0x3f (?). These will simply be removed, and the resulting string output.
+            .EXAMPLE
+            PS> $results = Remove-InvalidFileNameCharsTDO  -Name "C:\vidtmp\convert\Westworld\001 - Westworld S4 Official Soundtrack ｜ Main Title Theme - Ramin Djawadi ｜ WaterTower(UL20220815-H9qE9D0TjJo).mp3" -Verbose -ReplaceBrackets ;
+            PS> $results ; 
+
+                C:\vidtmp\convert\Westworld\001 - Westworld S4 Official Soundtrack - Main Title Theme - Ramin Djawadi - WaterTower(UL20220815-H9qE9D0TjJo).mp3
+
+            Demo use of -replacebrackets & uses a -Name string with a targeted 
+            .EXAMPLE
+            PS> $results = "\\jun|/k{$[;:]left" | Remove-InvalidFileNameCharsTDO -Verbose -ReplaceBrackets
+            PS> $results ; 
+
+                junk{$(;)left
+
+            .Link
+            System.RegEx
+            .Link
+            about_Join
+            .Link
+            about_Operators
+            .LINK
+            https://github.com/tostka/verb-io
+            #>
+                #[CmdletBinding(HelpURI='https://gallery.technet.microsoft.com/scriptcenter/Remove-Invalid-Characters-39fa17b1')]
+                # defer to updated local CBH
+                [CmdletBinding()]
+                [Alias('Remove-InvalidFileNameChars')]
+                Param(
+                    [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,
+                        HelpMessage="Array of filenames or fullnames to strip of invalid characters.[-name @('filename.ext','c:\pathto\file.ext')]")]
+                        [String[]]$Name,
+                    [Parameter(Position=1,HelpMessage="Specifies the string to use as a replacement for the invalid characters (leave blank to delete without replacement).[-Replacement ' ']")]
+                        [String]$Replacement='',
+                    [Parameter(HelpMessage="Switch to include the space character (U+0020) in the removal process.[-Removespace]")]
+                        [switch]$RemoveSpace,
+                    [Parameter(HelpMessage="Switch to replace square brackets with paranthesis characters[-ReplaceBrackets]")]
+                        [switch]$ReplaceBrackets,
+                    [Parameter(HelpMessage="Characters to be replaced with the -DashReplacement specification (default includes a pipe-lookalike that doesn't replace properly as part of a regex)[-DashReplaceChars @('|','~')]")]
+                        [string[]]$DashReplaceChars = @("｜"),
+                    [Parameter(HelpMessage="Character to use for all -DashReplacement characters (defaults to dash '-')[-DashReplacement 'x']")]
+                        [string]$DashReplacement='-'
+                ) ; 
+                BEGIN {
+                    # dashReplaceChars addresses issues getting pipe-lookalikes purged, that don't come out of the OS list; or even properly match or replace as part of a regex
+
+                    #Get an array of invalid characters from the OS
+                    $arrInvalidChars = [System.IO.Path]::GetInvalidFileNameChars()
+
+        
+                    #Cast into a string, adding the space character
+                    $(@($arrInvalidChars);@(' '))  | 
+                        foreach -begin {[string]$rgxChars = $null } -process {$rgxChars+=$_} ; 
+                    [regex]$rgxInvalidCharsWithSpace = '[' + [regex]::escape($rgxChars) + ']' ;
+                    write-verbose "`$rgxInvalidCharsWithSpace: $($rgxInvalidCharsWithSpace.tostring())" ; 
+
+                    # cast to string wo space char
+                    $arrInvalidChars | 
+                        foreach -begin {[string]$rgxChars = $null } -process {$rgxChars+=$_} ; 
+                    [regex]$rgxinvalidCharsNoSpace = '[' + [regex]::escape($rgxChars) + ']' ;
+                    write-verbose "`$rgxinvalidCharsNoSpace: $($rgxinvalidCharsNoSpace.tostring())" ; 
+
+                    # build the $dashReplaceChars into a rgx as well
+                    $dashReplaceChars | 
+                        foreach -begin {[string]$rgxChars = $null } -process {$rgxChars+=$_} ; 
+                    [regex]$rgxdashReplaceChars = '[' + [regex]::escape($rgxChars) + ']' ;
+                    write-verbose "`$rgxdashReplaceChars: $($rgxdashReplaceChars.tostring())" ; 
+
+                    #Check that the -Replacement specified does not have invalid characters itself
+                    if ($RemoveSpace) {
+                        if ($Replacement -match $rgxInvalidCharsWithSpace) {
+                            Write-Error "The Replacement string also contains invalid filename characters."; break ; 
+                        }
+                    } else {
+                        if ($Replacement -match $rgxInvalidCharsNoSpace) {
+                            Write-Error "The Replacement string also contains invalid filename characters."; break ; 
+                        }
+                    }
+
+                    #*======v FUNCTIONS v======
+                    #*------v Function Remove-Chars v------
+                    Function Remove-Chars {
+                        PARAM(
+                            [Parameter(Mandatory=$true,Position=0,HelpMessage="String to be processed")]
+                                [string]$String,
+                            [Parameter(Position=0,HelpMessage="Specifies the string to use as a Replacement for the invalid characters.")]
+                                [string]$Replacement,
+                            [Parameter(HelpMessage="The RemoveSpace parameter will include the space character (U+0020) in the removal process.")]
+                                [switch]$RemoveSpace
+                        )
+                        #Replace the invalid characters with a blank string (removal) or the $Replacement value
+                        #Perform replacement based on whether spaces are desired or not
+                        if ($RemoveSpace) {
+                            [RegEx]::Replace($String, $rgxInvalidCharsWithSpace, $Replacement) | write-output ;
+                        } else {
+                            [RegEx]::Replace($String, $rgxInvalidCharsNoSpace, $Replacement) | write-output ;
+                        }
+                    } 
+                    #*------^ END Function Remove-Chars ^------      
+                    #*======^ END FUNCTIONS  ^======
+
+
+                } ;  # BEG-E
+                PROCESS {
+                    foreach ($n in $Name) {
+                        $sBnr3="`n#*~~~~~~v PROCESSING : $($n) v~~~~~~" ; 
+                        write-verbose $sBnr3; 
+                        #Check if the string matches a valid path
+                        if ($n -match '(?<start>^[a-zA-z]:\\|^\\\\)(?<path>(?:[^\\]+\\)+)(?<file>[^\\]+)$') {
+                            #Split the path into separate directories
+                            $path = $Matches.path -split '\\'
+
+                            #This will remove any empty elements after the split, eg. double slashes "\\"
+                            $path = $path | Where-Object {$_}
+                            #Add the filename to the array
+                            $path += $Matches.file
+
+                            #Send each part of the path, except the start, to the removal function
+                            $cleanPaths = foreach ($p in $path) {
+                                write-verbose "`$p: $($p)" ; 
+                                $buffer = Remove-Chars -String $p -Replacement $Replacement -RemoveSpace:$($RemoveSpace) ;
+                                if($ReplaceBrackets){
+                                    $buffer = $buffer -replace "\[","(" -replace "\]",")" ; 
+                                }; 
+                                if($rgxdashReplaceChars){
+                                    $buffer = $buffer -replace $rgxdashReplaceChars,$dashReplacement ; 
+                                }; 
+                                $buffer | write-output  ; 
+                            }
+                            #Remove any blank elements left after removal.
+                            $cleanPaths = $cleanPaths | Where-Object {$_}
+                            write-verbose "`$cleanPaths: $($cleanPaths)" ; 
+            
+                            #Combine the path together again
+                            $Matches.start + ($cleanPaths -join '\') | write-output ; 
+                        } else {
+                            #String is not a path, so send immediately to the removal function
+                            $buffer = Remove-Chars -String $N -Replacement $Replacement -RemoveSpace:$($RemoveSpace) | write-output ; 
+                            if($ReplaceBrackets){
+                                $buffer = $buffer -replace "\[","(" -replace "\]",")" ; 
+                            }; 
+                            if($rgxdashReplaceChars){
+                                $buffer = $buffer -replace $rgxdashReplaceChars,$dashReplacement ; 
+                            }; 
+                            $buffer | write-output ; 
+                        } ; 
+                        write-verbose $sBnr3.replace('~v','~^').replace('v~','^~')
+                    } ;  # loop-E
+                } ;  # PROC-E
+            } ; 
+        } ; 
+        #*------^ END Function Remove-InvalidFileNameCharsTDO ^------
+
+        #*======^ END FUNCTIONS ^======
+
         $Retries = 4 ;
         $RetrySleep = 5 ;
         $rgxInputExts = "(?i:^\.(MPEG|MP3|AVI|ASF|WMV|WMA|MP4|MOV|3GP|OGG|OGM|MKV|WEBM|WAV|DTS|AAC|AC3|A52|FLAC|FLV|MXF|MIDI|SMF)$)" ;
@@ -4366,7 +4625,6 @@ function convert-VideoToMp3 {
         if (-not (test-path -path $processName)) { throw "MISSING/INVALID $($encoder) install path!:$($processName)" } ;
         write-host -foregroundcolor green "$((get-date).ToString("HH:mm:ss")):=== v PROCESSING STARTED v ===" ;
     }  # BEG-E ;
-
     PROCESS {
 
         $ttl = ($InputObject | measure).count ;
@@ -4430,8 +4688,26 @@ function convert-VideoToMp3 {
                 C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20111001-MieT8cNeXJA).mp3
                 ... which comes out as an mp3 with no extension.
                 #>
+                if($fixFileNames){
+                    $pltRIFNC=[ordered]@{
+                        ReplaceBrackets = $true ;
+                        Name = $tf.BaseName ;
+                        Verbose = $($PSBoundParameters['Verbose'] -eq $true)
+                    } ;
+                    #write-verbose "(Purge no value keys from splat)" ; 
+                    $mts = $pltRIFNC.GetEnumerator() |?{$_.value -eq $null} ; $mts |%{$pltRIFNC.remove($_.Name)} ; rv mts -ea 0 ; 
+                    $smsg = "Remove-InvalidFileNameCharsTDO w`n$(($pltRIFNC|out-string).trim())" ; 
+                    write-verbose $smsg  ;                      
+                    #$fixedFileName = Remove-InvalidFileNameCharsTDO -ReplaceBrackets -Name $tf.BaseName -Verbose:$($PSBoundParameters['Verbose'] -eq $true)
+                    $fixedFileName = Remove-InvalidFileNameCharsTDO  @pltRIFNC ; 
+                    $outputFileName = (join-path -path $tf.Directory -ChildPath "$($fixedFileName)$($outputExtension)") ;
+                } else { 
+                    $outputFileName = (join-path -path $tf.Directory -ChildPath "$($tf.BaseName)$($outputExtension)") ;
+                    #$outputFileName=$outputFileName.replace("\","\\") ;
+                } ; 
                 $outputFileName = (join-path -path $tf.Directory -ChildPath "$($tf.BaseName)$($outputExtension)") ;
                 #$outputFileName=$outputFileName.replace("\","\\") ;
+
                 # since there's clearly an export bug in VLC, lets use a generic no-spaces file :
                 # Generate a unique filename with a specific extension (non-tmp, leverages the GUID-generating call):
                 #$tempout = (join-path -path $tf.Directory -ChildPath "$([guid]::NewGuid().tostring())$($outputExtension)").replace("\", "\\")  ;
@@ -6905,6 +7181,7 @@ Function get-ConsoleText {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Clipboard,Text
     REVISIONS
+    * 9:42 AM 4/11/2025 fixed err Alias: tmf -> gconsole (test-mediafile conflict)
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 9:27 AM 2/2/2022 added -topipeline switch & post-split code (pipeline return returns text block, not lines, and os-agnostic split pads with spaces between lines unless explicitly supressed); fixed output: was just dumping console text to pipeline (and back into console buffer), piped it into set-clipboard ; minor tweaks OTB fmt, added CBH ; added else clause to echo non-support of VsCode.
     * 6/5/2019 posted AutomatedLab revision (non-functional, doesn't copy to cb)
@@ -6928,12 +7205,11 @@ Function get-ConsoleText {
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    [Alias('tmf')]
+    [Alias('gconsole')]
     PARAM(
         [Parameter(HelpMessage="switch to return the text to the pipeline (rather than default 'copy to clipboard' behavior)[-toPipeline]")]
         [switch] $toPipeline
-    ) ;
-    
+    ) ;    
     # Check the host name and exit if the host is not the Windows PowerShell console host.
     if ($host.Name -eq 'Windows PowerShell ISE Host') {
         write-verbose "(`$host.Name:Windows PowerShell ISE Host detected)" ;
@@ -7302,7 +7578,6 @@ Function get-filesignature {
     .LINK
     [Investigating File Signatures Using PowerShell -- Microsoft Certified Professional Magazine Online](https://mcpmag.com/articles/2018/07/25/file-signatures-using-powershell.aspx)
     #>
-    #Requires -Version 3.0
     [CmdletBinding()]
     PARAM(
         [Parameter(Position=0,Mandatory=$true, ValueFromPipelineByPropertyName=$true,ValueFromPipeline=$True)]
@@ -7982,6 +8257,7 @@ function get-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 10:01 AM 4/11/2025 fixed Alias s-hi -> g-hi
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat); 
     * 2:13 PM 2/3/2023 init
@@ -8007,7 +8283,7 @@ function get-HostIndent {
     Simple retrieval demo    
     #>
     [CmdletBinding()]
-    [Alias('s-hi')]
+    [Alias('g-hi')]
     PARAM(
         [Parameter(
             HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
@@ -8323,6 +8599,7 @@ function get-LoremName {
     AddedTwitter:	@tostka / http://twitter.com/tostka
     Inspired to create by: https://twitter.com/MichaelBender/status/1101921078350413825?s=20
     REVISIONS
+    * 10:02 AM 4/11/2025 rem'd empty alias line
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     * 2019-03-03 
@@ -8361,7 +8638,7 @@ function get-LoremName {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding(PositionalBinding = $false)]
-    [Alias()]
+    #[Alias()]
     [OutputType([String])]
     Param
     (
@@ -9353,7 +9630,6 @@ function Get-SumItems {
     .LINK
     http://stackoverflow.com/questions/138144/whats-in-your-powershell-profile-ps1file
     #>
-    ##requires -version 2
     BEGIN { $x = 0 }
     PROCESS { $x += $_ }
     END { $x }
@@ -10496,7 +10772,6 @@ multiple values, use the array syntax. For example, "-parameter value1,value2,va
     .LINK
     https://github.com/tostka/verb-io
     #>
-    ##Requires -Version 5
     #Requires -Modules SmbShare
     PARAM(
         [Parameter(HelpMessage="Regex of RemotePath 'hosts' to be re-mounted in session[-rgxRemoteHosts '(Host1|host2)']")]
@@ -10968,6 +11243,107 @@ function new-Shortcut {
 #*------^ new-Shortcut.ps1 ^------
 
 
+#*------v New-TemporaryFileTyped.ps1 v------
+function New-TemporaryFileTyped{
+    <#
+    .SYNOPSIS
+    New-TemporaryFileTyped.ps1 - Simple wrapper for New-TemporaryFile(), that converts the ouput .tmp into the specified file extension , and returns the updated System.IO.FileInfo object for the renamed file to the pipeline.
+    .NOTES
+    Version     : 0.0.1
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2025-04-01
+    FileName    : New-TemporaryFileTyped.ps1
+	License     : MIT License
+	Copyright   : (c) 2025 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,CommaSeparatedValues,CSV,filesystem
+    AddedCredit : 
+    AddedWebsite:	
+    AddedTwitter:	URL
+    REVISIONS
+    * 3:58 PM 4/1/2025 init
+    .DESCRIPTION
+    New-TemporaryFileTyped.ps1 - Simple wrapper for New-TemporaryFile(), that converts the ouput .tmp into the specified file extension , and returns the updated System.IO.FileInfo object for the renamed file to the pipeline.
+    
+    Supported Aliases, that drive specific variant Extensions: 
+    New-TemporaryFileCsv,
+    New-TemporaryFileXML,
+    New-TemporaryFileJSON,
+    New-TemporaryFileMD
+    
+    .PARAMETER Extension
+    Extension to be written on new file (defaults to CSV)
+    .INPUTS
+    None, does not support pipeline input.
+    .OUTPUTS
+    System.IO.FileInfo 
+    .EXAMPLE
+    PS> $ofile = New-TemporaryFileTyped -Extension 'rando' ; 
+    PS> write-host "Exporting results to temp file:$($ofile.fullname)..." ; 
+    PS> Get-CryptoRandom 10001 | out-file -path $ofile.fullname ; 
+	Demo create a temp file with the custom Extension 'rando', 
+	.EXAMPLE
+    PS> $ofile = New-TemporaryFileCsv ; 
+    PS> write-host "Exporting results to temp file:$($ofile.fullname)..." ; 
+    PS> $data | export-csv -path $ofile.fullname ; 
+	Demo create a temp .csv, 
+	.EXAMPLE
+    PS> $ofile = New-TemporaryFileXML  ; 
+    PS> write-host "Exporting results to temp file:$($ofile.fullname)..." ; 
+    PS> $data | export-csv -path $ofile.fullname ; 
+	Demo create a temp .xml, 
+	.EXAMPLE
+    PS> $ofile = New-TemporaryFileJSON  ; 
+    PS> write-host "Exporting results to temp file:$($ofile.fullname)..." ; 
+    PS> Get-Date | Select-Object -Property * | ConvertTo-Json | ConvertFrom-Json | out-file -path $ofile.fullname ; 
+	Demo create a temp .json, 
+		.EXAMPLE
+    PS> $ofile = New-TemporaryFileMD  ; 
+    PS> write-host "Exporting results to temp file:$($ofile.fullname)..." ; 
+    PS> $markdowncontent | out-file -path $ofile.fullname ; 
+	Demo create a temp .md, 
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    [Alias('New-TemporaryFileCsv','New-TemporaryFileXML','New-TemporaryFileJSON','New-TemporaryFileMD')]
+    Param(
+		[Parameter(Mandatory=$False,HelpMessage="Optional Extension to be written on new file (ovrides default, 'CSV') [-Extension 'rando']")]
+			[AllowEmptyString()][AllowNull()]
+			[string]$Extension
+    ) ; 
+    BEGIN {
+		# autopopulate -Extension, around Alias use.
+		If ($MyInvocation.Line -match 'New-TemporaryFileCsv') {
+			write-verbose "Alias:New-TemporaryFileCsv was used, using -extension .csv" ;
+			$Extension = 'csv' ; 
+		} ElseIf ($MyInvocation.Line -match 'New-TemporaryFileXML') {
+			write-verbose "Alias:New-TemporaryFileXML was used, using -extension .xml" ;
+			$Extension = 'xml' ; 
+		} ElseIf ($MyInvocation.Line -match 'New-TemporaryFileJSON') {
+			write-verbose "Alias:New-TemporaryFileXML was used, using -extension .json" ;
+			$Extension = 'json' ; 
+		} ElseIf ($MyInvocation.Line -match 'New-TemporaryFileMD') {
+			write-verbose "Alias:New-TemporaryFileMD was used, using -extension .md" ;
+			$Extension = 'md' ; 
+		} ; 
+		if(-not $Extension){
+			$smsg = "blank -Extension!`nplease use a documented alias, or specify a specific Extension" ; 
+			throw $smsg ;
+			break ; 
+		} ; 
+    } ;  # BEG-E
+    PROCESS {
+        $newfile = New-TemporaryFile | foreach-object {rename-item -path $_.fullname -NewName ($_.name -replace '\.tmp',".$($Extension)") -verbose -PassThru } ;
+        $newfile | write-output ;
+    } ;  # PROC-E
+}
+
+#*------^ New-TemporaryFileTyped.ps1 ^------
+
+
 #*------v out-Clipboard.ps1 v------
 Function out-Clipboard {
     <#
@@ -11334,6 +11710,7 @@ function pop-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 10:03 AM 4/11/2025 removed duped CmdletBinding & Alias lines
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat). 
     * 2:01 PM 2/1/2023 add: -PID param
@@ -11383,8 +11760,6 @@ function pop-HostIndent {
     PS>  pop-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
     Demo typical usage.
     #>
-    [CmdletBinding()]
-    [Alias('pop-hi')]
     [CmdletBinding()]
     [Alias('pop-hi')]
     PARAM(
@@ -13629,6 +14004,252 @@ Function Remove-InvalidFileNameChars {
 #*------^ Remove-InvalidFileNameChars.ps1 ^------
 
 
+#*------v Remove-InvalidFileNameCharsTDO.ps1 v------
+function Remove-InvalidFileNameCharsTDO{
+    <#
+    .SYNOPSIS
+    Remove-InvalidFileNameCharsTDO.ps1 - Removes characters from a string that are not valid in Windows file names.
+    .NOTES
+    Version     : 1.1.2
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2025-03-01
+    FileName    : Remove-InvalidFileNameCharsTDO.ps1
+    License     : http://creativecommons.org/licenses/by-sa/4.0/
+    Copyright   : 2016 Chris Carter
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,RegularExpression,String,filesystem
+    AddedCredit : Chris Carter
+    AddedWebsite:	https://gallery.technet.microsoft.com/Remove-Invalid-Characters-39fa17b1
+    AddedTwitter:	URL
+    REVISIONS
+    * 7:15 PM 3/1/2025 spliced in missing -ReplaceBrackets & -dashReplaceChars handling pieces in the unpathed else block (wasn't doing those removals as intended); 
+        added -ReplaceBrackets (sub square brackets with parenthesis), and -DashReplaceChars (characters to be replaced with chars specified by the new -DashReplacement character or string); 
+        added additional exmpl with pipeline support
+    * 10:56 PM 2/13/2025 converted to function, expanded CBH
+    * August 8, 2016 v1.5.1  CC posted latest copy
+    .DESCRIPTION
+    Remove-InvalidFileNameCharsTDO accepts a string and removes characters that are invalid in Windows file names. 
+
+    This is an extension of Chris Carter's original simpler function, extended with support for replacement of brackets (to parenthesis) and configurable additional characters. 
+
+    The -Name parameter can also clean file paths. If the string begins with "\\" or a drive like "C:\", it will then treat the string as a file path and clean the strings between "\". This has the side effect of removing the ability to actually remove the "\" character from strings since it will then be considered a divider.
+    
+    Use of -RemoveSpace will crush out all space charcters (replace with nothing). 
+
+    Use of the additional -ReplaceBrackets switch will replace square brackets ([]) with matching paranthesis characters. 
+
+    You can optionally use the -DashReplacement parameter to specifify a string array of characters to be replaced with a character/string specified by the new -DashReplaceChars parameter. 
+
+    The resulting cleaned string or path will be returned to the pipeline. 
+ 
+    The Replacement parameter will replace the invalid characters with the specified string. To remove rather than replace the invalid characters, use 
+ 
+    The Name parameter can also clean file paths. If the string begins with "\\" or a drive like "C:\", it will then treat the string as a file path and clean the strings between "\". This has the side effect of removing the ability to actually remove the "\" character from strings since it will then be considered a divider.
+    
+    .PARAMETER Name
+    Array of filenames or fullnames to strip of invalid characters.[-name @('filename.ext','c:\pathto\file.ext')]
+    .PARAMETER Replacement
+    Specifies the string to use as a replacement for the invalid characters (leave blank to delete without replacement).[-Replacement ' ']
+    .PARAMETER RemoveSpace
+    Switch to include the space character (U+0020) in the removal process.[-Removespace]
+    .PARAMETER ReplaceBrackets
+    Switch to replace square brackets with paranthesis characters[-ReplaceBrackets]
+    .PARAMETER DashReplaceChars
+    Characters to be replaced with the -DashReplacement specification[-DashReplaceChars @('|','~')]
+    .PARAMETER DashReplacement
+    Character to use for all -DashReplacement characters (defaults to dash '-')[-DashReplacement 'x']
+    .INPUTS
+    System.String
+    Remove-InvalidFileNameCharsTDO accepts System.String objects in the pipeline.
+ 
+    Remove-InvalidFileNameCharsTDO accepts System.String objects in a property Name from objects in the pipeline.
+ 
+    .OUTPUTS
+    System.String 
+    .EXAMPLE
+    PS> Remove-InvalidFileNameCharsTDO -Name "<This /name \is* an :illegal ?filename>.txt"
+    Output: This name is an illegal filename.txt
+ 
+    This command will strip the invalid characters from the string and output a clean string.
+    .EXAMPLE
+    PS> Remove-InvalidFileNameCharsTDO -Name "<This /name \is* an :illegal ?filename>.txt" -RemoveSpace
+    Output: Thisnameisanillegalfilename.txt
+ 
+    This command will strip the invalid characters from the string and output a clean string, removing the space character (U+0020) as well.
+    .EXAMPLE
+    PS> Remove-InvalidFileNameCharsTDO -Name '\\Path/:|?*<\With:*?>\:Illegal /Characters>?*.txt"'
+    Output: \\Path\With\Illegal Characters.txt
+ 
+    This command will strip the invalid characters from the path and output a valid path. Note: it would not be able to remove the "\" character.
+    .EXAMPLE
+    PS> Remove-InvalidFileNameCharsTDO -Name '\\Path/:|?*<\With:*?>\:Illegal /Characters>?*.txt"' -RemoveSpace
+    Output: \\Path\With\IllegalCharacters.txt
+ 
+    This command will strip the invalid characters from the path and output a valid path, also removing the space character (U+0020) as well. Note: it would not be able to remove the "\" character.
+    .EXAMPLE
+    PS> Remove-InvalidFileNameCharsTDO -Name "<This /name \is* an :illegal ?filename>.txt" -Replacement +
+    Output: +This +name +is+ an +illegal +filename+.txt
+ 
+    This command will strip the invalid characters from the string, replacing them with a "+", and outputting the result string.
+    .EXAMPLE
+    PS> Remove-InvalidFileNameCharsTDO -Name "<This /name \is* an :illegal ?filename>.txt" -Replacemet + -RemoveOnly "*", 58, 0x3f
+    Output: +This +name +is an illegal filename+.txt
+ 
+    This command will strip the invalid characters from the string, replacing them with a "+", except the "*", the charcter with a decimal value of 58 (:), and the character with a hexidecimal value of 0x3f (?). These will simply be removed, and the resulting string output.
+    .EXAMPLE
+    PS> $results = Remove-InvalidFileNameCharsTDO  -Name "C:\vidtmp\convert\Westworld\001 - Westworld S4 Official Soundtrack ｜ Main Title Theme - Ramin Djawadi ｜ WaterTower(UL20220815-H9qE9D0TjJo).mp3" -Verbose -ReplaceBrackets ;
+    PS> $results ; 
+
+        C:\vidtmp\convert\Westworld\001 - Westworld S4 Official Soundtrack - Main Title Theme - Ramin Djawadi - WaterTower(UL20220815-H9qE9D0TjJo).mp3
+
+    Demo use of -replacebrackets & uses a -Name string with a targeted 
+    .EXAMPLE
+    PS> $results = "\\jun|/k{$[;:]left" | Remove-InvalidFileNameCharsTDO -Verbose -ReplaceBrackets
+    PS> $results ; 
+
+        junk{$(;)left
+
+    .Link
+    System.RegEx
+    .Link
+    about_Join
+    .Link
+    about_Operators
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    #[CmdletBinding(HelpURI='https://gallery.technet.microsoft.com/scriptcenter/Remove-Invalid-Characters-39fa17b1')]
+    # defer to updated local CBH
+    [CmdletBinding()]
+    [Alias('Remove-InvalidFileNameChars')]
+    Param(
+        [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,
+            HelpMessage="Array of filenames or fullnames to strip of invalid characters.[-name @('filename.ext','c:\pathto\file.ext')]")]
+            [String[]]$Name,
+        [Parameter(Position=1,HelpMessage="Specifies the string to use as a replacement for the invalid characters (leave blank to delete without replacement).[-Replacement ' ']")]
+            [String]$Replacement='',
+        [Parameter(HelpMessage="Switch to include the space character (U+0020) in the removal process.[-Removespace]")]
+            [switch]$RemoveSpace,
+        [Parameter(HelpMessage="Switch to replace square brackets with paranthesis characters[-ReplaceBrackets]")]
+            [switch]$ReplaceBrackets,
+        [Parameter(HelpMessage="Characters to be replaced with the -DashReplacement specification (default includes a pipe-lookalike that doesn't replace properly as part of a regex)[-DashReplaceChars @('|','~')]")]
+            [string[]]$DashReplaceChars = @("｜"),
+        [Parameter(HelpMessage="Character to use for all -DashReplacement characters (defaults to dash '-')[-DashReplacement 'x']")]
+            [string]$DashReplacement='-'
+    ) ; 
+    BEGIN {
+        # dashReplaceChars addresses issues getting pipe-lookalikes purged, that don't come out of the OS list; or even properly match or replace as part of a regex
+
+        #Get an array of invalid characters from the OS
+        $arrInvalidChars = [System.IO.Path]::GetInvalidFileNameChars()
+
+        
+        #Cast into a string, adding the space character
+        $(@($arrInvalidChars);@(' '))  | 
+            foreach -begin {[string]$rgxChars = $null } -process {$rgxChars+=$_} ; 
+        [regex]$rgxInvalidCharsWithSpace = '[' + [regex]::escape($rgxChars) + ']' ;
+        write-verbose "`$rgxInvalidCharsWithSpace: $($rgxInvalidCharsWithSpace.tostring())" ; 
+
+        # cast to string wo space char
+        $arrInvalidChars | 
+            foreach -begin {[string]$rgxChars = $null } -process {$rgxChars+=$_} ; 
+        [regex]$rgxinvalidCharsNoSpace = '[' + [regex]::escape($rgxChars) + ']' ;
+        write-verbose "`$rgxinvalidCharsNoSpace: $($rgxinvalidCharsNoSpace.tostring())" ; 
+
+        # build the $dashReplaceChars into a rgx as well
+        $dashReplaceChars | 
+            foreach -begin {[string]$rgxChars = $null } -process {$rgxChars+=$_} ; 
+        [regex]$rgxdashReplaceChars = '[' + [regex]::escape($rgxChars) + ']' ;
+        write-verbose "`$rgxdashReplaceChars: $($rgxdashReplaceChars.tostring())" ; 
+
+        #Check that the -Replacement specified does not have invalid characters itself
+        if ($RemoveSpace) {
+            if ($Replacement -match $rgxInvalidCharsWithSpace) {
+                Write-Error "The Replacement string also contains invalid filename characters."; break ; 
+            }
+        } else {
+            if ($Replacement -match $rgxInvalidCharsNoSpace) {
+                Write-Error "The Replacement string also contains invalid filename characters."; break ; 
+            }
+        }
+
+        #*======v FUNCTIONS v======
+        #*------v Function Remove-Chars v------
+        Function Remove-Chars {
+            PARAM(
+                [Parameter(Mandatory=$true,Position=0,HelpMessage="String to be processed")]
+                    [string]$String,
+                [Parameter(Position=0,HelpMessage="Specifies the string to use as a Replacement for the invalid characters.")]
+                    [string]$Replacement,
+                [Parameter(HelpMessage="The RemoveSpace parameter will include the space character (U+0020) in the removal process.")]
+                    [switch]$RemoveSpace
+            )
+            #Replace the invalid characters with a blank string (removal) or the $Replacement value
+            #Perform replacement based on whether spaces are desired or not
+            if ($RemoveSpace) {
+                [RegEx]::Replace($String, $rgxInvalidCharsWithSpace, $Replacement) | write-output ;
+            } else {
+                [RegEx]::Replace($String, $rgxInvalidCharsNoSpace, $Replacement) | write-output ;
+            }
+        } 
+        #*------^ END Function Remove-Chars ^------      
+        #*======^ END FUNCTIONS  ^======
+
+
+    } ;  # BEG-E
+    PROCESS {
+        foreach ($n in $Name) {
+            $sBnr3="`n#*~~~~~~v PROCESSING : $($n) v~~~~~~" ; 
+            write-verbose $sBnr3; 
+            #Check if the string matches a valid path
+            if ($n -match '(?<start>^[a-zA-z]:\\|^\\\\)(?<path>(?:[^\\]+\\)+)(?<file>[^\\]+)$') {
+                #Split the path into separate directories
+                $path = $Matches.path -split '\\'
+
+                #This will remove any empty elements after the split, eg. double slashes "\\"
+                $path = $path | Where-Object {$_}
+                #Add the filename to the array
+                $path += $Matches.file
+
+                #Send each part of the path, except the start, to the removal function
+                $cleanPaths = foreach ($p in $path) {
+                    write-verbose "`$p: $($p)" ; 
+                    $buffer = Remove-Chars -String $p -Replacement $Replacement -RemoveSpace:$($RemoveSpace) ;
+                    if($ReplaceBrackets){
+                        $buffer = $buffer -replace "\[","(" -replace "\]",")" ; 
+                    }; 
+                    if($rgxdashReplaceChars){
+                        $buffer = $buffer -replace $rgxdashReplaceChars,$dashReplacement ; 
+                    }; 
+                    $buffer | write-output  ; 
+                }
+                #Remove any blank elements left after removal.
+                $cleanPaths = $cleanPaths | Where-Object {$_}
+                write-verbose "`$cleanPaths: $($cleanPaths)" ; 
+            
+                #Combine the path together again
+                $Matches.start + ($cleanPaths -join '\') | write-output ; 
+            } else {
+                #String is not a path, so send immediately to the removal function
+                $buffer = Remove-Chars -String $N -Replacement $Replacement -RemoveSpace:$($RemoveSpace) | write-output ; 
+                if($ReplaceBrackets){
+                    $buffer = $buffer -replace "\[","(" -replace "\]",")" ; 
+                }; 
+                if($rgxdashReplaceChars){
+                    $buffer = $buffer -replace $rgxdashReplaceChars,$dashReplacement ; 
+                }; 
+                $buffer | write-output ; 
+            } ; 
+            write-verbose $sBnr3.replace('~v','~^').replace('v~','^~')
+        } ;  # loop-E
+    } ;  # PROC-E
+}
+
+#*------^ Remove-InvalidFileNameCharsTDO.ps1 ^------
+
+
 #*------v Remove-InvalidVariableNameChars.ps1 v------
 Function Remove-InvalidVariableNameChars {
 
@@ -14892,6 +15513,401 @@ function reset-HostIndent {
 #*------^ reset-HostIndent.ps1 ^------
 
 
+#*------v resolve-EnvironmentTDO.ps1 v------
+function resolve-EnvironmentTDO {
+    <#
+    .SYNOPSIS
+    resolve-EnvironmentTDO.ps1 - Resolves local environment into usable Script or Function-descriptive values (for reuse in logging and i/o access)
+    .NOTES
+    Version     : 0.0.2
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2025-04-04
+    FileName    : resolve-EnvironmentTDO.ps1
+    License     : (non asserted)
+    Copyright   : (non asserted)
+    Github      : https://github.com/tostka/verb-ex2010
+    Tags        : Powershell,ExchangeServer,Version
+    AddedCredit : theSysadminChannel
+    AddedWebsite: https://thesysadminchannel.com/get-exchange-cumulative-update-version-and-build-numbers-using-powershell/
+    AddedTwitter: URL
+    REVISION
+    * 4:13 PM 4/4/2025 init
+    .DESCRIPTION
+    resolve-EnvironmentTDO.ps1 - Resolves local environment into usable Script or Function-descriptive values (for reuse in logging and i/o access)
+
+    Relies on parameter-fed proxy variable copies from source call, returns a PSCustomObject with an array of profile specifications on the parameters provided, for use steering logging, file exports and other pathed tasks. 
+
+    Example return from a call from a Script: 
+    ```powershell
+
+    write-verbose "Sample Call:" ; 
+    $Verbose = [boolean]($VerbosePreference -eq 'Continue') ; 
+    $rPSCmdlet = $PSCmdlet ; 
+    $rPSScriptRoot = $PSScriptRoot ; 
+    $rPSCommandPath = $PSCommandPath ; 
+    $rMyInvocation = $MyInvocation ; 
+    $rPSBoundParameters = $PSBoundParameters ; 
+    write-verbose "splatted proxy variables captured above"; 
+    $pltRvEnv=[ordered]@{
+        PSCmdletproxy = $rPSCmdlet ; 
+        PSScriptRootproxy = $rPSScriptRoot ; 
+        PSCommandPathproxy = $rPSCommandPath ; 
+        MyInvocationproxy = $rMyInvocation ;
+        PSBoundParametersproxy = $rPSBoundParameters
+        verbose = [boolean]($PSBoundParameters['Verbose'] -eq $true) ; 
+    } ;
+    write-verbose "(Purge no value keys from splat)" ; 
+    $mts = $pltRVEnv.GetEnumerator() |?{$_.value -eq $null} ; $mts |%{$pltRVEnv.remove($_.Name)} ; rv mts -ea 0 ; 
+    $smsg = "resolve-EnvironmentTDO w`n$(($pltRVEnv|out-string).trim())" ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    $rvEnv = resolve-EnvironmentTDO @pltRVEnv ; 
+
+    Returned object properties (when called from a script .ps1 file):
+        PSCmdletproxy          : System.Management.Automation.PSScriptCmdlet
+        PSScriptRootproxy      : D:\scripts
+        PSCommandPathproxy     : D:\scripts\tmp_func.ps1
+        MyInvocationproxy      : System.Management.Automation.InvocationInfo
+        PSBoundParametersproxy : {[Verbose, True]}
+        runSource              : ExternalScript
+        CmdletName             : tmp_func.ps1
+        PSParameters           : @{Verbose=True}
+        ParamsNonDefault       : 
+        isScript               : True
+        ScriptName             : D:\scripts\tmp_func.ps1
+        ScriptBaseName         : tmp_func.ps1
+        ScriptNameNoExt        : tmp_func
+        ScriptDir              : D:\scripts
+        isScriptUnpathed       : True
+        isFunc                 : False
+
+    Returned object properties (when called from an Advanced Function, ipmo'd from a .ps1 file):
+        Name                           Value                                                                                                                                                                                            
+        ----                           -----                                                                                                                                                                                            
+        PSCmdletproxy                  System.Management.Automation.PSScriptCmdlet                                                                                                                                                      
+        PSScriptRootproxy              D:\scripts                                                                                                                                                                                       
+        PSCommandPathproxy             D:\scripts\tmp_func.ps1                                                                                                                                                                          
+        MyInvocationproxy              System.Management.Automation.InvocationInfo                                                                                                                                                      
+        PSBoundParametersproxy         {[Verbose, True]}                                                                                                                                                                                
+        runSource                      Function                                                                                                                                                                                         
+        CmdletName                     functest                                                                                                                                                                                         
+        PSParameters                   @{Verbose=True}                                                                                                                                                                                  
+        ParamsNonDefault               {InformationAction, InformationVariable, PipelineVariable}                                                                                                                                       
+        isFunc                         True                                                                                                                                                                                             
+        FuncName                       functest                                                                                                                                                                                         
+        isFuncAdv                      True                                                                                                                                                                                             
+        FuncDir                        D:\scripts                                                                                                                                                                                       
+        isScript                       False                                                                                                                                                                                            
+        isScriptUnpathed               False   
+ 
+    Returned object properties (when called from a Basic Function, ipmo'd from a .ps1 file):
+        Name                           Value                                                                                                                                                                                            
+        ----                           -----                                                                                                                                                                                            
+        PSCmdletproxy                                                                                                                                                                                                                   
+        PSScriptRootproxy              D:\scripts                                                                                                                                                                                       
+        PSCommandPathproxy             D:\scripts\tmp_func.ps1                                                                                                                                                                          
+        MyInvocationproxy              System.Management.Automation.InvocationInfo                                                                                                                                                      
+        PSBoundParametersproxy         {}                                                                                                                                                                                               
+        runSource                      Function                                                                                                                                                                                         
+        CmdletName                     functest                                                                                                                                                                                         
+        PSParameters                                                                                                                                                                                                                    
+        ParamsNonDefault                                                                                                                                                                                                                
+        isFunc                         True                                                                                                                                                                                             
+        FuncName                       functest                                                                                                                                                                                         
+        isFuncAdv                      False                                                                                                                                                                                            
+        FuncDir                        D:\scripts                                                                                                                                                                                       
+        isScript                       False                                                                                                                                                                                            
+        isScriptUnpathed               False
+
+    ```
+
+
+    .PARAMETER PSCmdletproxy
+    Proxied Powershell Automatic Variable object that represents the cmdlet or advanced function that’s being run. (passed by external assignment to a variable, which is then passed to this function)
+    .PARAMETER PSScriptRootproxy
+    Proxied Powershell Automatic Variable that contains the full path to the script that invoked the current command. The value of this property is populated only when the caller is a script. (passed by external assignment to a variable, which is then passed to this function).
+    .PARAMETER PSCommandPathproxy
+    Proxied Powershell Automatic Variable that contains the full path and file name of the script that’s being run. This variable is valid in all scripts. (passed by external assignment to a variable, which is then passed to this function).
+    .PARAMETER MyInvocationproxy
+    Proxied Powershell Automatic Variable that contains information about the current command, such as the name, parameters, parameter values, and information about how the command was started, called, or invoked, such as the name of the script that called the current command. (passed by external assignment to a variable, which is then passed to this function).
+    .PARAMETER PSBoundParametersproxy
+    Proxied Powershell Automatic Variable that contains a dictionary of the parameters that are passed to a script or function and their current values. This variable has a value only in a scope where parameters are declared, such as a script or function. You can use it to display or change the current values of parameters or to pass parameter values to another script or function. (passed by external assignment to a variable, which is then passed to this function).
+    .INPUTS
+    None. Does not accepted piped input.(.NET types, can add description)
+    .OUTPUTS
+    PsCustomObject containing resolved enviornmnent information about the parameters passed in. 
+    .EXAMPLE
+    PS> write-verbose "Typically from the BEGIN{} block of an Advanced Function, or immediately after PARAM() block" ; 
+    PS> $Verbose = [boolean]($VerbosePreference -eq 'Continue') ;
+    PS> $rPSCmdlet = $PSCmdlet ;
+    PS> $rPSScriptRoot = $PSScriptRoot ;
+    PS> $rPSCommandPath = $PSCommandPath ;
+    PS> $rMyInvocation = $MyInvocation ;
+    PS> $rPSBoundParameters = $PSBoundParameters ;
+    PS> $pltRvEnv=[ordered]@{
+    PS>     PSCmdletproxy = $rPSCmdlet ;
+    PS>     PSScriptRootproxy = $rPSScriptRoot ;
+    PS>     PSCommandPathproxy = $rPSCommandPath ;
+    PS>     MyInvocationproxy = $rMyInvocation ;
+    PS>     PSBoundParametersproxy = $rPSBoundParameters
+    PS>     verbose = [boolean]($PSBoundParameters['Verbose'] -eq $true) ;
+    PS> } ;
+    PS> write-verbose "(Purge no value keys from splat)" ;
+    PS> $mts = $pltRVEnv.GetEnumerator() |?{$_.value -eq $null} ; $mts |%{$pltRVEnv.remove($_.Name)} ; rv mts -ea 0 ;
+    PS> $smsg = "resolve-EnvironmentTDO w`n$(($pltRVEnv|out-string).trim())" ;
+    PS> if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    PS> $rvEnv = resolve-EnvironmentTDO @pltRVEnv ;  
+    PS> write-host "Returned `$rvEnv:`n$(($rvEnv|out-string).trim())" ; 
+
+        15:54:17:resolve-EnvironmentTDO w
+        Name                           Value                                                                                                                                                                                            
+        ----                           -----                                                                                                                                                                                            
+        PSCmdletproxy                  System.Management.Automation.PSScriptCmdlet                                                                                                                                                      
+        PSScriptRootproxy              D:\scripts                                                                                                                                                                                       
+        PSCommandPathproxy             D:\scripts\tmp_func.ps1                                                                                                                                                                          
+        MyInvocationproxy              System.Management.Automation.InvocationInfo                                                                                                                                                      
+        PSBoundParametersproxy         {}   
+
+        Returned `$rvEnv:
+        Name                     Value                                                                                                                                                                                            
+        ----                     -----       
+        PSCmdletproxy          : System.Management.Automation.PSScriptCmdlet
+        PSScriptRootproxy      : D:\scripts
+        PSCommandPathproxy     : D:\scripts\tmp_func.ps1
+        MyInvocationproxy      : System.Management.Automation.InvocationInfo
+        PSBoundParametersproxy : {}
+        runSource              : Function
+        CmdletName             : functest
+        PSParameters           : 
+        ParamsNonDefault       : {InformationAction, InformationVariable, PipelineVariable}
+        isFunc                 : True
+        FuncName               : functest
+        isFuncAdv              : True
+        FuncDir                : D:\scripts
+        isScript               : False
+        isScriptUnpathed       : False           
+  
+    Demo call, collecting proxy copies of the local Automatic Variables, and passing them in as a splat to resolve-EnvironmentTDO(). (The proxied variables are returned along with up[dated environment profiling information). 
+    .LINK
+    https://github.com/tostka/verb-io
+    .LINK
+    https://thesysadminchannel.com/get-exchange-cumulative-update-version-and-build-numbers-using-powershell/
+    .LINK
+    https://docs.microsoft.com/en-us/exchange/new-features/build-numbers-and-release-dates?
+    #>
+    [CmdletBinding()]
+    [Alias('rvEnv','resolve-Environment')]
+    PARAM(
+        [Parameter(HelpMessage="Proxied Powershell Automatic Variable object that represents the cmdlet or advanced function that’s being run. (passed by external assignment to a variable, which is then passed to this function)")] 
+            $PSCmdletproxy,        
+        [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains the full path to the script that invoked the current command. The value of this property is populated only when the caller is a script. (passed by external assignment to a variable, which is then passed to this function).")] 
+            $PSScriptRootproxy,
+        [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains the full path and file name of the script that’s being run. This variable is valid in all scripts. (passed by external assignment to a variable, which is then passed to this function).")] 
+            $PSCommandPathproxy,
+        [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains information about the current command, such as the name, parameters, parameter values, and information about how the command was started, called, or invoked, such as the name of the script that called the current command. (passed by external assignment to a variable, which is then passed to this function).")]
+            $MyInvocationproxy,
+        [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains a dictionary of the parameters that are passed to a script or function and their current values. This variable has a value only in a scope where parameters are declared, such as a script or function. You can use it to display or change the current values of parameters or to pass parameter values to another script or function. (passed by external assignment to a variable, which is then passed to this function).")]
+            $PSBoundParametersproxy
+    ) ; 
+    BEGIN {
+        $Verbose = [boolean]($VerbosePreference -eq 'Continue') ; 
+        <#
+        $PSCmdletproxy = $PSCmdlet ; # an object that represents the cmdlet or advanced function that's being run. Available on functions w CmdletBinding (& $args will not be available). (Blank on non-CmdletBinding/Non-Adv funcs).
+        $PSScriptRootproxy = $PSScriptRoot ; # the full path of the executing script's parent directory., PS2: valid only in script modules (.psm1). PS3+:it's valid in all scripts. (Funcs: ParentDir of the file that hosts the func)
+        $PSCommandPathproxy = $PSCommandPath ; # the full path and filename of the script that's being run, or file hosting the funct. Valid in all scripts.
+        $MyInvocationproxy = $MyInvocation ; # populated only for scripts, function, and script blocks.
+        #>
+        # - $MyInvocation.MyCommand.Name returns name of a function, to identify the current command,  name of the current script (pop'd w func name, on Advfuncs)
+        # - Ps3+:$MyInvocation.PSScriptRoot : full path to the script that invoked the current command. The value of this property is populated only when the caller is a script (blank on funcs & Advfuncs)
+        # - Ps3+:$MyInvocation.PSCommandPath : full path and filename of the script that invoked the current command. The value of this property is populated only when the caller is a script (blank on funcs & Advfuncs)
+        #     ** note: above pair contain information about the _invoker or calling script_, not the current script
+        #$PSBoundParametersproxy = $PSBoundParameters ; 
+
+        if($host.version.major -ge 3){$hshOutput=[ordered]@{Dummy = $null ;} }
+        else {$hshOutput = New-Object Collections.Specialized.OrderedDictionary} ;
+        If($hshOutput.Contains("Dummy")){$hshOutput.remove("Dummy")} ;
+        $tv = 'PSCmdletproxy','PSScriptRootproxy','PSCommandPathproxy','MyInvocationproxy','PSBoundParametersproxy'
+        # stock the autovaris, if populated
+        $tv | % { 
+            $hshOutput.add($_, (get-variable -name $_ -ea 0).Value) 
+        } ;
+        write-verbose "`$hshOutputn$(($hshOutput|out-string).trim())" ; 
+        $fieldsnull = 'runSource','CmdletName','PSParameters','ParamsNonDefault' 
+        if([boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'Function' -AND $hshOutput.MyInvocationproxy.MyCommand.Name)){
+            #$tv+= @('isFunc','funcname','isFuncAdv') ; 
+            $fieldsnull = $(@($fieldsnull);@(@('isFunc','funcname','isFuncAdv'))) ; 
+            #$tv+= @('FuncDir') ; 
+            $fieldsnull = $(@($fieldsnull);@(@('FuncDir'))) ; 
+        } ; 
+        if([boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'ExternalScript' -OR $hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '\.ps1$')){
+            #$tv += @('isScript','ScriptName','ScriptBaseName','ScriptNameNoExt','ScriptDir','isScriptUnpathed') ; 
+            $fieldsnull = $(@($fieldsnull);@('isScript','ScriptName','ScriptBaseName','ScriptNameNoExt','ScriptDir','isScriptUnpathed')) ; 
+        } ; 
+        $tv = $(@($tv);@($fieldsnull)) ; 
+        # append resolved elements to the hash as $null 
+        $fieldsnull  | % { $hshOutput.add($_,$null) } ;
+        write-verbose "`$hshOutputn$(($hshOutput|out-string).trim())" ; 
+
+        if($hshOutput.isFunc = [boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'Function' -AND $hshOutput.MyInvocationproxy.MyCommand.Name)){
+            $hshOutput.FuncName = $hshOutput.MyInvocationproxy.MyCommand.Name ; write-verbose "`$hshOutput.FuncName: $($hshOutput.FuncName)" ; 
+        } ;
+        if($hshOutput.isFunc -AND (gv PSCmdletproxy -ea 0).value -eq $null){
+            $hshOutput.isFuncAdv = $false 
+        }elseif($hshOutput.isFunc){
+            $hshOutput.isFuncAdv = [boolean]($hshOutput.isFunc -AND $hshOutput.PSCmdletproxy.MyInvocation.InvocationName -AND ($hshOutput.FuncName -eq $hshOutput.PSCmdletproxy.MyInvocation.InvocationName)) ; 
+        } ; 
+        if($hshOutput.isFunc -AND $hshOutput.PSScriptRootproxy){
+            $hshOutput.FuncDir = $hshOutput.PSScriptRootproxy ; 
+        } ; 
+        $hshOutput.isScript = [boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'ExternalScript' -OR $hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '\.ps1$') ; 
+        $hshOutput.isScriptUnpathed = [boolean]($hshOutput.PSCmdletproxy.MyInvocation.InvocationName  -match '^\.') ; # dot-sourced invocation, no paths will be stored in `$MyInvocation objects 
+        [array]$score = @() ; 
+        if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName){ 
+            # blank on basic funcs, popd on AdvFuncs
+            if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '\.ps1$'){$score+= 'ExternalScript' 
+            }elseif($hshOutput.PSCmdletproxy.MyInvocation.InvocationName  -match '^\.'){
+                write-warning "dot-sourced invocation detected!:$($hshOutput.PSCmdletproxy.MyInvocation.InvocationName)`n(will be unable to leverage script path etc from `$MyInvocation objects)" ; 
+                write-verbose "(dot sourcing is implicit script exec)" ; 
+                $score+= 'ExternalScript' ; 
+            } else {$score+= 'Function' }; # blank under function exec, has func name under AdvFuncs
+        } ; 
+        if($hshOutput.PSCmdletproxy.CommandRuntime){
+            # blank on nonAdvfuncs, 
+            if($hshOutput.PSCmdletproxy.CommandRuntime.tostring() -match '\.ps1$'){$score+= 'ExternalScript' } else {$score+= 'Function' } ; # blank under function exec, func name on AdvFuncs
+        } ; 
+        $score+= $hshOutput.MyInvocationproxy.MyCommand.commandtype.tostring() ; # returns 'Function' for basic & Adv funcs
+        $grpSrc = $score | group-object -NoElement | sort count ;
+        if( ($grpSrc |  measure | select -expand count) -gt 1){
+            write-warning  "$score mixed results:$(($grpSrc| ft -a count,name | out-string).trim())" ;
+            if($grpSrc[-1].count -eq $grpSrc[-2].count){
+                write-warning "Deadlocked non-majority results!" ;
+            } else {
+                $hshOutput.runSource = $grpSrc | select -last 1 | select -expand name ;
+            } ;
+        } else {
+            write-verbose "consistent results" ;
+            $hshOutput.runSource = $grpSrc | select -last 1 | select -expand name ;
+        };
+        if($hshOutput.runSource -eq 'Function'){
+            if($hshOutput.isFuncAdv){
+                $smsg = "Calculated `$hshOutput.runSource:Advanced $($hshOutput.runSource)"
+            } else { 
+                $smsg = "Calculated `$hshOutput.runSource: Basic $($hshOutput.runSource)"
+            } ; 
+        }elseif($hshOutput.runSource -eq 'ExternalScript'){
+            $smsg =  "Calculated `$hshOutput.runSource:$($hshOutput.runSource)" ;
+        } ; 
+        write-verbose $smsg ;
+        'score','grpSrc' | get-variable | remove-variable ; # cleanup temp varis
+        $hshOutput.CmdletName = $hshOutput.PSCmdletproxy.MyInvocation.MyCommand.Name ; # function self-name (equiv to script's: $MyInvocation.MyCommand.Path), pop'd on AdvFunc
+        #region PsParams ; #*------v PSPARAMS v------
+        $hshOutput.PSParameters = New-Object -TypeName PSObject -Property $hshOutput.PSBoundParametersproxy ;
+        # DIFFERENCES $hshOutput.PSParameters vs $PSBoundParameters:
+        # - $PSBoundParameters: System.Management.Automation.PSBoundParametersDictionary (native obj)
+        # test/access: ($PSBoundParameters['Verbose'] -eq $true) ; $PSBoundParameters.ContainsKey('Referrer') #hash syntax
+        # CAN use as a @PSBoundParameters splat to push through (make sure populated, can fail if wrong type of wrapping code)
+        # - $hshOutput.PSParameters: System.Management.Automation.PSCustomObject (created obj)
+        # test/access: ($hshOutput.PSParameters.verbose -eq $true) ; $hshOutput.PSParameters.psobject.Properties.name -contains 'SenderAddress' ; # cobj syntax
+        # CANNOT use as a @splat to push through (it's a cobj)
+        write-verbose "`$hshOutput.PSBoundParametersproxy:`n$(($hshOutput.PSBoundParametersproxy|out-string).trim())" ;
+        # pre psv2, no $hshOutput.PSBoundParametersproxy autovari to check, so back them out:
+        if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName){
+            # has func name under AdvFuncs
+            if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName  -match '^\.'){
+                $smsg = "detected dot-sourced invocation: Skipping `$PSCmdlet.MyInvocation.InvocationName-tied cmds..." ; 
+                if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+                else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+                #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+            } else { 
+                write-verbose 'Collect all non-default Params (works back to psv2 w CmdletBinding)'
+                $hshOutput.ParamsNonDefault = (Get-Command $hshOutput.PSCmdletproxy.MyInvocation.InvocationName).parameters | 
+                    Select-Object -expand keys | 
+                    Where-Object{$_ -notmatch '(Verbose|Debug|ErrorAction|WarningAction|ErrorVariable|WarningVariable|OutVariable|OutBuffer)'} ;
+            } ; 
+        } else { 
+            $smsg = "(blank `$hshOutput.PSCmdletproxy.MyInvocation.InvocationName, skipping Parameters collection)" ; 
+            if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+            else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+        } ; 
+        if($hshOutput.isScript){
+            $hshOutput.ScriptDir = $scriptName = '' ;     
+            if($hshOutput.isScript){
+                $hshOutput.ScriptDir = $hshOutput.PSScriptRootproxy; 
+                $hshOutput.ScriptName = $hshOutput.PSCommandPathproxy ; 
+                if($hshOutput.ScriptDir -eq '' -AND $hshOutput.runSource -eq 'ExternalScript'){$hshOutput.ScriptDir = (Split-Path -Path $hshOutput.MyInvocationproxy.MyCommand.Source -Parent)} # Running from File
+            };
+
+            if($hshOutput.ScriptDir -eq '' -AND (Test-Path variable:psEditor)) {
+                write-verbose "Running from VSCode|VS" ; 
+                $hshOutput.ScriptDir = (Split-Path -Path $psEditor.GetEditorContext().CurrentFile.Path -Parent) ; 
+                    if($hshOutput.ScriptName -eq ''){$hshOutput.ScriptName = $psEditor.GetEditorContext().CurrentFile.Path }; 
+            } ;
+            if ($hshOutput.ScriptDir -eq '' -AND $host.version.major -lt 3 -AND $hshOutput.MyInvocationproxy.MyCommand.Path.length -gt 0){
+                $hshOutput.ScriptDir = $hshOutput.MyInvocationproxy.MyCommand.Path ; 
+                write-verbose "(backrev emulating `$hshOutput.PSScriptRootproxy, `$hshOutput.PSCommandPathproxy)"
+                $hshOutput.ScriptName = split-path $hshOutput.MyInvocationproxy.MyCommand.Path -leaf ;
+                $hshOutput.PSScriptRootproxy = Split-Path $hshOutput.ScriptName -Parent ;
+                $hshOutput.PSCommandPathproxy = $hshOutput.ScriptName ;
+            } ;
+            if ($hshOutput.ScriptDir -eq '' -AND $hshOutput.MyInvocationproxy.MyCommand.Path.length){
+                if($hshOutput.ScriptName -eq ''){$hshOutput.ScriptName = $hshOutput.MyInvocationproxy.MyCommand.Path} ;
+                $hshOutput.ScriptDir = $hshOutput.PSScriptRootproxy = Split-Path $hshOutput.MyInvocationproxy.MyCommand.Path -Parent ;
+            }
+            if ($hshOutput.ScriptDir -eq ''){throw "UNABLE TO POPULATE SCRIPT PATH, EVEN `$hshOutput.MyInvocationproxy IS BLANK!" } ;
+            if($hshOutput.ScriptName){
+                if(-not $hshOutput.ScriptDir ){$hshOutput.ScriptDir = Split-Path -Parent $hshOutput.ScriptName} ; 
+                $hshOutput.ScriptBaseName = split-path -leaf $hshOutput.ScriptName ;
+                $hshOutput.ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($hshOutput.ScriptName) ;
+            } ; 
+            # blank $cmdlet name comming through, patch it for Scripts:
+            if(-not $hshOutput.CmdletName -AND $hshOutput.ScriptBaseName){
+                $hshOutput.CmdletName = $hshOutput.ScriptBaseName
+            }
+            # last ditch patch the values in if you've got a $hshOutput.ScriptName
+            if($hshOutput.PSScriptRootproxy.Length -ne 0){}else{ 
+                if($hshOutput.ScriptName){$hshOutput.PSScriptRootproxy = Split-Path $hshOutput.ScriptName -Parent }
+                else{ throw "Unpopulated, `$hshOutput.PSScriptRootproxy, and no populated `$hshOutput.ScriptName from which to emulate the value!" } ; 
+            } ; 
+            if($hshOutput.PSCommandPathproxy.Length -ne 0){}else{ 
+                if($hshOutput.ScriptName){$hshOutput.PSCommandPathproxy = $hshOutput.ScriptName }
+                else{ throw "Unpopulated, `$hshOutput.PSCommandPathproxy, and no populated `$hshOutput.ScriptName from which to emulate the value!" } ; 
+            } ; 
+            if(-not ($hshOutput.ScriptDir -AND $hshOutput.ScriptBaseName -AND $hshOutput.ScriptNameNoExt  -AND $hshOutput.PSScriptRootproxy  -AND $hshOutput.PSCommandPathproxy )){ 
+                throw "Invalid Invocation. Blank `$hshOutput.ScriptDir/`$hshOutput.ScriptBaseName/`$hshOutput.ScriptBaseName" ; 
+                BREAK ; 
+            } ; 
+        } ; 
+        if($hshOutput.isFunc){
+            if($hshOutput.isFuncAdv){
+                # AdvFunc-specific cmds
+            }else {
+                # Basic Func-specific cmds
+            } ; 
+            if($hshOutput.PSCommandPathproxy -match '\.psm1$'){
+                write-host "MODULE-HOMED FUNCTION:Use `$hshOutput.CmdletName to reference the running function name for transcripts etc (under a .psm1 `$hshOutput.ScriptName will reflect the .psm1 file  fullname)"
+                if(-not $hshOutput.CmdletName){write-warning "MODULE-HOMED FUNCTION with BLANK `$CmdletNam:$($CmdletNam)" } ;
+            } # Running from .psm1 module
+            if(-not $hshOutput.CmdletName -AND $hshOutput.FuncName){
+                $hshOutput.CmdletName = $hshOutput.FuncName
+            } ; 
+        } ; 
+        $smsg = "`$hshOutput  w`n$(($hshOutput|out-string).trim())" ; 
+        #write-host $smsg ; 
+        write-verbose $smsg ; 
+    } ;  # BEG-E
+    PROCESS {};  # PROC-E
+    END {
+        if($hshOutput){
+            write-verbose "(return `$hshOutput to pipeline)" ; 
+            New-Object PSObject -Property $hshOutput | write-output 
+        } ; 
+    }
+}
+
+#*------^ resolve-EnvironmentTDO.ps1 ^------
+
+
 #*------v restore-FileTDO.ps1 v------
 function restore-FileTDO {
     <#
@@ -15603,7 +16619,6 @@ When the context includes a match, the MatchInfo object for each match includes 
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    ##requires -version 3
     #[Alias('convert-
     [CmdletBinding(DefaultParameterSetName='File')]
   param(
@@ -17301,6 +18316,7 @@ function start-sleepcountdown {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Time
     REVISION
+    * 4:34 PM 3/18/2025 fixed cbh helpmsg on -useMins; added inplace counter via -Rolling; added CBH expls for same.
     * 10:44 AM 10/15/2024 add -useMins to make it do a minutes countdown (still requires seconds input)
     * 1:19 PM 12/14/2023 init
     .DESCRIPTION
@@ -17310,6 +18326,10 @@ function start-sleepcountdown {
 
     .PARAMETER Seconds
     Specifies how long the resource sleeps in seconds. You can omit the parameter name ( Seconds ), or you can abbreviate it as s
+    .PARAMETER useMins
+    Specifies to perform a count down in minutes (still requires total -seconds input)
+    .PARAMETER Rolling
+    Specifies to do an in place countdown (no history count)
     .INPUTS
     Accepts pipeline input
     .OUTPUTS
@@ -17322,8 +18342,19 @@ function start-sleepcountdown {
 
     Wait 5 seconds with a countdown in seconds
     .EXAMPLE
-    PS> Start-SleepCountdown -Seconds 13020 -useMins ; 
+    PS> Start-SleepCountdown -Seconds (2*60) -useMins ;
+
+        Waiting 2 Minutes...
+        START[2.1.0]DONE
+
     Demo use of -useMins, to perform a minute-at-a-time coundown (still requires raw -Seconds input)
+    .EXAMPLE
+    PS> start-sleepcountdown -s 12 -rolling ;
+
+        Waiting 12 seconds...
+        START[=12=>]DONE
+
+    Demo rolling non-incrementing digits display (rewrites the count between [ ] every interval, replacing with arrow at finish)
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -17332,35 +18363,75 @@ function start-sleepcountdown {
         [Parameter(Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Specifies how long the resource sleeps in seconds. You can omit the parameter name ( Seconds ), or you can abbreviate it as s")]
             [Alias('s')]
             [System.Int32]$Seconds,
-        [Parameter(Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Specifies how long the resource sleeps in seconds. You can omit the parameter name ( Seconds ), or you can abbreviate it as s")]
-            [switch]$useMins
+        [Parameter(HelpMessage="Specifies to perform a count down in minutes (still requires total -seconds input)")]
+            [switch]$useMins,
+        [Parameter(HelpMessage = "Specifies to do an in place countdown (no history count)")]
+            [switch]$Rolling
     ) ;
-    
+
     PROCESS{
-        $smsg +="`nWaiting $($Seconds) seconds...`nSTART[" ; 
+        if($useMins){
+            $smsg += "`nWaiting $($Seconds/60) Minutes...`nSTART[" ;
+        } else {
+            $smsg +="`nWaiting $($Seconds) seconds...`nSTART[" ;
+        } ;
         write-host -foregroundcolor yellow -NoNewline $smsg ;
-        $a=1 ; $thisMin = 60 ;
-        Do {
-            <#Var â€“ Is $a a multiple of $b?
-            Using the % modulus (remainder of a division) operator. 
-            Tests if ($a % $b) returns zero ($b divides evenly into $a, with no remainder)
-            $a=100; $b=5 ; if(!($a % $b)){"$a is a multiple of $b "}else{"$a is not a multiple of $b "};
-            #>
-            $thisMin-- ; 
-            if($useMins){
-                if($thisMin -eq 0){
-                #if($Seconds % 60){ # mod isn't working right
-                    #write-host -NoNewline ".$($Seconds)" ; 
-                    write-host -NoNewline ".$([int]($Seconds/60))" ; 
-                    $thisMin = 60 ;
-                } ; 
-            }else {
-                write-host -NoNewline ".$($Seconds)" ; 
-            } ; 
-            start-sleep -Seconds 1 ; $Seconds--
-        } 
-        While ($Seconds -gt 0) ;
-        write-host -foregroundcolor yellow "]DONE" ;
+        $a = 1 ; $thisMin = 60 ; $ttlMins = [int]($Seconds / 60) ;
+        if($Rolling){
+            $CurStart = $host.UI.RawUI.CursorPosition ;
+            For ($i = $seconds; $i -ge 0 ; $i--) {
+                $thisMin-- ;
+                if ($useMins) {
+                    if ($i -eq ($seconds - 1)) {
+                        write-host -NoNewline "$([int]($Seconds/60))" ;
+                    }elseif ($thisMin -eq 0) {
+                        write-host -NoNewline "$([int]($Seconds/60))" ;
+                        $thisMin = 60 ;
+                    }
+                } else {
+                    write-host -NoNewline " " ;
+                    if (($seconds.tostring().length - $i.tostring().length) -gt 0) {
+                        for ($pad = 0; $pad -lt $seconds.tostring().length - $i.tostring().length; $pad++) {
+                            write-host -NoNewline "0" ;
+                        } ;
+                    } ;
+                    write-host -nonewline "$($i)s" ;
+                } ;
+                start-sleep -s 1 ;
+                [console]::setcursorposition($CurStart.x, $CurStart.y) ;
+            } ;
+            if ($useMins) {
+                write-host -foregroundcolor yellow "=$([int]($Seconds/60))=>]DONE" ;
+            } else {
+                write-host -foregroundcolor yellow "=$($seconds)=>]DONE" ;
+            } ;
+        } else {
+            $init = $seconds ;
+            Do {
+                <#Var â€“ Is $a a multiple of $b?
+                Using the % modulus (remainder of a division) operator.
+                Tests if ($a % $b) returns zero ($b divides evenly into $a, with no remainder)
+                $a=100; $b=5 ; if(!($a % $b)){"$a is a multiple of $b "}else{"$a is not a multiple of $b "};
+                #>
+                $thisMin-- ;
+                if($useMins){
+                    if ($init -eq $seconds) {
+                        write-host -NoNewline "$([int]($Seconds/60))" ;
+                    }elseif($thisMin -eq 0){
+                    #if(60 % $Seconds -eq 0){ # mod "works", but outputs spurious 0's for the trailing seconds past
+                        $ttlMins--
+                        #write-host -NoNewline ".$([int]($Seconds/60))" ;
+                        write-host -NoNewline ".$($ttlMins)" ;
+                        $thisMin = 60 ;
+                    } ;
+                }else {
+                    write-host -NoNewline ".$($Seconds)" ;
+                } ;
+                start-sleep -Seconds 1 ; $Seconds--
+            }
+            While ($Seconds -gt 0) ;
+            write-host -foregroundcolor yellow "]DONE" ;
+        } ;
     } ;
 }
 
@@ -18253,69 +19324,69 @@ function test-LineEndings {
 Function test-MediaFile {
     <#
     .SYNOPSIS
-    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
-    then compares key A/V metrics against (my arbitrary) thresholds for suitability, 
-    and finally outputs a summary report of the metrics. 
+    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, then compares key A/V metrics against (my arbitrary) thresholds for suitability,and finally outputs a summary report of the metrics. 
     .NOTES
-    Version     : 1.0.0
+    Version     : 0.0.
     Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
     CreatedDate : 2021-10-12
     FileName    : test-MediaFile.ps1
     License     : MIT License
-    Copyright   : (c) 2021 Todd Kadrie
+    Copyright   : (c) 2024 Todd Kadrie
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Media,Metadata,Video,Audio,Subtitles
+    AddedCredit : REFERENCE
+    AddedWebsite: URL
+    AddedTwitter: URL
     REVISIONS
+    * 8:10 PM 2/13/2025 retooled borked CBH, now properly outputs via get-help
     * 8:43 AM 3/9/2022 fixed consecutive $smsg's wo += to trigger string addition.
-    * 10:25 AM 2/21/2022 updated CBH, added an example sample output. Not sure if worked before, but CBH currently doesn't seem to get-hepl correctly. Needs debugging, but can't determine issue source.
-    * 8:08 PM 12/11/2021 added simpler pipeline example 
-    * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
-    * 8:15 PM 11/19/2021 added tmr alias
-    * 7:37 PM 11/12/2021 added example for doing a full dir of files ; flip $path param test-path to use -literalpath - too many square brackets in sources
-    * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
-    * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
-    * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
-    * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
+        * 10:25 AM 2/21/2022 updated CBH, added an example sample output. Not sure if worked before, but CBH currently doesn't seem to get-hepl correctly. Needs debugging, but can't determine issue source.
+        * 8:08 PM 12/11/2021 added simpler pipeline example 
+        * 11:12 AM 11/27/2021 fixed echo typo in the test block, added detailed echo on fail attrib/test details
+        * 8:15 PM 11/19/2021 added tmr alias
+        * 7:37 PM 11/12/2021 added example for doing a full dir of files ; flip $path param test-path to use -literalpath - too many square brackets in sources
+        * 6:05 PM 11/6/2021 swap $finalfile -> "$($entry)" ; fixed missing use of pltGIMR (wasn't doing xml export)
+        * 8:44 PM 11/2/2021 flip gci -path => -literalpath, avoid [] wildcard issues
+        * 7:47 PM 10/26/2021 added -ExportToFile defaulted to true
+        * 12:53 PM 10/20/2021 init vers - ported over to verb-io from my fix-htpcfiles.ps1
     .DESCRIPTION
-    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, 
-    then compares key A/V metrics against (my arbitrary) thresholds for suitability, 
-    and finally outputs a summary report of the metrics. 
+    test-MediaFile.ps1 - First pulls media descriptive metadata (from MediaInfo.dll via get-MediaInfoRAW()) out of a media file, then compares key A/V metrics against (my arbitrary) thresholds for suitability,and finally outputs a summary report of the metrics. 
 
     This is a wrapper function for my Get-MediaINfoRaw() cmdlet, which is part of my [Get-MediaInfo](https://github.com/tostka/Get-MediaInfo)
-    module, which is forked from Frank Skare/stax76's Get-MediaInfoSummary() function (part of his [get-MediaInfo module](https://github.com/stax76/Get-MediaInfo)).
-    which in turn leverages the [MediaInfo.dll](https://mediaarea.net/en/MediaInfo/Support/SDK/ReadFirst),
-    development component made available by the open source [MediaInfo](https://mediaarea.net/en/MediaInfo) project 
-    (which has a nifty free-standing .exe gui version as their core tool). 
-    
-    1) This wrapper function calls Get-MediaInfoRaw(), to retrieve desciptive media metadata on the file specified by the -Path param.
-    
-    2) It then and processes the returned media metadata, checking the following thresholds:
-    
-    - Has all of the following General stream properties populated:
-        CompleteNamem, OverallBitRate_String and OverallBitRate_kbps 
-        (last 2 are my Get-MediaInfoRaw() decimal-parsed variants of the xxx_String properties).
-    
-    - Has a 'mb-Per-Minute' ratio of _2_ or better (specified via the -Threshmbpm parameter).  
-        I calulate 'mb-Per-Minute' as: General stream 'FileSize_MB' / General stream 'Duration_Mins' 
-        (both are my numeric parses of the underlying xxx_String properties)
-
-        Goal of this metric is flagging 'bogus' files, that don't have 
-        enough "size to metadata minutes" to reflect a typical "legit" video file.    
+        module, which is forked from Frank Skare/stax76's Get-MediaInfoSummary() function (part of his [get-MediaInfo module](https://github.com/stax76/Get-MediaInfo)).
+        which in turn leverages the [MediaInfo.dll](https://mediaarea.net/en/MediaInfo/Support/SDK/ReadFirst),
+        development component made available by the open source [MediaInfo](https://mediaarea.net/en/MediaInfo) project 
+        (which has a nifty free-standing .exe gui version as their core tool). 
         
-    - Has a minimum vertical resolution of at least 480 pixels (specified via the -ThresholdMinVerticalRes parameter), 
-        as reported in the Video stream Height_String property.
-  
-    - Has all of the following Video stream properties populated:
-        Format_String, CodecID, Duration_Mins, BitRate_kbps, FrameRate_fps 
-        (the trailing three are numeric parses of the matching _String properties). 
-    
-    - Has all of the following Audio stream properties populated:
-      Format_String, CodecID, SamplingRate_bit
-      (last is my numeric parse of SamplingRate_String).
+        1) This wrapper function calls Get-MediaInfoRaw(), to retrieve desciptive media metadata on the file specified by the -Path param.
+        
+        2) It then and processes the returned media metadata, checking the following thresholds:
+        
+        - Has all of the following General stream properties populated:
+            CompleteNamem, OverallBitRate_String and OverallBitRate_kbps 
+            (last 2 are my Get-MediaInfoRaw() decimal-parsed variants of the xxx_String properties).
+        
+        - Has a 'mb-Per-Minute' ratio of _2_ or better (specified via the -Threshmbpm parameter).  
+            I calulate 'mb-Per-Minute' as: General stream 'FileSize_MB' / General stream 'Duration_Mins' 
+            (both are my numeric parses of the underlying xxx_String properties)
 
-    3) It then outputs a summary report to console.
+            Goal of this metric is flagging 'bogus' files, that don't have 
+            enough "size to metadata minutes" to reflect a typical "legit" video file.    
+            
+        - Has a minimum vertical resolution of at least 480 pixels (specified via the -ThresholdMinVerticalRes parameter), 
+            as reported in the Video stream Height_String property.
+      
+        - Has all of the following Video stream properties populated:
+            Format_String, CodecID, Duration_Mins, BitRate_kbps, FrameRate_fps 
+            (the trailing three are numeric parses of the matching _String properties). 
+        
+        - Has all of the following Audio stream properties populated:
+          Format_String, CodecID, SamplingRate_bit
+          (last is my numeric parse of SamplingRate_String).
+
+        3) It then outputs a summary report to console.
 
     .PARAMETER Path
     Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]
@@ -18323,13 +19394,16 @@ Function test-MediaFile {
     [float] Cutoff threshold for ratio of 'file size in mb'/'minutes duration' (defaults 2).[-ThresholdMbPerMin 1.5]
     .PARAMETER ThresholdMinVerticalRes
     [int] Cutoff threshold for minimum video lines of resolution (in pixels the underlying video stream 'Height_String').[-ThresholdMinVerticalRes 300]
-    .OUTPUT
+
+    .INPUTS
+    System.String.ARray Accepts piped media file path input
+    .OUTPUTS
     None. Outputs summary to console. 
     .EXAMPLE
-    PS> test-MediaFile -Path c:\pathto\video.mp4
-    Example summarizing a video file
-    .EXAMPLE
-    PS> if(test-mediafile "C:\users\USER\Documents\Reflections Video.mp4"){write-host "Valid, meets specs"}else{write-warning "INVALID, DOES not meets specs" }  ;
+    PS> if(test-mediafile "C:\users\USER\Documents\Reflections Video.mp4"){
+    PS>     write-host "Valid, meets specs"}else{write-warning "INVALID, DOES not meets specs" ;
+    PS> }  ;
+
         (writing metadata to matching -media.XML file)
         09:42:35:-----
         FileName
@@ -18342,6 +19416,7 @@ Function test-MediaFile {
         2 channel |        | AAC LC | 174 Kbps  | 48.0
         -----
         Valid, meets specs
+
     Example testing the validity of a video file, to output a descriptive output to console.
     .EXAMPLE
     PS> 'c:\pathto\video.mp4'| test-MediaFile ; 
@@ -18357,6 +19432,7 @@ Function test-MediaFile {
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [CmdletBinding()]
     [Alias('tmf')]
     PARAM(
             #[Parameter(Position=0,Mandatory=$True,ValueFromPipelineByPropertyName=$true,HelpMessage="Path to a media file. Can also be passed via pipeline.[-Path D:\path-to\video.ext]")]
@@ -20577,7 +21653,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,stop-driveburn,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LoremName,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,resolve-EnvironmentTDO,restore-FileTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,stop-driveburn,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,Test-PendingReboot,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -20585,8 +21661,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU9Rx8ZXl9WwcsWAB3dCUa+C76
-# uUSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUGqKjXozumAXRSYOSbtnK1Fdo
+# I/KgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -20601,9 +21677,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRbqCJ2
-# 71GuhYRakmuXvTf/F9smgDANBgkqhkiG9w0BAQEFAASBgHD8KVpbSrrOrFtzG7gM
-# vX7yD5WEXH+BLCptqlhAgvdpQv7IU2zfjC47qT/Y3BTgvhu6IvONUSSOxf+P5WmO
-# H0nb1GYBIBdbapuLzzVojySn0f+2B6Pj1YNxwUnY5jai5SW9guBp9Xby16lOclS4
-# MVkpqEt2SJbNx009YVp96Xan
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTEWuLK
+# 2QEdX4ssLsNcVUaW2bp7IzANBgkqhkiG9w0BAQEFAASBgGl1n/2A9i1S/44V2vvb
+# HOiihzLTTWfsvcHMZ442FFAlT5KgphvfuiA95j9LJX1fcODwXCz7UuKRr/II4AWx
+# 8pXR+KXuy3ZvH/fSCPue5uOHc+gzNZnMXMUEwT59M1PUbhnYW3MV27YR+AMg1N95
+# O7H9EvZ8pPdmIzSfheiOdsS2
 # SIG # End signature block

@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 16.0.0.0.0
+Version     : 17.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -13061,6 +13061,8 @@ function read-MultiLineInputDialogAdvanced {
     AddedWebsite: http://www.toddomation.com
     AddedTwitter: @tostka / http://twitter.com/tostka
     REVISIONS   :
+    * 9:15 AM 4/16/2025 add: alias:Read-InputBoxMultiLine; -NoTrim param, to suppress auto-stripping of indents (some items, like yaml & smtpheaders,
+         rely on indents to indicate nesting levels or wrapped lines); updated CBH demos to include FixSquareBrkts & NoTrim in splats.
     * 4:45 PM 5/10/2024 add CBH; add param valid; pushed params into explicit block; added param Validation; shifted to OTB syntax; moved the examples into CBH (refactored as more readable splats); consolidated param test code into simpler -match comparisons; 
     * 10/16/23 - iAvoe posted vers
     .DESCRIPTION
@@ -13102,6 +13104,8 @@ function read-MultiLineInputDialogAdvanced {
     ShowDebug[-ShowDebug `$true]
     .PARAMETER FixSquareBrkts
     Escapes square brackes (\``[, \``]) to permit cmdlets that won't accomodate path '[]' chars, to function[-FixSquareBrkts `$true]
+    .PARAMETER NoTrim
+    Suppresses automatic line-trim (removal of leading/trailing spaces)[-NoTrim `$true]
     .INPUTS
     None. Does not accepted piped input.
     .OUTPUTS
@@ -13124,6 +13128,8 @@ public class ProcessDPI {
     PS>     WindowTitle = "Prompt: (Textbox: String return)" ;
     PS>     InboxType = "txt" ;
     PS>     ReturnType = "str" ;
+    PS>     FixSquareBrkts = $false ;
+    PS>     NoTrim = $false ; 
     PS>     ShowDebug = $true ;
     PS> } ;
     PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
@@ -13150,7 +13156,8 @@ public class ProcessDPI {
     PS>     WindowTitle = "Prompt:" ;
     PS>     InboxType = "txt" ;
     PS>     ReturnType = "str" ;
-    PS>     FixSquareBrkts = $true ; 
+    PS>     FixSquareBrkts = $true ;
+    PS>     NoTrim = $false ; 
     PS>     ShowDebug = $true ;
     PS> } ;
     PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
@@ -13177,6 +13184,8 @@ public class ProcessDPI {
     PS>     WindowTitle = "Prompt: (Drag&drop mode)" ;
     PS>     InboxType = "dnd" ;
     PS>     ReturnType = "str" ;
+    PS>     FixSquareBrkts = $false ;
+    PS>     NoTrim = $false ; 
     PS>     ShowDebug = $true ;
     PS> } ;
     PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
@@ -13203,6 +13212,8 @@ public class ProcessDPI {
     PS>     WindowTitle = "Prompt: (Drag&drop mode)" ;
     PS>     InboxType = "dnd" ;
     PS>     ReturnType = "2" ;
+    PS>     FixSquareBrkts = $false ;
+    PS>     NoTrim = $false ; 
     PS>     ShowDebug = $true ;
     PS> } ;
     PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
@@ -13235,7 +13246,7 @@ public class ProcessDPI {
     https://github.com/iAvoe/Multi-Line-Input-Dialog-Advanced/blob/main/MultiLine-Input-Dialog-Advanced.ps1    
     https://github.com/tostka/verb-IO
     #>
-    # [Alias('gclr')]
+    [Alias('Read-InputBoxMultiLine')]
     [CmdletBinding()]
     Param(
         [Parameter(HelpMessage = "Title of the prompt window[-WindowTitle 'Title']")]
@@ -13253,7 +13264,9 @@ public class ProcessDPI {
         [Parameter(HelpMessage = "ShowDebug[-ShowDebug `$true]")]
             [switch]$ShowDebug=$false, 
         [Parameter(HelpMessage = "Escapes square brackes (\``[, \``]) to permit cmdlets that won't accomodate path '[]' chars, to function[-FixSquareBrkts `$true]")]
-            [switch]$FixSquareBrkts
+            [switch]$FixSquareBrkts,
+        [Parameter(HelpMessage = "Suppresses automatic line-trim (removal of leading/trailing spaces)[-NoTrim `$true]")]
+            [switch]$NoTrim
     )
     $Verbose = ($VerbosePreference -eq 'Continue') ; 
     #「@Daniel Schroeder」
@@ -13425,13 +13438,29 @@ public class ProcessDPI {
     }
 
     #Scrub Empty lines & DialogResult (OK) from returning
-    if     ($FixSquareBrkts -eq $true) {
-        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()).replace('[','``[').replace(']','``]').replace('``][','``]``[') | 
-            where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
-    }
-    elseif ($FixSquareBrkts -eq $false){
-        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | 
-            where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+    if($FixSquareBrkts -eq $true) {
+        # 9:05 AM 4/16/2025 this is the trim, that's de-indenting smtp headers vvv
+        # make trim overridable:
+        if($NoTrim){
+            [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n")).replace('[','``[').replace(']','``]').replace('``][','``]``[') | 
+                where {$_ -ne ""} 
+        }else{
+            [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()).replace('[','``[').replace(']','``]').replace('``][','``]``[') | 
+                where {$_ -ne ""} 
+                #Where filtering is very important here because otherwise each line would be followed by an empty line
+        } ; 
+    }elseif($FixSquareBrkts -eq $false){
+        # 9:05 AM 4/16/2025 this is the trim, that's de-indenting smtp headers vvv
+        # make trim overridable:
+        if($NoTrim){
+            [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n")) | 
+                where {$_ -ne ""} 
+                #Where filtering is very important here because otherwise each line would be followed by an empty line
+        }else{
+            [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | 
+                where {$_ -ne ""} 
+                #Where filtering is very important here because otherwise each line would be followed by an empty line
+        } ;
     }
 
     #Format result into multi-line string / array based on user definition
@@ -21661,8 +21690,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUGqKjXozumAXRSYOSbtnK1Fdo
-# I/KgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUhdP0/8/4NXiyt0bHdu+uZCOQ
+# 7vqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -21677,9 +21706,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTEWuLK
-# 2QEdX4ssLsNcVUaW2bp7IzANBgkqhkiG9w0BAQEFAASBgGl1n/2A9i1S/44V2vvb
-# HOiihzLTTWfsvcHMZ442FFAlT5KgphvfuiA95j9LJX1fcODwXCz7UuKRr/II4AWx
-# 8pXR+KXuy3ZvH/fSCPue5uOHc+gzNZnMXMUEwT59M1PUbhnYW3MV27YR+AMg1N95
-# O7H9EvZ8pPdmIzSfheiOdsS2
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSYVPws
+# OKlJZo5WdgHJT/sc+RSyTTANBgkqhkiG9w0BAQEFAASBgJfp4n8lBCjPhZWZN/Ho
+# WIpPBrK4Q0vPdw7UNFeHM2tqN8H0dvfZ2IZVyjpeeKQiZxOOeB5C+sEdpSO7arzd
+# gmjTK8Bf9ukZxjZVVXxH9JLlmfhoYIhKTjaWig4EcKOk9oWQb2fBzE+uAre3uuB0
+# Uc/+wPj3goMY/S9i8fKsrPdC
 # SIG # End signature block
