@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 15.3.8.0.0
+Version     : 17.1.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -307,8 +307,8 @@ Function Add-PSTitleBar {
     * 10:30 AM 7/26/2021 reworked, added whatif, showdebug, verbose echos, working on array-supp in the inputs
     * 3:11 PM 4/19/2021 added cmdletbinding/verbose supp & alias add-PSTitle
     * 4:37 PM 2/27/2020 updated CBH
-    # 8:44 AM 3/15.3.87 ren Update-PSTitleBar => Add-PSTitleBar, so that we can have a Remove-PSTitleBar, to subtract
-    # 8:42 AM 3/15.3.87 Add-PSTitleBar for addition, before adding
+    # 8:44 AM 3/15/2017 ren Update-PSTitleBar => Add-PSTitleBar, so that we can have a Remove-PSTitleBar, to subtract
+    # 8:42 AM 3/15/2017 Add-PSTitleBar for addition, before adding
     # 11/12/2014 - posted version
     .DESCRIPTION
     Add-PSTitleBar.ps1 - Append specified identifying Tag string to the end of the powershell console Titlebar
@@ -811,6 +811,7 @@ function Compare-ObjectsSideBySide{
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole
     REVISIONS   :
+    * 9:38 AM 4/11/2025 add AdvFunc pre; alias: crObjectsSideBySide
     * 11:04 AM 4/25/2022 added CBH example output, and another example using Exchange Get-MailboxDatabaseCopyStatus results, between a pair of DAG nodes.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:17 AM 9/15/2021 fixed typo in params, moved to full param block, and added lhs/rhs as aliases; expanded CBH
@@ -869,6 +870,8 @@ function Compare-ObjectsSideBySide{
     .LINK
     https://github.com/tostka/verb-IO
     #>
+    [CmdletBinding()]
+    [alias('crObjectsSideBySide')]    
     PARAM(
         [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj1]")]
         [Alias('lhs')]
@@ -1107,6 +1110,7 @@ function Compress-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 9:40 AM 4/11/2025 add alias: 'cmZipFile','cmzip'
     * 9:01 AM 5/23/20 24 added fully rounded out example
     * 12:36 PM 12/15/2022: add: BH example wrapping up a ticket's output files.
     * 1:54 PM 8/30/2022 looks functionally equiv compress-archive & .net calls, at least in the three use cases in the example: they produce substantially similar content in the resultant zip; expanded echos;
@@ -1251,7 +1255,7 @@ function Compress-ArchiveFile {
     https://github.com/tostka/verb-XXX
     #>
     [CmdletBinding()]
-    [Alias('Compress-ZipFile')]
+    [Alias('Compress-ZipFile','cmZipFile','cmzip')]
     Param(
         [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Specifies the path or paths to the files that you want to add to the archive zipped file. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. [-Path c:\path-to\file.ext,c:\pathto\file2.ext]")]
         [ValidateScript( { Test-Path $_ })]
@@ -2329,6 +2333,7 @@ Function convertFrom-MarkdownTable {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 9:33 AM 4/11/2025 add alias: cfmdt (reflects standard verbalias)
     * 12:33 PM 5/17/2024 fixed odd bug, was failing to trim trailing | on some rows, which caused convertfrom-csv to drop that column.
     * 9:04 AM 9/27/2023 cbh demo output tweaks (unindented, results in 1st line de-indent and rest indented.
     * 10:35 AM 2/21/2022 CBH example ps> adds 
@@ -2371,7 +2376,7 @@ Function convertFrom-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [alias('convertfrom-mdt','in-markdowntable','in-mdt')]    
+    [alias('convertfrom-mdt','in-markdowntable','in-mdt','cfmdt')]    
     Param (
         [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Markdown-formated table to be converted into an object [-markdowntext 'title text']")]
         $markdowntext
@@ -3643,6 +3648,7 @@ Function convertTo-MarkdownTable {
     AddedWebsite: https://gist.github.com/GuruAnt/4c837213d0f313715a93
     AddedTwitter: URL
     REVISION
+    * 9:33 AM 4/11/2025 add alias: ctmdt (reflects standard verbalias)
     * 8:31 AM 9/27/2023 Expl8 isn't rendering (blank PS>): unwrapped the pipe-wrap to see if it works better (though less readable).
     * 10:58 AM 7/13/2022 added -NoPadding to suppress column alignment; added CBH examples: one that demos prettying up handbuilt md tables comboing convertfrom-md | convertto-mdt, and one that demos -NoPadding use with -Tight (produce tightest md tbl output)
     * 10:35 AM 2/21/2022 CBH example ps> adds
@@ -3768,7 +3774,7 @@ Function convertTo-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [Alias('out-markdowntable','out-mdt','convertfrom-mdt')]
+    [Alias('out-markdowntable','out-mdt','convertfrom-mdt','ctmdt')]
     [OutputType([string])]
     Param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
@@ -6524,7 +6530,7 @@ function Get-AverageItems {
     Github      : 
     Tags        : Powershell,Math
     REVISIONS
-    12:29 PM 5/15.3.83 revised
+    12:29 PM 5/15/2013 revised
     17:10 1/3/2010 posted rev
     .DESCRIPTION
     Get-AverageItems.ps1 - Avg input items
@@ -7175,6 +7181,7 @@ Function get-ConsoleText {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole,Clipboard,Text
     REVISIONS
+    * 9:42 AM 4/11/2025 fixed err Alias: tmf -> gconsole (test-mediafile conflict)
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 9:27 AM 2/2/2022 added -topipeline switch & post-split code (pipeline return returns text block, not lines, and os-agnostic split pads with spaces between lines unless explicitly supressed); fixed output: was just dumping console text to pipeline (and back into console buffer), piped it into set-clipboard ; minor tweaks OTB fmt, added CBH ; added else clause to echo non-support of VsCode.
     * 6/5/2019 posted AutomatedLab revision (non-functional, doesn't copy to cb)
@@ -7198,12 +7205,11 @@ Function get-ConsoleText {
     .LINK
     https://github.com/tostka/verb-IO
     #>
-    [Alias('tmf')]
+    [Alias('gconsole')]
     PARAM(
         [Parameter(HelpMessage="switch to return the text to the pipeline (rather than default 'copy to clipboard' behavior)[-toPipeline]")]
         [switch] $toPipeline
-    ) ;
-    
+    ) ;    
     # Check the host name and exit if the host is not the Windows PowerShell console host.
     if ($host.Name -eq 'Windows PowerShell ISE Host') {
         write-verbose "(`$host.Name:Windows PowerShell ISE Host detected)" ;
@@ -8251,6 +8257,7 @@ function get-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 10:01 AM 4/11/2025 fixed Alias s-hi -> g-hi
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat); 
     * 2:13 PM 2/3/2023 init
@@ -8276,7 +8283,7 @@ function get-HostIndent {
     Simple retrieval demo    
     #>
     [CmdletBinding()]
-    [Alias('s-hi')]
+    [Alias('g-hi')]
     PARAM(
         [Parameter(
             HelpMessage="Switch to use the `$PID in the `$env:HostIndentSpaces name (Env:HostIndentSpaces`$PID)[-usePID]")]
@@ -8451,7 +8458,7 @@ Function Get-KnownFolderTDO {
         Links                    | {BFB9D5E0-C6A9-404C-B2B2-AE6DB6AF4968} | %USERPROFILE%\Links
         Local                    | {F1B32785-6FBA-4FCF-9D55-7B8E7F157091} | %LOCALAPPDATA% (%USERPROFILE%\AppData\Local)
         LocalLow                 | {A520A1A4-1780-4FF6-BD18-167343C5AF16} | %USERPROFILE%\AppData\LocalLow
-        Microsoft Office Outlook | {98EC0E18-2098-4D44-8644-66979315.3.8} | virtual folder
+        Microsoft Office Outlook | {98EC0E18-2098-4D44-8644-66979315A281} | virtual folder
         Music                    | {2112AB0A-C86A-4FFE-A368-0DE96E47012E} | %APPDATA%\Microsoft\Windows\Libraries\Music.library-ms
         Music                    | {4BD8D571-6D19-48D3-BE97-422220080E43} | %USERPROFILE%\Music
         Network                  | {D20BEEC4-5CA8-4905-AE3B-BF251EA09B53} | virtual folder
@@ -8592,6 +8599,7 @@ function get-LoremName {
     AddedTwitter:	@tostka / http://twitter.com/tostka
     Inspired to create by: https://twitter.com/MichaelBender/status/1101921078350413825?s=20
     REVISIONS
+    * 10:02 AM 4/11/2025 rem'd empty alias line
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 4:30 PM 12/15/2020 TSK: expanded CBH, 
     * 2019-03-03 
@@ -8630,7 +8638,7 @@ function get-LoremName {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding(PositionalBinding = $false)]
-    [Alias()]
+    #[Alias()]
     [OutputType([String])]
     Param
     (
@@ -9609,7 +9617,7 @@ function Get-SumItems {
     Tags        : Powershell,Math
     REVISIONS
     * 12:37 PM 10/25/2021 rem'd req version
-    12:29 PM 5/15.3.83 revised
+    12:29 PM 5/15/2013 revised
     17:10 1/3/2010 posted rev
     .DESCRIPTION
     Get-SumItems.ps1 - Sum input items
@@ -10095,7 +10103,7 @@ Function Invoke-Pause2() {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
-    # vers: 10:49 AM 1/15.3.85 variant that uses cmd; the ui.rawui combo ISN'T BREAKABLE IN A LOOP!
+    # vers: 10:49 AM 1/15/2015 variant that uses cmd; the ui.rawui combo ISN'T BREAKABLE IN A LOOP!
     # vers: 11:04 AM 11/6/2013
     .DESCRIPTION
     Invoke-Pause2.ps1 - Press any key to continue prompting function
@@ -11702,6 +11710,7 @@ function pop-HostIndent {
     AddedWebsite: https://community.spiceworks.com/people/lburlingame
     AddedTwitter: URL
     REVISIONS
+    * 10:03 AM 4/11/2025 removed duped CmdletBinding & Alias lines
     * 2:19 PM 2/15/2023 broadly: moved $PSBoundParameters into test (ensure pop'd before trying to assign it into a new object) ; 
         typo fix, removed [ordered] from hashes (psv2 compat). 
     * 2:01 PM 2/1/2023 add: -PID param
@@ -11751,8 +11760,6 @@ function pop-HostIndent {
     PS>  pop-HostIndent -ForegroundColor Gray "($Domain)" -verbose ;
     Demo typical usage.
     #>
-    [CmdletBinding()]
-    [Alias('pop-hi')]
     [CmdletBinding()]
     [Alias('pop-hi')]
     PARAM(
@@ -13054,6 +13061,8 @@ function read-MultiLineInputDialogAdvanced {
     AddedWebsite: http://www.toddomation.com
     AddedTwitter: @tostka / http://twitter.com/tostka
     REVISIONS   :
+    * 9:15 AM 4/16/2025 add: alias:Read-InputBoxMultiLine; -NoTrim param, to suppress auto-stripping of indents (some items, like yaml & smtpheaders,
+         rely on indents to indicate nesting levels or wrapped lines); updated CBH demos to include FixSquareBrkts & NoTrim in splats.
     * 4:45 PM 5/10/2024 add CBH; add param valid; pushed params into explicit block; added param Validation; shifted to OTB syntax; moved the examples into CBH (refactored as more readable splats); consolidated param test code into simpler -match comparisons; 
     * 10/16/23 - iAvoe posted vers
     .DESCRIPTION
@@ -13095,6 +13104,8 @@ function read-MultiLineInputDialogAdvanced {
     ShowDebug[-ShowDebug `$true]
     .PARAMETER FixSquareBrkts
     Escapes square brackes (\``[, \``]) to permit cmdlets that won't accomodate path '[]' chars, to function[-FixSquareBrkts `$true]
+    .PARAMETER NoTrim
+    Suppresses automatic line-trim (removal of leading/trailing spaces)[-NoTrim `$true]
     .INPUTS
     None. Does not accepted piped input.
     .OUTPUTS
@@ -13117,6 +13128,8 @@ public class ProcessDPI {
     PS>     WindowTitle = "Prompt: (Textbox: String return)" ;
     PS>     InboxType = "txt" ;
     PS>     ReturnType = "str" ;
+    PS>     FixSquareBrkts = $false ;
+    PS>     NoTrim = $false ; 
     PS>     ShowDebug = $true ;
     PS> } ;
     PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
@@ -13143,7 +13156,8 @@ public class ProcessDPI {
     PS>     WindowTitle = "Prompt:" ;
     PS>     InboxType = "txt" ;
     PS>     ReturnType = "str" ;
-    PS>     FixSquareBrkts = $true ; 
+    PS>     FixSquareBrkts = $true ;
+    PS>     NoTrim = $false ; 
     PS>     ShowDebug = $true ;
     PS> } ;
     PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
@@ -13170,6 +13184,8 @@ public class ProcessDPI {
     PS>     WindowTitle = "Prompt: (Drag&drop mode)" ;
     PS>     InboxType = "dnd" ;
     PS>     ReturnType = "str" ;
+    PS>     FixSquareBrkts = $false ;
+    PS>     NoTrim = $false ; 
     PS>     ShowDebug = $true ;
     PS> } ;
     PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
@@ -13196,6 +13212,8 @@ public class ProcessDPI {
     PS>     WindowTitle = "Prompt: (Drag&drop mode)" ;
     PS>     InboxType = "dnd" ;
     PS>     ReturnType = "2" ;
+    PS>     FixSquareBrkts = $false ;
+    PS>     NoTrim = $false ; 
     PS>     ShowDebug = $true ;
     PS> } ;
     PS> $smsg = "read-MultiLineInputDialogAdvanced w`n$(($pltRdMLIDA|out-string).trim())" ; 
@@ -13228,7 +13246,7 @@ public class ProcessDPI {
     https://github.com/iAvoe/Multi-Line-Input-Dialog-Advanced/blob/main/MultiLine-Input-Dialog-Advanced.ps1    
     https://github.com/tostka/verb-IO
     #>
-    # [Alias('gclr')]
+    [Alias('Read-InputBoxMultiLine')]
     [CmdletBinding()]
     Param(
         [Parameter(HelpMessage = "Title of the prompt window[-WindowTitle 'Title']")]
@@ -13246,7 +13264,9 @@ public class ProcessDPI {
         [Parameter(HelpMessage = "ShowDebug[-ShowDebug `$true]")]
             [switch]$ShowDebug=$false, 
         [Parameter(HelpMessage = "Escapes square brackes (\``[, \``]) to permit cmdlets that won't accomodate path '[]' chars, to function[-FixSquareBrkts `$true]")]
-            [switch]$FixSquareBrkts
+            [switch]$FixSquareBrkts,
+        [Parameter(HelpMessage = "Suppresses automatic line-trim (removal of leading/trailing spaces)[-NoTrim `$true]")]
+            [switch]$NoTrim
     )
     $Verbose = ($VerbosePreference -eq 'Continue') ; 
     #「@Daniel Schroeder」
@@ -13418,13 +13438,29 @@ public class ProcessDPI {
     }
 
     #Scrub Empty lines & DialogResult (OK) from returning
-    if     ($FixSquareBrkts -eq $true) {
-        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()).replace('[','``[').replace(']','``]').replace('``][','``]``[') | 
-            where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
-    }
-    elseif ($FixSquareBrkts -eq $false){
-        [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | 
-            where {$_ -ne ""} #Where filtering is very important here because otherwise each line would be followed by an empty line
+    if($FixSquareBrkts -eq $true) {
+        # 9:05 AM 4/16/2025 this is the trim, that's de-indenting smtp headers vvv
+        # make trim overridable:
+        if($NoTrim){
+            [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n")).replace('[','``[').replace(']','``]').replace('``][','``]``[') | 
+                where {$_ -ne ""} 
+        }else{
+            [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()).replace('[','``[').replace(']','``]').replace('``][','``]``[') | 
+                where {$_ -ne ""} 
+                #Where filtering is very important here because otherwise each line would be followed by an empty line
+        } ; 
+    }elseif($FixSquareBrkts -eq $false){
+        # 9:05 AM 4/16/2025 this is the trim, that's de-indenting smtp headers vvv
+        # make trim overridable:
+        if($NoTrim){
+            [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n")) | 
+                where {$_ -ne ""} 
+                #Where filtering is very important here because otherwise each line would be followed by an empty line
+        }else{
+            [array]$ScrbDiagRslt = ($form.Tag.Split("`r`n").Trim()) | 
+                where {$_ -ne ""} 
+                #Where filtering is very important here because otherwise each line would be followed by an empty line
+        } ;
     }
 
     #Format result into multi-line string / array based on user definition
@@ -14525,7 +14561,7 @@ Function Remove-PSTitleBar {
     REVISIONS
     * 8:15 AM 7/27/2021 sub'd in $rgxQ for duped rgx
     * 4:37 PM 2/27/2020 updated CBH
-    # 8:46 AM 3/15.3.87 Remove-PSTitleBar: initial version
+    # 8:46 AM 3/15/2017 Remove-PSTitleBar: initial version
     # 11/12/2014 - posted version
     .DESCRIPTION
     Remove-PSTitleBar.ps1 - Append specified string to the end of the powershell console Titlebar
@@ -15508,395 +15544,256 @@ function reset-HostIndent {
 
 #*------v resolve-EnvironmentTDO.ps1 v------
 function resolve-EnvironmentTDO {
-    <#
-    .SYNOPSIS
-    resolve-EnvironmentTDO.ps1 - Resolves local environment into usable Script or Function-descriptive values (for reuse in logging and i/o access)
-    .NOTES
-    Version     : 0.0.2
-    Author      : Todd Kadrie
-    Website     : http://www.toddomation.com
-    Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2025-04-04
-    FileName    : resolve-EnvironmentTDO.ps1
-    License     : (non asserted)
-    Copyright   : (non asserted)
-    Github      : https://github.com/tostka/verb-ex2010
-    Tags        : Powershell,ExchangeServer,Version
-    AddedCredit : theSysadminChannel
-    AddedWebsite: https://thesysadminchannel.com/get-exchange-cumulative-update-version-and-build-numbers-using-powershell/
-    AddedTwitter: URL
-    REVISION
-    * 4:13 PM 4/4/2025 init
-    .DESCRIPTION
-    resolve-EnvironmentTDO.ps1 - Resolves local environment into usable Script or Function-descriptive values (for reuse in logging and i/o access)
-
-    Relies on parameter-fed proxy variable copies from source call, returns a PSCustomObject with an array of profile specifications on the parameters provided, for use steering logging, file exports and other pathed tasks. 
-
-    Example return from a call from a Script: 
-    ```powershell
-
-    write-verbose "Sample Call:" ; 
-    $Verbose = [boolean]($VerbosePreference -eq 'Continue') ; 
-    $rPSCmdlet = $PSCmdlet ; 
-    $rPSScriptRoot = $PSScriptRoot ; 
-    $rPSCommandPath = $PSCommandPath ; 
-    $rMyInvocation = $MyInvocation ; 
-    $rPSBoundParameters = $PSBoundParameters ; 
-    write-verbose "splatted proxy variables captured above"; 
-    $pltRvEnv=[ordered]@{
-        PSCmdletproxy = $rPSCmdlet ; 
-        PSScriptRootproxy = $rPSScriptRoot ; 
-        PSCommandPathproxy = $rPSCommandPath ; 
-        MyInvocationproxy = $rMyInvocation ;
-        PSBoundParametersproxy = $rPSBoundParameters
-        verbose = [boolean]($PSBoundParameters['Verbose'] -eq $true) ; 
-    } ;
-    write-verbose "(Purge no value keys from splat)" ; 
-    $mts = $pltRVEnv.GetEnumerator() |?{$_.value -eq $null} ; $mts |%{$pltRVEnv.remove($_.Name)} ; rv mts -ea 0 ; 
-    $smsg = "resolve-EnvironmentTDO w`n$(($pltRVEnv|out-string).trim())" ; 
-    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-    $rvEnv = resolve-EnvironmentTDO @pltRVEnv ; 
-
-    Returned object properties (when called from a script .ps1 file):
-        PSCmdletproxy          : System.Management.Automation.PSScriptCmdlet
-        PSScriptRootproxy      : D:\scripts
-        PSCommandPathproxy     : D:\scripts\tmp_func.ps1
-        MyInvocationproxy      : System.Management.Automation.InvocationInfo
-        PSBoundParametersproxy : {[Verbose, True]}
-        runSource              : ExternalScript
-        CmdletName             : tmp_func.ps1
-        PSParameters           : @{Verbose=True}
-        ParamsNonDefault       : 
-        isScript               : True
-        ScriptName             : D:\scripts\tmp_func.ps1
-        ScriptBaseName         : tmp_func.ps1
-        ScriptNameNoExt        : tmp_func
-        ScriptDir              : D:\scripts
-        isScriptUnpathed       : True
-        isFunc                 : False
-
-    Returned object properties (when called from an Advanced Function, ipmo'd from a .ps1 file):
-        Name                           Value                                                                                                                                                                                            
-        ----                           -----                                                                                                                                                                                            
-        PSCmdletproxy                  System.Management.Automation.PSScriptCmdlet                                                                                                                                                      
-        PSScriptRootproxy              D:\scripts                                                                                                                                                                                       
-        PSCommandPathproxy             D:\scripts\tmp_func.ps1                                                                                                                                                                          
-        MyInvocationproxy              System.Management.Automation.InvocationInfo                                                                                                                                                      
-        PSBoundParametersproxy         {[Verbose, True]}                                                                                                                                                                                
-        runSource                      Function                                                                                                                                                                                         
-        CmdletName                     functest                                                                                                                                                                                         
-        PSParameters                   @{Verbose=True}                                                                                                                                                                                  
-        ParamsNonDefault               {InformationAction, InformationVariable, PipelineVariable}                                                                                                                                       
-        isFunc                         True                                                                                                                                                                                             
-        FuncName                       functest                                                                                                                                                                                         
-        isFuncAdv                      True                                                                                                                                                                                             
-        FuncDir                        D:\scripts                                                                                                                                                                                       
-        isScript                       False                                                                                                                                                                                            
-        isScriptUnpathed               False   
- 
-    Returned object properties (when called from a Basic Function, ipmo'd from a .ps1 file):
-        Name                           Value                                                                                                                                                                                            
-        ----                           -----                                                                                                                                                                                            
-        PSCmdletproxy                                                                                                                                                                                                                   
-        PSScriptRootproxy              D:\scripts                                                                                                                                                                                       
-        PSCommandPathproxy             D:\scripts\tmp_func.ps1                                                                                                                                                                          
-        MyInvocationproxy              System.Management.Automation.InvocationInfo                                                                                                                                                      
-        PSBoundParametersproxy         {}                                                                                                                                                                                               
-        runSource                      Function                                                                                                                                                                                         
-        CmdletName                     functest                                                                                                                                                                                         
-        PSParameters                                                                                                                                                                                                                    
-        ParamsNonDefault                                                                                                                                                                                                                
-        isFunc                         True                                                                                                                                                                                             
-        FuncName                       functest                                                                                                                                                                                         
-        isFuncAdv                      False                                                                                                                                                                                            
-        FuncDir                        D:\scripts                                                                                                                                                                                       
-        isScript                       False                                                                                                                                                                                            
-        isScriptUnpathed               False
-
-    ```
-
-
-    .PARAMETER PSCmdletproxy
-    Proxied Powershell Automatic Variable object that represents the cmdlet or advanced function that’s being run. (passed by external assignment to a variable, which is then passed to this function)
-    .PARAMETER PSScriptRootproxy
-    Proxied Powershell Automatic Variable that contains the full path to the script that invoked the current command. The value of this property is populated only when the caller is a script. (passed by external assignment to a variable, which is then passed to this function).
-    .PARAMETER PSCommandPathproxy
-    Proxied Powershell Automatic Variable that contains the full path and file name of the script that’s being run. This variable is valid in all scripts. (passed by external assignment to a variable, which is then passed to this function).
-    .PARAMETER MyInvocationproxy
-    Proxied Powershell Automatic Variable that contains information about the current command, such as the name, parameters, parameter values, and information about how the command was started, called, or invoked, such as the name of the script that called the current command. (passed by external assignment to a variable, which is then passed to this function).
-    .PARAMETER PSBoundParametersproxy
-    Proxied Powershell Automatic Variable that contains a dictionary of the parameters that are passed to a script or function and their current values. This variable has a value only in a scope where parameters are declared, such as a script or function. You can use it to display or change the current values of parameters or to pass parameter values to another script or function. (passed by external assignment to a variable, which is then passed to this function).
-    .INPUTS
-    None. Does not accepted piped input.(.NET types, can add description)
-    .OUTPUTS
-    PsCustomObject containing resolved enviornmnent information about the parameters passed in. 
-    .EXAMPLE
-    PS> write-verbose "Typically from the BEGIN{} block of an Advanced Function, or immediately after PARAM() block" ; 
-    PS> $Verbose = [boolean]($VerbosePreference -eq 'Continue') ;
-    PS> $rPSCmdlet = $PSCmdlet ;
-    PS> $rPSScriptRoot = $PSScriptRoot ;
-    PS> $rPSCommandPath = $PSCommandPath ;
-    PS> $rMyInvocation = $MyInvocation ;
-    PS> $rPSBoundParameters = $PSBoundParameters ;
-    PS> $pltRvEnv=[ordered]@{
-    PS>     PSCmdletproxy = $rPSCmdlet ;
-    PS>     PSScriptRootproxy = $rPSScriptRoot ;
-    PS>     PSCommandPathproxy = $rPSCommandPath ;
-    PS>     MyInvocationproxy = $rMyInvocation ;
-    PS>     PSBoundParametersproxy = $rPSBoundParameters
-    PS>     verbose = [boolean]($PSBoundParameters['Verbose'] -eq $true) ;
-    PS> } ;
-    PS> write-verbose "(Purge no value keys from splat)" ;
-    PS> $mts = $pltRVEnv.GetEnumerator() |?{$_.value -eq $null} ; $mts |%{$pltRVEnv.remove($_.Name)} ; rv mts -ea 0 ;
-    PS> $smsg = "resolve-EnvironmentTDO w`n$(($pltRVEnv|out-string).trim())" ;
-    PS> if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-    PS> $rvEnv = resolve-EnvironmentTDO @pltRVEnv ;  
-    PS> write-host "Returned `$rvEnv:`n$(($rvEnv|out-string).trim())" ; 
-
-        15:54:17:resolve-EnvironmentTDO w
-        Name                           Value                                                                                                                                                                                            
-        ----                           -----                                                                                                                                                                                            
-        PSCmdletproxy                  System.Management.Automation.PSScriptCmdlet                                                                                                                                                      
-        PSScriptRootproxy              D:\scripts                                                                                                                                                                                       
-        PSCommandPathproxy             D:\scripts\tmp_func.ps1                                                                                                                                                                          
-        MyInvocationproxy              System.Management.Automation.InvocationInfo                                                                                                                                                      
-        PSBoundParametersproxy         {}   
-
-        Returned `$rvEnv:
-        Name                     Value                                                                                                                                                                                            
-        ----                     -----       
-        PSCmdletproxy          : System.Management.Automation.PSScriptCmdlet
-        PSScriptRootproxy      : D:\scripts
-        PSCommandPathproxy     : D:\scripts\tmp_func.ps1
-        MyInvocationproxy      : System.Management.Automation.InvocationInfo
-        PSBoundParametersproxy : {}
-        runSource              : Function
-        CmdletName             : functest
-        PSParameters           : 
-        ParamsNonDefault       : {InformationAction, InformationVariable, PipelineVariable}
-        isFunc                 : True
-        FuncName               : functest
-        isFuncAdv              : True
-        FuncDir                : D:\scripts
-        isScript               : False
-        isScriptUnpathed       : False           
-  
-    Demo call, collecting proxy copies of the local Automatic Variables, and passing them in as a splat to resolve-EnvironmentTDO(). (The proxied variables are returned along with up[dated environment profiling information). 
-    .LINK
-    https://github.com/tostka/verb-io
-    .LINK
-    https://thesysadminchannel.com/get-exchange-cumulative-update-version-and-build-numbers-using-powershell/
-    .LINK
-    https://docs.microsoft.com/en-us/exchange/new-features/build-numbers-and-release-dates?
-    #>
-    [CmdletBinding()]
-    [Alias('rvEnv','resolve-Environment')]
-    PARAM(
-        [Parameter(HelpMessage="Proxied Powershell Automatic Variable object that represents the cmdlet or advanced function that’s being run. (passed by external assignment to a variable, which is then passed to this function)")] 
-            $PSCmdletproxy,        
-        [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains the full path to the script that invoked the current command. The value of this property is populated only when the caller is a script. (passed by external assignment to a variable, which is then passed to this function).")] 
-            $PSScriptRootproxy,
-        [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains the full path and file name of the script that’s being run. This variable is valid in all scripts. (passed by external assignment to a variable, which is then passed to this function).")] 
-            $PSCommandPathproxy,
-        [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains information about the current command, such as the name, parameters, parameter values, and information about how the command was started, called, or invoked, such as the name of the script that called the current command. (passed by external assignment to a variable, which is then passed to this function).")]
-            $MyInvocationproxy,
-        [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains a dictionary of the parameters that are passed to a script or function and their current values. This variable has a value only in a scope where parameters are declared, such as a script or function. You can use it to display or change the current values of parameters or to pass parameter values to another script or function. (passed by external assignment to a variable, which is then passed to this function).")]
-            $PSBoundParametersproxy
-    ) ; 
-    BEGIN {
-        $Verbose = [boolean]($VerbosePreference -eq 'Continue') ; 
         <#
-        $PSCmdletproxy = $PSCmdlet ; # an object that represents the cmdlet or advanced function that's being run. Available on functions w CmdletBinding (& $args will not be available). (Blank on non-CmdletBinding/Non-Adv funcs).
-        $PSScriptRootproxy = $PSScriptRoot ; # the full path of the executing script's parent directory., PS2: valid only in script modules (.psm1). PS3+:it's valid in all scripts. (Funcs: ParentDir of the file that hosts the func)
-        $PSCommandPathproxy = $PSCommandPath ; # the full path and filename of the script that's being run, or file hosting the funct. Valid in all scripts.
-        $MyInvocationproxy = $MyInvocation ; # populated only for scripts, function, and script blocks.
+            .SYNOPSIS
+            resolve-EnvironmentTDO.ps1 - Resolves local environment into usable Script or Function-descriptive values (for reuse in logging and i/o access)
+            .NOTES
+            Version     : 0.0.2
+            Author      : Todd Kadrie
+            Website     : http://www.toddomation.com
+            Twitter     : @tostka / http://twitter.com/tostka
+            CreatedDate : 2025-04-04
+            FileName    : resolve-EnvironmentTDO.ps1
+            License     : (non asserted)
+            Copyright   : (non asserted)
+            Github      : https://github.com/tostka/verb-ex2010
+            Tags        : Powershell,ExchangeServer,Version
+            AddedCredit : theSysadminChannel
+            AddedWebsite: https://thesysadminchannel.com/get-exchange-cumulative-update-version-and-build-numbers-using-powershell/
+            AddedTwitter: URL
+            REVISION
+            * 4:13 PM 4/4/2025 init
+            .EXAMPLE
+            PS> write-verbose "Typically from the BEGIN{} block of an Advanced Function, or immediately after PARAM() block" ; 
+            PS> $Verbose = [boolean]($VerbosePreference -eq 'Continue') ;
+            PS> $rPSCmdlet = $PSCmdlet ;
+            PS> $rPSScriptRoot = $PSScriptRoot ;
+            PS> $rPSCommandPath = $PSCommandPath ;
+            PS> $rMyInvocation = $MyInvocation ;
+            PS> $rPSBoundParameters = $PSBoundParameters ;
+            PS> $pltRvEnv=[ordered]@{
+            PS>     PSCmdletproxy = $rPSCmdlet ;
+            PS>     PSScriptRootproxy = $rPSScriptRoot ;
+            PS>     PSCommandPathproxy = $rPSCommandPath ;
+            PS>     MyInvocationproxy = $rMyInvocation ;
+            PS>     PSBoundParametersproxy = $rPSBoundParameters
+            PS>     verbose = [boolean]($PSBoundParameters['Verbose'] -eq $true) ;
+            PS> } ;
+            PS> write-verbose "(Purge no value keys from splat)" ;
+            PS> $mts = $pltRVEnv.GetEnumerator() |?{$_.value -eq $null} ; $mts |%{$pltRVEnv.remove($_.Name)} ; rv mts -ea 0 -whatif:$false -confirm:$false;
+            PS> $smsg = "resolve-EnvironmentTDO w`n$(($pltRVEnv|out-string).trim())" ;
+            PS> if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+            PS> $rvEnv = resolve-EnvironmentTDO @pltRVEnv ;  
+            PS> write-host "Returned `$rvEnv:`n$(($rvEnv|out-string).trim())" ; 
         #>
-        # - $MyInvocation.MyCommand.Name returns name of a function, to identify the current command,  name of the current script (pop'd w func name, on Advfuncs)
-        # - Ps3+:$MyInvocation.PSScriptRoot : full path to the script that invoked the current command. The value of this property is populated only when the caller is a script (blank on funcs & Advfuncs)
-        # - Ps3+:$MyInvocation.PSCommandPath : full path and filename of the script that invoked the current command. The value of this property is populated only when the caller is a script (blank on funcs & Advfuncs)
-        #     ** note: above pair contain information about the _invoker or calling script_, not the current script
-        #$PSBoundParametersproxy = $PSBoundParameters ; 
+        [Alias('resolve-Environment')]
+        [CmdletBinding()]
+        PARAM(
+            [Parameter(HelpMessage="Proxied Powershell Automatic Variable object that represents the cmdlet or advanced function that’s being run. (passed by external assignment to a variable, which is then passed to this function)")] 
+                $PSCmdletproxy,        
+            [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains the full path to the script that invoked the current command. The value of this property is populated only when the caller is a script. (passed by external assignment to a variable, which is then passed to this function).")] 
+                $PSScriptRootproxy,
+            [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains the full path and file name of the script that’s being run. This variable is valid in all scripts. (passed by external assignment to a variable, which is then passed to this function).")] 
+                $PSCommandPathproxy,
+            [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains information about the current command, such as the name, parameters, parameter values, and information about how the command was started, called, or invoked, such as the name of the script that called the current command. (passed by external assignment to a variable, which is then passed to this function).")]
+                $MyInvocationproxy,
+            [Parameter(HelpMessage="Proxied Powershell Automatic Variable that contains a dictionary of the parameters that are passed to a script or function and their current values. This variable has a value only in a scope where parameters are declared, such as a script or function. You can use it to display or change the current values of parameters or to pass parameter values to another script or function. (passed by external assignment to a variable, which is then passed to this function).")]
+                $PSBoundParametersproxy
+        ) ; 
+        BEGIN {
+            $Verbose = [boolean]($VerbosePreference -eq 'Continue') ; 
+            <#
+            $PSCmdletproxy = $PSCmdlet ; # an object that represents the cmdlet or advanced function that's being run. Available on functions w CmdletBinding (& $args will not be available). (Blank on non-CmdletBinding/Non-Adv funcs).
+            $PSScriptRootproxy = $PSScriptRoot ; # the full path of the executing script's parent directory., PS2: valid only in script modules (.psm1). PS3+:it's valid in all scripts. (Funcs: ParentDir of the file that hosts the func)
+            $PSCommandPathproxy = $PSCommandPath ; # the full path and filename of the script that's being run, or file hosting the funct. Valid in all scripts.
+            $MyInvocationproxy = $MyInvocation ; # populated only for scripts, function, and script blocks.
+            #>
+            # - $MyInvocation.MyCommand.Name returns name of a function, to identify the current command,  name of the current script (pop'd w func name, on Advfuncs)
+            # - Ps3+:$MyInvocation.PSScriptRoot : full path to the script that invoked the current command. The value of this property is populated only when the caller is a script (blank on funcs & Advfuncs)
+            # - Ps3+:$MyInvocation.PSCommandPath : full path and filename of the script that invoked the current command. The value of this property is populated only when the caller is a script (blank on funcs & Advfuncs)
+            #     ** note: above pair contain information about the _invoker or calling script_, not the current script
+            #$PSBoundParametersproxy = $PSBoundParameters ; 
 
-        if($host.version.major -ge 3){$hshOutput=[ordered]@{Dummy = $null ;} }
-        else {$hshOutput = New-Object Collections.Specialized.OrderedDictionary} ;
-        If($hshOutput.Contains("Dummy")){$hshOutput.remove("Dummy")} ;
-        $tv = 'PSCmdletproxy','PSScriptRootproxy','PSCommandPathproxy','MyInvocationproxy','PSBoundParametersproxy'
-        # stock the autovaris, if populated
-        $tv | % { 
-            $hshOutput.add($_, (get-variable -name $_ -ea 0).Value) 
-        } ;
-        write-verbose "`$hshOutputn$(($hshOutput|out-string).trim())" ; 
-        $fieldsnull = 'runSource','CmdletName','PSParameters','ParamsNonDefault' 
-        if([boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'Function' -AND $hshOutput.MyInvocationproxy.MyCommand.Name)){
-            #$tv+= @('isFunc','funcname','isFuncAdv') ; 
-            $fieldsnull = $(@($fieldsnull);@(@('isFunc','funcname','isFuncAdv'))) ; 
-            #$tv+= @('FuncDir') ; 
-            $fieldsnull = $(@($fieldsnull);@(@('FuncDir'))) ; 
-        } ; 
-        if([boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'ExternalScript' -OR $hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '\.ps1$')){
-            #$tv += @('isScript','ScriptName','ScriptBaseName','ScriptNameNoExt','ScriptDir','isScriptUnpathed') ; 
-            $fieldsnull = $(@($fieldsnull);@('isScript','ScriptName','ScriptBaseName','ScriptNameNoExt','ScriptDir','isScriptUnpathed')) ; 
-        } ; 
-        $tv = $(@($tv);@($fieldsnull)) ; 
-        # append resolved elements to the hash as $null 
-        $fieldsnull  | % { $hshOutput.add($_,$null) } ;
-        write-verbose "`$hshOutputn$(($hshOutput|out-string).trim())" ; 
-
-        if($hshOutput.isFunc = [boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'Function' -AND $hshOutput.MyInvocationproxy.MyCommand.Name)){
-            $hshOutput.FuncName = $hshOutput.MyInvocationproxy.MyCommand.Name ; write-verbose "`$hshOutput.FuncName: $($hshOutput.FuncName)" ; 
-        } ;
-        if($hshOutput.isFunc -AND (gv PSCmdletproxy -ea 0).value -eq $null){
-            $hshOutput.isFuncAdv = $false 
-        }elseif($hshOutput.isFunc){
-            $hshOutput.isFuncAdv = [boolean]($hshOutput.isFunc -AND $hshOutput.PSCmdletproxy.MyInvocation.InvocationName -AND ($hshOutput.FuncName -eq $hshOutput.PSCmdletproxy.MyInvocation.InvocationName)) ; 
-        } ; 
-        if($hshOutput.isFunc -AND $hshOutput.PSScriptRootproxy){
-            $hshOutput.FuncDir = $hshOutput.PSScriptRootproxy ; 
-        } ; 
-        $hshOutput.isScript = [boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'ExternalScript' -OR $hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '\.ps1$') ; 
-        $hshOutput.isScriptUnpathed = [boolean]($hshOutput.PSCmdletproxy.MyInvocation.InvocationName  -match '^\.') ; # dot-sourced invocation, no paths will be stored in `$MyInvocation objects 
-        [array]$score = @() ; 
-        if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName){ 
-            # blank on basic funcs, popd on AdvFuncs
-            if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '\.ps1$'){$score+= 'ExternalScript' 
-            }elseif($hshOutput.PSCmdletproxy.MyInvocation.InvocationName  -match '^\.'){
-                write-warning "dot-sourced invocation detected!:$($hshOutput.PSCmdletproxy.MyInvocation.InvocationName)`n(will be unable to leverage script path etc from `$MyInvocation objects)" ; 
-                write-verbose "(dot sourcing is implicit script exec)" ; 
-                $score+= 'ExternalScript' ; 
-            } else {$score+= 'Function' }; # blank under function exec, has func name under AdvFuncs
-        } ; 
-        if($hshOutput.PSCmdletproxy.CommandRuntime){
-            # blank on nonAdvfuncs, 
-            if($hshOutput.PSCmdletproxy.CommandRuntime.tostring() -match '\.ps1$'){$score+= 'ExternalScript' } else {$score+= 'Function' } ; # blank under function exec, func name on AdvFuncs
-        } ; 
-        $score+= $hshOutput.MyInvocationproxy.MyCommand.commandtype.tostring() ; # returns 'Function' for basic & Adv funcs
-        $grpSrc = $score | group-object -NoElement | sort count ;
-        if( ($grpSrc |  measure | select -expand count) -gt 1){
-            write-warning  "$score mixed results:$(($grpSrc| ft -a count,name | out-string).trim())" ;
-            if($grpSrc[-1].count -eq $grpSrc[-2].count){
-                write-warning "Deadlocked non-majority results!" ;
-            } else {
-                $hshOutput.runSource = $grpSrc | select -last 1 | select -expand name ;
+            if($host.version.major -ge 3){$hshOutput=[ordered]@{Dummy = $null ;} }
+            else {$hshOutput = New-Object Collections.Specialized.OrderedDictionary} ;
+            If($hshOutput.Contains("Dummy")){$hshOutput.remove("Dummy")} ;
+            $tv = 'PSCmdletproxy','PSScriptRootproxy','PSCommandPathproxy','MyInvocationproxy','PSBoundParametersproxy'
+            # stock the autovaris, if populated
+            $tv | % { 
+                $hshOutput.add($_, (get-variable -name $_ -ea 0).Value) 
             } ;
-        } else {
-            write-verbose "consistent results" ;
-            $hshOutput.runSource = $grpSrc | select -last 1 | select -expand name ;
-        };
-        if($hshOutput.runSource -eq 'Function'){
-            if($hshOutput.isFuncAdv){
-                $smsg = "Calculated `$hshOutput.runSource:Advanced $($hshOutput.runSource)"
-            } else { 
-                $smsg = "Calculated `$hshOutput.runSource: Basic $($hshOutput.runSource)"
+            write-verbose "`$hshOutputn$(($hshOutput|out-string).trim())" ; 
+            $fieldsnull = 'runSource','CmdletName','PSParameters','ParamsNonDefault' 
+            if([boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'Function' -AND $hshOutput.MyInvocationproxy.MyCommand.Name)){
+                #$tv+= @('isFunc','funcname','isFuncAdv') ; 
+                $fieldsnull = $(@($fieldsnull);@(@('isFunc','funcname','isFuncAdv'))) ; 
+                #$tv+= @('FuncDir') ; 
+                $fieldsnull = $(@($fieldsnull);@(@('FuncDir'))) ; 
             } ; 
-        }elseif($hshOutput.runSource -eq 'ExternalScript'){
-            $smsg =  "Calculated `$hshOutput.runSource:$($hshOutput.runSource)" ;
-        } ; 
-        write-verbose $smsg ;
-        'score','grpSrc' | get-variable | remove-variable ; # cleanup temp varis
-        $hshOutput.CmdletName = $hshOutput.PSCmdletproxy.MyInvocation.MyCommand.Name ; # function self-name (equiv to script's: $MyInvocation.MyCommand.Path), pop'd on AdvFunc
-        #region PsParams ; #*------v PSPARAMS v------
-        $hshOutput.PSParameters = New-Object -TypeName PSObject -Property $hshOutput.PSBoundParametersproxy ;
-        # DIFFERENCES $hshOutput.PSParameters vs $PSBoundParameters:
-        # - $PSBoundParameters: System.Management.Automation.PSBoundParametersDictionary (native obj)
-        # test/access: ($PSBoundParameters['Verbose'] -eq $true) ; $PSBoundParameters.ContainsKey('Referrer') #hash syntax
-        # CAN use as a @PSBoundParameters splat to push through (make sure populated, can fail if wrong type of wrapping code)
-        # - $hshOutput.PSParameters: System.Management.Automation.PSCustomObject (created obj)
-        # test/access: ($hshOutput.PSParameters.verbose -eq $true) ; $hshOutput.PSParameters.psobject.Properties.name -contains 'SenderAddress' ; # cobj syntax
-        # CANNOT use as a @splat to push through (it's a cobj)
-        write-verbose "`$hshOutput.PSBoundParametersproxy:`n$(($hshOutput.PSBoundParametersproxy|out-string).trim())" ;
-        # pre psv2, no $hshOutput.PSBoundParametersproxy autovari to check, so back them out:
-        if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName){
-            # has func name under AdvFuncs
-            if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName  -match '^\.'){
-                $smsg = "detected dot-sourced invocation: Skipping `$PSCmdlet.MyInvocation.InvocationName-tied cmds..." ; 
+            if([boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'ExternalScript' -OR $hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '\.ps1$')){
+                #$tv += @('isScript','ScriptName','ScriptBaseName','ScriptNameNoExt','ScriptDir','isScriptUnpathed') ; 
+                $fieldsnull = $(@($fieldsnull);@('isScript','ScriptName','ScriptBaseName','ScriptNameNoExt','ScriptDir','isScriptUnpathed')) ; 
+            } ; 
+            $tv = $(@($tv);@($fieldsnull)) ; 
+            # append resolved elements to the hash as $null 
+            $fieldsnull  | % { $hshOutput.add($_,$null) } ;
+            write-verbose "`$hshOutputn$(($hshOutput|out-string).trim())" ; 
+
+            if($hshOutput.isFunc = [boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'Function' -AND $hshOutput.MyInvocationproxy.MyCommand.Name)){
+                $hshOutput.FuncName = $hshOutput.MyInvocationproxy.MyCommand.Name ; write-verbose "`$hshOutput.FuncName: $($hshOutput.FuncName)" ; 
+            } ;
+            if($hshOutput.isFunc -AND (gv PSCmdletproxy -ea 0).value -eq $null){
+                $hshOutput.isFuncAdv = $false 
+            }elseif($hshOutput.isFunc){
+                $hshOutput.isFuncAdv = [boolean]($hshOutput.isFunc -AND $hshOutput.PSCmdletproxy.MyInvocation.InvocationName -AND ($hshOutput.FuncName -eq $hshOutput.PSCmdletproxy.MyInvocation.InvocationName)) ; 
+            } ; 
+            if($hshOutput.isFunc -AND $hshOutput.PSScriptRootproxy){
+                $hshOutput.FuncDir = $hshOutput.PSScriptRootproxy ; 
+            } ; 
+            $hshOutput.isScript = [boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'ExternalScript' -OR $hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '\.ps1$') ; 
+            $hshOutput.isScriptUnpathed = [boolean]($hshOutput.PSCmdletproxy.MyInvocation.InvocationName  -match '^\.') ; # dot-sourced invocation, no paths will be stored in `$MyInvocation objects 
+            [array]$score = @() ; 
+            if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName){ 
+                # blank on basic funcs, popd on AdvFuncs
+                if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '\.ps1$'){$score+= 'ExternalScript' 
+                }elseif($hshOutput.PSCmdletproxy.MyInvocation.InvocationName  -match '^\.'){
+                    write-warning "dot-sourced invocation detected!:$($hshOutput.PSCmdletproxy.MyInvocation.InvocationName)`n(will be unable to leverage script path etc from `$MyInvocation objects)" ; 
+                    write-verbose "(dot sourcing is implicit script exec)" ; 
+                    $score+= 'ExternalScript' ; 
+                } else {$score+= 'Function' }; # blank under function exec, has func name under AdvFuncs
+            } ; 
+            if($hshOutput.PSCmdletproxy.CommandRuntime){
+                # blank on nonAdvfuncs, 
+                if($hshOutput.PSCmdletproxy.CommandRuntime.tostring() -match '\.ps1$'){$score+= 'ExternalScript' } else {$score+= 'Function' } ; # blank under function exec, func name on AdvFuncs
+            } ; 
+            $score+= $hshOutput.MyInvocationproxy.MyCommand.commandtype.tostring() ; # returns 'Function' for basic & Adv funcs
+            $grpSrc = $score | group-object -NoElement | sort count ;
+            if( ($grpSrc |  measure | select -expand count) -gt 1){
+                write-warning  "$score mixed results:$(($grpSrc| ft -a count,name | out-string).trim())" ;
+                if($grpSrc[-1].count -eq $grpSrc[-2].count){
+                    write-warning "Deadlocked non-majority results!" ;
+                } else {
+                    $hshOutput.runSource = $grpSrc | select -last 1 | select -expand name ;
+                } ;
+            } else {
+                write-verbose "consistent results" ;
+                $hshOutput.runSource = $grpSrc | select -last 1 | select -expand name ;
+            };
+            if($hshOutput.runSource -eq 'Function'){
+                if($hshOutput.isFuncAdv){
+                    $smsg = "Calculated `$hshOutput.runSource:Advanced $($hshOutput.runSource)"
+                } else { 
+                    $smsg = "Calculated `$hshOutput.runSource: Basic $($hshOutput.runSource)"
+                } ; 
+            }elseif($hshOutput.runSource -eq 'ExternalScript'){
+                $smsg =  "Calculated `$hshOutput.runSource:$($hshOutput.runSource)" ;
+            } ; 
+            write-verbose $smsg ;
+            'score','grpSrc' | get-variable | remove-variable ; # cleanup temp varis
+            $hshOutput.CmdletName = $hshOutput.PSCmdletproxy.MyInvocation.MyCommand.Name ; # function self-name (equiv to script's: $MyInvocation.MyCommand.Path), pop'd on AdvFunc
+            #region PsParams ; #*------v PSPARAMS v------
+            $hshOutput.PSParameters = New-Object -TypeName PSObject -Property $hshOutput.PSBoundParametersproxy ;
+            # DIFFERENCES $hshOutput.PSParameters vs $PSBoundParameters:
+            # - $PSBoundParameters: System.Management.Automation.PSBoundParametersDictionary (native obj)
+            # test/access: ($PSBoundParameters['Verbose'] -eq $true) ; $PSBoundParameters.ContainsKey('Referrer') #hash syntax
+            # CAN use as a @PSBoundParameters splat to push through (make sure populated, can fail if wrong type of wrapping code)
+            # - $hshOutput.PSParameters: System.Management.Automation.PSCustomObject (created obj)
+            # test/access: ($hshOutput.PSParameters.verbose -eq $true) ; $hshOutput.PSParameters.psobject.Properties.name -contains 'SenderAddress' ; # cobj syntax
+            # CANNOT use as a @splat to push through (it's a cobj)
+            write-verbose "`$hshOutput.PSBoundParametersproxy:`n$(($hshOutput.PSBoundParametersproxy|out-string).trim())" ;
+            # pre psv2, no $hshOutput.PSBoundParametersproxy autovari to check, so back them out:
+            if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName){
+                # has func name under AdvFuncs
+                if($hshOutput.PSCmdletproxy.MyInvocation.InvocationName  -match '^\.'){
+                    $smsg = "detected dot-sourced invocation: Skipping `$PSCmdlet.MyInvocation.InvocationName-tied cmds..." ; 
+                    if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+                    else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+                    #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+                } else { 
+                    write-verbose 'Collect all non-default Params (works back to psv2 w CmdletBinding)'
+                    $hshOutput.ParamsNonDefault = (Get-Command $hshOutput.PSCmdletproxy.MyInvocation.InvocationName).parameters | 
+                        Select-Object -expand keys | 
+                        Where-Object{$_ -notmatch '(Verbose|Debug|ErrorAction|WarningAction|ErrorVariable|WarningVariable|OutVariable|OutBuffer)'} ;
+                } ; 
+            } else { 
+                $smsg = "(blank `$hshOutput.PSCmdletproxy.MyInvocation.InvocationName, skipping Parameters collection)" ; 
                 if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
                 else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
-                #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
-            } else { 
-                write-verbose 'Collect all non-default Params (works back to psv2 w CmdletBinding)'
-                $hshOutput.ParamsNonDefault = (Get-Command $hshOutput.PSCmdletproxy.MyInvocation.InvocationName).parameters | 
-                    Select-Object -expand keys | 
-                    Where-Object{$_ -notmatch '(Verbose|Debug|ErrorAction|WarningAction|ErrorVariable|WarningVariable|OutVariable|OutBuffer)'} ;
             } ; 
-        } else { 
-            $smsg = "(blank `$hshOutput.PSCmdletproxy.MyInvocation.InvocationName, skipping Parameters collection)" ; 
-            if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
-            else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
-        } ; 
-        if($hshOutput.isScript){
-            $hshOutput.ScriptDir = $scriptName = '' ;     
             if($hshOutput.isScript){
-                $hshOutput.ScriptDir = $hshOutput.PSScriptRootproxy; 
-                $hshOutput.ScriptName = $hshOutput.PSCommandPathproxy ; 
-                if($hshOutput.ScriptDir -eq '' -AND $hshOutput.runSource -eq 'ExternalScript'){$hshOutput.ScriptDir = (Split-Path -Path $hshOutput.MyInvocationproxy.MyCommand.Source -Parent)} # Running from File
-            };
+                $hshOutput.ScriptDir = $scriptName = '' ;     
+                if($hshOutput.isScript){
+                    $hshOutput.ScriptDir = $hshOutput.PSScriptRootproxy; 
+                    $hshOutput.ScriptName = $hshOutput.PSCommandPathproxy ; 
+                    if($hshOutput.ScriptDir -eq '' -AND $hshOutput.runSource -eq 'ExternalScript'){$hshOutput.ScriptDir = (Split-Path -Path $hshOutput.MyInvocationproxy.MyCommand.Source -Parent)} # Running from File
+                };
 
-            if($hshOutput.ScriptDir -eq '' -AND (Test-Path variable:psEditor)) {
-                write-verbose "Running from VSCode|VS" ; 
-                $hshOutput.ScriptDir = (Split-Path -Path $psEditor.GetEditorContext().CurrentFile.Path -Parent) ; 
-                    if($hshOutput.ScriptName -eq ''){$hshOutput.ScriptName = $psEditor.GetEditorContext().CurrentFile.Path }; 
-            } ;
-            if ($hshOutput.ScriptDir -eq '' -AND $host.version.major -lt 3 -AND $hshOutput.MyInvocationproxy.MyCommand.Path.length -gt 0){
-                $hshOutput.ScriptDir = $hshOutput.MyInvocationproxy.MyCommand.Path ; 
-                write-verbose "(backrev emulating `$hshOutput.PSScriptRootproxy, `$hshOutput.PSCommandPathproxy)"
-                $hshOutput.ScriptName = split-path $hshOutput.MyInvocationproxy.MyCommand.Path -leaf ;
-                $hshOutput.PSScriptRootproxy = Split-Path $hshOutput.ScriptName -Parent ;
-                $hshOutput.PSCommandPathproxy = $hshOutput.ScriptName ;
-            } ;
-            if ($hshOutput.ScriptDir -eq '' -AND $hshOutput.MyInvocationproxy.MyCommand.Path.length){
-                if($hshOutput.ScriptName -eq ''){$hshOutput.ScriptName = $hshOutput.MyInvocationproxy.MyCommand.Path} ;
-                $hshOutput.ScriptDir = $hshOutput.PSScriptRootproxy = Split-Path $hshOutput.MyInvocationproxy.MyCommand.Path -Parent ;
-            }
-            if ($hshOutput.ScriptDir -eq ''){throw "UNABLE TO POPULATE SCRIPT PATH, EVEN `$hshOutput.MyInvocationproxy IS BLANK!" } ;
-            if($hshOutput.ScriptName){
-                if(-not $hshOutput.ScriptDir ){$hshOutput.ScriptDir = Split-Path -Parent $hshOutput.ScriptName} ; 
-                $hshOutput.ScriptBaseName = split-path -leaf $hshOutput.ScriptName ;
-                $hshOutput.ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($hshOutput.ScriptName) ;
+                if($hshOutput.ScriptDir -eq '' -AND (Test-Path variable:psEditor)) {
+                    write-verbose "Running from VSCode|VS" ; 
+                    $hshOutput.ScriptDir = (Split-Path -Path $psEditor.GetEditorContext().CurrentFile.Path -Parent) ; 
+                        if($hshOutput.ScriptName -eq ''){$hshOutput.ScriptName = $psEditor.GetEditorContext().CurrentFile.Path }; 
+                } ;
+                if ($hshOutput.ScriptDir -eq '' -AND $host.version.major -lt 3 -AND $hshOutput.MyInvocationproxy.MyCommand.Path.length -gt 0){
+                    $hshOutput.ScriptDir = $hshOutput.MyInvocationproxy.MyCommand.Path ; 
+                    write-verbose "(backrev emulating `$hshOutput.PSScriptRootproxy, `$hshOutput.PSCommandPathproxy)"
+                    $hshOutput.ScriptName = split-path $hshOutput.MyInvocationproxy.MyCommand.Path -leaf ;
+                    $hshOutput.PSScriptRootproxy = Split-Path $hshOutput.ScriptName -Parent ;
+                    $hshOutput.PSCommandPathproxy = $hshOutput.ScriptName ;
+                } ;
+                if ($hshOutput.ScriptDir -eq '' -AND $hshOutput.MyInvocationproxy.MyCommand.Path.length){
+                    if($hshOutput.ScriptName -eq ''){$hshOutput.ScriptName = $hshOutput.MyInvocationproxy.MyCommand.Path} ;
+                    $hshOutput.ScriptDir = $hshOutput.PSScriptRootproxy = Split-Path $hshOutput.MyInvocationproxy.MyCommand.Path -Parent ;
+                }
+                if ($hshOutput.ScriptDir -eq ''){throw "UNABLE TO POPULATE SCRIPT PATH, EVEN `$hshOutput.MyInvocationproxy IS BLANK!" } ;
+                if($hshOutput.ScriptName){
+                    if(-not $hshOutput.ScriptDir ){$hshOutput.ScriptDir = Split-Path -Parent $hshOutput.ScriptName} ; 
+                    $hshOutput.ScriptBaseName = split-path -leaf $hshOutput.ScriptName ;
+                    $hshOutput.ScriptNameNoExt = [system.io.path]::GetFilenameWithoutExtension($hshOutput.ScriptName) ;
+                } ; 
+                # blank $cmdlet name comming through, patch it for Scripts:
+                if(-not $hshOutput.CmdletName -AND $hshOutput.ScriptBaseName){
+                    $hshOutput.CmdletName = $hshOutput.ScriptBaseName
+                }
+                # last ditch patch the values in if you've got a $hshOutput.ScriptName
+                if($hshOutput.PSScriptRootproxy.Length -ne 0){}else{ 
+                    if($hshOutput.ScriptName){$hshOutput.PSScriptRootproxy = Split-Path $hshOutput.ScriptName -Parent }
+                    else{ throw "Unpopulated, `$hshOutput.PSScriptRootproxy, and no populated `$hshOutput.ScriptName from which to emulate the value!" } ; 
+                } ; 
+                if($hshOutput.PSCommandPathproxy.Length -ne 0){}else{ 
+                    if($hshOutput.ScriptName){$hshOutput.PSCommandPathproxy = $hshOutput.ScriptName }
+                    else{ throw "Unpopulated, `$hshOutput.PSCommandPathproxy, and no populated `$hshOutput.ScriptName from which to emulate the value!" } ; 
+                } ; 
+                if(-not ($hshOutput.ScriptDir -AND $hshOutput.ScriptBaseName -AND $hshOutput.ScriptNameNoExt  -AND $hshOutput.PSScriptRootproxy  -AND $hshOutput.PSCommandPathproxy )){ 
+                    throw "Invalid Invocation. Blank `$hshOutput.ScriptDir/`$hshOutput.ScriptBaseName/`$hshOutput.ScriptBaseName" ; 
+                    BREAK ; 
+                } ; 
             } ; 
-            # blank $cmdlet name comming through, patch it for Scripts:
-            if(-not $hshOutput.CmdletName -AND $hshOutput.ScriptBaseName){
-                $hshOutput.CmdletName = $hshOutput.ScriptBaseName
-            }
-            # last ditch patch the values in if you've got a $hshOutput.ScriptName
-            if($hshOutput.PSScriptRootproxy.Length -ne 0){}else{ 
-                if($hshOutput.ScriptName){$hshOutput.PSScriptRootproxy = Split-Path $hshOutput.ScriptName -Parent }
-                else{ throw "Unpopulated, `$hshOutput.PSScriptRootproxy, and no populated `$hshOutput.ScriptName from which to emulate the value!" } ; 
+            if($hshOutput.isFunc){
+                if($hshOutput.isFuncAdv){
+                    # AdvFunc-specific cmds
+                }else {
+                    # Basic Func-specific cmds
+                } ; 
+                if($hshOutput.PSCommandPathproxy -match '\.psm1$'){
+                    write-host "MODULE-HOMED FUNCTION:Use `$hshOutput.CmdletName to reference the running function name for transcripts etc (under a .psm1 `$hshOutput.ScriptName will reflect the .psm1 file  fullname)"
+                    if(-not $hshOutput.CmdletName){write-warning "MODULE-HOMED FUNCTION with BLANK `$CmdletNam:$($CmdletNam)" } ;
+                } # Running from .psm1 module
+                if(-not $hshOutput.CmdletName -AND $hshOutput.FuncName){
+                    $hshOutput.CmdletName = $hshOutput.FuncName
+                } ; 
             } ; 
-            if($hshOutput.PSCommandPathproxy.Length -ne 0){}else{ 
-                if($hshOutput.ScriptName){$hshOutput.PSCommandPathproxy = $hshOutput.ScriptName }
-                else{ throw "Unpopulated, `$hshOutput.PSCommandPathproxy, and no populated `$hshOutput.ScriptName from which to emulate the value!" } ; 
+            $smsg = "`$hshOutput  w`n$(($hshOutput|out-string).trim())" ; 
+            #write-host $smsg ; 
+            write-verbose $smsg ; 
+        } ;  # BEG-E
+        PROCESS {};  # PROC-E
+        END {
+            if($hshOutput){
+                write-verbose "(return `$hshOutput to pipeline)" ; 
+                New-Object PSObject -Property $hshOutput | write-output 
             } ; 
-            if(-not ($hshOutput.ScriptDir -AND $hshOutput.ScriptBaseName -AND $hshOutput.ScriptNameNoExt  -AND $hshOutput.PSScriptRootproxy  -AND $hshOutput.PSCommandPathproxy )){ 
-                throw "Invalid Invocation. Blank `$hshOutput.ScriptDir/`$hshOutput.ScriptBaseName/`$hshOutput.ScriptBaseName" ; 
-                BREAK ; 
-            } ; 
-        } ; 
-        if($hshOutput.isFunc){
-            if($hshOutput.isFuncAdv){
-                # AdvFunc-specific cmds
-            }else {
-                # Basic Func-specific cmds
-            } ; 
-            if($hshOutput.PSCommandPathproxy -match '\.psm1$'){
-                write-host "MODULE-HOMED FUNCTION:Use `$hshOutput.CmdletName to reference the running function name for transcripts etc (under a .psm1 `$hshOutput.ScriptName will reflect the .psm1 file  fullname)"
-                if(-not $hshOutput.CmdletName){write-warning "MODULE-HOMED FUNCTION with BLANK `$CmdletNam:$($CmdletNam)" } ;
-            } # Running from .psm1 module
-            if(-not $hshOutput.CmdletName -AND $hshOutput.FuncName){
-                $hshOutput.CmdletName = $hshOutput.FuncName
-            } ; 
-        } ; 
-        $smsg = "`$hshOutput  w`n$(($hshOutput|out-string).trim())" ; 
-        #write-host $smsg ; 
-        write-verbose $smsg ; 
-    } ;  # BEG-E
-    PROCESS {};  # PROC-E
-    END {
-        if($hshOutput){
-            write-verbose "(return `$hshOutput to pipeline)" ; 
-            New-Object PSObject -Property $hshOutput | write-output 
-        } ; 
+        }
     }
-}
 
 #*------^ resolve-EnvironmentTDO.ps1 ^------
 
@@ -16719,8 +16616,8 @@ function set-AuthenticodeSignatureTDO {
     10:45 AM 10/14/2020 added cert hunting into cert:\LocalMachine\my -codesigning as well as currentuser
     7:56 AM 6/19/2018 added -whatif & -showdebug params
     10:46 AM 1/16/2015 corrected $oReg|$oRet typo that broke status attrib
-    10:20 AM 1/15.3.85 rewrote into pipeline format
-    9:50 AM 1/15.3.85 added a $f.name echo to see if it's doing anything
+    10:20 AM 1/15/2015 rewrote into pipeline format
+    9:50 AM 1/15/2015 added a $f.name echo to see if it's doing anything
     8:54 AM 1/8/2015 - added play-beep to end
     10:01 AM 12/30/2014
     .PARAMETER file
@@ -21654,8 +21551,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkh2rqwt/y6AMTO8SQbBMZD/6
-# IGigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUMgczq7gB3P2pzwp00zl4n4D6
+# E1qgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -21670,9 +21567,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTQBfgx
-# RcJfpAqVrocAT9w6vTm4HzANBgkqhkiG9w0BAQEFAASBgF/77XU9bGiPeDUWm80W
-# gzMorcqJiXJ1NTFJHqe2fef2chFvzqFUu+ayNZiGMpyEJDlZqijk71AzwG/m2egb
-# Z46h36/g5yfAlon4w/DYTgyGoX4yr7R2aQxDuAzjMziQNNoMYpa+ulLAz6yTDj4/
-# 7+XNOQhbe+BiG0k3V1YDirhi
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTbV02g
+# REhv9al7mr2XoyxECbfT2TANBgkqhkiG9w0BAQEFAASBgC384yEmGuSGZdDPM9k+
+# A1rekiL3lZMTH/99g3a7DTOIe2Q9Hr86WeIZWxN+fgFtk5Ifb/fwNBWHiDO0/EyZ
+# 5PDXJeNmpqMC7w7SXU6+xJExs9ocv1eREjoWpS1jNWG5/SAIV+KDBlkfyhpWCdK2
+# 6S630jbiJI3oEHYzJ7468xxu
 # SIG # End signature block
