@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 17.2.0.0.0
+Version     : 17.1.2.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -11364,7 +11364,6 @@ Function out-Clipboard {
     AddedWebsite:	https://community.idera.com/members/tobias-weltner
     AddedTwitter:	URL
     REVISIONS
-    * 1:19 PM 6/2/2025 added -ea 0 to the gcm out-clipboard test (was throwing missing error into console)
     * 10:59 AM 11/29/2021 fixed - shift to adv func broke the $input a-vari (only present w simple funcs): Added declared $content pipeline vari; added -NoLegacy switch to suppress the default 'append-`n to each line' clip.exe behavior emulation. 
     * 3:17 PM 11/8/2021 init vers, flip profile alias & clip.exe to holistic function for either
     .DESCRIPTION
@@ -11390,27 +11389,27 @@ Function out-Clipboard {
         [switch]$NoLegacy
     ) ;
     PROCESS {
-        if($host.version.major -lt 3 -OR -not (get-command Microsoft.PowerShell.Management\set-clipboard)){
+        if($host.version.major -lt 3){
             # provide clipfunction downrev
-            if(-not (get-command Microsoft.PowerShell.Management\set-clipboard -ea 0)){
-                write-verbose "creating downrev alias: out-clipboard -> $tClip" ; 
+            if(-not (get-command out-clipboard)){
                 # build the alias if not pre-existing
-                if($tClip = "$((Resolve-Path $env:SystemRoot\System32\clip.exe -ea STOP).path)"){
-                    # have to alias: can't put an expression on right of pipeline, but can use an alias
-                    # revised:use an alias that doesn't overlap the function name
-                    Set-Alias -Name 'Out-ClipboardTmp' -Value $tClip -scope script ;
-                } ; 
+                $tClip = "$((Resolve-Path $env:SystemRoot\System32\clip.exe).path)" ;
+                #$input | "($tClip)" ; 
+                #$content | ($tClip) ; 
+                Set-Alias -Name 'Out-Clipboard' -Value $tClip -scope script ;
             } ;
             # input only works in simple functions, in adv funcs declare a suitable vari
             #$input | out-clipboard 
-            $content | out-ClipboardTmp ;
+            $content | out-clipboard ;
         } else {
             # emulate clip.exe's `n-append behavior on ps3+
+            <#$input = $input | foreach-object {"$($_)$([Environment]::NewLine)"} ; 
+            $input | set-clipboard ; 
+            #>
             if(-not $NoLegacy){
                 $content = $content | foreach-object {"$($_)$([Environment]::NewLine)"} ; 
             } ; 
-            # hardcode to native, not pscx module version
-            $content | Microsoft.PowerShell.Management\set-clipboard ;
+            $content | set-clipboard ;
         } ; 
     } ; 
 }
@@ -21658,8 +21657,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUga2HaDkUxn04NwZsc5fKhItK
-# p5WgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUYm2OutO7HFa/cirsHhi8t4bu
+# b1WgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -21674,9 +21673,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTsWH1i
-# XH22Ty4vOD63B2zbRJ0ygzANBgkqhkiG9w0BAQEFAASBgKW1Zu4hkuuXF5JsT94G
-# sRXhbh4SxiGiZn+8UBy05ZaWC1fpI4CP6M5b+yoE8lewgd9DA2WvVLF+MApcgdba
-# BQxaKMPd9lMje7TsppCxZ1Y/1LvmiIbURIUQK2/bl+LnX5ZBPY/JivGFS6Nmq2cI
-# t3TZnTTAZDPZGOstg7aXjItx
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSu9MiP
+# tg1yklttJkqLWulKXZDDPTANBgkqhkiG9w0BAQEFAASBgHfjKeX2CGkrEjuwtV6U
+# A1w3lAqnr9yqTvH7FK6GQl8CMfysE5ywVgjCODUN4MjnklBlAhfS92/AFwz7bwsJ
+# BqDSFX3saZBa1oBTgIqrrqn4soKlvkQw7JZ45Je3r/rOniwPHZ8IgMjHukNf9UkY
+# 6hQ8aKx0hUQeB3YB5HyMnTKW
 # SIG # End signature block
