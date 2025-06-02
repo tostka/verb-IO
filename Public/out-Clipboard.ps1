@@ -1,4 +1,6 @@
-﻿#*------v out-Clipboard.ps1 v------
+﻿# out-Clipboard.ps1
+
+#region OUT-CLIPBOARD ; #*------v out-Clipboard v------
 Function out-Clipboard {
     <#
     .SYNOPSIS
@@ -18,6 +20,7 @@ Function out-Clipboard {
     AddedWebsite:	https://community.idera.com/members/tobias-weltner
     AddedTwitter:	URL
     REVISIONS
+    * 1:19 PM 6/2/2025 added -ea 0 to the gcm out-clipboard test (was throwing missing error into console)
     * 10:59 AM 11/29/2021 fixed - shift to adv func broke the $input a-vari (only present w simple funcs): Added declared $content pipeline vari; added -NoLegacy switch to suppress the default 'append-`n to each line' clip.exe behavior emulation. 
     * 3:17 PM 11/8/2021 init vers, flip profile alias & clip.exe to holistic function for either
     .DESCRIPTION
@@ -43,29 +46,28 @@ Function out-Clipboard {
         [switch]$NoLegacy
     ) ;
     PROCESS {
-        if($host.version.major -lt 3){
+        if($host.version.major -lt 3 -OR -not (get-command Microsoft.PowerShell.Management\set-clipboard)){
             # provide clipfunction downrev
-            if(-not (get-command out-clipboard)){
+            if(-not (get-command Microsoft.PowerShell.Management\set-clipboard -ea 0)){
+                write-verbose "creating downrev alias: out-clipboard -> $tClip" ; 
                 # build the alias if not pre-existing
-                $tClip = "$((Resolve-Path $env:SystemRoot\System32\clip.exe).path)" ;
-                #$input | "($tClip)" ; 
-                #$content | ($tClip) ; 
-                Set-Alias -Name 'Out-Clipboard' -Value $tClip -scope script ;
+                if($tClip = "$((Resolve-Path $env:SystemRoot\System32\clip.exe -ea STOP).path)"){
+                    # have to alias: can't put an expression on right of pipeline, but can use an alias
+                    # revised:use an alias that doesn't overlap the function name
+                    Set-Alias -Name 'Out-ClipboardTmp' -Value $tClip -scope script ;
+                } ; 
             } ;
             # input only works in simple functions, in adv funcs declare a suitable vari
             #$input | out-clipboard 
-            $content | out-clipboard ;
+            $content | out-ClipboardTmp ;
         } else {
             # emulate clip.exe's `n-append behavior on ps3+
-            <#$input = $input | foreach-object {"$($_)$([Environment]::NewLine)"} ; 
-            $input | set-clipboard ; 
-            #>
             if(-not $NoLegacy){
                 $content = $content | foreach-object {"$($_)$([Environment]::NewLine)"} ; 
             } ; 
-            $content | set-clipboard ;
+            # hardcode to native, not pscx module version
+            $content | Microsoft.PowerShell.Management\set-clipboard ;
         } ; 
     } ; 
-}
-
-#*------^ out-Clipboard.ps1 ^------
+} ; 
+#endregion OUT-CLIPBOARD ; #*------^ END out-Clipboard ^------
