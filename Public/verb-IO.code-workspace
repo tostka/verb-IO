@@ -9,6 +9,26 @@
 		"powershell.codeFormatting.newLineAfterCloseBrace": true,
 		"powershell.codeFormatting.openBraceOnSameLine": true,
 		"powershell.codeFormatting.whitespaceAroundOperator": true,
-		"powershell.codeFormatting.whitespaceBeforeOpenBrace": true
+		"powershell.codeFormatting.whitespaceBeforeOpenBrace": true,
+		"workbench.colorCustomizations": {
+			"activityBar.activeBackground": "#009f9f",
+			"activityBar.background": "#009f9f",
+			"activityBar.foreground": "#e7e7e7",
+			"activityBar.inactiveForeground": "#e7e7e799",
+			"activityBarBadge.background": "#9f009f",
+			"activityBarBadge.foreground": "#e7e7e7",
+			"commandCenter.border": "#e7e7e799",
+			"sash.hoverBorder": "#009f9f",
+			"statusBar.background": "#006c6c",
+			"statusBar.foreground": "#e7e7e7",
+			"statusBarItem.hoverBackground": "#009f9f",
+			"statusBarItem.remoteBackground": "#006c6c",
+			"statusBarItem.remoteForeground": "#e7e7e7",
+			"titleBar.activeBackground": "#006c6c",
+			"titleBar.activeForeground": "#e7e7e7",
+			"titleBar.inactiveBackground": "#006c6c99",
+			"titleBar.inactiveForeground": "#e7e7e799"
+		},
+		"peacock.color": "rgb 0 108 108"
 	}
 }
