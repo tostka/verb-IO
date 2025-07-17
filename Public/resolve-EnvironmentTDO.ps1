@@ -1,7 +1,7 @@
 ﻿# resolve-EnvironmentTDO.ps1
 
 #region RESOLVE_ENVIRONMENTTDO ; #*------v resolve-EnvironmentTDO v------
-if (-not(gi function:resolve-EnvironmentTDO -ea 0)) {
+#if (-not(gi function:resolve-EnvironmentTDO -ea 0)) {
     function resolve-EnvironmentTDO {
         <#
             .SYNOPSIS
@@ -462,5 +462,5 @@ if (-not(gi function:resolve-EnvironmentTDO -ea 0)) {
             } ;
         }
     } ;
-} ;
+#} ;
 #endregion RESOLVE_ENVIRONMENTTDO ; #*------^ END resolve-EnvironmentTDO ^------
