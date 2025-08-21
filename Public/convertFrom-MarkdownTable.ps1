@@ -16,6 +16,7 @@ Function convertFrom-MarkdownTable {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Markdown,Input,Conversion
     REVISION
+    * 9:12 AM 8/21/2025 add alias: 'cfMarkdownTable' (nother mnemomic)
     * 9:33 AM 4/11/2025 add alias: cfmdt (reflects standard verbalias)
     * 12:33 PM 5/17/2024 fixed odd bug, was failing to trim trailing | on some rows, which caused convertfrom-csv to drop that column.
     * 9:04 AM 9/27/2023 cbh demo output tweaks (unindented, results in 1st line de-indent and rest indented.
@@ -59,7 +60,7 @@ Function convertFrom-MarkdownTable {
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    [alias('convertfrom-mdt','in-markdowntable','in-mdt','cfmdt')]    
+    [alias('convertfrom-mdt','in-markdowntable','in-mdt','cfmdt','cfMarkdownTable')]    
     Param (
         [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Markdown-formated table to be converted into an object [-markdowntext 'title text']")]
         $markdowntext
