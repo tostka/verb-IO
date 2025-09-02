@@ -15,6 +15,7 @@ Function convert-BinaryToDecimalStorageUnits {
     Github      : https://github.com/tostka/verb-IO
     Tags        : PowershellConsole
     REVISIONS
+    # 4:32 PM 9/1/2025 coerce all instances of the $size to double, it's defaulting to string on inbound string
     * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes. 
     * 12:48 PM 10/20/2021 updated CBH w source article link, added comments
     * 5:19 PM 7/20/2021 init vers
@@ -49,20 +50,21 @@ For small values, it's a rounding error difference between GB\GiB. But as the va
     [CmdletBinding()]
     Param (
         [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="String representation of a numeric size and units stated in 'KiB|MiB|GiB|TiB|PiB' [-value '1.39 GiB']")]
-        #[ValidateNotNullOrEmpty()]
-        [ValidatePattern('^([\d\.]+)((\s)*)([KMGTP]iB)$')]
-        [string]$Value,
+            #[ValidateNotNullOrEmpty()]
+            [ValidatePattern('^([\d\.]+)((\s)*)([KMGTP]iB)$')]
+            [string]$Value,
         [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Desired output metric (Bytes|KB}MB|GB|TB) [-To 'GB']")]
-        [validateset('Bytes','KB','MB','GB','TB')]
-        [string]$To='MB',
+            [validateset('Bytes','KB','MB','GB','TB')]
+            [string]$To='MB',
         [Parameter(HelpMessage="decimal places of rounding[-Decimals 2]")]
-        [int]$Decimals = 4
+            [int]$Decimals = 4
     )
     if($value.contains(' ')){
-        $size,$unit = $value.split(' ') ;
+        [double]$size,[string]$unit = $value.split(' ') ;
     } else {
         if($value  -match '^([\d\.]+)((\s)*)([KMGTP]iB)$'){
-            $size = $matches[1] ;
+            # 4:32 PM 9/1/2025 coerce all instances of the size to double, it's defaulting to string on inbound string
+            [double]$size = $matches[1] ;
             $unit = $matches[4] ;
         } ;
     }
