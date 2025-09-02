@@ -3,12 +3,12 @@ if($host.version.major -gt 2){
     Function ConvertFrom-SourceTable {
         <#
         .SYNOPSIS
-        Converts a fixed column table to objects.
+        ConvertFrom-SourceTable - Converts a fixed column table to objects.
         .NOTES
-        Version     : 0.3.11
+        Version     : 0.3.12
         Author      : iRon
         Website     : https://github.com/iRon7/ConvertFrom-SourceTable/
-        Twitter     :
+        Twitter     : 
         CreatedDate : 2020-03-27
         FileName    : ConvertFrom-SourceTable
         License     : https://github.com/iRon7/ConvertFrom-SourceTable/LICENSE.txt
@@ -16,21 +16,21 @@ if($host.version.major -gt 2){
         AddedCredit : Todd Kadrie
         AddedWebsite:	http://www.toddomation.com
         AddedTwitter:	@tostka / http://twitter.com/tostka
-        Github      : https://github.com/iRon7/ConvertFrom-SourceTable
+        Github      : https://github.com/tostka/verb-io
         Tags        : Powershell,Conversion,Text
         REVISIONS
-        * 4:43 PM 4/25/2022 cleanedup indents, added comments, for clarity; prefixed all internal funcs w _, to make them distinctive ; 
+        * 11:42 PM 8/31/2025 refactor CBH, wasn't parsin
+        * 4:43 PM 4/25/2022 cleanedup indents, added comments, for clarity; prefixed all internal funcs w _, to make them distinctive ;
         fighting persistent error ipmo'ing into psv2:
-        ```text
         <position> : The Data section is missing its statement block.
         + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
         + FullyQualifiedErrorId : MissingStatementBlockForDataSection
-        ```
         For now if it out anytime psv2 is in play. Nope, parser can't parse the content, so it won't even properly skip the function
-        Psv2 appears unable to parse some aspect of this. 
+        Psv2 appears unable to parse some aspect of this.
         * 10:35 AM 2/21/2022 CBH example ps> adds
         0.3.11 2020-03-27 Added -Omit parameter (Each omitted character will be replaced with a space)
         .DESCRIPTION
+        ConvertFrom-SourceTable - Converts a fixed column table to objects.
         The ConvertFrom-SourceTable cmdlet creates objects from a fixed column
         source table (format-table) possibly surrounded by horizontal and/or
         vertical rulers. The ConvertFrom-SourceTable cmdlet supports most data
@@ -58,7 +58,6 @@ if($host.version.major -gt 2){
         Column alignment (which is used for a default field alignment) is
         defined by the first and last character or space of the header and
         the ruler of the outlined column.
-
         .PARAMETER InputObject
         Specifies the source table strings to be converted to objects.
         Enter a variable that contains the source table strings or type a
@@ -120,6 +119,12 @@ if($host.version.major -gt 2){
         .PARAMETER Literal
         The -Literal parameter will prevent any right aligned data to be
         evaluated.
+        .INPUTS
+        None. Does not accepted piped input.(.NET types, can add description)
+        .OUTPUTS
+        None. Returns no objects or output (.NET types)
+        System.Boolean
+        [| get-member the output to see what .NET obj TypeName is returned, to use here]
         .EXAMPLE
         PS> $Colors = ConvertFrom-SourceTable '
         Name       Value         RGB
@@ -186,6 +191,8 @@ if($host.version.major -gt 2){
         ' ;
         .LINK
         Online Version: https://github.com/iRon7/ConvertFrom-SourceTable
+        .LINK
+        https://github.com/tostka/verb-io
         #>
         [Alias('cfst')]
         [CmdletBinding()]
