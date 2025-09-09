@@ -20,7 +20,7 @@ Function Test-FileBlockedStatus {
     AddedWebsite: URL
     AddedTwitter: URL
     REVISIONS
-    * 4:19 PM 9/9/2025 init
+    * 4:56 PM 9/9/2025 revised: error workaround: $adsPath = "$($file.FullName):$ZoneIdentifierStream"; test-Path -LiteralPath $adsPath ;  init
     .DESCRIPTION
     Test-FileBlockedStatus - Tests files for 'Blocked' status by checking the ZoneIdentifier alternate data stream.
     This function inspects files to determine if they are marked as 'Blocked' by Windows.
@@ -33,6 +33,8 @@ Function Test-FileBlockedStatus {
     System.String - Full path of files that are marked as 'Blocked'.
     .EXAMPLE
     PS> Get-ChildItem -Path "C:\Downloads" | Test-FileBlockedStatus
+    .EXAMPLE
+    PS> gci d:\cab\* -include @('*.ps1','*.psm1')  | Test-FileBlockedStatus | Unblock-File -verbose ;    
     .LINK
     https://learn.microsoft.com/en-us/windows/win32/shell/zone-identifiers
     .LINK
@@ -40,7 +42,8 @@ Function Test-FileBlockedStatus {
     #>
     [CmdletBinding()]
     PARAM (
-[Parameter( Mandatory = $true, ValueFromPipeline = $true, HelpMessage = "Specify the path to the file or directory to inspect." )]         [ValidateNotNullOrEmpty()]
+[Parameter( Mandatory = $true, ValueFromPipeline = $true, HelpMessage = "Specify the path to the file or directory to inspect." )]         
+        [ValidateNotNullOrEmpty()]
         [string]$Path
     ) 
     BEGIN {
@@ -58,13 +61,12 @@ Function Test-FileBlockedStatus {
             }
             foreach ($file in $files) {
                 TRY {
-                    $adsPath = "$($file.FullName):$ZoneIdentifierStream"
-                    if (Test-Path -LiteralPath $adsPath) {
-                        $zoneData = Get-Content -Path $adsPath -ErrorAction Stop | Out-String
-                        if ($zoneData -match "ZoneId=$BlockedZoneId") {
-                            Write-Output $file.FullName
-                        }
-                    }
+                    $fileInfo = Get-ItemProperty -Path $file.FullName -Name ZoneIdentifier -ErrorAction SilentlyContinue ; 
+                    if ($fileInfo -ne $null) {
+                        $file.FullName | write-output 
+                    } else {
+                        write-verbose "($($file.FullName) is not blocked)" ; 
+                    }                        
                 } CATCH {
                     Write-Warning "Failed to read ADS for '$($file.FullName)': $_"
                 }
