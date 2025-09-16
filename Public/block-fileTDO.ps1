@@ -1,4 +1,4 @@
-# block-fileTDO.ps1
+﻿# block-fileTDO.ps1
 
     #region BLOCK_FILETDO ; #*------v block-fileTDO v------
     Function block-fileTDO {
@@ -20,9 +20,15 @@
         AddedWebsite: URL
         AddedTwitter: URL
         REVISIONS
+        * 4:30 PM 9/15/2025 updated CBH with set-content -stream info (only writes the stream around the file, not the entire file)
         * 11:13 AM 9/11/2025 init, creating for testing of test-fileblockstatusTDO() & unblock-file in dynamic iflv code
         .DESCRIPTION
         block-fileTDO - Mock up a conterpart for Microsoft.PowerShell.Utility\unblock-file(), that sets a 'Block'; adding a ZoneIdentifier alternate data stream to designated file
+
+        Note: This uses set-content with the -stream parameter to add a Zone.Identifier stream with the ZoneID=3 spec:
+        -stream *only writes the targeted stream data*, even on huge files. 
+        Point it at a 6gb .ISO, you don't sc 6gb of data to set the ZoneID, just a few k of stream data.
+
         .PARAMETER Path
         Specifies the files to block. Wildcard characters are supported.[-path c:\pathto\file.ext]
         .PARAMETER LiteralPath
@@ -118,6 +124,7 @@
                         $smsg = "set-Content w`n$(($pltDo|out-string).trim())" ; 
                         if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
                         else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
+                        #-=-=-=-=-=-=-=-=
                         if ($Force -or $PSCmdlet.ShouldProcess($titem, 'set-Content: Should Process?')) {
                             TRY{
                                 set-Content @pltDo ;   
@@ -134,7 +141,8 @@
                             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Prompt }
                             else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
                             #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
-                        } ;                   
+                        } ; 
+                        #-=-=-=-=-=-=-=-=                       
                     }
                 } CATCH {
                     $ErrTrapd=$Error[0] ;
@@ -148,3 +156,4 @@
         }
     }
     #endregion BLOCK_FILETDO ; #*------^ END block-fileTDO ^------
+
