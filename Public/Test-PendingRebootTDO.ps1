@@ -1,23 +1,27 @@
-﻿#*------v Test-PendingReboot.ps1 v------
-function Test-PendingReboot {
+﻿# Test-PendingRebootTDO.ps1
+
+#region TEST_PENDINGREBOOTTDO ; #*------v Test-PendingRebootTDO v------#
+function Test-PendingRebootTDO {
     <#
     .SYNOPSIS
-    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
+    Test-PendingRebootTDO - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
     .NOTES
-    Version     : 1.0.0
+    Version     : 0.0.
     Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2025-
+    FileName    : Test-PendingRebootTDO.ps1
+    License     : MIT License
+    Copyright   : (c) 2025 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,System,Reboot
     AddedCredit : Adam Bertram
     AddedWebsite:	https://adamtheautomator.com/pending-reboot-registry-windows/
     AddedTwitter:	@adambertram
-    CreatedDate : 20201014-0826AM
-    FileName    : Test-PendingReboot.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-XXX
-    Tags        : Powershell,System,Reboot
     REVISIONS
+    * 1:56 PM 9/18/2025 add verbose echo of regkey that tagged a reboot; ren Test-PendingReboot -> Test-PendingRebootTDO; alias orig name; add region tags
+      cbh: updated cited output to pscustomobject.
     * 9:38 AM 12/26/2024 tab-indent & caps'd the param blocks, flipped $Computername to nonmando wo notnullorempty, defaulted to $env:computername; added coerced -local when $computername -eq $env:computername, now runs on mybox, failed trying to do unconfig'd remoteps prev
     * 12:19 PM 6/24/2024 new box, pre WinRM remote config, fails hard; so cut in quick & dirty workaroun: -Local param, steers through the tests wo the PSSesssion working
     * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
@@ -25,22 +29,22 @@ function Test-PendingReboot {
     * 5:03 PM 1/14/2021 init, minor CBH mods
     * 7/29/19 AB's posted version
     .DESCRIPTION
-    Test-PendingReboot.ps1 - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
+    Test-PendingRebootTDO - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
     .PARAMETER  ComputerName
     Array of computernames to be tested for pending reboot
     .PARAMETER  Credential
     windows Credential [-credential (get-credential)]
     .PARAMETER Local
-    Switch to force check of local computer only (not dependant on PSSession or WinRM config, on new machines)
+    Switch to skip remote PSSession connection, run local machine tests only (which will fail on new build unconfigured WinRM)[-Local]
     .PARAMETER IgnoreFileRename
-    Switch to skip  tests of *PendingFileRenameOperations*[-ignorefilerename]
+    Switch to skip  tests of *PendingFileRenameOperations* (which don't reflect system pending updates, just locked file removal/replacement)[-ignorefilerename]
     .OUTPUT
-    System.Collections.Hashtable
+    System.Management.Automation.PSCustomObject
     .EXAMPLE
-    if((Test-PendingReboot -ComputerName $env:Computername).IsPendingReboot){write-warning "$env:computername is PENDING REBOOT!"} ;
+    if((Test-PendingRebootTDO -ComputerName $env:Computername).IsPendingReboot){write-warning "$env:computername is PENDING REBOOT!"} ;
     Test for pending reboot remotely
     .EXAMPLE
-    PS> if((Test-PendingReboot -ComputerName $env:Computername -Local -IgnoreFileRename).IsPendingReboot){
+    PS> if((Test-PendingRebootTDO -ComputerName $env:Computername -Local -IgnoreFileRename).IsPendingReboot){
     PS>     $smsg = "$env:computername is PENDING REBOOT!" ; 
     PS>     $smsg += "`nreboot and relaunch..." ; 
     PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } 
@@ -49,15 +53,17 @@ function Test-PendingReboot {
     PS> } ;
     Local only test with demo'd echo, and -IgnoreFileRename specified.
     .LINK
+    https://adamtheautomator.com/pending-reboot-registry-windows/
+    .LINK
     https://github.com/tostka/verb-IO
     #>
     [CmdletBinding()]
-    #[Alias('get-ScheduledTaskReport')]
+    [Alias('Test-PendingReboot')]
     PARAM(
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false,HelpMessage="Array of computernames to be tested for pending reboot")]
             [ValidateNotNullOrEmpty()]
             [string[]]$ComputerName= $env:computername,
-        [Parameter()]
+        [Parameter(HelpMessage="windows Credential [-credential (get-credential)]")]
             [ValidateNotNullOrEmpty()]
             [pscredential]$Credential,
         [Parameter(HelpMessage="Switch to skip remote PSSession connection (which will fail on new build unconfigured WinRM)[-Local]")]
@@ -67,13 +73,13 @@ function Test-PendingReboot {
     ) ;
     $ErrorActionPreference = 'Stop'
 
+    <# try to pull in local modules into the scriptblock (rather than expliciting a copy in the block) - didn't work, module load threw
+    Error Message: A Using variable cannot be retrieved. A Using variable can be used only with Invoke-Command, Start-Job, or InlineScript in the script workflow. When it is used with Invoke-Command, the Using variable is valid only if the script block is invoked on a remote computer
+    #>
     $scriptBlock = {
 
         $VerbosePreference = $using:VerbosePreference
 
-        <# try to pull in local modules into the scriptblock (rather than expliciting a copy in the block) - didn't work, module load threw
-        Error Message: A Using variable cannot be retrieved. A Using variable can be used only with Invoke-Command, Start-Job, or InlineScript in the script workflow. When it is used with Invoke-Command, the Using variable is valid only if the script block is invoked on a remote computer
-        #>
         function Test-RegistryKey {
             [OutputType('bool')]
             [CmdletBinding()]
@@ -221,6 +227,7 @@ function Test-PendingReboot {
                         Write-Verbose "Running scriptblock: [$($test.ToString())]"
                         if (& $test) {
                             $output.IsPendingReboot = $true ;
+                            Write-Verbose "REBOOT TAGGED: [$($test.ToString())]`n(break on first match)"
                             break
                         }
                     } ; 
@@ -240,6 +247,5 @@ function Test-PendingReboot {
             }
         } # TRY-E
     } ;
-}
-
-#*------^ Test-PendingReboot.ps1 ^------
+} ; 
+#endregion TEST_PENDINGREBOOTTDO ; #*------^ END Test-PendingRebootTDO ^------

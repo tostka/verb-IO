@@ -1,7 +1,8 @@
-# repair-FileEncodingMulti.ps1
+﻿# repair-FileEncodingMixed.ps1
 
-    #region REPAIR_FILEENCODINGMIXED ; #*------v repair-FileEncodingMixed v------   
-    function repair-FileEncodingMixed {
+
+#region REPAIR_FILEENCODINGMIXED ; #*------v repair-FileEncodingMixed v------
+function repair-FileEncodingMixed {
         <#
         .SYNOPSIS
         repair-FileEncodingMixed.ps1 - Given the path to a problematic file - one that switches encoding mid-file (symptom: suddenly pads every character with spaces (NUL AKA \0 chars)) - this script renames the original file to suffix _MIXEDENCODING.[orig extension], and runs a replace '\0','' on the original content, then writtes updated content back to original file name, with UTF8 explicit encoding.
@@ -20,6 +21,7 @@
         AddedWebsite:	URL
         AddedTwitter:	URL
         REVISIONS
+        * 9:13 AM 10/9/2025 repair-FileEncodingMixed: restored lost -replace \0 _actual fix_ from the set-content line.
         * 10:57 AM 9/3/2025 fixed typo, add missing skip return original path to pipe;
              made the BackupFileNameSuffix an overridable param;
             change bufile suffix BROKENENCODING -> MIXEDENCODING;
@@ -97,6 +99,10 @@
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent} 
                         else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
                         $bufile = join-path $sfile.directory -child "$($sfile.basename)_$($BackupFileNameSuffix)$($sfile.extension)" -ea STOP ;  
+                        if(test-path $bufile){ 
+                            write-host -foregroundcolor yellow "(pre-existing bu, appending _hhmm)" ; 
+                            $bufile = $bufile.Replace('.log',"_$(get-date -format 'HHmm').log")
+                        }
                         $smsg = "Backing up source file to:`n$($bufile)..." ; 
                         if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
                         else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;                    
@@ -114,7 +120,7 @@
                         $smsg += "`n(returning updated file path to pipeline)" ; 
                         if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug
                         else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-                        $content | set-content -path $sfile.fullname  -Encoding $EncodingTarget -verbose -ErrorAction STOP -whatif:$($whatif) ;
+                        $content -replace '\0', '' | set-content -path $sfile.fullname  -Encoding $EncodingTarget -verbose -ErrorAction STOP -whatif:$($whatif) ;
                         $sfile.fullname | write-output ;
                         
                     } else {
@@ -126,14 +132,10 @@
                         $sfile.fullname | write-output ;
                     } ;                                             
                 } CATCH {
-                    $ErrorTrapped = $Error[0] ;
-                    #write-warning "$(get-date -format 'HH:mm:ss'): Failed processing $($ErrorTrapped.Exception.ItemName). `nError Message: $($ErrorTrapped.Exception.Message)`nError Details: $($ErrorTrapped)" ;
-                    $PassStatus += ";ERROR";
-                    $smsg= "Failed processing $($ErrorTrapped.Exception.ItemName). `nError Message: $($ErrorTrapped.Exception.Message)`nError Details: $($ErrorTrapped)" ;
-                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Error } #Error|Warn
-                    else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" }
-                    #Continue #STOP(debug)|EXIT(close)|Continue(move on in loop cycle) ;
-                    Continue ; 
+                    $ErrTrapd=$Error[0] ;
+                    $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+                    else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;                    
                 } ;
                 $smsg = "$($sBnrS.replace('-v','-^').replace('v-','^-'))" ;
                 if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level H2 } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
@@ -144,5 +146,6 @@
             if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level H1 } #Error|Warn|Debug
             else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
         } ;  # END-E
-    } ; 
-    #endregion REPAIR_FILEENCODINGMIXED ; #*------^ END repair-FileEncodingMixed ^------
+    }
+#endregion REPAIR_FILEENCODINGMIXED ; #*------^ END repair-FileEncodingMixed ^------
+

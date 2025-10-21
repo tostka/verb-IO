@@ -1,7 +1,7 @@
 ﻿# resolve-EnvironmentTDO.ps1
 
 #region RESOLVE_ENVIRONMENTTDO ; #*------v resolve-EnvironmentTDO v------
-#if (-not(gi function:resolve-EnvironmentTDO -ea 0)) {
+if (-not(gi function:resolve-EnvironmentTDO -ea 0)) {
     function resolve-EnvironmentTDO {
         <#
             .SYNOPSIS
@@ -21,25 +21,26 @@
             AddedWebsite: 
             AddedTwitter: URL
             REVISION
+            * 11:20 AM 9/17/2025 removed write-my* calls: implemented support in vio\write-log() instead (avoids all this manual updating)
             * 2:39 PM 7/17/2025 removed commented code; updated CBH to restore removed details, and to provide demo outputs; added series of examples for common usage
             * 4:44 PM 5/23/2025 updated the splats to psv2/psv3 support (dyn build; prev was psv3 only)
             * 4:13 PM 4/4/2025 init
             .DESCRIPTION
             resolve-EnvironmentTDO.ps1 - Resolves local environment into usable Script or Function-descriptive values (for reuse in logging and i/o access)
-            
+                
             Requires inputs of the range of Descriptive Environtment Variables, which due to encapsulation effects, require pre-assignment to variables to properly capture the values for submission as resolve-EnvironmentTDO input paramneters: 
-            
+                
             PS> $rPSCmdlet = $PSCmdlet ;
             PS> $rPSScriptRoot = $PSScriptRoot ;
             PS> $rPSCommandPath = $PSCommandPath ;
             PS> $rMyInvocation = $MyInvocation ;
             PS> $rPSBoundParameters = $PSBoundParameters ;  
-            
+                
             resolve-EnvironmentTDO then resolves the material into standardized values for use to drive logic in scripts & functions. 
-            
-            
+                
+                
             ## Properties returned for a module-hosted function:
-            
+                
             ```powershell
             14:23:27:resolve-EnvironmentTDO w
             Name                           Value
@@ -69,9 +70,9 @@
             isScriptUnpathed       : False
 
             ```
-            
+                
             ## Properties returned for a script:
-            
+                
             ```powershell
             14:35:27:resolve-EnvironmentTDO w
             Name                           Value
@@ -82,7 +83,7 @@
             MyInvocationproxy              System.Management.Automation.InvocationInfo
             PSBoundParametersproxy         {}
             verbose                        False
-            
+                
             $rvEnv returned:
             PSCmdletproxy          : System.Management.Automation.PSScriptCmdlet
             PSScriptRootproxy      : C:\tmp
@@ -147,7 +148,7 @@
             PS> } ; 
             PS> $rvEnv = resolve-EnvironmentTDO @pltRVEnv ; 
             PS> $smsg = "`$rvEnv returned:`n$(($rvEnv |out-string).trim())" ; 
-            PS> if($verbose){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
+            PS> if($VerbosePreference -eq 'Continue'){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } 
             PS> else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
             PS> #endregion RV_ENVIRO ; #*------^ END RV_ENVIRO ^------
             Demo load and invocation, capturing & feeding the local environment descriptors in to reseolve-EnvironmentTDO()
@@ -285,10 +286,11 @@
             If ($hshOutput.Contains("Dummy")) { $hshOutput.remove("Dummy") } ;
             $tv = 'PSCmdletproxy', 'PSScriptRootproxy', 'PSCommandPathproxy', 'MyInvocationproxy', 'PSBoundParametersproxy'
             # stock the autovaris, if populated
-            $tv | % {
+            $tv | foreach-object {
                 $hshOutput.add($_, (get-variable -name $_ -ea 0).Value)
             } ;
-            write-verbose "`$hshOutputn$(($hshOutput|out-string).trim())" ;
+            $smsg = "`$hshOutputn$(($hshOutput|out-string).trim())" ;
+            if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
             $fieldsnull = 'runSource', 'CmdletName', 'PSParameters', 'ParamsNonDefault'
             if ([boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'Function' -AND $hshOutput.MyInvocationproxy.MyCommand.Name)) {
                 $fieldsnull = $(@($fieldsnull); @(@('isFunc', 'funcname', 'isFuncAdv'))) ;
@@ -299,11 +301,14 @@
             } ;
             $tv = $(@($tv); @($fieldsnull)) ;
             # append resolved elements to the hash as $null
-            $fieldsnull  | % { $hshOutput.add($_, $null) } ;
-            write-verbose "`$hshOutputn$(($hshOutput|out-string).trim())" ;
+            $fieldsnull  | foreach-object { $hshOutput.add($_, $null) } ;
+            $smsg = "`$hshOutputn$(($hshOutput|out-string).trim())" ;
+            if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
 
             if ($hshOutput.isFunc = [boolean]($hshOutput.MyInvocationproxy.MyCommand.commandtype -eq 'Function' -AND $hshOutput.MyInvocationproxy.MyCommand.Name)) {
-                $hshOutput.FuncName = $hshOutput.MyInvocationproxy.MyCommand.Name ; write-verbose "`$hshOutput.FuncName: $($hshOutput.FuncName)" ;
+                $hshOutput.FuncName = $hshOutput.MyInvocationproxy.MyCommand.Name ; 
+                $smsg = "`$hshOutput.FuncName: $($hshOutput.FuncName)" ;
+                if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
             } ;
             if ($hshOutput.isFunc -AND (gv PSCmdletproxy -ea 0).value -eq $null) {
                 $hshOutput.isFuncAdv = $false
@@ -322,7 +327,8 @@
                     $score += 'ExternalScript'
                 } elseif ($hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '^\.') {
                     write-warning "dot-sourced invocation detected!:$($hshOutput.PSCmdletproxy.MyInvocation.InvocationName)`n(will be unable to leverage script path etc from `$MyInvocation objects)" ;
-                    write-verbose "(dot sourcing is implicit script exec)" ;
+                    $smsg = "(dot sourcing is implicit script exec)" ;
+                    if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
                     $score += 'ExternalScript' ;
                 } else { $score += 'Function' }; # blank under function exec, has func name under AdvFuncs
             } ;
@@ -340,7 +346,8 @@
                     $hshOutput.runSource = $grpSrc | select -last 1 | select -expand name ;
                 } ;
             } else {
-                write-verbose "consistent results" ;
+                $smsg = "consistent results" ;
+                if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
                 $hshOutput.runSource = $grpSrc | select -last 1 | select -expand name ;
             };
             if ($hshOutput.runSource -eq 'Function') {
@@ -352,7 +359,7 @@
             } elseif ($hshOutput.runSource -eq 'ExternalScript') {
                 $smsg = "Calculated `$hshOutput.runSource:$($hshOutput.runSource)" ;
             } ;
-            write-verbose $smsg ;
+            if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
             'score', 'grpSrc' | get-variable | remove-variable ; # cleanup temp varis
             $hshOutput.CmdletName = $hshOutput.PSCmdletproxy.MyInvocation.MyCommand.Name ; # function self-name (equiv to script's: $MyInvocation.MyCommand.Path), pop'd on AdvFunc
             #region PsParams ; #*------v PSPARAMS v------
@@ -364,29 +371,24 @@
             # - $hshOutput.PSParameters: System.Management.Automation.PSCustomObject (created obj)
             # test/access: ($hshOutput.PSParameters.verbose -eq $true) ; $hshOutput.PSParameters.psobject.Properties.name -contains 'SenderAddress' ; # cobj syntax
             # CANNOT use as a @splat to push through (it's a cobj)
-            write-verbose "`$hshOutput.PSBoundParametersproxy:`n$(($hshOutput.PSBoundParametersproxy|out-string).trim())" ;
+            $smsg = "`$hshOutput.PSBoundParametersproxy:`n$(($hshOutput.PSBoundParametersproxy|out-string).trim())" ;
+            if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
             # pre psv2, no $hshOutput.PSBoundParametersproxy autovari to check, so back them out:
             if ($hshOutput.PSCmdletproxy.MyInvocation.InvocationName) {
                 # has func name under AdvFuncs
                 if ($hshOutput.PSCmdletproxy.MyInvocation.InvocationName -match '^\.') {
                     $smsg = "detected dot-sourced invocation: Skipping `$PSCmdlet.MyInvocation.InvocationName-tied cmds..." ;
-                    if ($verbose) {
-                        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE }
-                        else { write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-                    } ;
-                    #Levels:Error|Warn|Info|H1|H2|H3|H4|H5|Debug|Verbose|Prompt|Success
+                    if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ;                       
                 } else {
-                    write-verbose 'Collect all non-default Params (works back to psv2 w CmdletBinding)'
+                    $smsg = "Collect all non-default Params (works back to psv2 w CmdletBinding)"
+                    if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
                     $hshOutput.ParamsNonDefault = (Get-Command $hshOutput.PSCmdletproxy.MyInvocation.InvocationName).parameters |
                     Select-Object -expand keys |
                     Where-Object { $_ -notmatch '(Verbose|Debug|ErrorAction|WarningAction|ErrorVariable|WarningVariable|OutVariable|OutBuffer)' } ;
                 } ;
             } else {
                 $smsg = "(blank `$hshOutput.PSCmdletproxy.MyInvocation.InvocationName, skipping Parameters collection)" ;
-                if ($verbose) {
-                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE }
-                    else { write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
-                } ;
+                if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
             } ;
             if ($hshOutput.isScript) {
                 $hshOutput.ScriptDir = $scriptName = '' ;
@@ -397,13 +399,15 @@
                 };
 
                 if ($hshOutput.ScriptDir -eq '' -AND (Test-Path variable:psEditor)) {
-                    write-verbose "Running from VSCode|VS" ;
+                    $smsg = "Running from VSCode|VS" ;
+                    if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
                     $hshOutput.ScriptDir = (Split-Path -Path $psEditor.GetEditorContext().CurrentFile.Path -Parent) ;
                     if ($hshOutput.ScriptName -eq '') { $hshOutput.ScriptName = $psEditor.GetEditorContext().CurrentFile.Path };
                 } ;
                 if ($hshOutput.ScriptDir -eq '' -AND $host.version.major -lt 3 -AND $hshOutput.MyInvocationproxy.MyCommand.Path.length -gt 0) {
                     $hshOutput.ScriptDir = $hshOutput.MyInvocationproxy.MyCommand.Path ;
-                    write-verbose "(backrev emulating `$hshOutput.PSScriptRootproxy, `$hshOutput.PSCommandPathproxy)"
+                    $smsg = "(backrev emulating `$hshOutput.PSScriptRootproxy, `$hshOutput.PSCommandPathproxy)"
+                    if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
                     $hshOutput.ScriptName = split-path $hshOutput.MyInvocationproxy.MyCommand.Path -leaf ;
                     $hshOutput.PSScriptRootproxy = Split-Path $hshOutput.ScriptName -Parent ;
                     $hshOutput.PSCommandPathproxy = $hshOutput.ScriptName ;
@@ -443,8 +447,11 @@
                     # Basic Func-specific cmds
                 } ;
                 if ($hshOutput.PSCommandPathproxy -match '\.psm1$') {
-                    write-host "MODULE-HOMED FUNCTION:Use `$hshOutput.CmdletName to reference the running function name for transcripts etc (under a .psm1 `$hshOutput.ScriptName will reflect the .psm1 file  fullname)"
-                    if (-not $hshOutput.CmdletName) { write-warning "MODULE-HOMED FUNCTION with BLANK `$CmdletNam:$($CmdletNam)" } ;
+                    $smsg = "MODULE-HOMED FUNCTION:Use `$hshOutput.CmdletName to reference the running function name for transcripts etc (under a .psm1 `$hshOutput.ScriptName will reflect the .psm1 file  fullname)"
+                    write-host -foregroundcolor yellow $smsg ; 
+                    if (-not $hshOutput.CmdletName) { 
+                        write-warning "MODULE-HOMED FUNCTION with BLANK `$CmdletNam:$($CmdletNam)" 
+                    } ;
                 } # Running from .psm1 module
                 if (-not $hshOutput.CmdletName -AND $hshOutput.FuncName) {
                     $hshOutput.CmdletName = $hshOutput.FuncName
@@ -457,10 +464,11 @@
         PROCESS {};  # PROC-E
         END {
             if ($hshOutput) {
-                write-verbose "(return `$hshOutput to pipeline)" ;
+                $smsg = "(return `$hshOutput to pipeline)" ;
+                    if($VerbosePreference -eq "Continue"){if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level VERBOSE } else{ write-verbose "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; } ; 
                 New-Object PSObject -Property $hshOutput | write-output
             } ;
         }
     } ;
-#} ;
+} ;
 #endregion RESOLVE_ENVIRONMENTTDO ; #*------^ END resolve-EnvironmentTDO ^------

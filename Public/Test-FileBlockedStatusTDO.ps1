@@ -1,7 +1,8 @@
 ﻿# Test-FileBlockedStatusTDO.ps1
 
-    #region TEST_FILEBLOCKEDSTATUSTDO ; #*------v Test-FileBlockedStatusTDO v------
-    Function Test-FileBlockedStatusTDO {
+
+#region TEST_FILEBLOCKEDSTATUSTDO ; #*------v Test-FileBlockedStatusTDO v------
+Function Test-FileBlockedStatusTDO {
         <#
         .SYNOPSIS
         Test-FileBlockedStatusTDO - Tests files for 'Blocked' status by checking the ZoneIdentifier alternate data stream.
@@ -20,7 +21,7 @@
         AddedWebsite: URL
         AddedTwitter: URL
         REVISIONS
-        * 4:02 PM 9/15/2025 flipped -Path to [string] -> [string[]] and test-path validation; process stack of specs, emit blocks, to pipeline; 
+        * 4:02 PM 9/15/2025 Test-FileBlockedStatusTDO(): flipped -Path to [string] -> [string[]] and test-path validation; process stack of specs, emit blocks, to pipeline; 
              add CBH demos for 1-liner test and unblock & vsdev/xopBuildLibrary loads 
         * 6:02 PM 9/11/2025 flipped pipeline output to fileinfo object, vs string fullname (unblock won't pipeline process the string, doers the object) ; 
             ren'd Test-FileBlockedStatus -> Test-FileBlockedStatusTDO, aliased orig name
@@ -171,4 +172,5 @@
             # No cleanup needed
         }
     }
-    #endregion TEST_FILEBLOCKEDSTATUSTDO ; #*------^ END Test-FileBlockedStatusTDO ^------
+#endregion TEST_FILEBLOCKEDSTATUSTDO ; #*------^ END Test-FileBlockedStatusTDO ^------
+

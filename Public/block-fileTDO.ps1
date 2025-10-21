@@ -1,7 +1,8 @@
 ﻿# block-fileTDO.ps1
 
-    #region BLOCK_FILETDO ; #*------v block-fileTDO v------
-    Function block-fileTDO {
+
+#region BLOCK_FILETDO ; #*------v block-fileTDO v------
+Function block-fileTDO {
         <#
         .SYNOPSIS
         block-fileTDO - Mock up a conterpart for Microsoft.PowerShell.Utility\unblock-file(), that sets a 'Block'; adding a ZoneIdentifier alternate data stream to designated file
@@ -20,7 +21,7 @@
         AddedWebsite: URL
         AddedTwitter: URL
         REVISIONS
-        * 4:30 PM 9/15/2025 updated CBH with set-content -stream info (only writes the stream around the file, not the entire file)
+        * 4:30 PM 9/15/2025 block-fileTDO(): updated CBH with set-content -stream info (only writes the stream around the file, not the entire file)
         * 11:13 AM 9/11/2025 init, creating for testing of test-fileblockstatusTDO() & unblock-file in dynamic iflv code
         .DESCRIPTION
         block-fileTDO - Mock up a conterpart for Microsoft.PowerShell.Utility\unblock-file(), that sets a 'Block'; adding a ZoneIdentifier alternate data stream to designated file
@@ -155,5 +156,5 @@
             # No cleanup needed
         }
     }
-    #endregion BLOCK_FILETDO ; #*------^ END block-fileTDO ^------
+#endregion BLOCK_FILETDO ; #*------^ END block-fileTDO ^------
 
