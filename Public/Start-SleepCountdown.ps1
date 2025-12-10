@@ -1,4 +1,6 @@
-#*------v Function Start-SleepCountdown v------
+# Start-SleepCountdown
+
+#region START_SLEEPCOUNTDOWN ; #*------v Start-SleepCountdown v------
 function start-sleepcountdown {
     <#
     .SYNOPSIS
@@ -15,6 +17,7 @@ function start-sleepcountdown {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Time
     REVISION
+    * 12:49 PM 12/5/2025 added regions
     * 4:34 PM 3/18/2025 fixed cbh helpmsg on -useMins; added inplace counter via -Rolling; added CBH expls for same.
     * 10:44 AM 10/15/2024 add -useMins to make it do a minutes countdown (still requires seconds input)
     * 1:19 PM 12/14/2023 init
@@ -133,4 +136,4 @@ function start-sleepcountdown {
         } ;
     } ;
 } ;
-#*------^ END Function Start-SleepCountdown ^------
+#endregion START_SLEEPCOUNTDOWN ; #*------^ END Start-SleepCountdown ^------
