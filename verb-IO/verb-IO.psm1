@@ -1,11 +1,11 @@
-﻿# verb-IO.psm1
+﻿# verb-io.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 17.2.1.0.0
+Version     : 17.3.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -952,306 +952,393 @@ Function Close-IfAlreadyRunning {
 
 #*------v Compare-ObjectsSideBySide.ps1 v------
 function Compare-ObjectsSideBySide{
-    <#
-    .SYNOPSIS
-    Compare-ObjectsSideBySide() - Displays a pair of objects side-by-side comparatively in console
-    .NOTES
-    Author: Richard Slater
-    Website:	https://stackoverflow.com/users/74302/richard-slater
-    Updated By: Todd Kadrie
-    Website:	http://www.toddomation.com
-    Twitter:	@tostka, http://twitter.com/tostka
-    Additional Credits: REFERENCE
-    Website:	URL
-    Twitter:	URL
-    FileName    : convert-ColorHexCodeToWindowsMediaColorsName.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : PowershellConsole
-    REVISIONS   :
-    * 9:38 AM 4/11/2025 add AdvFunc pre; alias: crObjectsSideBySide
-    * 11:04 AM 4/25/2022 added CBH example output, and another example using Exchange Get-MailboxDatabaseCopyStatus results, between a pair of DAG nodes.
-    * 10:35 AM 2/21/2022 CBH example ps> adds 
-    * 10:17 AM 9/15/2021 fixed typo in params, moved to full param block, and added lhs/rhs as aliases; expanded CBH
-    * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
-    * 10:18 AM 11/2/2018 reformatted, tightened up, shifted params to body, added pshelp
-    * May 7 '16 at 20:55 posted version
-    .DESCRIPTION
-    Compare-ObjectsSideBySide() - Displays a pair of objects side-by-side comparatively in console
-    .PARAMETER  col1
-    Object to be displayed in Left Column [-col1 $PsObject1]
-    .PARAMETER  col2
-    Object to be displayed in Right Column [-col2 $PsObject2]
-    .PARAMETER ShowDebug
-    Parameter to display Debugging messages [-ShowDebug switch]
-    .INPUTS
-    Acceptes piped input.
-    .OUTPUTS
-    Outputs specified object side-by-side on console
-    .EXAMPLE
-    PS> $object1 = New-Object PSObject -Property @{
-          'Forename' = 'Richard';
-          'Surname' = 'Slater';
-          'Company' = 'Amido';
-          'SelfEmployed' = $true;
-        } ;
-    PS> $object2 = New-Object PSObject -Property @{
-          'Forename' = 'Jane';
-          'Surname' = 'Smith';
-          'Company' = 'Google';
-          'MaidenName' = 'Jones' ;
-        } ;
-    PS> Compare-ObjectsSideBySide $object1 $object2 | Format-Table Property, col1, col2;
-    Property     Col1    Col2
-    --------     ----    ----
-    Company      Amido   Google
-    Forename     Richard Jane
-    MaidenName           Jones
-    SelfEmployed True
-    Surname      Slater  Smith
-    Display $object1 & $object2 in comparative side-by-side columns
-    .EXAMPLE
-    PS> $prpDBR = 'Name','Status', @{ Label ="CopyQ"; Expression={($_.CopyQueueLength).tostring("F0")}}, @{ Label ="ReplayQ"; Expression={($_.ReplayQueueLength).tostring("F0")}},@{ Label ="IndxState"; Expression={$_.ContentIndexState.ToSTring()}} ; 
-    PS> $dbs0 = (Get-MailboxDatabaseCopyStatus -Server $srvr0.name -erroraction silentlycontinue | sort Status,Name| select $prpDBR) ; 
-    PS> $dbs1 = (Get-MailboxDatabaseCopyStatus -Server $srvr1.name -erroraction silentlycontinue | sort Status,Name| select $prpDBR) ; 
-    PS> Compare-ObjectsSideBySide $dbs0 $dbs1 | ft  property,col1,col2
-    Property  Col1                                                                        Col2
-    --------  ----                                                                        ----
-    CopyQ     {0, 0, 0}                                                                   {0, 0, 0}
-    IndxState {Healthy, Healthy, Healthy}                                                 {Healthy, Healthy, Healthy}
-    Name      {SPBMS640Mail01\SPBMS640, SPBMS640Mail03\SPBMS640, SPBMS640Mail04\SPBMS640} {SPBMS640Mail01\SPBMS641, SPBMS640Mail03\SPBMS641, SPBMS640Mail04\SPBMS641}
-    ReplayQ   {0, 0, 0}                                                                   {0, 0, 0}
-    Status    {Mounted, Mounted, Mounted}                                                 {Healthy, Healthy, Healthy}
-    Demo output with Exchange DAG database status from two nodes. Not as well formatted as prior demo, but still somewhat useful for side by side of DAG nodes. 
-    .LINK
-    https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    [alias('crObjectsSideBySide')]    
-    PARAM(
-        [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj1]")]
-        [Alias('lhs')]
-        $col1,
-        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj2]")]
-        [Alias('rhs')]        
-        $col2
-    ) ;
-    $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $combinedMembers = ($col1Members + $col2Members) | Sort-Object -Unique ;
-    $combinedMembers | ForEach-Object {
-        $properties = @{'Property' = $_} ;
-        if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
-        if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
-        New-Object PSObject -Property $properties ;
-    } ;
-}
+            <#
+            .SYNOPSIS
+            Compare-ObjectsSideBySide() - Displays a pair of objects side-by-side comparatively in console
+            .NOTES
+            Author: Richard Slater
+            Website:	https://stackoverflow.com/users/74302/richard-slater
+            Updated By: Todd Kadrie
+            Website:	http://www.toddomation.com
+            Twitter:	@tostka, http://twitter.com/tostka
+            Additional Credits: REFERENCE
+            Website:	URL
+            Twitter:	URL
+            FileName    : convert-ColorHexCodeToWindowsMediaColorsName.ps1
+            License     : MIT License
+            Copyright   : (c) 2020 Todd Kadrie
+            Github      : https://github.com/tostka/verb-IO
+            Tags        : PowershellConsole
+            REVISIONS   :
+            *3:17 PM 12/9/2025 add -ExcludeProperties, -ExplicitProperties
+            * 11:55 AM 12/8/2025 removed trailing demo code (left prev)
+            * 1:54 PM 12/5/2025 add region
+            * 9:38 AM 4/11/2025 add AdvFunc pre; alias: crObjectsSideBySide
+            * 11:04 AM 4/25/2022 added CBH example output, and another example using Exchange Get-MailboxDatabaseCopyStatus results, between a pair of DAG nodes.
+            * 10:35 AM 2/21/2022 CBH example ps> adds 
+            * 10:17 AM 9/15/2021 fixed typo in params, moved to full param block, and added lhs/rhs as aliases; expanded CBH
+            * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
+            * 10:18 AM 11/2/2018 reformatted, tightened up, shifted params to body, added pshelp
+            * May 7 '16 at 20:55 posted version
+            .DESCRIPTION
+            Compare-ObjectsSideBySide() - Displays a pair of objects side-by-side comparatively in console
+            
+            If -ExplicitProperties is not used, dynamically discovers properties to be compared from the population of the inbound column objects
+            .PARAMETER  col1
+            Object to be displayed in Left Column [-col1 $PsObject1]
+            .PARAMETER  col2
+            Object to be displayed in Right Column [-col2 $PsObject2]
+            .PARAMETER ExcludeProperties
+            Properties to be excluded (generally due to char width in table)[-ExcludeProperties 'DistinguishedName']
+            .PARAMETER ExplicitProperties
+            Properties to be compared (static list, non-discovered from populuation)[-ExplicitProperties @('DistinguishedName','Name')]  
+            .INPUTS
+            Acceptes piped input.
+            .OUTPUTS
+            Outputs specified object side-by-side on console    
+            .EXAMPLE
+            PS> $object1 = New-Object PSObject -Property @{
+                  'Forename' = 'Richard';
+                  'Surname' = 'Slater';
+                  'Company' = 'Amido';
+                  'SelfEmployed' = $true;
+                } ;
+            PS> $object2 = New-Object PSObject -Property @{
+                  'Forename' = 'Jane';
+                  'Surname' = 'Smith';
+                  'Company' = 'Google';
+                  'MaidenName' = 'Jones' ;
+                } ;
+            PS> Compare-ObjectsSideBySide $object1 $object2 | Format-Table Property, col1, col2;
+            Property     Col1    Col2
+            --------     ----    ----
+            Company      Amido   Google
+            Forename     Richard Jane
+            MaidenName           Jones
+            SelfEmployed True
+            Surname      Slater  Smith
+            Display $object1 & $object2 in comparative side-by-side columns
+            .EXAMPLE
+            PS> $prpDBR = 'Name','Status', @{ Label ="CopyQ"; Expression={($_.CopyQueueLength).tostring("F0")}}, @{ Label ="ReplayQ"; Expression={($_.ReplayQueueLength).tostring("F0")}},@{ Label ="IndxState"; Expression={$_.ContentIndexState.ToSTring()}} ; 
+            PS> $dbs0 = (Get-MailboxDatabaseCopyStatus -Server $srvr0.name -erroraction silentlycontinue | sort Status,Name| select $prpDBR) ; 
+            PS> $dbs1 = (Get-MailboxDatabaseCopyStatus -Server $srvr1.name -erroraction silentlycontinue | sort Status,Name| select $prpDBR) ; 
+            PS> Compare-ObjectsSideBySide $dbs0 $dbs1 | ft  property,col1,col2
+            Property  Col1                                                                        Col2
+            --------  ----                                                                        ----
+            CopyQ     {0, 0, 0}                                                                   {0, 0, 0}
+            IndxState {Healthy, Healthy, Healthy}                                                 {Healthy, Healthy, Healthy}
+            Name      {SPBMS640Mail01\SPBMS640, SPBMS640Mail03\SPBMS640, SPBMS640Mail04\SPBMS640} {SPBMS640Mail01\SPBMS641, SPBMS640Mail03\SPBMS641, SPBMS640Mail04\SPBMS641}
+            ReplayQ   {0, 0, 0}                                                                   {0, 0, 0}
+            Status    {Mounted, Mounted, Mounted}                                                 {Healthy, Healthy, Healthy}
+            Demo output with Exchange DAG database status from two nodes. Not as well formatted as prior demo, but still somewhat useful for side by side of DAG nodes. 
+            .EXAMPLE
+            PS> $rgxSplatNoCompareProps = '(DomainController|ErrorAction|whatif)' ;             
+            PS> $pltsRC=[ordered]@{
+            PS>     RemoteIPRanges = $sourceRC.RemoteIPRanges ;
+            PS>     Banner = $sourceRC.Banner ;
+            PS> } ; 
+            PS> $sidebySide = Compare-ObjectsSideBySide -col1 $sourceRC -col2 $targetRC -explicitproperties @(
+            PS>     $pltsRC.GetEnumerator() | ?{$_.name -notmatch $rgxSplatNoCompareProps}| select -expand name ; 
+            PS> ) ;
+            PS> $smsg = $sBnrS="`n#*------v PRE COMPARE: $($sourceRC.identity) : $($targetRC.identity) v------" ; 
+            PS> $smsg = "TargetConnector Pre-exists, comparing properties:" ; 
+            PS> $smsg += "`n$(($sidebySide| Format-Table Property, col1, col2 | out-string).trim())" ; 
+            PS> if(gcm Write-MyOutput -ea 0){Write-MyOutput $smsg } else {
+            PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level H2 } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;    
+            PS> } ;
+            Demo use of -explicitproperties and dynamic discovery of properties from a splat (which would normally used for object creation). 
+            .LINK
+            https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
+            .LINK
+            https://github.com/tostka/verb-IO
+            #>
+            [CmdletBinding()]
+            [alias('crObjectsSideBySide')]    
+            PARAM(
+                [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj1]")]
+                    [Alias('lhs')]
+                    $col1,
+                [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in left/1st column[-col1 `$obj2]")]
+                    [Alias('rhs')]        
+                    $col2,
+                [Parameter(HelpMessage="Properties to be excluded (generally due to char width in table)[-ExcludeProperties 'DistinguishedName']")]
+                    [string[]]$ExcludeProperties,
+                [Parameter(HelpMessage="Properties to be compared (static list, non-discovered from populuation)[-ExcludeProperties 'DistinguishedName']")]
+                    [string[]]$ExplicitProperties
+            ) ;
+            if(-not $ExplicitProperties){
+                $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+                $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+                $combinedMembers = ($col1Members + $col2Members) | Sort-Object -Unique ;
+            }else{
+                $smsg = "-ExplicitProperties specified for compare" ; 
+                $smsg += "`n$(($ExplicitProperties -join ', '|out-string).trim())" ; 
+                write-verbose $smsg ; 
+                $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name | ?{$ExplicitProperties -contains $_} ; 
+                $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name | ?{$ExplicitProperties -contains $_} ; 
+                $combinedMembers = ($col1Members + $col2Members) | Sort-Object -Unique ;
+            }
+            if($ExcludeProperties){
+                $combinedMembers |?{$ExcludeProperties -notcontains $_ } ; 
+                write-verbose "-ExcludeProperties: $($ExcludeProperties)" ; 
+            }
+            $combinedMembers | ForEach-Object {
+                $properties = @{'Property' = $_} ;
+                if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
+                if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
+                New-Object PSObject -Property $properties ;
+            } ;
+        }
 
 #*------^ Compare-ObjectsSideBySide.ps1 ^------
 
 
 #*------v Compare-ObjectsSideBySide3.ps1 v------
 function Compare-ObjectsSideBySide3 {
-    <#
-    .SYNOPSIS
-    Compare-ObjectsSideBySide3() - Displays four objects side-by-side comparatively in console
-    .NOTES
-    Author: Richard Slater
-    Website:	https://stackoverflow.com/users/74302/richard-slater
-    Updated By: Todd Kadrie
-    Website:	http://www.toddomation.com
-    Twitter:	@tostka, http://twitter.com/tostka
-    Additional Credits: REFERENCE
-    FileName    : Compare-ObjectsSideBySide3.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : Powershell,Compare
-    REVISIONS   :
-    * 10:33 AM 4/25/2022 edit back to compliance, prior overwrite with cosbs4; , fixed pos param specs (uniqued); included output in exmplt
-    * 10:35 AM 2/21/2022 CBH example ps> adds 
-    * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
-    * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
-    * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
-    * May 7 '16 at 20:55 posted version
-    .DESCRIPTION
-    Compare-ObjectsSideBySide3() - Displays four objects side-by-side comparatively in console
-    .PARAMETER col1
-    Object to compare in 1st column[-col1 `$PsObject1]
-    PARAMETER col2
-    Object to compare in 2nd column[-col2 `$PsObject1]
-    PARAMETER col3
-    Object to compare in 3rd column[-col3 `$PsObject1]
-    .PARAMETER ShowDebug
-    Parameter to display Debugging messages [-ShowDebug switch]
-    .INPUTS
-    Acceptes piped input.
-    .OUTPUTS
-    Outputs specified object side-by-side on console
-    .EXAMPLE
-    PS> $object1 = New-Object PSObject -Property @{
-          'Forename' = 'Richard';
-          'Surname' = 'Slater';
-          'Company' = 'Amido';
-          'SelfEmployed' = $true;
-        } ;
-    PS> $object2 = New-Object PSObject -Property @{
-          'Forename' = 'Jane';
-          'Surname' = 'Smith';
-          'Company' = 'Google';
-          'MaidenName' = 'Jones' ;
-        } ;
-    PS> $object3 = New-Object PSObject -Property @{
-          'Forename' = 'Zhe';
-          'Surname' = 'Person';
-          'Company' = 'Apfel';
-          'MaidenName' = 'NunaUBusiness' ;
-        } ;
-    PS> Compare-ObjectsSideBySide3 $object1 $object2 $object3| Format-Table Property, col1, col2, col3;
-    Property     Col1    Col2   Col3
-    --------     ----    ----   ----
-    Company      Amido   Google Apfel
-    Forename     Richard Jane   Zhe
-    MaidenName           Jones  NunaUBusiness
-    SelfEmployed True
-    Surname      Slater  Smith  Person
-    Display $object1,2, & 3 in comparative side-by-side columns
-    .LINK
-    https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
-    #>
-    PARAM(
-        [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in 1st column[-col1 `$PsObject1]")]
-        #[Alias('lhs')]
-        $col1,
-        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 2nd column[-col1 `$PsObject1]")]
-        #[Alias('rhs')]        
-        $col2,
-        [Parameter(Position=2,Mandatory=$True,HelpMessage="Object to compare in 3rd column[-col1 `$PsObject1]")]
-        #[Alias('rhs')]        
-        $col3
-    ) ;
-    $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $combinedMembers = ($col1Members + $col2Members + $col3Members) | Sort-Object -Unique ;
-    $combinedMembers | ForEach-Object {
-        $properties = @{'Property' = $_} ;
-        if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
-        if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
-        if ($col3Members.Contains($_)) {$properties['Col3'] = $col3 | Select-Object -ExpandProperty $_} ;
-        New-Object PSObject -Property $properties ;
-    } ;
-}
+            <#
+            .SYNOPSIS
+            Compare-ObjectsSideBySide3() - Displays four objects side-by-side comparatively in console
+            .NOTES
+            Author: Richard Slater
+            Website:	https://stackoverflow.com/users/74302/richard-slater
+            Updated By: Todd Kadrie
+            Website:	http://www.toddomation.com
+            Twitter:	@tostka, http://twitter.com/tostka
+            Additional Credits: REFERENCE
+            FileName    : Compare-ObjectsSideBySide3.ps1
+            License     : MIT License
+            Copyright   : (c) 2020 Todd Kadrie
+            Github      : https://github.com/tostka/verb-IO
+            Tags        : Powershell,Compare
+            REVISIONS   :
+            *3:17 PM 12/9/2025 add -ExcludeProperties, -ExplicitProperties
+            * 11:18 AM 12/8/2025 add region
+            * 10:33 AM 4/25/2022 edit back to compliance, prior overwrite with cosbs4; , fixed pos param specs (uniqued); included output in exmplt
+            * 10:35 AM 2/21/2022 CBH example ps> adds 
+            * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
+            * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
+            * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
+            * May 7 '16 at 20:55 posted version
+            .DESCRIPTION
+            Compare-ObjectsSideBySide3() - Displays four objects side-by-side comparatively in console
+            .PARAMETER col1
+            Object to compare in 1st column[-col1 `$PsObject1]
+            PARAMETER col2
+            Object to compare in 2nd column[-col2 `$PsObject1]
+            PARAMETER col3
+            Object to compare in 3rd column[-col3 `$PsObject1]
+            .PARAMETER ExcludeProperties
+            Properties to be excluded (generally due to char width in table)[-ExcludeProperties 'DistinguishedName']
+            .PARAMETER ExplicitProperties
+            Properties to be compared (static list, non-discovered from populuation)[-ExplicitProperties @('DistinguishedName','Name')]  
+            .INPUTS
+            Acceptes piped input.
+            .OUTPUTS
+            Outputs specified object side-by-side on console
+            .EXAMPLE
+            PS> $object1 = New-Object PSObject -Property @{
+                  'Forename' = 'Richard';
+                  'Surname' = 'Slater';
+                  'Company' = 'Amido';
+                  'SelfEmployed' = $true;
+                } ;
+            PS> $object2 = New-Object PSObject -Property @{
+                  'Forename' = 'Jane';
+                  'Surname' = 'Smith';
+                  'Company' = 'Google';
+                  'MaidenName' = 'Jones' ;
+                } ;
+            PS> $object3 = New-Object PSObject -Property @{
+                  'Forename' = 'Zhe';
+                  'Surname' = 'Person';
+                  'Company' = 'Apfel';
+                  'MaidenName' = 'NunaUBusiness' ;
+                } ;
+            PS> Compare-ObjectsSideBySide3 $object1 $object2 $object3| Format-Table Property, col1, col2, col3;
+            Property     Col1    Col2   Col3
+            --------     ----    ----   ----
+            Company      Amido   Google Apfel
+            Forename     Richard Jane   Zhe
+            MaidenName           Jones  NunaUBusiness
+            SelfEmployed True
+            Surname      Slater  Smith  Person
+            Display $object1,2, & 3 in comparative side-by-side columns
+            .LINK
+            https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
+            #>
+            PARAM(
+                [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in 1st column[-col1 `$PsObject1]")]
+                    #[Alias('lhs')]
+                    $col1,
+                [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 2nd column[-col1 `$PsObject1]")]
+                    #[Alias('rhs')]        
+                    $col2,
+                [Parameter(Position=2,Mandatory=$True,HelpMessage="Object to compare in 3rd column[-col1 `$PsObject1]")]
+                    #[Alias('rhs')]        
+                    $col3,
+                [Parameter(HelpMessage="Properties to be excluded (generally due to char width in table)[-ExcludeProperties 'DistinguishedName']")]
+                    [string[]]$ExcludeProperties,
+                [Parameter(HelpMessage="Properties to be compared (static list, non-discovered from populuation)[-ExcludeProperties 'DistinguishedName']")]
+                    [string[]]$ExplicitProperties
+            ) ;
+            if(-not $ExplicitProperties){
+                $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+                $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+                $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+                $combinedMembers = ($col1Members + $col2Members + $col3Members) | Sort-Object -Unique ;
+            }else{
+                $smsg = "-ExplicitProperties specified for compare" ; 
+                $smsg += "`n$(($ExplicitProperties -join ', '|out-string).trim())" ; 
+                write-verbose $smsg ; 
+                $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name | ?{$ExplicitProperties -contains $_} ; 
+                $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name | ?{$ExplicitProperties -contains $_} ; 
+                $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name | ?{$ExplicitProperties -contains $_} ; 
+                $combinedMembers = ($col1Members + $col2Members + $col3Members) | Sort-Object -Unique ;
+            } ; 
+            if($ExcludeProperties){
+                $combinedMembers |?{$ExcludeProperties -notcontains $_ } ; 
+                write-verbose "-ExcludeProperties: $($ExcludeProperties)" ; 
+            }
+            $combinedMembers | ForEach-Object {
+                $properties = @{'Property' = $_} ;
+                if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
+                if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
+                if ($col3Members.Contains($_)) {$properties['Col3'] = $col3 | Select-Object -ExpandProperty $_} ;
+                New-Object PSObject -Property $properties ;
+            } ;
+        }
 
 #*------^ Compare-ObjectsSideBySide3.ps1 ^------
 
 
 #*------v Compare-ObjectsSideBySide4.ps1 v------
 function Compare-ObjectsSideBySide4 {
-    <#
-    .SYNOPSIS
-    Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
-    .NOTES
-    Author: Richard Slater
-    Website:	https://stackoverflow.com/users/74302/richard-slater
-    Updated By: Todd Kadrie
-    Website:	http://www.toddomation.com
-    Twitter:	@tostka, http://twitter.com/tostka
-    Additional Credits: REFERENCE
-    FileName    : Compare-ObjectsSideBySide4.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : Powershell,Compare
-    REVISIONS   :
-    * 10:32 AM 4/25/2022 fix typo, fixed pos param specs (uniqued); included output in exmplt
-    * 10:35 AM 2/21/2022 CBH example ps> adds 
-    * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
-    * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
-    * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
-    * May 7 '16 at 20:55 posted version
-    .DESCRIPTION
-    Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
-    .PARAMETER col1
-    Object to compare in 1st column[-col1 `$PsObject1]
-    PARAMETER col2
-    Object to compare in 2nd column[-col2 `$PsObject1]
-    PARAMETER col3
-    Object to compare in 3rd column[-col3 `$PsObject1]
-    PARAMETER col4
-    Object to compare in 4th column[-col4 `$PsObject1]
-    .INPUTS
-    Acceptes piped input.
-    .OUTPUTS
-    Outputs specified object side-by-side on console
-    .EXAMPLE
-    PS> $object1 = New-Object PSObject -Property @{
-          'Forename' = 'Richard';
-          'Surname' = 'Slater';
-          'Company' = 'Amido';
-          'SelfEmployed' = $true;
-        } ;
-    PS> $object2 = New-Object PSObject -Property @{
-          'Forename' = 'Jane';
-          'Surname' = 'Smith';
-          'Company' = 'Google';
-          'MaidenName' = 'Jones' ;
-        } ;
-    PS> $object3 = New-Object PSObject -Property @{
-          'Forename' = 'Zhe';
-          'Surname' = 'Person';
-          'Company' = 'Apfel';
-          'MaidenName' = 'NunaUBusiness' ;
-        } ;
-    PS> $object4 = New-Object PSObject -Property @{
-          'Forename' = 'Zir';
-          'Surname' = 'NPC';
-          'Company' = 'Facemook';
-          'MaidenName' = 'Not!' ;
-        } ;
-    PS> Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
-    Property     Col1    Col2   Col3          col4
-    --------     ----    ----   ----          ----
-    Company      Amido   Google Apfel         Facemook
-    Forename     Richard Jane   Zhe           Zir
-    MaidenName           Jones  NunaUBusiness Not!
-    SelfEmployed True
-    Surname      Slater  Smith  Person        NPC
-    Display $object1,2,3 & 4 in comparative side-by-side columns
-    .LINK
-    https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
-    #>
-    PARAM(
-        [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in 1st column[-col1 `$PsObject1]")]
-        #[Alias('lhs')]
-        $col1,
-        [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 2nd column[-col1 `$PsObject1]")]
-        #[Alias('rhs')]        
-        $col2,
-        [Parameter(Position=2,Mandatory=$True,HelpMessage="Object to compare in 3rd column[-col1 `$PsObject1]")]
-        #[Alias('rhs')]        
-        $col3,
-        [Parameter(Position=3,Mandatory=$True,HelpMessage="Object to compare in 4th column[-col1 `$PsObject1]")]
-        #[Alias('rhs')]        
-        $col4
-    ) ;
-    $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $col4Members = $col4 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
-    $combinedMembers = ($col1Members + $col2Members + $col3Members + $col4Members) | Sort-Object -Unique ;
-    $combinedMembers | ForEach-Object {
-        $properties = @{'Property' = $_} ;
-        if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
-        if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
-        if ($col3Members.Contains($_)) {$properties['Col3'] = $col3 | Select-Object -ExpandProperty $_} ;
-        if ($col4Members.Contains($_)) {$properties['col4'] = $col4 | Select-Object -ExpandProperty $_} ;
-        New-Object PSObject -Property $properties ;
-    } ;
-}
+            <#
+            .SYNOPSIS
+            Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
+            .NOTES
+            Author: Richard Slater
+            Website:	https://stackoverflow.com/users/74302/richard-slater
+            Updated By: Todd Kadrie
+            Website:	http://www.toddomation.com
+            Twitter:	@tostka, http://twitter.com/tostka
+            Additional Credits: REFERENCE
+            FileName    : Compare-ObjectsSideBySide4.ps1
+            License     : MIT License
+            Copyright   : (c) 2020 Todd Kadrie
+            Github      : https://github.com/tostka/verb-IO
+            Tags        : Powershell,Compare
+            REVISIONS   :
+            *3:17 PM 12/9/2025 add -ExcludeProperties, -ExplicitProperties
+            * 11:20 AM 12/8/2025 add region
+            * 10:32 AM 4/25/2022 fix typo, fixed pos param specs (uniqued); included output in exmplt
+            * 10:35 AM 2/21/2022 CBH example ps> adds 
+            * 10:17 AM 9/15/2021 moved to full param block,expanded CBH
+            * 11:14 AM 7/29/2021 moved verb-desktop -> verb-io ; 
+            * 10:18 AM 11/2/2018 Extension of base model, to 4 columns
+            * May 7 '16 at 20:55 posted version
+            .DESCRIPTION
+            Compare-ObjectsSideBySide4() - Displays four objects side-by-side comparatively in console
+            .PARAMETER col1
+            Object to compare in 1st column[-col1 `$PsObject1]
+            PARAMETER col2
+            Object to compare in 2nd column[-col2 `$PsObject1]
+            PARAMETER col3
+            Object to compare in 3rd column[-col3 `$PsObject1]
+            PARAMETER col4
+            Object to compare in 4th column[-col4 `$PsObject1]
+            .PARAMETER ExcludeProperties
+            Properties to be excluded (generally due to char width in table)[-ExcludeProperties 'DistinguishedName']
+            .PARAMETER ExplicitProperties
+            Properties to be compared (static list, non-discovered from populuation)[-ExplicitProperties @('DistinguishedName','Name')]  
+            .INPUTS
+            Acceptes piped input.
+            .OUTPUTS
+            Outputs specified object side-by-side on console
+            .EXAMPLE
+            PS> $object1 = New-Object PSObject -Property @{
+                  'Forename' = 'Richard';
+                  'Surname' = 'Slater';
+                  'Company' = 'Amido';
+                  'SelfEmployed' = $true;
+                } ;
+            PS> $object2 = New-Object PSObject -Property @{
+                  'Forename' = 'Jane';
+                  'Surname' = 'Smith';
+                  'Company' = 'Google';
+                  'MaidenName' = 'Jones' ;
+                } ;
+            PS> $object3 = New-Object PSObject -Property @{
+                  'Forename' = 'Zhe';
+                  'Surname' = 'Person';
+                  'Company' = 'Apfel';
+                  'MaidenName' = 'NunaUBusiness' ;
+                } ;
+            PS> $object4 = New-Object PSObject -Property @{
+                  'Forename' = 'Zir';
+                  'Surname' = 'NPC';
+                  'Company' = 'Facemook';
+                  'MaidenName' = 'Not!' ;
+                } ;
+            PS> Compare-ObjectsSideBySide4 $object1 $object2 $object3 $object4 | Format-Table Property, col1, col2, col3, col4;
+            Property     Col1    Col2   Col3          col4
+            --------     ----    ----   ----          ----
+            Company      Amido   Google Apfel         Facemook
+            Forename     Richard Jane   Zhe           Zir
+            MaidenName           Jones  NunaUBusiness Not!
+            SelfEmployed True
+            Surname      Slater  Smith  Person        NPC
+            Display $object1,2,3 & 4 in comparative side-by-side columns
+            .LINK
+            https://stackoverflow.com/questions/37089766/powershell-side-by-side-objects
+            #>
+            PARAM(
+                [Parameter(Position=0,Mandatory=$True,HelpMessage="Object to compare in 1st column[-col1 `$PsObject1]")]
+                    #[Alias('lhs')]
+                    $col1,
+                [Parameter(Position=1,Mandatory=$True,HelpMessage="Object to compare in 2nd column[-col1 `$PsObject1]")]
+                    #[Alias('rhs')]        
+                    $col2,
+                [Parameter(Position=2,Mandatory=$True,HelpMessage="Object to compare in 3rd column[-col1 `$PsObject1]")]
+                    #[Alias('rhs')]        
+                    $col3,
+                [Parameter(Position=3,Mandatory=$True,HelpMessage="Object to compare in 4th column[-col1 `$PsObject1]")]
+                    #[Alias('rhs')]        
+                    $col4,
+                [Parameter(HelpMessage="Properties to be excluded (generally due to char width in table)[-ExcludeProperties 'DistinguishedName']")]
+                    [string[]]$ExcludeProperties,
+                [Parameter(HelpMessage="Properties to be compared (static list, non-discovered from populuation)[-ExcludeProperties 'DistinguishedName']")]
+                    [string[]]$ExplicitProperties
+            ) ;
+            if(-not $ExplicitProperties){
+                $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+                $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+                $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+                $col4Members = $col4 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name ;
+                $combinedMembers = ($col1Members + $col2Members + $col3Members + $col4Members) | Sort-Object -Unique ;
+            }else{
+                $smsg = "-ExplicitProperties specified for compare" ; 
+                $smsg += "`n$(($ExplicitProperties -join ', '|out-string).trim())" ; 
+                write-verbose $smsg ; 
+                $col1Members = $col1 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name | ?{$ExplicitProperties -contains $_} ; 
+                $col2Members = $col2 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name | ?{$ExplicitProperties -contains $_} ; 
+                $col3Members = $col3 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name | ?{$ExplicitProperties -contains $_} ; 
+                $col4Members = $col4 | Get-Member -MemberType NoteProperty, Property | Select-Object -ExpandProperty Name | ?{$ExplicitProperties -contains $_} ; 
+                $combinedMembers = ($col1Members + $col2Members + $col3Members + $col4Members) | Sort-Object -Unique ;
+            }
+            if($ExcludeProperties){
+                $combinedMembers |?{$ExcludeProperties -notcontains $_ } ; 
+                write-verbose "-ExcludeProperties: $($ExcludeProperties)" ; 
+            }
+            $combinedMembers | ForEach-Object {
+                $properties = @{'Property' = $_} ;
+                if ($col1Members.Contains($_)) {$properties['Col1'] = $col1 | Select-Object -ExpandProperty $_} ;
+                if ($col2Members.Contains($_)) {$properties['Col2'] = $col2 | Select-Object -ExpandProperty $_} ;
+                if ($col3Members.Contains($_)) {$properties['Col3'] = $col3 | Select-Object -ExpandProperty $_} ;
+                if ($col4Members.Contains($_)) {$properties['col4'] = $col4 | Select-Object -ExpandProperty $_} ;
+                New-Object PSObject -Property $properties ;
+            } ;
+        }
 
 #*------^ Compare-ObjectsSideBySide4.ps1 ^------
 
@@ -2880,8 +2967,8 @@ if($host.version.major -gt 2){
         d----l       11/16/2018   8:30 PM                Archive
         -a---l        5/22/2018  12:05 PM          (726) Build-Expression.ps1
         -a---l       11/16/2018   7:38 PM           2143 CHANGELOG
-        -a---l       11/17/2018  10:42 AM          14728 ConvertFrom-SourceTable.ps1
-        -a---l       11/17/2018  11:04 AM          23909 ConvertFrom-SourceTable.Tests.ps1
+        -a---l       11/17.3.08  10:42 AM          14728 ConvertFrom-SourceTable.ps1
+        -a---l       11/17.3.08  11:04 AM          23909 ConvertFrom-SourceTable.Tests.ps1
         -a---l         8/4/2018  11:04 AM         (6237) Import-SourceTable.ps1
         ' ;
         .LINK
@@ -4231,7 +4318,7 @@ Function convertTo-Object {
     REVISIONS
     * 10:35 AM 2/21/2022 CBH example ps> adds
     * 12:26 PM 10/17/2021 init vers
-    * 11/17.2.18 Tobias Weltner's thread post. 
+    * 11/17/2008 Tobias Weltner's thread post. 
     .DESCRIPTION
     convertTo-Object.ps1 - Pipeline filter that converts a stream of hashtables into an object, note not 3 nested objects in the Cobj, one Cobj with the single list of properties.
     .PARAMETER hashtable
@@ -8062,8 +8149,8 @@ Get-FileType c:\path\to\file.pdf
             @('MPEG-4 (MP4)','000000*66747970',0,8),
             @('MPEG-4 (MP4)','336770',0,3),
             @('Windows/DOS executable file (EXE/COM/DLL/DRV/PIF/OCX/OLB/SCR/CPL ++)','4D5A',0,2),
-            @('Archive (RAR)','526172211A0700',0,7),
-            @('Archive (RAR)','526172211A070100',0,8),
+            @('Archive (RAR)','52617.3.0A0700',0,7),
+            @('Archive (RAR)','52617.3.0A070100',0,8),
             @('Adobe Portable Document Format (PDF) / Forms Document file (FDF)','25504446',0,4),
             @('MPEG-1 Audio Layer 3 (MP3)','FFFB',0,2),
             @('MPEG-1 Audio Layer 3 (MP3)','494433',0,3),
@@ -11819,6 +11906,199 @@ Function Invoke-TakeownRegistryTDO {
 #*------^ Invoke-TakeownRegistryTDO.ps1 ^------
 
 
+#*------v Mount-MyPSDrives.ps1 v------
+Function Mount-MyPSDrives {
+
+    <#
+    .SYNOPSIS
+    Mount-MyPSDrives - Creates temporary powershell drives that are associated with a location in an item data store. Supports six preconfigured PSDrive configs (mountable areas in user's profile)
+    Creates temporary and persistent drives that are associated with a location in an item data store.
+    .NOTES
+    Version     : 0.0.
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2025-12-05
+    FileName    : Mount-MyPSDrives.ps1
+    License     : MIT License
+    Copyright   : (c) 2025 Todd Kadrie
+    Github      : https://github.com/tostka/verb-XXX
+    Tags        : Powershell,Filesystem,Drives,PsDrives,Mount
+    AddedCredit :
+    AddedWebsite:
+    AddedTwitter:
+    REVISIONS
+    * 12:00 PM 12/5/2025 ren'd New-MyPSDrives -> Mount-MyPSDrives, aliased original ; added to vio, parameterized the newDrives spec, moved profile code into CBH demos;
+      there's a need for it; XCIDR reportedly goes after SID use of new-psdrive, but UID - esp avoiding the reg mounts - likely may not.
+      Keeping this from autoexecing in the profile, and using ondemand would probably work best.
+      added code to check for elevation and warn pre-prompt where in use in work domains, and elevated, or mounting registry-related psdrives (both of which are targeted by CXDR).
+		* 1:15 PM 6/18/2020 updated CBH
+		* 6:49 PM 11/10/2019 #2334: fixed typo double assignement
+		* 10:00 AM 10/1/2019 Mount-MyPSDrives:fundemental rewrote, loop the params and run single create block, added splatting, moved myDocs intot he main loop.
+		# 9:04 AM 5/12/2017 add AllUsersMods (C:\Program Files\WindowsPowerShell\Modules) "If you want a module to be available to all user accounts on the computer, install the module in the Program Files location."
+		# 7:43 AM 5/22/2017 Mount-MyPSDrives, rem'd 2 lines:  old dupes from a messy paste job, broke brace matching in forloop.
+		10:11 AM 5/12/2017 Mount-MyPSDrives: added AllUserMods, and made the loop $i dynamic on drivenames.
+		1:50 PM 11/5/2015 - fixed break caused because PSCX sticks itself into the 2nd position oin the PSModulePath - this is supposed to point to $($env:programfiles)\WindowsPowerShell\Modules! So we rewrite a switch, and hard-code the paths
+    .DESCRIPTION
+    Mount-MyPSDrives - Creates temporary powershell drives that are associated with a location in an item data store. Supports six preconfigured PSDrive configs (mountable areas in user's profile)
+
+    Ran without issues in my profile from 2015 to 2023, until CXDR decided to start targting the new-PSDrive mount commands, and breaking profile load.
+    Tore out completely as a workaround. As of 12/2025, resurrected &  moving into vio\Mount-MyPSDrives. There are handy reasons these drives may want to be loaded ondemand - for searching profile text files using powershell's select-string and other filtering options, etc.
+
+    Hilariously, powershell by default auto-mounts cert:, Env:, HKCU: & HKU:, CXDR doesn't seem to mind those. Just the additional items and contexts.
+
+    .EXAMPLE
+		PS> Mount-MyPSDrives -driveNames @('myDocs','myMods', 'sysMods', 'AllUserMods','HKCR','HKU') -whatif -showdebug
+		Run whatifpass at creating default PSDrives: myDocs, myMods, sysMods, AllUserMods profile dirs as psdrives, and HKCR & HKU reg keys as psdrives.
+		The mods correspond to the users' & system modules folders, and all-users modules, and myDocs points to user's profile Documents folder. HKCR & HKU create two missing registry defaults (HKEY_CLASSES_ROOT|HKEY_USERS)
+		.EXAMPLE
+		PS> write-verbose "mount the MyDocs,MyMods,SysMods & AllUserMods PSDrives"
+    PS> Mount-MyPSDrives -driveNames @('myDocs','myMods', 'sysMods', 'AllUserMods')
+    PS> write-verbose "echo them back: list all non-single-letter name filesystem drives: (new standard is do all"
+    PS> write-host -foregroundcolor green "$((get-psdrive -PSProvider filesystem -scope global | where-object { $_.Name.length -gt 1 } | Select-Object Name, Root | format-table -auto |out-string).trim())" ;
+    PS> write-verbose "echo them back: list all registry drives"
+    PS> write-host -foregroundcolor green "$((get-psdrive -PSProvider Registry -scope global | where-object { $_.Name.length -gt 1 } | Select-Object Name, Root | format-table -auto |out-string).trim())" ;
+    .LINK
+    https://github.com/tostka/verb-io/
+    #>
+    [Alias('New-MyPSDrives')]
+		PARAM(
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Array of preconfigured drive type identifiers (myMods|sysMods|AllUserMods|myDocs|HKCR|HKU)[-driveNames @('myDocs','myMods', 'sysMods', 'AllUserMods')]")]
+            [ValidateSet('myMods','sysMods','AllUserMods','myDocs','HKCR','HKU')]
+            [string[]]$driveNames,
+        [Parameter(HelpMessage="Whatif switch [-whatIf]")]
+            [switch] $whatIf = $false
+    ) ;
+    BEGIN{
+        #$driveNames = "myMods", "sysMods", "AllUserMods"; # psmodules
+        #$driveNames += "HKCR", "HKU" ; # missing registry psdrvs
+        #$driveNames += "myDocs" ; # user docs
+        write-host "Mounting My PS Drives ($($drivenames -join ', '))..."
+        if($env:userdomain -eq $tormeta.legacydomain){
+            # check elevation: CXDR targets SID profile psdrive use, pop prompt before running
+            if(-not(get-variable -Name whoamiAll -ea 0)){$whoamiAll = (whoami /all)} ;
+            $isElevated = [bool](($whoamiAll |?{$_ -match 'BUILTIN\\Administrators'}) -AND ($whoamiAll |?{$_ -match 'S-1-16-12288'}))  ;
+            $smsg = $null ;
+            if($isElevated){
+                $smsg = "Work Dom Elevated Account preparing to execute New-PSDrive cmds that could be subject to active blocks!" ;
+            } ;
+            # also targets registry hive psdrive mounts, likewise prompt
+            if($drivenames -match 'HKCR|HKU'){
+                $smsg += "Work Dom Account preparing to execute registry-hive related New-PSDrive cmds that could be subject to active blocks!"
+            } ;
+            if($smsg){
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent}
+                else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                $bRet=Read-Host "Enter YYY to continue. Anything else will exit"  ;
+                if ($bRet.ToUpper() -eq "YYY") {
+                    $smsg = "(Moving on)" ;
+                    write-host -foregroundcolor green $smsg  ;
+                } else {
+                    $smsg = "(*skip* use)" ;
+                    write-host -foregroundcolor yellow $smsg  ;
+                    break ; #exit 1
+                } ;
+            } ;
+        } ;
+    }
+    PROCESS{
+        $pltDrv = @{name = $null ; PSProvider = $null ; Root = $null ; scope = "Global" ; whatif = $($whatif) ; Verbose = ($VerbosePreference -eq 'Continue')} ;
+        $pltDir = @{path = $null ; type = "directory" ; whatif = $($whatif); } ;
+
+        foreach ($driveName in $driveNames) {
+            #if (-not(get-psdrive | ? { $_.name -like $driveNames[$i] })) {
+            if (-not(get-psdrive -name $drivename -ea 0)) {
+              switch ($driveName) {
+                "myMods" {
+                      write-host New-PSDrive: "$($driveName)" ;
+                      # stock: C:\Users\aaaaaaaa\Documents\WindowsPowerShell\Modules
+                      # reloc'd: C:\Users\aaaaaaaa\OneDrive - Aaa Aaaa Aaaaaaa\Documents\WindowsPowerShell\Modules
+                      # psC: C:\Users\aaa\Documents\PowerShell\Modules
+                      # PsW only: "(?:[\w]\:)\\Users\\\w*((\\.*)*)\\Documents\\WindowsPowerShell\\Modules"
+                      if (-not($pltDrv.root = [string]($env:PSModulePath.split(";") | Where-Object { $_ -match "(?:[\w]\:)\\Users\\\w*((\\.*)*)\\Documents\\(WindowsPowerShell|PowerShell)\\Modules" }))) {
+                          write-host -foregroundcolor RED "$((get-date).ToString('HH:mm:ss')):UNABLE TO LOCATE myMods DIR IN `PSModulePath:`n$(($env:PSModulePath.split(";")|out-string).trim())`nABORTING" ;
+                        BREAK ;
+                      } ;
+                      $pltDir.path = $pltDrv.root ;
+                      $pltDir.type = "directory" ;
+                      $pltDrv.name = $($driveName) ;
+                      $pltDrv.PSProvider = "filesystem" ;
+                  }
+                  "sysMods" {
+                      write-host New-PSDrive: "$($driveName)" ;
+                      # C:\Windows\system32\WindowsPowerShell\v1.0\Modules
+                      # psC: C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
+                      # PsW only: "(?:[\w]\:)\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules"
+                      if (-not($pltDrv.root = [string]($env:PSModulePath.split(";") | Where-Object { $_ -match "(?:[\w]\:)\\(WINDOWS|Windows)\\system32\\WindowsPowerShell\\v1.0\\Modules" }))) {
+                            write-host -foregroundcolor RED "$((get-date).ToString('HH:mm:ss')):UNABLE TO LOCATE myMods DIR IN `PSModulePath:`n$(($env:PSModulePath.split(";")|out-string).trim())`nABORTING" ;
+                        BREAK ;
+                      } ;
+                      $pltDir.path = $pltDrv.root ;
+                      $pltDir.type = "directory" ;
+                      $pltDrv.name = $($driveName) ;
+                      $pltDrv.PSProvider = "filesystem" ;
+                  }
+                  "AllUserMods" {
+                      write-host New-PSDrive: "$($driveName)" ;
+                      # C:\Program Files\WindowsPowerShell\Modules
+                      # psC: C:\Program Files\PowerShell\Modules
+                      # psC: c:\program files\powershell\6\Modules - don't match
+                      # PsW only: "(?:[\w]\:)\\Program Files\\WindowsPowerShell\\Modules"
+                      # PsC this returns both, default to the first!
+                      # no, pull the \6\ root matching out completely.
+                      # psC match both - but we can only use one: "(?:[\w]\:)\\(P|p)rogram (F|f)iles\\((Windows)*)(P|p)ower(S|s)hell((\\\d)*)\\Modules"
+                      if (-not($pltDrv.root = [string]($env:PSModulePath.split(";") | Where-Object { $_ -match "(?:[\w]\:)\\Program Files\\((Windows)*)PowerShell\\Modules" }))) {
+                        write-host -foregroundcolor RED "$((get-date).ToString('HH:mm:ss')):UNABLE TO LOCATE myMods DIR IN `PSModulePath:`n$(($env:PSModulePath.split(";")|out-string).trim())`nABORTING" ;
+                        BREAK ;
+                      } ;
+                      $pltDir.path = $pltDrv.root ;
+                      $pltDir.type = "directory" ;
+                      $pltDrv.name = $($driveName) ;
+                      $pltDrv.PSProvider = "filesystem" ;
+                  }
+                  "myDocs" {
+                      write-host New-PSDrive: "$($driveName)" ;
+                      #New-PSDrive -Name "myDocs" -PSProvider FileSystem -Root $([environment]::getfolderpath("mydocuments")) -Description "Maps My Documents folder." | Out-Null ;
+                      $pltDrv.Root = [string]([environment]::getfolderpath("mydocuments")) ;
+                      $pltDir.path = $pltDrv.Root ;
+                      $pltDir.type = "directory" ;
+                      $pltDrv.name = $($driveName) ;
+                      $pltDrv.PSProvider = "filesystem" ;
+                  }
+                  "HKCR" {
+                      write-host New-PSDrive: "$($driveName)" ;
+                      #New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | out-null ;
+                      $pltDrv.Name = "HKCR" ;
+                      $pltDrv.root = "HKEY_CLASSES_ROOT" ;
+                      $pltDrv.PSProvider = "Registry" ;
+                  } ;
+                  "HKU" {
+                      write-host New-PSDrive: "$($driveName)" ;
+                      #New-PSDrive -Name HKU -PSProvider Registry -Root HKEY_USERS | out-null ;
+                      $pltDrv.Name = "HKU" ;
+                      $pltDrv.root = "HKEY_USERS" ;
+                      $pltDrv.PSProvider = "Registry" ;
+                  } ;
+
+                } ;
+                if (($pltDrv.PSProvider -eq 'filesystem') -AND -not( test-path $pltDir.path ) ) {
+                    write-verbose "$((get-date).ToString('HH:mm:ss')):Creating Missing Dir:New-Item w`n$(($pltDir|out-string).trim())"  ;
+                    New-Item @pltDir;
+                }
+                write-verbose "$((get-date).ToString('HH:mm:ss')):New-PsDrive w`n$(($pltDrv|out-string).trim())" ;  ;
+                New-PSDrive @pltDrv | Out-Null ; ;
+            }
+            else {
+                write-host "$($driveName) exists";
+            }# if-E
+        } #end For ;
+		} ;  # PROC-E
+
+}
+
+#*------^ Mount-MyPSDrives.ps1 ^------
+
+
 #*------v mount-UnavailableMappedDrives.ps1 v------
 Function mount-UnavailableMappedDrives{
     <#
@@ -15490,7 +15770,7 @@ function remove-ItemRetry {
     Author      : Todd Kadrie
     Website     : https://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 8:28 PM 11/17/2019
+    CreatedDate : 8:28 PM 11/17.3.09
     FileName    :
     License     : MIT License
     Copyright   : (c) 2019 Todd Kadrie
@@ -16921,6 +17201,219 @@ function reset-HostIndent {
 }
 
 #*------^ reset-HostIndent.ps1 ^------
+
+
+#*------v Resize-ImageTDO.ps1 v------
+Function Resize-ImageTDO() {        
+        <#
+        .SYNOPSIS
+        Resize-ImageTDO - Resize an image 
+        .NOTES
+        Version     : 0.0.
+        Author      : Christopher Walker
+        Website     : https://gist.github.com/someshinyobject/617bf00556bc43af87cd
+        Twitter     : 
+        CreatedDate : 2025-
+        FileName    : Resize-ImageTDO.ps1
+        License     : (none-asserted)
+        Copyright   : (none-asserted)
+        Github      : https://github.com/tostka/verb-io
+        Tags        : Powershell,Graphics,Image,Resizing,Manipulation
+        AddedCredit : Todd Kadrie
+        AddedWebsite: http://www.toddomation.com
+        AddedTwitter: @tostka / http://twitter.com/tostka
+        REVISIONS
+        * 2:28 PM 11/6/2025 fixed bug: it's creating png files named .jpg; Added explicit format on image extension & Added extension format support for the range documented at:
+            [ImageFormat Class (System.Drawing.Imaging) Microsoft Learn https://learn.microsoft.com â€º Learn â€º .NET â€º API browser](https://learn.microsoft.com/en-us/dotnet/api/system.drawing.imaging.imageformat?view=windowsdesktop-9.0)
+            Issue: 
+                > When utilizing the System.Drawing namespace in PowerShell to save images, the 
+                > default behavior of the Save() method without specifying an ImageFormat can 
+                > result in a PNG file being created, even if the intention was to create a JPG. 
+                > This is because System.Drawing.Imaging.ImageFormat.Png is often the default or 
+                > inferred format in certain scenarios or when handling images with transparency. 
+            - renamed to Resize-ImageTDO differentiate from orig (aliased orig name) and added to vio.
+            - Ported copy bundled with Tony Redmond's posted New Teams Client bg conversion script, expanded CBH, added NameModifier to CBH, added HelpMessage to params
+
+        .DESCRIPTION
+        Resize-ImageTDO - Resize an image
+        Resize an image based on a new given height or width or a single dimension and a maintain ratio flag. 
+        The execution of this CmdLet creates a new file named "OriginalName_resized" and maintains the original
+        file extension
+        .PARAMETER Width
+           The new width of the image. Can be given alone with the MaintainRatio flag
+        .PARAMETER Height
+           The new height of the image. Can be given alone with the MaintainRatio flag
+        .PARAMETER ImagePath
+           The path to the image being resized
+        .PARAMETER MaintainRatio
+           Maintain the ratio of the image by setting either width or height. Setting both width and height and also this parameter
+           results in an error
+        .PARAMETER Percentage
+           Resize the image *to* the size given in this parameter. It's imperative to know that this does not resize by the percentage but to the percentage of
+           the image.
+        .PARAMETER SmoothingMode
+           Sets the smoothing mode. Default is HighQuality.
+        .PARAMETER InterpolationMode
+           Sets the interpolation mode. Default is HighQualityBicubic.
+        .PARAMETER PixelOffsetMode
+           Sets the pixel offset mode. Default is HighQuality.
+        .PARAMETER NameModifier
+        String that is automatically appended to original file name as _`$NameModifier
+        .INPUTS
+        None. Does not accepted piped input.(.NET types, can add description)
+        .OUTPUTS
+        None. Returns no objects or output (.NET types)
+        System.Boolean
+        [| get-member the output to see what .NET obj TypeName is returned, to use here]
+        .EXAMPLE
+           Resize-ImageTDO -Height 45 -Width 45 -ImagePath "Path/to/image.jpg"
+        .EXAMPLE
+           Resize-ImageTDO -Height 45 -MaintainRatio -ImagePath "Path/to/image.jpg"
+        .EXAMPLE
+           #Resize to 50% of the given image
+           Resize-ImageTDO -Percentage 50 -ImagePath "Path/to/image.jpg"    
+        .LINK
+        https://github.com/tostka/powershellbb/
+        #>
+        [CmdLetBinding(
+            SupportsShouldProcess=$true, 
+            PositionalBinding=$false,
+            ConfirmImpact="Medium",
+            DefaultParameterSetName="Absolute"
+        )]
+        PARAM (
+            [Parameter(Mandatory=$True)]
+                [ValidateScript({
+                    $_ | ForEach-Object {
+                        Test-Path $_
+                    }
+                })]
+                [String[]]$ImagePath,
+            [Parameter(Mandatory=$False,HelpMessage='Maintain the ratio of the image by setting either width or height. Setting both width and height and also this parameter results in an error')]
+                [Switch]$MaintainRatio,
+            [Parameter(Mandatory=$False, ParameterSetName="Absolute",HelpMessage='The new height of the image. Can be given alone with the MaintainRatio flag')]
+                [Int]$Height,
+            [Parameter(Mandatory=$False, ParameterSetName="Absolute",HelpMessage='The new width of the image. Can be given alone with the MaintainRatio flag')]
+                [Int]$Width,
+            [Parameter(Mandatory=$False, ParameterSetName="Percent",HelpMessage="Resize the image *to* the size given in this parameter. It's imperative to know that this does not resize by the percentage but to the percentage of
+the image.")]
+                [Double]$Percentage,
+            [Parameter(Mandatory=$False,HelpMessage='Sets the smoothing mode. Default is HighQuality.')]
+                [System.Drawing.Drawing2D.SmoothingMode]$SmoothingMode = "HighQuality",
+            [Parameter(Mandatory=$False,HelpMessage='Sets the interpolation mode. Default is HighQualityBicubic.')]
+                [System.Drawing.Drawing2D.InterpolationMode]$InterpolationMode = "HighQualityBicubic",
+            [Parameter(Mandatory=$False,HelpMessage='Sets the pixel offset mode. Default is HighQuality.')]
+                [System.Drawing.Drawing2D.PixelOffsetMode]$PixelOffsetMode = "HighQuality",
+            [Parameter(Mandatory=$False,HelpMessage="String that is automatically appended to original file name as _`$NameModifier")]
+                [String]$NameModifier = "resized"
+        )
+        BEGIN {
+            If ($Width -and $Height -and $MaintainRatio) {
+                Throw "Absolute Width and Height cannot be given with the MaintainRatio parameter."
+            }
+ 
+            If (($Width -xor $Height) -and (-not $MaintainRatio)) {
+                Throw "MaintainRatio must be set with incomplete size parameters (Missing height or width without MaintainRatio)"
+            }
+ 
+            If ($Percentage -and $MaintainRatio) {
+                Write-Warning "The MaintainRatio flag while using the Percentage parameter does nothing"
+            }
+        }
+        PROCESS {
+            Add-Type -AssemblyName 'System.Drawing'
+            ForEach ($Image in $ImagePath) {
+                $Path = (Resolve-Path $Image).Path
+                $Dot = $Path.LastIndexOf(".")
+
+                #Add name modifier (OriginalName_{$NameModifier}.jpg)
+                $OutputPath = $Path.Substring(0,$Dot) + "_" + $NameModifier + $Path.Substring($Dot,$Path.Length - $Dot)
+                $ext = $Path.Substring($Dot,$Path.Length - $Dot) ; 
+                $OldImage = New-Object -TypeName System.Drawing.Bitmap -ArgumentList $Path
+                # Grab these for use in calculations below. 
+                $OldHeight = $OldImage.Height
+                $OldWidth = $OldImage.Width
+ 
+                If ($MaintainRatio) {
+                    $OldHeight = $OldImage.Height
+                    $OldWidth = $OldImage.Width
+                    If ($Height) {
+                        $Width = $OldWidth / $OldHeight * $Height
+                    }
+                    If ($Width) {
+                        $Height = $OldHeight / $OldWidth * $Width
+                    }
+                }
+ 
+                If ($Percentage) {
+                    $Product = ($Percentage / 100)
+                    $Height = $OldHeight * $Product
+                    $Width = $OldWidth * $Product
+                }
+
+                $Bitmap = New-Object -TypeName System.Drawing.Bitmap -ArgumentList $Width, $Height
+                $NewImage = [System.Drawing.Graphics]::FromImage($Bitmap)
+             
+                #Retrieving the best quality possible
+                $NewImage.SmoothingMode = $SmoothingMode
+                $NewImage.InterpolationMode = $InterpolationMode
+                $NewImage.PixelOffsetMode = $PixelOffsetMode
+                $NewImage.DrawImage($OldImage, $(New-Object -TypeName System.Drawing.Rectangle -ArgumentList 0, 0, $Width, $Height))
+
+                If ($PSCmdlet.ShouldProcess("Resized image based on $Path", "save to $OutputPath")) {
+                    #$Bitmap.Save($OutputPath)
+                    # above can create misnamed .png files (named .jpg)
+                    # explicitly set the format:
+                    <# supported formats
+                    |Name | Desc|
+                    |---|---|
+                    |Bmp | Gets the bitmap (BMP) image format.|
+                    |Emf|Gets the enhanced metafile (EMF) image format.|
+                    |Exif|Gets the Exchangeable Image File (Exif) format.|
+                    |Gif|Gets the Graphics Interchange Format (GIF) image format.|
+                    |Guid|Gets a Guid structure that represents this ImageFormat object.|
+                    |Heif|Specifies the High Efficiency Image Format (HEIF).|
+                    |Icon|Gets the Windows icon image format.|
+                    |Jpeg|Gets the Joint Photographic Experts Group (JPEG) image format.|
+                    |MemoryBmp|Gets the format of a bitmap in memory.|
+                    |Png|Gets the W3C Portable Network Graphics (PNG) image format.|
+                    |Tiff|Gets the Tagged Image File Format (TIFF) image format.|
+                    |Webp|Specifies the WebP image format.|
+                    |Wmf|Gets the Windows metafile (WMF) image format.|
+                    #>
+                    switch($ext){
+                        '.png' {                        
+                            # png
+                            #bitmap.Save(@"C:\Users\johndoe\test.png", ImageFormat.Png);
+                            $Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Png)
+                        }
+                        '.jpg' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Jpeg)}
+                        '.Bmp' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Bmp)}
+                        '.Emf' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Emf)}
+                        '.Exif' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Exif)}
+                        '.Gif' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Gif)}
+                        '.Guid' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Guid)}
+                        '.Heif' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Heif)}
+                        '.Ico' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Icon)}
+                        '.MemoryBmp' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::MemoryBmp)}
+                        '.Tiff' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Tiff)}
+                        '.Webp' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Webp)}
+                        '.Wmf' {$Bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Wmf)}
+                        default {
+                            $smsg = "Unrecognized Extension: $($Ext)!" ; 
+                            throw $smsg ; 
+                            break ; 
+                        } ; 
+                    } ; 
+                }            
+                $Bitmap.Dispose()
+                $NewImage.Dispose()
+                $OldImage.Dispose()
+            }
+        }
+    }
+
+#*------^ Resize-ImageTDO.ps1 ^------
 
 
 #*------v resolve-EnvironmentTDO.ps1 v------
@@ -19966,6 +20459,7 @@ function start-sleepcountdown {
     Github      : https://github.com/tostka/verb-IO
     Tags        : Powershell,Time
     REVISION
+    * 12:49 PM 12/5/2025 added regions
     * 4:34 PM 3/18/2025 fixed cbh helpmsg on -useMins; added inplace counter via -Rolling; added CBH expls for same.
     * 10:44 AM 10/15/2024 add -useMins to make it do a minutes countdown (still requires seconds input)
     * 1:19 PM 12/14/2023 init
@@ -23676,7 +24170,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -23684,8 +24178,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUCAb+ldKNT4WpG/BlxGk6ESYb
-# b6KgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUsi0jGno6QBwoYM5M4hb4rieG
+# lWGgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -23700,9 +24194,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTDeKfa
-# gtlhhBSQCfRxe7mv2uaN5DANBgkqhkiG9w0BAQEFAASBgHbTieK9nVKlRV0MgUnh
-# 9oQ0vIH/JS7aqo5ol6ZbRgcWVIZ95hPyOeqFG9xISsOFjVDLh320aJWcKiZSY19s
-# aF9unePnqEz/ZskgqZ0o/jHZxlsnke7y0DakNjdyDQtp3dumGCzR6EnIDAieO5Oe
-# AsGpGxQh2AgluvenNb6MzllX
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRR40RV
+# 7wCs21sr2Vls6EZ7TfKf0jANBgkqhkiG9w0BAQEFAASBgGyYnzfTGb05SWQ4kr7I
+# Wt6l+nrUxn14/jje4qw99APOLpqYg/g1IY6+fcQh295Oo/oX1DJS0I9HYYKAd2rw
+# oLheCbfQLbC3oZ3dy2pqsTBBjLzjp/wsZ6cqnb+9YmxpXRRWqFUK2yv3MEQSr9wL
+# iyQCxW5viKsk9ygHASrBAlMR
 # SIG # End signature block
