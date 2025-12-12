@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 17.3.0.0.0
+Version     : 17.4.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2689,6 +2689,125 @@ Function ConvertFrom-IniFile {
 #*------^ ConvertFrom-IniFile.ps1 ^------
 
 
+#*------v convertFrom-JsonSmart.ps1 v------
+function convertFrom-JsonSmart {
+    <#
+    .SYNOPSIS
+    convertFrom-JsonSmart - Wrapper for ConvertFrom-Json, that adds smart import fail recovery (sourced in: PowerShell objects and hashtables are case-insensitive for property names, while the JSON standard allows keys to be case-sensitive)
+    .NOTES
+    Version     : 0.0.
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2025-12-12
+    FileName    : convertFrom-JsonSmart.ps1
+    License     : MIT License
+    Copyright   : (c) 2025 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Json,Error
+    AddedCredit : 
+    AddedWebsite: 
+    AddedTwitter: 
+    REVISIONS
+    * 1:04 PM 12/12/2025 init
+    .DESCRIPTION
+    convertFrom-JsonSmart - Wrapper for ConvertFrom-Json, that adds smart import fail recovery (sourced in: PowerShell objects and hashtables are case-insensitive for property names, while the JSON standard allows keys to be case-sensitive)
+
+    Aims to address the error "Cannot convert the JSON string because a dictionary that was converted from the string contains the duplicated keys 'value' and 'Value'"
+
+    This occurs because PowerShell objects and hashtables are **case-insensitive** for property names, while the JSON standard allows keys to be case-sensitive. 
+
+    The solution this implements, is modifying the JSON string _before_ conversion: swaps 'value' for 'Value' in the stream, before importing
+
+    And this - shifting to json storage of query outputs - is only necessary because MS's Microsoft.Graph outputs are so heavily nested and broken, that the long-standing export-clixml cmdlet can't properly export functional data. 
+    So we shift to json, and it's own issues...
+    
+    .PARAMETER  InputObject
+    Specifies the JSON strings to convert to JSON objects. Enter a variable that contains the string, or type a command or expression that gets the string. You can also pipe a string to `ConvertFrom-Json`.
+
+    The InputObject parameter is required, but its value can be an empty string. When the input object is an empty string, `ConvertFrom-Json` doesn't generate any output. The InputObject value can't be `$null`.
+    
+    .INPUTS
+    System.String Accepts piped input json text data to be converted.
+    .OUTPUTS
+    System.Object[] converted json data returned to pipeline (or $false, where unable to convert)
+    System.Boolean
+    [| get-member the output to see what .NET obj TypeName is returned, to use here]
+    .EXAMPLE
+    PS> $json | ConvertTo-Json  | convertFrom-JsonSmart -Indentation 2
+    .EXAMPLE
+    PS> $json = Get-Content 'D:\script\test.json' -Encoding UTF8 | ConvertFrom-JsonSmart ; 
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [CmdletBinding(DefaultParameterSetName = 'Prettify')]
+    PARAM(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true,HelpMessage="Specifies the JSON strings to convert to JSON objects. Enter a variable that contains the string, or type a command or expression that gets the string. You can also pipe a string to `ConvertFrom-Json`.")]
+            [System.String]$InputObject
+    ) ;
+    BEGIN{
+        # broad match
+        $rgxDuplicateValueKeys = 'Cannot\sconvert\sthe\sJSON\sstring\sbecause\sa\sdictionary\sthat\swas\sconverted\sfrom\sthe\sstring\scontains\sthe\sduplicated\skeys' ; 
+        # capture replacable strings
+        $rgxDuplicateValueKeysCapture = "Cannot\sconvert\sthe\sJSON\sstring\sbecause\sa\sdictionary\sthat\swas\sconverted\sfrom\sthe\sstring\scontains\sthe\sduplicated\skeys\s'(?<Value1>\w+)'\sand\s'(?<Value2>\w+)'\." ; 
+    }
+    PROCESS{
+        TRY{
+            $InputObject | ConvertFrom-Json -EA stop;
+        } CATCH [System.InvalidOperationException] { 
+            $ErrTrapd=$Error[0] ;
+            if($ErrTrapd.exception -match $rgxDuplicateValueKeys){
+                if($ErrTrapd.exception -match $rgxDuplicateValueKeysCapture){
+                    if($matches.value1 -AND $matches.value2){
+                        $smsg = "Isolated values; attempting to replace: $($matches.value2) -> $($matches.value1)" ; 
+                        $smsg += "`n... and re-run ConvertFrom-Json" ;
+                        write-host -foregroundcolor yellow $smsg ; 
+                        TRY{
+                            $find = '"' + $($matches.value2) + '":'
+                            $replace = '"' + $($matches.value1) + '":'
+                            $smsg = "replace: $($find) -> $($replace)" ; 
+                            write-verbose $smsg                             
+                            $correctedJson = $InputObject -replace $find,$replace ; 
+                            $jsondata = $correctedJson | ConvertFrom-Json -ea STOP ; 
+                        } CATCH {
+                            $ErrTrapd=$Error[0] ;
+                            write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+                            $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                            write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                        } ;
+                    } else { 
+                        $smsg = "Unable to isolate replaceable values in the returned Error Exception"
+                        write-warning $smsg ; 
+                        throw $ErrTrapd ; # passthrough to generic below
+                    } ; 
+                } else { 
+                    $smsg = "Unable to -match replaceable values in the returned Error Exception"
+                    write-warning $smsg ; 
+                    throw $ErrTrapd ; # passthrough to generic below
+                } ;
+            } else{
+                throw $ErrTrapd ; # passthrough to generic below
+            }; 
+        } CATCH {
+            $ErrTrapd=$Error[0] ;
+            write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+            $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+            write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+        } ;
+    }
+    END{
+        if($jsondata ){
+            return $jsondata ; 
+        }else{
+            write-verbose "No converted data to return" ; 
+            return $false ; 
+        }
+    }
+}
+
+#*------^ convertFrom-JsonSmart.ps1 ^------
+
+
 #*------v convertFrom-MarkdownTable.ps1 v------
 Function convertFrom-MarkdownTable {
     <#
@@ -2967,8 +3086,8 @@ if($host.version.major -gt 2){
         d----l       11/16/2018   8:30 PM                Archive
         -a---l        5/22/2018  12:05 PM          (726) Build-Expression.ps1
         -a---l       11/16/2018   7:38 PM           2143 CHANGELOG
-        -a---l       11/17.3.08  10:42 AM          14728 ConvertFrom-SourceTable.ps1
-        -a---l       11/17.3.08  11:04 AM          23909 ConvertFrom-SourceTable.Tests.ps1
+        -a---l       11/17/2018  10:42 AM          14728 ConvertFrom-SourceTable.ps1
+        -a---l       11/17/2018  11:04 AM          23909 ConvertFrom-SourceTable.Tests.ps1
         -a---l         8/4/2018  11:04 AM         (6237) Import-SourceTable.ps1
         ' ;
         .LINK
@@ -8149,8 +8268,8 @@ Get-FileType c:\path\to\file.pdf
             @('MPEG-4 (MP4)','000000*66747970',0,8),
             @('MPEG-4 (MP4)','336770',0,3),
             @('Windows/DOS executable file (EXE/COM/DLL/DRV/PIF/OCX/OLB/SCR/CPL ++)','4D5A',0,2),
-            @('Archive (RAR)','52617.3.0A0700',0,7),
-            @('Archive (RAR)','52617.3.0A070100',0,8),
+            @('Archive (RAR)','526172211A0700',0,7),
+            @('Archive (RAR)','526172211A070100',0,8),
             @('Adobe Portable Document Format (PDF) / Forms Document file (FDF)','25504446',0,4),
             @('MPEG-1 Audio Layer 3 (MP3)','FFFB',0,2),
             @('MPEG-1 Audio Layer 3 (MP3)','494433',0,3),
@@ -15770,7 +15889,7 @@ function remove-ItemRetry {
     Author      : Todd Kadrie
     Website     : https://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 8:28 PM 11/17.3.09
+    CreatedDate : 8:28 PM 11/17/2019
     FileName    :
     License     : MIT License
     Copyright   : (c) 2019 Todd Kadrie
@@ -24170,7 +24289,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -24178,8 +24297,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUsi0jGno6QBwoYM5M4hb4rieG
-# lWGgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUFYyBrqAqMdP+YWZ9IVlLXkk+
+# 1i+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -24194,9 +24313,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRR40RV
-# 7wCs21sr2Vls6EZ7TfKf0jANBgkqhkiG9w0BAQEFAASBgGyYnzfTGb05SWQ4kr7I
-# Wt6l+nrUxn14/jje4qw99APOLpqYg/g1IY6+fcQh295Oo/oX1DJS0I9HYYKAd2rw
-# oLheCbfQLbC3oZ3dy2pqsTBBjLzjp/wsZ6cqnb+9YmxpXRRWqFUK2yv3MEQSr9wL
-# iyQCxW5viKsk9ygHASrBAlMR
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTSz3qL
+# 8LH3UgTofzxoKwTwPIwo/jANBgkqhkiG9w0BAQEFAASBgANSMeOMGl6OmEucPhja
+# Y0okt40zzE++3U5ope+EX1P0dDoqK2RIg4Jw52UyWmgWNxBC815ir6d2a5AUU0c1
+# BE2GMvuStHxz1qXu6V6l4ceQnmpR9G24efhLXtnAuxQsNqQIGR5m7G4OHdQ6MBGX
+# YzdlyJeTGicTne65WpmxKY5a
 # SIG # End signature block
