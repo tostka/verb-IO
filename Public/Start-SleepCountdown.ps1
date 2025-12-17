@@ -134,6 +134,6 @@ function start-sleepcountdown {
             While ($Seconds -gt 0) ;
             write-host -foregroundcolor yellow "]DONE" ;
         } ;
-    } ;
+    } ; # PROC-E
 } ;
 #endregion START_SLEEPCOUNTDOWN ; #*------^ END Start-SleepCountdown ^------
