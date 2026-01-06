@@ -1,7 +1,6 @@
 ﻿# Remove-InvalidFileNameCharsTDO.ps1
 
-
-#*----------v Function Remove-InvalidFileNameCharsTDO() v----------
+#region REMOVE_INVALIDFILENAMECHARSTDO ; #*------v Remove-InvalidFileNameCharsTDO v------
 function Remove-InvalidFileNameCharsTDO{
     <#
     .SYNOPSIS
@@ -21,6 +20,12 @@ function Remove-InvalidFileNameCharsTDO{
     AddedWebsite:	https://gallery.technet.microsoft.com/Remove-Invalid-Characters-39fa17b1
     AddedTwitter:	URL
     REVISIONS
+    * 11:46 AM 1/2/2026 added 1-liner rgx build demo ; added region
+        N.B. Had issues with the Escape & Regex conversion order in other attempts to use 
+            [System.IO.Path]::GetInvalidFileNameChars(), 
+        -> confirmed this splits them into descrete steps that should always work (rgx escape, before -join, before making a [range], before [regex] conversion
+        Do the process out of order and the built regex drops a LOT of key chars (pipe etc). e.g. this long-standing broken version:
+          PS> $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join '' ; 
     * 7:15 PM 3/1/2025 spliced in missing -ReplaceBrackets & -dashReplaceChars handling pieces in the unpathed else block (wasn't doing those removals as intended); 
         added -ReplaceBrackets (sub square brackets with parenthesis), and -DashReplaceChars (characters to be replaced with chars specified by the new -DashReplacement character or string); 
         added additional exmpl with pipeline support
@@ -41,7 +46,7 @@ function Remove-InvalidFileNameCharsTDO{
 
     The resulting cleaned string or path will be returned to the pipeline. 
  
-    The Replacement parameter will replace the invalid characters with the specified string. To remove rather than replace the invalid characters, use 
+    The Replacement parameter will replace the invalid characters with the specified string. To remove rather than replace the invalid characters, use -RemoveSpace
  
     The Name parameter can also clean file paths. If the string begins with "\\" or a drive like "C:\", it will then treat the string as a file path and clean the strings between "\". This has the side effect of removing the ability to actually remove the "\" character from strings since it will then be considered a divider.
     
@@ -107,7 +112,17 @@ function Remove-InvalidFileNameCharsTDO{
     PS> $results ; 
 
         junk{$(;)left
-
+        
+    Demo of mixed strip with bracket replacements
+    .EXAMPLE
+    PS> [regex]$rgxInvalidFileNameChars = "[{0}]" -f ( [RegEx]::Escape([IO.Path]::GetInvalidFileNameChars()) -join '') ; 
+    PS> gci c:\vidtmp\convert\* -recur | ?{$_.name  -match $rgxInvalidFileNameChars.tostring()} |%{
+    PS>     $thisfile = $_ ; 
+    PS>     write-host "==$($thisfile.fullname):" ; 
+    PS>     $thisfile | rename-item -newname ($thisfile.name -replace($rgxInvalidFileNameChars," ")) -verbose -whatif:$($whatif)
+    PS> } ; 
+    Demo a clean simple scriptblock version of this, to add to other scripts, wo full use of this: 
+    Avoids issues by: pre-escaping the chars, then defines the block as a range and then coerces to rgx    
     .Link
     System.RegEx
     .Link
@@ -243,4 +258,4 @@ function Remove-InvalidFileNameCharsTDO{
         } ;  # loop-E
     } ;  # PROC-E
 } ; 
-#*------^ END Function Remove-InvalidFileNameCharsTDO ^------
+#endregion REMOVE_INVALIDFILENAMECHARSTDO ; #*------^ END Remove-InvalidFileNameCharsTDO ^------
