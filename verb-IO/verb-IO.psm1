@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 17.4.0.0.0
+Version     : 17.5.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -15464,70 +15464,6 @@ Function Remove-DirectoryWatch {
 #*------^ Remove-DirectoryWatch.ps1 ^------
 
 
-#*------v Remove-InvalidFileNameChars.ps1 v------
-Function Remove-InvalidFileNameChars {
-  <#
-    .SYNOPSIS
-    Remove-InvalidFileNameChars - Remove OS-specific illegal filename characters from the passed string
-    .NOTES
-    Author: Ansgar Wiechers
-    Website:	https://stackoverflow.com/questions/23066783/how-to-strip-illegal-characters-before-trying-to-save-filenames
-    Twitter     :	
-    AddedCredit : 
-    AddedWebsite:	
-    Version     : 1.0.0
-    CreatedDate : 2020-09-01
-    FileName    : Remove-InvalidFileNameChars.ps1
-    License     : 
-    Copyright   : 
-    Github      : https://github.com/tostka/verb-IO
-    Tags        : Powershell,Filesystem
-    REVISIONS   :
-    * 4:35 PM 12/16/2021 added -PurgeSpaces, to fully strip down the result. Added a 2nd CBH example
-    * 7:21 AM 9/2/2020 added alias:'Remove-IllegalFileNameChars'
-    * 3:32 PM 9/1/2020 added to verb-IO
-    * 4/14/14 posted version
-    .DESCRIPTION
-    Remove-InvalidFileNameChars - Remove OS-specific illegal filename characters from the passed string
-    Note: You should pass the filename, and not a full-path specification as '-Name', 
-    or the function will remove path-delimters and other routine path components. 
-    .PARAMETER Name
-    Potential file 'name' string (*not* path), to have illegal filename characters removed. 
-    .PARAMETER PurgeSpaces
-    Switch to purge spaces along with OS-specific illegal filename characters. 
-    .INPUTS
-    Accepts piped input.
-    .OUTPUTS
-    System.String
-    .EXAMPLE
-    $Name = Remove-InvalidFileNameChars -name $ofile ; 
-    Remove OS-specific illegal characters from the sample filename in $ofile. 
-    .EXAMPLE
-    $Name = Remove-InvalidFileNameChars -name $ofile -purgespaces ; 
-    Remove OS-specific illegal characters & spaces from the sample filename in $ofile. 
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    [Alias('Remove-IllegalFileNameChars')]
-    Param(
-        [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
-        [String]$Name,
-        [switch]$PurgeSpaces
-    )
-    $verbose = ($VerbosePreference -eq "Continue") ; 
-    $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join '' ; 
-    if($PurgeSpaces){
-        write-verbose "(-PurgeSpaces: removing spaces as well)" ; 
-        $invalidChars += ' ' ; 
-    } ; 
-    $re = "[{0}]" -f [RegEx]::Escape($invalidChars)
-    ($Name -replace $re) | write-output ; 
-}
-
-#*------^ Remove-InvalidFileNameChars.ps1 ^------
-
-
 #*------v Remove-InvalidFileNameCharsTDO.ps1 v------
 function Remove-InvalidFileNameCharsTDO{
     <#
@@ -15548,6 +15484,12 @@ function Remove-InvalidFileNameCharsTDO{
     AddedWebsite:	https://gallery.technet.microsoft.com/Remove-Invalid-Characters-39fa17b1
     AddedTwitter:	URL
     REVISIONS
+    * 11:46 AM 1/2/2026 added 1-liner rgx build demo ; added region
+        N.B. Had issues with the Escape & Regex conversion order in other attempts to use 
+            [System.IO.Path]::GetInvalidFileNameChars(), 
+        -> confirmed this splits them into descrete steps that should always work (rgx escape, before -join, before making a [range], before [regex] conversion
+        Do the process out of order and the built regex drops a LOT of key chars (pipe etc). e.g. this long-standing broken version:
+          PS> $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join '' ; 
     * 7:15 PM 3/1/2025 spliced in missing -ReplaceBrackets & -dashReplaceChars handling pieces in the unpathed else block (wasn't doing those removals as intended); 
         added -ReplaceBrackets (sub square brackets with parenthesis), and -DashReplaceChars (characters to be replaced with chars specified by the new -DashReplacement character or string); 
         added additional exmpl with pipeline support
@@ -15568,7 +15510,7 @@ function Remove-InvalidFileNameCharsTDO{
 
     The resulting cleaned string or path will be returned to the pipeline. 
  
-    The Replacement parameter will replace the invalid characters with the specified string. To remove rather than replace the invalid characters, use 
+    The Replacement parameter will replace the invalid characters with the specified string. To remove rather than replace the invalid characters, use -RemoveSpace
  
     The Name parameter can also clean file paths. If the string begins with "\\" or a drive like "C:\", it will then treat the string as a file path and clean the strings between "\". This has the side effect of removing the ability to actually remove the "\" character from strings since it will then be considered a divider.
     
@@ -15634,7 +15576,17 @@ function Remove-InvalidFileNameCharsTDO{
     PS> $results ; 
 
         junk{$(;)left
-
+        
+    Demo of mixed strip with bracket replacements
+    .EXAMPLE
+    PS> [regex]$rgxInvalidFileNameChars = "[{0}]" -f ( [RegEx]::Escape([IO.Path]::GetInvalidFileNameChars()) -join '') ; 
+    PS> gci c:\vidtmp\convert\* -recur | ?{$_.name  -match $rgxInvalidFileNameChars.tostring()} |%{
+    PS>     $thisfile = $_ ; 
+    PS>     write-host "==$($thisfile.fullname):" ; 
+    PS>     $thisfile | rename-item -newname ($thisfile.name -replace($rgxInvalidFileNameChars," ")) -verbose -whatif:$($whatif)
+    PS> } ; 
+    Demo a clean simple scriptblock version of this, to add to other scripts, wo full use of this: 
+    Avoids issues by: pre-escaping the chars, then defines the block as a range and then coerces to rgx    
     .Link
     System.RegEx
     .Link
@@ -20695,7 +20647,7 @@ function start-sleepcountdown {
             While ($Seconds -gt 0) ;
             write-host -foregroundcolor yellow "]DONE" ;
         } ;
-    } ;
+    } ; # PROC-E
 }
 
 #*------^ Start-SleepCountdown.ps1 ^------
@@ -24289,7 +24241,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameChars,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -24297,8 +24249,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUFYyBrqAqMdP+YWZ9IVlLXkk+
-# 1i+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUIVaL2xkevXNNnwtLRmB4w3Ua
+# EemgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -24313,9 +24265,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTSz3qL
-# 8LH3UgTofzxoKwTwPIwo/jANBgkqhkiG9w0BAQEFAASBgANSMeOMGl6OmEucPhja
-# Y0okt40zzE++3U5ope+EX1P0dDoqK2RIg4Jw52UyWmgWNxBC815ir6d2a5AUU0c1
-# BE2GMvuStHxz1qXu6V6l4ceQnmpR9G24efhLXtnAuxQsNqQIGR5m7G4OHdQ6MBGX
-# YzdlyJeTGicTne65WpmxKY5a
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTQyhPZ
+# cnVyWdKr58FEDEky0MRBvjANBgkqhkiG9w0BAQEFAASBgIuF88U0PX/WK6fPHu62
+# NT64ajP2WwpNloQ6cHpbOn7fPlJbT/Kj+n2v/d0by/A5gyoRbJVzMi50RjnbpsYI
+# M6tKZa2p8g1CtHm78GaBh0Lw3bZNYYgMjRNwxY/buUXlayzqNNu/vmj0jCZu7fHY
+# QzJ4+148XTQ8ddAuVhaEEwmf
 # SIG # End signature block
