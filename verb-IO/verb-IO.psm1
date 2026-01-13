@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 17.5.0.0.0
+Version     : 18.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -2731,12 +2731,10 @@ function convertFrom-JsonSmart {
     System.String Accepts piped input json text data to be converted.
     .OUTPUTS
     System.Object[] converted json data returned to pipeline (or $false, where unable to convert)
-    System.Boolean
-    [| get-member the output to see what .NET obj TypeName is returned, to use here]
     .EXAMPLE
-    PS> $json | ConvertTo-Json  | convertFrom-JsonSmart -Indentation 2
-    .EXAMPLE
-    PS> $json = Get-Content 'D:\script\test.json' -Encoding UTF8 | ConvertFrom-JsonSmart ; 
+    PS> $jsonstring = Get-Content -Raw -Path "path-to\datafile.json" ; 
+    PS> $jsondata = $jsonstring | ConvertFrom-JsonSmart -verbose  ; 
+    Typical import process
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -24249,8 +24247,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUIVaL2xkevXNNnwtLRmB4w3Ua
-# EemgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUHk57rY7/6h5YRyxg9Gk8Wlrq
+# b+agggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -24265,9 +24263,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTQyhPZ
-# cnVyWdKr58FEDEky0MRBvjANBgkqhkiG9w0BAQEFAASBgIuF88U0PX/WK6fPHu62
-# NT64ajP2WwpNloQ6cHpbOn7fPlJbT/Kj+n2v/d0by/A5gyoRbJVzMi50RjnbpsYI
-# M6tKZa2p8g1CtHm78GaBh0Lw3bZNYYgMjRNwxY/buUXlayzqNNu/vmj0jCZu7fHY
-# QzJ4+148XTQ8ddAuVhaEEwmf
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTZhJWR
+# suc3G7zP4UPY9y9/7V5ExzANBgkqhkiG9w0BAQEFAASBgARAiF9bz9uCec/7+utW
+# NmEAUkxaL3opUEFmXifTH4i8Fh3iP/3iz+VvOdPPdWp15ajGJyXWJsmdz0XEZy0Y
+# qKwDq5m3ZP0R0QXF4Fh0Gp3IPsfciDXg7wqDUvncEx+FWogYNufzQdtbWDRT8AhU
+# PR3GpxCkN0FfgrLwoMqDjcAM
 # SIG # End signature block
