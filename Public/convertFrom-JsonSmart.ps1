@@ -42,12 +42,10 @@ function convertFrom-JsonSmart {
     System.String Accepts piped input json text data to be converted.
     .OUTPUTS
     System.Object[] converted json data returned to pipeline (or $false, where unable to convert)
-    System.Boolean
-    [| get-member the output to see what .NET obj TypeName is returned, to use here]
     .EXAMPLE
-    PS> $json | ConvertTo-Json  | convertFrom-JsonSmart -Indentation 2
-    .EXAMPLE
-    PS> $json = Get-Content 'D:\script\test.json' -Encoding UTF8 | ConvertFrom-JsonSmart ; 
+    PS> $jsonstring = Get-Content -Raw -Path "path-to\datafile.json" ; 
+    PS> $jsondata = $jsonstring | ConvertFrom-JsonSmart -verbose  ; 
+    Typical import process
     .LINK
     https://github.com/tostka/verb-IO
     #>
