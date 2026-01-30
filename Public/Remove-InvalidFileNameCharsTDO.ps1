@@ -20,6 +20,7 @@ function Remove-InvalidFileNameCharsTDO{
     AddedWebsite:	https://gallery.technet.microsoft.com/Remove-Invalid-Characters-39fa17b1
     AddedTwitter:	URL
     REVISIONS
+    * 10:39 AM 1/30/2026 add alias: 'Remove-IllegalFileNameChars' (cover unupdated calls)
     * 11:46 AM 1/2/2026 added 1-liner rgx build demo ; added region
         N.B. Had issues with the Escape & Regex conversion order in other attempts to use 
             [System.IO.Path]::GetInvalidFileNameChars(), 
@@ -135,7 +136,7 @@ function Remove-InvalidFileNameCharsTDO{
     #[CmdletBinding(HelpURI='https://gallery.technet.microsoft.com/scriptcenter/Remove-Invalid-Characters-39fa17b1')]
     # defer to updated local CBH
     [CmdletBinding()]
-    [Alias('Remove-InvalidFileNameChars')]
+    [Alias('Remove-InvalidFileNameChars','Remove-IllegalFileNameChars')]
     Param(
         [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,
             HelpMessage="Array of filenames or fullnames to strip of invalid characters.[-name @('filename.ext','c:\pathto\file.ext')]")]
