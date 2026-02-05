@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.0.0.0.0
+Version     : 18.0.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -15482,6 +15482,7 @@ function Remove-InvalidFileNameCharsTDO{
     AddedWebsite:	https://gallery.technet.microsoft.com/Remove-Invalid-Characters-39fa17b1
     AddedTwitter:	URL
     REVISIONS
+    * 10:39 AM 1/30/2026 add alias: 'Remove-IllegalFileNameChars' (cover unupdated calls)
     * 11:46 AM 1/2/2026 added 1-liner rgx build demo ; added region
         N.B. Had issues with the Escape & Regex conversion order in other attempts to use 
             [System.IO.Path]::GetInvalidFileNameChars(), 
@@ -15597,7 +15598,7 @@ function Remove-InvalidFileNameCharsTDO{
     #[CmdletBinding(HelpURI='https://gallery.technet.microsoft.com/scriptcenter/Remove-Invalid-Characters-39fa17b1')]
     # defer to updated local CBH
     [CmdletBinding()]
-    [Alias('Remove-InvalidFileNameChars')]
+    [Alias('Remove-InvalidFileNameChars','Remove-IllegalFileNameChars')]
     Param(
         [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,
             HelpMessage="Array of filenames or fullnames to strip of invalid characters.[-name @('filename.ext','c:\pathto\file.ext')]")]
@@ -24247,8 +24248,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUHk57rY7/6h5YRyxg9Gk8Wlrq
-# b+agggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUHeFWG+GrIcOPD9L7+uHRxujW
+# TOmgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -24263,9 +24264,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTZhJWR
-# suc3G7zP4UPY9y9/7V5ExzANBgkqhkiG9w0BAQEFAASBgARAiF9bz9uCec/7+utW
-# NmEAUkxaL3opUEFmXifTH4i8Fh3iP/3iz+VvOdPPdWp15ajGJyXWJsmdz0XEZy0Y
-# qKwDq5m3ZP0R0QXF4Fh0Gp3IPsfciDXg7wqDUvncEx+FWogYNufzQdtbWDRT8AhU
-# PR3GpxCkN0FfgrLwoMqDjcAM
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSTOI0n
+# HJxeptUZMm5sQG0LrTInWjANBgkqhkiG9w0BAQEFAASBgCQ+fAl4H8DjklYLc0jq
+# gTZcoa0ULp2yFekPk9AJEfj/kUW9LOrugirdINySiMpUzOJi03zQC2TvQXxg0kCq
+# +kFjqFTDmvyjZo+gcG057c1QZOkwtnVdtkHIj2XvG0bU+hHQLOMtIPDLTh8Q6uYP
+# COu+NwAvzFDXlJRz+aTDkqDz
 # SIG # End signature block
