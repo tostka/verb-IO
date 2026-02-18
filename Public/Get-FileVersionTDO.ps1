@@ -15,12 +15,13 @@ Function Get-FileVersionTDO {
         FileName    : Get-FileVersionTDO.ps1
         License     : (none asserted)
         Copyright   : (none asserted)
-        Github      : https://github.com/tostka/verb-ex2010
+
         Tags        : Powershell,Exchange,ExchangeServer,Install,Patch,Maintenance
         AddedCredit : Michel de Rooij / michel@eightwone.com
         AddedWebsite: http://eightwone.com
         AddedTwitter: URL
         REVISIONS
+        * 2:35 PM 2/17/2026 add missing base alias
         * 9:31 AM 10/2/2025 add alias: 'Get-DetectedFileVersionTDO'
         * 9:13 AM 9/24/2025 moved vx10->vxio
         * 10:26 AM 9/22/2025 ren Get-DetectedFileVersionTDO -> Get-FileVersionTDO (better descriptive name for what it does, better mnemomic) ; port to vio from xopBuildLibrary; add CBH, and Adv Function specs
@@ -53,7 +54,7 @@ Function Get-FileVersionTDO {
         https://github.org/tostka/verb-io/
         #>
         [CmdletBinding()]
-        [alias('Get-DetectedFileVersion','Get-DetectedFileVersionTDO')]
+        [alias('Get-DetectedFileVersion','Get-DetectedFileVersionTDO','Get-FileVersion')]
         PARAM(
             [Parameter(Mandatory=$true,HelpMessage = "Path to leaf versioned file object to be checked[-File 'c:\pathto\ExSetup.exe']")]
                 [string]$File
@@ -72,6 +73,5 @@ Function Get-FileVersionTDO {
             } ; 
         } ; 
         return $res 
-    }
-#endregion GET_FILEVERSIONTDO ; #*------^ END Get-FileVersionTDO ^------
+    } #endregion GET_FILEVERSIONTDO ; #*------^ END Get-FileVersionTDO ^------
 

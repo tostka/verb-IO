@@ -1,4 +1,5 @@
-﻿#*------v Test-RegistryValueNotNull.ps1 v------
+﻿
+#region TEST_REGISTRYVALUENOTNULL ; #*------v Test-RegistryValueNotNull v------ 
 function Test-RegistryValueNotNull {
     <#
     .SYNOPSIS
@@ -47,5 +48,4 @@ function Test-RegistryValueNotNull {
         $true| write-output  ;
     } ;
 }
-
-#*------^ Test-RegistryValueNotNull.ps1 ^------
+#endregion TEST_REGISTRYVALUENOTNULL ; #*------^ END Test-RegistryValueNotNull ^------

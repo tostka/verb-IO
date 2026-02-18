@@ -1,4 +1,4 @@
-﻿#*------v Test-RegistryValue.ps1 v------
+﻿#region TEST_REGISTRYVALUE ; #*------v Test-RegistryValue v------
 function Test-RegistryValue {
     <#
     .SYNOPSIS
@@ -47,5 +47,4 @@ function Test-RegistryValue {
         $true | write-output ;
     } ;
 }
-
-#*------^ Test-RegistryValue.ps1 ^------
+#endregion TEST_REGISTRYVALUE ; #*------^ END Test-RegistryValue ^------
