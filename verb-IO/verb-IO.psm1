@@ -1,11 +1,11 @@
-﻿# VERB-IO.psm1
+﻿# VERB-io.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.4.0.0.0
+Version     : 18.4.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -7300,6 +7300,7 @@ function get-colorcombo {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     REVISIONS   :
+    * 12:15 PM 4/2/2026 added demo to asseemble a block of standard diff bg combos 
     * 10:54 AM 3/22/2024: add: -splat (outputs a splatted combo write-host scriptblock) ; added combo max value test (was returning nothing when out of range); echo the actual combo # in use into the random and splat options
     * 8:53 AM 4/29/2022 add: Alias gclr; ValueFromPipeline (now supports pipeline input); updated CBH
     * 10:35 AM 2/21/2022 CBH example ps> adds 
@@ -7324,7 +7325,7 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     .OUTPUTS
     System.Collections.Hashtable
     .EXAMPLE
-    PS> $plt=get-colorcombo 70 ;
+    PS> $a = 70 ; $plt=get-colorcombo $a ;
     PS> write-host @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
     Pull and use get-colorcombo 72 in a write-host ;
     .EXAMPLE
@@ -7343,6 +7344,29 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     PS> $plt=get-colorcombo -combo 69 ; 
     PS> set-consolecolors @plt ; 
     Use verb-IO:set-consolecolors() function to set colorcombo 69.
+    .EXAMPLE
+    PS> write-verbose "splitting colorcombo series on the backgroundcolor division points" ; 
+    PS> $cci = 0  ; 
+    PS> @('0','7','13','17','25','30','39','46','51','55','57','62')|%{
+    PS>     $thiscc = $_ ; 
+    PS>     $cci++ ; set-variable -name "wh$($cci)" -value (get-colorcombo $thiscc) ;     
+    PS> } ; 
+    PS> gv |?{$_.name -match 'wh\d'} | %{write-host -back $_.value['BackgroundColor'] -fore $_.value['ForegroundColor'] "`$$($_.Name):`t$($_.value['BackgroundColor']):$($_.value['ForegroundColor'])"}
+    
+        $wh1:   Black:Gray
+        $wh10:  Cyan:Blue
+        $wh11:  Red:Black
+        $wh12:  Magenta:Black
+        $wh2:   DarkGreen:Gray
+        $wh3:   White:DarkGray
+        $wh4:   DarkRed:Green
+        $wh5:   Gray:Black
+        $wh6:   DarkGray:Black
+        $wh7:   Blue:Gray
+        $wh8:   Green:Black
+        $wh9:   Yellow:DarkGray
+    
+    Generate a set of different background color write-host color combos, assigned to an incrementing set of wh## variables
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -24716,8 +24740,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUE8Y6JOP5xpj53dEUhs7LVX5A
-# c6OgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU01sYSrQVs3JVj0bN0+1+PxGD
+# Hi+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -24732,9 +24756,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQEFeCi
-# wzhNxOUzHwqKTqnKyG173TANBgkqhkiG9w0BAQEFAASBgHvp7mJwSkLCJyawdqUt
-# tJUfN8oaup4QbCbrtOg/k8fEHDtqmAz6Z/ZjORMDMLkuGSmhJ4EOUnWqsEaFjeT5
-# HKBd8yUrjdZ/6CpN1iFy7F/XDSuRVRkSedYQA4rsVwzz48O85vqr6pazqccPZbQt
-# ypizGJs2X6HHcqcGQRa3jqAQ
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSLRmy7
+# EI89u7mg1KfgQmUI5Wt/0jANBgkqhkiG9w0BAQEFAASBgBevRg+4ODrZ8FCQ8wlQ
+# IMZ/xszvIcbFEVwu9kJPS727NrGDAZJO+DtBRasb3OVpsbO1uMRikXEwSRiM7Y2p
+# 1lgtx7pmgQ5J7kbbrFwEUCxRPtSqN/e7kXO/gHD5XkhaAGhegz2JJ5JkDImQpZSP
+# +tk6Zo/S57aLg2l9okGCZ436
 # SIG # End signature block
