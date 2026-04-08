@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.4.1.0.0
+Version     : 18.4.2.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -6634,6 +6634,7 @@ function Expand-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 1:38 PM 4/8/2026 fullypath Microsoft.PowerShell.Archive\Expand-Archive, pcx vers has -outputpath not -dest
     * 3:29 PM 1/16/2024 was getting errors overwriting existing under ps5.1: needs -force, so expanded -overwrite to issue -force under ps5.1 (along with prior pre ps5 use).
     * 4:23 PM 8/30/2022 simplified CATCH's; updated CBH; ren -Destination -> -DestinationPath (matches expand-archive, and compress-archivefile params)
     * 1:28 PM 8/29/2022 ren Expand-ZIPFile -> Expand-ArchiveFile (alias orig name); ren source parameter File -> Path; add code to use native expand-archive on psv5+ ; 
@@ -6754,7 +6755,8 @@ function Expand-ArchiveFile {
                     $smsg = "Expand-Archive w`n$(($pltEA|out-string).trim())" ; 
                     write-host $smsg ;
                     TRY{
-                        Expand-Archive @pltEA ; 
+                        # fully path it, pscx vers uses -output path, conflict causes errors
+                        Microsoft.PowerShell.Archive\Expand-Archive @pltEA ; 
                     }CATCH{
                         Write-Warning -Message $_.Exception.Message
                     } ; 

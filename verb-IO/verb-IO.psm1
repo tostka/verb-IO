@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.4.1.0.0
+Version     : 18.4.2.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -6634,6 +6634,7 @@ function Expand-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 1:38 PM 4/8/2026 fullypath Microsoft.PowerShell.Archive\Expand-Archive, pcx vers has -outputpath not -dest
     * 3:29 PM 1/16/2024 was getting errors overwriting existing under ps5.1: needs -force, so expanded -overwrite to issue -force under ps5.1 (along with prior pre ps5 use).
     * 4:23 PM 8/30/2022 simplified CATCH's; updated CBH; ren -Destination -> -DestinationPath (matches expand-archive, and compress-archivefile params)
     * 1:28 PM 8/29/2022 ren Expand-ZIPFile -> Expand-ArchiveFile (alias orig name); ren source parameter File -> Path; add code to use native expand-archive on psv5+ ; 
@@ -6754,7 +6755,8 @@ function Expand-ArchiveFile {
                     $smsg = "Expand-Archive w`n$(($pltEA|out-string).trim())" ; 
                     write-host $smsg ;
                     TRY{
-                        Expand-Archive @pltEA ; 
+                        # fully path it, pscx vers uses -output path, conflict causes errors
+                        Microsoft.PowerShell.Archive\Expand-Archive @pltEA ; 
                     }CATCH{
                         Write-Warning -Message $_.Exception.Message
                     } ; 
@@ -24740,8 +24742,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU01sYSrQVs3JVj0bN0+1+PxGD
-# Hi+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUIU9gbV8PRTmoqQ2tQozHav3p
+# 1aigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -24756,9 +24758,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSLRmy7
-# EI89u7mg1KfgQmUI5Wt/0jANBgkqhkiG9w0BAQEFAASBgBevRg+4ODrZ8FCQ8wlQ
-# IMZ/xszvIcbFEVwu9kJPS727NrGDAZJO+DtBRasb3OVpsbO1uMRikXEwSRiM7Y2p
-# 1lgtx7pmgQ5J7kbbrFwEUCxRPtSqN/e7kXO/gHD5XkhaAGhegz2JJ5JkDImQpZSP
-# +tk6Zo/S57aLg2l9okGCZ436
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRfO7oO
+# Q7ZzH/CQlD71geLh4sn1tDANBgkqhkiG9w0BAQEFAASBgBcY9dirSCp+Ev4Tr91X
+# A7uVIYOVbH18sY7h0fuhLDCIE7csydsTH6q9bYyS8JYxidWbXibjN+BEdroOpgKn
+# nR5HHAP8zkdOtKJMZbVu+xw6m/uUwE27YuFlMKm8hrbw5DIZYjvit8A1xySnqys8
+# JL8VU1bg7D7NDuVsLtFjRG7V
 # SIG # End signature block

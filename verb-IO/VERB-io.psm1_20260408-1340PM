@@ -1,11 +1,11 @@
-﻿# verb-io.psm1
+﻿# VERB-io.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.2.0.0.0
+Version     : 18.4.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -7300,6 +7300,7 @@ function get-colorcombo {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     REVISIONS   :
+    * 12:15 PM 4/2/2026 added demo to asseemble a block of standard diff bg combos 
     * 10:54 AM 3/22/2024: add: -splat (outputs a splatted combo write-host scriptblock) ; added combo max value test (was returning nothing when out of range); echo the actual combo # in use into the random and splat options
     * 8:53 AM 4/29/2022 add: Alias gclr; ValueFromPipeline (now supports pipeline input); updated CBH
     * 10:35 AM 2/21/2022 CBH example ps> adds 
@@ -7324,7 +7325,7 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     .OUTPUTS
     System.Collections.Hashtable
     .EXAMPLE
-    PS> $plt=get-colorcombo 70 ;
+    PS> $a = 70 ; $plt=get-colorcombo $a ;
     PS> write-host @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
     Pull and use get-colorcombo 72 in a write-host ;
     .EXAMPLE
@@ -7343,6 +7344,29 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     PS> $plt=get-colorcombo -combo 69 ; 
     PS> set-consolecolors @plt ; 
     Use verb-IO:set-consolecolors() function to set colorcombo 69.
+    .EXAMPLE
+    PS> write-verbose "splitting colorcombo series on the backgroundcolor division points" ; 
+    PS> $cci = 0  ; 
+    PS> @('0','7','13','17','25','30','39','46','51','55','57','62')|%{
+    PS>     $thiscc = $_ ; 
+    PS>     $cci++ ; set-variable -name "wh$($cci)" -value (get-colorcombo $thiscc) ;     
+    PS> } ; 
+    PS> gv |?{$_.name -match 'wh\d'} | %{write-host -back $_.value['BackgroundColor'] -fore $_.value['ForegroundColor'] "`$$($_.Name):`t$($_.value['BackgroundColor']):$($_.value['ForegroundColor'])"}
+    
+        $wh1:   Black:Gray
+        $wh10:  Cyan:Blue
+        $wh11:  Red:Black
+        $wh12:  Magenta:Black
+        $wh2:   DarkGreen:Gray
+        $wh3:   White:DarkGray
+        $wh4:   DarkRed:Green
+        $wh5:   Gray:Black
+        $wh6:   DarkGray:Black
+        $wh7:   Blue:Gray
+        $wh8:   Green:Black
+        $wh9:   Yellow:DarkGray
+    
+    Generate a set of different background color write-host color combos, assigned to an incrementing set of wh## variables
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -8574,12 +8598,13 @@ Function Get-FileVersionTDO {
         FileName    : Get-FileVersionTDO.ps1
         License     : (none asserted)
         Copyright   : (none asserted)
-        Github      : https://github.com/tostka/verb-ex2010
+
         Tags        : Powershell,Exchange,ExchangeServer,Install,Patch,Maintenance
         AddedCredit : Michel de Rooij / michel@eightwone.com
         AddedWebsite: http://eightwone.com
         AddedTwitter: URL
         REVISIONS
+        * 2:35 PM 2/17/2026 add missing base alias
         * 9:31 AM 10/2/2025 add alias: 'Get-DetectedFileVersionTDO'
         * 9:13 AM 9/24/2025 moved vx10->vxio
         * 10:26 AM 9/22/2025 ren Get-DetectedFileVersionTDO -> Get-FileVersionTDO (better descriptive name for what it does, better mnemomic) ; port to vio from xopBuildLibrary; add CBH, and Adv Function specs
@@ -8612,7 +8637,7 @@ Function Get-FileVersionTDO {
         https://github.org/tostka/verb-io/
         #>
         [CmdletBinding()]
-        [alias('Get-DetectedFileVersion','Get-DetectedFileVersionTDO')]
+        [alias('Get-DetectedFileVersion','Get-DetectedFileVersionTDO','Get-FileVersion')]
         PARAM(
             [Parameter(Mandatory=$true,HelpMessage = "Path to leaf versioned file object to be checked[-File 'c:\pathto\ExSetup.exe']")]
                 [string]$File
@@ -10962,8 +10987,10 @@ function get-Uptime {
     Website:	http://tinstoys.blogspot.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 9:58 AM 3/11/2026 psv2 isn't doing alt catch, spliced the evtlog  call under an if block in the catch ; 
+        retooled to cover WMI qry fails (high uptime/wmi svc issues?, fail through to use get-WinEvent to pull Event log startup event: 6005 The Event log service was started
     vers: 12:15 PM 2/3/2015 functional
-    Vers: 7:26 AM 2/3/2015 port to function
+    # 9:03 AM 2/3/2015 added aliases, permits piping the output of WMI query etc, using Get-WMIObject into a function and it would grab the __Server property of the object and use it in the pipeline of the function.; port to function
     Vers: 8:35 AM 9/16/2013 added timestamp to console for ref
     vers: 11:02 AM 8/19/2013 - works, with pipeline support, but I removed the computerlist param - pipe in a list if you want one
     vers: 9:19 AM 8/19/2013 - initial version
@@ -10993,12 +11020,9 @@ function get-Uptime {
     .EXAMPLE
     Get-ADComputer -filter * | Select @{label='computername';expression={$_.name}} | Get-Uptime
     .LINK
-     #>
-
-    # 9:03 AM 2/3/2015 added aliases, permits piping the output of WMI query etc, using Get-WMIObject into a function and it would grab the __Server property of the object and use it in the pipeline of the function.
-
+     #>    
     [CmdletBinding()]
-    param (
+    PARAM (
         [parameter(
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true,
@@ -11012,6 +11036,37 @@ function get-Uptime {
     BEGIN {
         $Info = @()
         $iProcd = 0;
+        #region FUNCTIONS_INTERNAL ; #*======v FUNCTIONS_INTERNAL v======
+        function get-uptimeEvent {
+            [CmdletBinding()]
+            PARAM (
+                [parameter(
+                    ValueFromPipeline = $true,
+                    ValueFromPipelineByPropertyName = $true,
+                    Position = 0)]
+                [Alias('__ServerName', 'Server', 'Computer', 'Name', 'IPAddress', 'CN')]
+                [string]$ComputerName = $env:COMPUTERNAME
+                ,
+                [parameter(Position = 1)]
+                [System.Management.Automation.PSCredential]$Credential
+            ) ;     
+            TRY{
+                [datetime]$boottime = Get-WinEvent -FilterHashtable @{logname = 'System'; id = 6005} -ComputerName $ComputerName -ERRORACTION STOP| sort timecreated | select -last 1 | select -expand timecreated
+;                if($tsuptime = New-TimeSpan -Start $boottime -End (get-date )){ 
+                    $tsUptime | write-output ;
+                }else{
+                    $smsg = "UNABLE TO RESOLVE UPTIME VIA BACKUP GET-WINEVENT CALL!" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent} 
+                    else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                }
+            } CATCH {$ErrTrapd=$Error[0] ;
+                write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+            } ;
+            
+        }
+        #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^======
     }  # BEG-E
     PROCESS {
         foreach ($Computer in $Computername) {
@@ -11021,11 +11076,44 @@ function get-Uptime {
                 $ErrorActionPreference = "Stop" ;
                 $OS = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $Computer #-ErrorAction stop
                 $oRet = (Get-Date) - $OS.ConvertToDateTime($OS.LastBootUpTime) #-ErrorAction stop
-            }
-            catch {
-                Write "$((get-date).ToString('HH:mm:ss')): Error Details: $($_)"
-                Continue
-            } # try/cat-E
+            } CATCH [System.Management.ManagementException]{
+                $smsg = "WMI QRY FAIL (POSSIBLE WMI SVC/UPTIME ISSUE?)" ; 
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent} 
+                else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                $smsg = "RETRYING via get-uptimeEvent (Get-WinEvent -FilterHashtable @{logname = 'System'; id = 6005) " ; 
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+                else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                $oRet = get-uptimeEvent -ComputerName $Computer ; 
+            } CATCH {
+                # or just do idiotproof: Write-Warning -Message $_.Exception.Message ;
+                $ErrTrapd=$Error[0] ;
+                # psv3 ex10 boxes aren't picking up the alt catch above, do it manually:
+                if($($host.Version.Major -eq 2 -AND $ErrTrapd.Exception.GetType().FullName) -eq 'System.Management.ManagementException'){
+                    $smsg = "WMI QRY FAIL (POSSIBLE WMI SVC/UPTIME ISSUE?)" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent} 
+                    else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                    $smsg = "RETRYING via get-uptimeEvent (Get-WinEvent -FilterHashtable @{logname = 'System'; id = 6005) " ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    $oRet = get-uptimeEvent -ComputerName $Computer ; 
+                } else{ 
+                    $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+                    else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    $smsg = $ErrTrapd.Exception.Message ;
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+                    else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    #-=-record a STATUSWARN=-=-=-=-=-=-=
+                    $statusdelta = ";WARN"; # CHANGE|INCOMPLETE|ERROR|WARN|FAIL ;
+                    if(gv passstatus -scope Script -ea 0){$script:PassStatus += $statusdelta } ;
+                    if(gv -Name PassStatus_$($tenorg) -scope Script -ea 0){set-Variable -Name PassStatus_$($tenorg) -scope Script -Value ((get-Variable -Name PassStatus_$($tenorg)).value + $statusdelta)} ;
+                    #-=-=-=-=-=-=-=-=
+                    $smsg = "FULL ERROR TRAPPED (EXPLICIT CATCH BLOCK WOULD LOOK LIKE): } CATCH[$($ErrTrapd.Exception.GetType().FullName)]{" ;
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level ERROR } #Error|Warn|Debug
+                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    CONTINUE #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
+                } ; 
+            } ; 
             if ($continue) {
                 # hashtable of the single system's properties
                 # asserted property sort order is on property name
@@ -11036,7 +11124,7 @@ function get-Uptime {
                     'Minutes'      = $oRet.Minutes;
                     'Seconds'      = $oRet.Seconds;
                     'Uptime'       = $oRet -f $oRet.Hours, $oRet.Minutes, $oRet.Seconds;
-                    'UptimeStr'    = ("$($Computer):$($oRet.Days)d:$($oRet.Hours)h:$($oRet.Minutes)m:$($oRet.Seconds)s")
+                    'UptimeStr'    = ("$($Computer.toupper()):$($oRet.Days)d:$($oRet.Hours)h:$($oRet.Minutes)m:$($oRet.Seconds)s")
                 } ;
                 $obj = New-Object -Type PSObject -Property $property
                 Write-Output $obj
@@ -22803,253 +22891,266 @@ function test-ModulesAvailable {
 
 
 #*------v Test-PendingRebootTDO.ps1 v------
-function Test-PendingRebootTDO {
-    <#
-    .SYNOPSIS
-    Test-PendingRebootTDO - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
-    .NOTES
-    Version     : 0.0.
-    Author      : Todd Kadrie
-    Website     : http://www.toddomation.com
-    Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2025-
-    FileName    : Test-PendingRebootTDO.ps1
-    License     : MIT License
-    Copyright   : (c) 2025 Todd Kadrie
-    Github      : https://github.com/tostka/verb-io
-    Tags        : Powershell,System,Reboot
-    AddedCredit : Adam Bertram
-    AddedWebsite:	https://adamtheautomator.com/pending-reboot-registry-windows/
-    AddedTwitter:	@adambertram
-    REVISIONS
-    * 1:56 PM 9/18/2025 add verbose echo of regkey that tagged a reboot; ren Test-PendingReboot -> Test-PendingRebootTDO; alias orig name; add region tags
-      cbh: updated cited output to pscustomobject.
-    * 9:38 AM 12/26/2024 tab-indent & caps'd the param blocks, flipped $Computername to nonmando wo notnullorempty, defaulted to $env:computername; added coerced -local when $computername -eq $env:computername, now runs on mybox, failed trying to do unconfig'd remoteps prev
-    * 12:19 PM 6/24/2024 new box, pre WinRM remote config, fails hard; so cut in quick & dirty workaroun: -Local param, steers through the tests wo the PSSesssion working
-    * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
-    * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
-    * 5:03 PM 1/14/2021 init, minor CBH mods
-    * 7/29/19 AB's posted version
-    .DESCRIPTION
-    Test-PendingRebootTDO - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
-    .PARAMETER  ComputerName
-    Array of computernames to be tested for pending reboot
-    .PARAMETER  Credential
-    windows Credential [-credential (get-credential)]
-    .PARAMETER Local
-    Switch to skip remote PSSession connection, run local machine tests only (which will fail on new build unconfigured WinRM)[-Local]
-    .PARAMETER IgnoreFileRename
-    Switch to skip  tests of *PendingFileRenameOperations* (which don't reflect system pending updates, just locked file removal/replacement)[-ignorefilerename]
-    .OUTPUT
-    System.Management.Automation.PSCustomObject
-    .EXAMPLE
-    if((Test-PendingRebootTDO -ComputerName $env:Computername).IsPendingReboot){write-warning "$env:computername is PENDING REBOOT!"} ;
-    Test for pending reboot remotely
-    .EXAMPLE
-    PS> if((Test-PendingRebootTDO -ComputerName $env:Computername -Local -IgnoreFileRename).IsPendingReboot){
-    PS>     $smsg = "$env:computername is PENDING REBOOT!" ; 
-    PS>     $smsg += "`nreboot and relaunch..." ; 
-    PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } 
-    PS>     else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
-    PS>     break ; 
-    PS> } ;
-    Local only test with demo'd echo, and -IgnoreFileRename specified.
-    .LINK
-    https://adamtheautomator.com/pending-reboot-registry-windows/
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [CmdletBinding()]
-    [Alias('Test-PendingReboot')]
-    PARAM(
-        [Parameter(Mandatory=$false,HelpMessage="Array of computernames to be tested for pending reboot")]
-            [ValidateNotNullOrEmpty()]
-            [string[]]$ComputerName= $env:computername,
-        [Parameter(HelpMessage="windows Credential [-credential (get-credential)]")]
-            [ValidateNotNullOrEmpty()]
-            [pscredential]$Credential,
-        [Parameter(HelpMessage="Switch to skip remote PSSession connection (which will fail on new build unconfigured WinRM)[-Local]")]
-            [switch]$Local,
-        [Parameter(HelpMessage="Switch to skip  tests of *PendingFileRenameOperations*[-ignorefilerename]")]
-            [switch]$IgnoreFileRename
-    ) ;
-    $ErrorActionPreference = 'Stop'
+function Test-PendingRebootTDO{    
+        <#
+        .SYNOPSIS
+        Test-PendingRebootTDO - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
+        .NOTES
+        Version     : 0.0.
+        Author      : Todd Kadrie
+        Website     : http://www.toddomation.com
+        Twitter     : @tostka / http://twitter.com/tostka
+        CreatedDate : 2025-
+        FileName    : Test-PendingRebootTDO.ps1
+        License     : MIT License
+        Copyright   : (c) 2025 Todd Kadrie
+        Github      : https://github.com/tostka/verb-io
+        Tags        : Powershell,System,Reboot
+        AddedCredit : Adam Bertram
+        AddedWebsite:	https://adamtheautomator.com/pending-reboot-registry-windows/
+        AddedTwitter:	@adambertram
+        REVISIONS
+        * 3:30 PM 2/17/2026 fixed error: Test-RebootPending : Property UpdateExeVolatile does not exist at path HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Updates ; add missing base alias
+        * 1:56 PM 9/18/2025 add verbose echo of regkey that tagged a reboot; ren Test-PendingReboot -> Test-PendingRebootTDO; alias orig name; add region tags
+          cbh: updated cited output to pscustomobject.
+        * 9:38 AM 12/26/2024 tab-indent & caps'd the param blocks, flipped $Computername to nonmando wo notnullorempty, defaulted to $env:computername; added coerced -local when $computername -eq $env:computername, now runs on mybox, failed trying to do unconfig'd remoteps prev
+        * 12:19 PM 6/24/2024 new box, pre WinRM remote config, fails hard; so cut in quick & dirty workaroun: -Local param, steers through the tests wo the PSSesssion working
+        * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
+        * 9:52 AM 2/11/2021 pulled spurios trailing fire of the cmd below func, updated CBH
+        * 5:03 PM 1/14/2021 init, minor CBH mods
+        * 7/29/19 AB's posted version
+        .DESCRIPTION
+        Test-PendingRebootTDO - Check specified Server(s) registry for telltale PendingReboot registry keys. Returns a hashtable with IsPendingREboot and ComputerName for each machine checked. Requires localadmin permissions.
+        .PARAMETER  ComputerName
+        Array of computernames to be tested for pending reboot
+        .PARAMETER  Credential
+        windows Credential [-credential (get-credential)]
+        .PARAMETER Local
+        Switch to skip remote PSSession connection, run local machine tests only (which will fail on new build unconfigured WinRM)[-Local]
+        .PARAMETER IgnoreFileRename
+        Switch to skip  tests of *PendingFileRenameOperations* (which don't reflect system pending updates, just locked file removal/replacement)[-ignorefilerename]
+        .OUTPUT
+        System.Management.Automation.PSCustomObject
+        .EXAMPLE
+        if((Test-PendingRebootTDO -ComputerName $env:Computername).IsPendingReboot){write-warning "$env:computername is PENDING REBOOT!"} ;
+        Test for pending reboot remotely
+        .EXAMPLE
+        PS> if((Test-PendingRebootTDO -ComputerName $env:Computername -Local -IgnoreFileRename).IsPendingReboot){
+        PS>     $smsg = "$env:computername is PENDING REBOOT!" ; 
+        PS>     $smsg += "`nreboot and relaunch..." ; 
+        PS>     if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } 
+        PS>     else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+        PS>     break ; 
+        PS> } ;
+        Local only test with demo'd echo, and -IgnoreFileRename specified.
+        .LINK
+        https://adamtheautomator.com/pending-reboot-registry-windows/
+        .LINK
+        https://github.com/tostka/verb-IO
+        #>
+        [CmdletBinding()]
+        [Alias('Test-PendingReboot','Test-RebootPending')]
+        PARAM(
+            [Parameter(Mandatory=$false,HelpMessage="Array of computernames to be tested for pending reboot")]
+                [ValidateNotNullOrEmpty()]
+                [string[]]$ComputerName= $env:computername,
+            [Parameter(HelpMessage="windows Credential [-credential (get-credential)]")]
+                [ValidateNotNullOrEmpty()]
+                [pscredential]$Credential,
+            [Parameter(HelpMessage="Switch to skip remote PSSession connection (which will fail on new build unconfigured WinRM)[-Local]")]
+                [switch]$Local,
+            [Parameter(HelpMessage="Switch to skip  tests of *PendingFileRenameOperations*[-ignorefilerename]")]
+                [switch]$IgnoreFileRename
+        ) ;
+        $ErrorActionPreference = 'Stop'
 
-    <# try to pull in local modules into the scriptblock (rather than expliciting a copy in the block) - didn't work, module load threw
-    Error Message: A Using variable cannot be retrieved. A Using variable can be used only with Invoke-Command, Start-Job, or InlineScript in the script workflow. When it is used with Invoke-Command, the Using variable is valid only if the script block is invoked on a remote computer
-    #>
-    $scriptBlock = {
+        <# try to pull in local modules into the scriptblock (rather than expliciting a copy in the block) - didn't work, module load threw
+        Error Message: A Using variable cannot be retrieved. A Using variable can be used only with Invoke-Command, Start-Job, or InlineScript in the script workflow. When it is used with Invoke-Command, the Using variable is valid only if the script block is invoked on a remote computer
+        #>
+        $scriptBlock = {
 
-        $VerbosePreference = $using:VerbosePreference
+            $VerbosePreference = $using:VerbosePreference
 
-        function Test-RegistryKey {
-            [OutputType('bool')]
-            [CmdletBinding()]
-            PARAM(
-                [Parameter(Mandatory=$true)]
-                    [ValidateNotNullOrEmpty()]
-                    [string]$Key
-            )
-            $ErrorActionPreference = 'Stop'
-            if (Get-Item -Path $Key -ErrorAction Ignore) {
-                $true
-            }
-        }
-        function Test-RegistryValue {
-            [OutputType('bool')]
-            [CmdletBinding()]
-            PARAM(
-                [Parameter(Mandatory=$true)]
-                    [ValidateNotNullOrEmpty()]
-                    [string]$Key,
-                [Parameter(Mandatory=$true)]
-                    [ValidateNotNullOrEmpty()]
-                    [string]$Value
-            )
-            $ErrorActionPreference = 'Stop'
-            if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
-                $true
-            }
-        }
-        function Test-RegistryValueNotNull {
-            [OutputType('bool')]
-            [CmdletBinding()]
-            PARAM(
-                [Parameter(Mandatory=$true)]
-                    [ValidateNotNullOrEmpty()]
-                    [string]$Key,
-                [Parameter(Mandatory=$true)]
-                    [ValidateNotNullOrEmpty()]
-                    [string]$Value
-            )
-            $ErrorActionPreference = 'Stop'
-            if (($regVal = Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) -and $regVal.($Value)) {
-                $true
-            }
-        }
-
-        # Added "test-path" to each test that did not leverage a custom function from above since
-        # an exception is thrown when Get-ItemProperty or Get-ChildItem are passed a nonexistant key path
-        # $tests is an array of scriptblocks, to be executed in a stack
-        $tests = @(
-            { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' }
-            { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootInProgress' }
-            { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired' }
-            { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\PackagesPending' }
-            { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\PostRebootReporting' }
-            { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations' }
-            { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations2' }
-            {
-                # Added test to check first if key exists, using "ErrorAction ignore" will incorrectly return $true
-                'HKLM:\SOFTWARE\Microsoft\Updates' | Where-Object { test-path $_ -PathType Container } | ForEach-Object {
-                    (Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' | Select-Object -ExpandProperty UpdateExeVolatile) -ne 0
+            function Test-RegistryKey {
+                [OutputType('bool')]
+                [CmdletBinding()]
+                PARAM(
+                    [Parameter(Mandatory=$true)]
+                        [ValidateNotNullOrEmpty()]
+                        [string]$Key
+                )
+                $ErrorActionPreference = 'Stop'
+                if (Get-Item -Path $Key -ErrorAction Ignore) {
+                    $true
                 }
             }
-            { Test-RegistryValue -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Value 'DVDRebootSignal' }
-            { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\ServerManager\CurrentRebootAttemps' }
-            { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'JoinDomain' }
-            { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'AvoidSpnSet' }
-            {
-                # Added test to check first if keys exists, if not each group will return $Null
-                # May need to evaluate what it means if one or both of these keys do not exist
-                ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ActiveComputerName' | Where-Object { test-path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } ) -ne
-                ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ComputerName' | Where-Object { Test-Path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } )
+            function Test-RegistryValue {
+                [OutputType('bool')]
+                [CmdletBinding()]
+                PARAM(
+                    [Parameter(Mandatory=$true)]
+                        [ValidateNotNullOrEmpty()]
+                        [string]$Key,
+                    [Parameter(Mandatory=$true)]
+                        [ValidateNotNullOrEmpty()]
+                        [string]$Value
+                )
+                $ErrorActionPreference = 'Stop'
+                if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
+                    $true
+                }
             }
-            {
-                # Added test to check first if key exists
-                'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending' | Where-Object {
-                    (Test-Path $_) -and (Get-ChildItem -Path $_) } | ForEach-Object { $true }
+            function Test-RegistryValueNotNull {
+                [OutputType('bool')]
+                [CmdletBinding()]
+                PARAM(
+                    [Parameter(Mandatory=$true)]
+                        [ValidateNotNullOrEmpty()]
+                        [string]$Key,
+                    [Parameter(Mandatory=$true)]
+                        [ValidateNotNullOrEmpty()]
+                        [string]$Value
+                )
+                $ErrorActionPreference = 'Stop'
+                if (($regVal = Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) -and $regVal.($Value)) {
+                    $true
+                }
             }
-        ) ; # scriptblock-E
-        # cycle the list and break on first match
-        foreach ($test in $tests) {
-            Write-Verbose "Running scriptblock: [$($test.ToString())]"
-            if (& $test) {
-                $true
-                break
-            }
-        }
-    } # scriptblock-E
 
-    foreach ($computer in $ComputerName) {
-        try {
-            $connParams = @{'ComputerName' = $computer} ;
-            if ($PSBoundParameters.ContainsKey('Credential')) {
-                $connParams.Credential = $Credential ;
-            } ;
-            $output = @{
-                ComputerName    = $computer ;
-                IsPendingReboot = $false ;
-            } ;
-            # test & force local - fails on mybox
-            if(-not $Local -AND ($computer -eq $env:COMPUTERNAME)){
-                write-verbose "coercing local run -Local:$true" ; 
-                $local = $true ; 
-            } ; 
-            if($Local){
-                #if (-not ($output.IsPendingReboot = Invoke-Command -ScriptBlock $scriptBlock)) {
-                #    $output.IsPendingReboot = $false ;
-                #} ;
-                $tests = @(
-                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' }
-                    { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootInProgress' }
-                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired' }
-                    { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\PackagesPending' }
-                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\PostRebootReporting' }
-                    { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations' }
-                    { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations2' }
-                    {
-                        # Added test to check first if key exists, using "ErrorAction ignore" will incorrectly return $true
-                        'HKLM:\SOFTWARE\Microsoft\Updates' | Where-Object { test-path $_ -PathType Container } | ForEach-Object {
+            # Added "test-path" to each test that did not leverage a custom function from above since
+            # an exception is thrown when Get-ItemProperty or Get-ChildItem are passed a nonexistant key path
+            # $tests is an array of scriptblocks, to be executed in a stack
+            $tests = @(
+                { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' }
+                { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootInProgress' }
+                { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired' }
+                { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\PackagesPending' }
+                { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\PostRebootReporting' }
+                { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations' }
+                { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations2' }
+                {
+                    # Added test to check first if key exists, using "ErrorAction ignore" will incorrectly return $true
+                    #'HKLM:\SOFTWARE\Microsoft\Updates' | Where-Object { test-path $_ -PathType Container } | ForEach-Object {
+                    #    (Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' | Select-Object -ExpandProperty UpdateExeVolatile) -ne 0
+                    #}
+                    # Added test to check first if key exists, using "ErrorAction ignore" will incorrectly return $true
+                    'HKLM:\SOFTWARE\Microsoft\Updates' | Where-Object { test-path $_ -PathType Container } | ForEach-Object {
+                        #(Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' | Select-Object -ExpandProperty UpdateExeVolatile) -ne 0
+                        # 3:24 PM 2/17/2026 still throws Test-RebootPending : Property UpdateExeVolatile does not exist at path HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Updates
+                        if(Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' -ea 0){
                             (Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' | Select-Object -ExpandProperty UpdateExeVolatile) -ne 0
-                        }
+                        } ; 
                     }
-                    { Test-RegistryValue -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Value 'DVDRebootSignal' }
-                    { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\ServerManager\CurrentRebootAttemps' }
-                    { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'JoinDomain' }
-                    { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'AvoidSpnSet' }
-                    {
-                        # Added test to check first if keys exists, if not each group will return $Null
-                        # May need to evaluate what it means if one or both of these keys do not exist
-                        ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ActiveComputerName' | Where-Object { test-path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } ) -ne
-                        ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ComputerName' | Where-Object { Test-Path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } )
-                    }
-                    {
-                        # Added test to check first if key exists
-                        'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending' | Where-Object {
-                            (Test-Path $_) -and (Get-ChildItem -Path $_) } | ForEach-Object { $true }
-                    }
-                ) ; # scriptblock-E
-                # cycle the list and break on first match
-                foreach ($test in $tests) {
-                    # $tests | ?{$_ -like '*PendingFileRenameOperations*'}
-                    if($IgnoreFileRename -and ($test -like '*PendingFileRenameOperations*')){
-                        write-verbose "-IgnoreFileRename: skipping PendingFileRenameOperations" ; 
-                    } else { 
-                        Write-Verbose "Running scriptblock: [$($test.ToString())]"
-                        if (& $test) {
-                            $output.IsPendingReboot = $true ;
-                            Write-Verbose "REBOOT TAGGED: [$($test.ToString())]`n(break on first match)"
-                            break
-                        }
-                    } ; 
                 }
-            } else { 
-                $psRemotingSession = New-PSSession @connParams ;
-                if (-not ($output.IsPendingReboot = Invoke-Command -Session $psRemotingSession -ScriptBlock $scriptBlock)) {                
-                    $output.IsPendingReboot = $false ;
-                } ;
-            } ; 
-            [pscustomobject]$output | write-output ;
-        } catch {
-            Write-Error -Message $_.Exception.Message
-        } finally {
-            if (Get-Variable -Name 'psRemotingSession' -ErrorAction Ignore) {
-                $psRemotingSession | Remove-PSSession
+                { Test-RegistryValue -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Value 'DVDRebootSignal' }
+                { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\ServerManager\CurrentRebootAttemps' }
+                { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'JoinDomain' }
+                { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'AvoidSpnSet' }
+                {
+                    # Added test to check first if keys exists, if not each group will return $Null
+                    # May need to evaluate what it means if one or both of these keys do not exist
+                    ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ActiveComputerName' | Where-Object { test-path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } ) -ne
+                    ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ComputerName' | Where-Object { Test-Path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } )
+                }
+                {
+                    # Added test to check first if key exists
+                    'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending' | Where-Object {
+                        (Test-Path $_) -and (Get-ChildItem -Path $_) } | ForEach-Object { $true }
+                }
+            ) ; # scriptblock-E
+            # cycle the list and break on first match
+            foreach ($test in $tests) {
+                Write-Verbose "Running scriptblock: [$($test.ToString())]"
+                if (& $test) {
+                    $true
+                    break
+                }
             }
-        } # TRY-E
-    } ;
-}
+        } # scriptblock-E
+
+        foreach ($computer in $ComputerName) {
+            try {
+                $connParams = @{'ComputerName' = $computer} ;
+                if ($PSBoundParameters.ContainsKey('Credential')) {
+                    $connParams.Credential = $Credential ;
+                } ;
+                $output = @{
+                    ComputerName    = $computer ;
+                    IsPendingReboot = $false ;
+                } ;
+                # test & force local - fails on mybox
+                if(-not $Local -AND ($computer -eq $env:COMPUTERNAME)){
+                    write-verbose "coercing local run -Local:$true" ; 
+                    $local = $true ; 
+                } ; 
+                if($Local){
+                    #if (-not ($output.IsPendingReboot = Invoke-Command -ScriptBlock $scriptBlock)) {
+                    #    $output.IsPendingReboot = $false ;
+                    #} ;
+                    $tests = @(
+                        { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' }
+                        { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootInProgress' }
+                        { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired' }
+                        { Test-RegistryKey -Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\PackagesPending' }
+                        { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\PostRebootReporting' }
+                        { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations' }
+                        { Test-RegistryValueNotNull -Key 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Value 'PendingFileRenameOperations2' }
+                        {
+                            # Added test to check first if key exists, using "ErrorAction ignore" will incorrectly return $true
+                            'HKLM:\SOFTWARE\Microsoft\Updates' | Where-Object { test-path $_ -PathType Container } | ForEach-Object {
+                                #(Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' | Select-Object -ExpandProperty UpdateExeVolatile) -ne 0
+                                # 3:24 PM 2/17/2026 still throws Test-RebootPending : Property UpdateExeVolatile does not exist at path HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Updates
+                                if(Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' -ea 0){
+                                    (Get-ItemProperty -Path $_ -Name 'UpdateExeVolatile' | Select-Object -ExpandProperty UpdateExeVolatile) -ne 0
+                                } ; 
+                            }
+                        }
+                        { Test-RegistryValue -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Value 'DVDRebootSignal' }
+                        { Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\ServerManager\CurrentRebootAttemps' }
+                        { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'JoinDomain' }
+                        { Test-RegistryValue -Key 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon' -Value 'AvoidSpnSet' }
+                        {
+                            # Added test to check first if keys exists, if not each group will return $Null
+                            # May need to evaluate what it means if one or both of these keys do not exist
+                            ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ActiveComputerName' | Where-Object { test-path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } ) -ne
+                            ( 'HKLM:\SYSTEM\CurrentControlSet\Control\ComputerName\ComputerName' | Where-Object { Test-Path $_ } | %{ (Get-ItemProperty -Path $_ ).ComputerName } )
+                        }
+                        {
+                            # Added test to check first if key exists
+                            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending' | Where-Object {
+                                (Test-Path $_) -and (Get-ChildItem -Path $_) } | ForEach-Object { $true }
+                        }
+                    ) ; # scriptblock-E
+                    # cycle the list and break on first match
+                    foreach ($test in $tests) {
+                        # $tests | ?{$_ -like '*PendingFileRenameOperations*'}
+                        if($IgnoreFileRename -and ($test -like '*PendingFileRenameOperations*')){
+                            write-verbose "-IgnoreFileRename: skipping PendingFileRenameOperations" ; 
+                        } else { 
+                            Write-Verbose "Running scriptblock: [$($test.ToString())]"
+                            if (& $test) {
+                                $output.IsPendingReboot = $true ;
+                                Write-Verbose "REBOOT TAGGED: [$($test.ToString())]`n(break on first match)"
+                                break
+                            }
+                        } ; 
+                    }
+                } else { 
+                    $psRemotingSession = New-PSSession @connParams ;
+                    if (-not ($output.IsPendingReboot = Invoke-Command -Session $psRemotingSession -ScriptBlock $scriptBlock)) {                
+                        $output.IsPendingReboot = $false ;
+                    } ;
+                } ; 
+                [pscustomobject]$output | write-output ;
+            } catch {
+                Write-Error -Message $_.Exception.Message
+            } finally {
+                if (Get-Variable -Name 'psRemotingSession' -ErrorAction Ignore) {
+                    $psRemotingSession | Remove-PSSession
+                }
+            } # TRY-E
+        } ;
+    }
 
 #*------^ Test-PendingRebootTDO.ps1 ^------
 
@@ -23150,50 +23251,50 @@ Function test-PSTitleBar {
 
 #*------v Test-RegistryKey.ps1 v------
 function Test-RegistryKey {
-    <#
-    .SYNOPSIS
-    Test-RegistryKey.ps1 - Checks specified registry key for presence (gi)
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    AddedCredit : Adam Bertram
-    AddedWebsite:	https://adamtheautomator.com/pending-reboot-registry-windows/
-    AddedTwitter:	@adambertram
-    CreatedDate : 20201014-0826AM
-    FileName    : Test-RegistryKey.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-XXX
-    Tags        : Powershell,System,Reboot
-    REVISIONS
-    * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
-    * 5:03 PM 1/14/2021 init, minor CBH mods
-    * 7/29/19 AB's posted version
-    .DESCRIPTION
-    Test-RegistryKey.ps1 - Checks specified registry key for presence (gi)
-    .PARAMETER  Key
-    Full registkey to be tested [-Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending']
-    .EXAMPLE
-    Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' ;
-    Tests one of the Pending Reboot keys
-    .LINK
-    https://github.com/tostka/verb-IO
-    #>
-    [OutputType('bool')]
-    [CmdletBinding()]
-    #[Alias('get-ScheduledTaskReport')]
-    PARAM(
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$Key
-    ) ;
-    $ErrorActionPreference = 'Stop' ;
-    if (Get-Item -Path $Key -ErrorAction Ignore) {
-        $true | write-output ;
-    } ;
-}
+        <#
+        .SYNOPSIS
+        Test-RegistryKey.ps1 - Checks specified registry key for presence (gi)
+        .NOTES
+        Version     : 1.0.0
+        Author      : Todd Kadrie
+        Website     :	http://www.toddomation.com
+        Twitter     :	@tostka / http://twitter.com/tostka
+        AddedCredit : Adam Bertram
+        AddedWebsite:	https://adamtheautomator.com/pending-reboot-registry-windows/
+        AddedTwitter:	@adambertram
+        CreatedDate : 20201014-0826AM
+        FileName    : Test-RegistryKey.ps1
+        License     : MIT License
+        Copyright   : (c) 2020 Todd Kadrie
+        Github      : https://github.com/tostka/verb-XXX
+        Tags        : Powershell,System,Reboot
+        REVISIONS
+        * 1:35 PM 4/25/2022 psv2 explcit param property =$true; regexpattern w single quotes.
+        * 5:03 PM 1/14/2021 init, minor CBH mods
+        * 7/29/19 AB's posted version
+        .DESCRIPTION
+        Test-RegistryKey.ps1 - Checks specified registry key for presence (gi)
+        .PARAMETER  Key
+        Full registkey to be tested [-Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending']
+        .EXAMPLE
+        Test-RegistryKey -Key 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending' ;
+        Tests one of the Pending Reboot keys
+        .LINK
+        https://github.com/tostka/verb-IO
+        #>
+        [OutputType('bool')]
+        [CmdletBinding()]
+        #[Alias('get-ScheduledTaskReport')]
+        PARAM(
+            [Parameter(Mandatory=$true)]
+            [ValidateNotNullOrEmpty()]
+            [string]$Key
+        ) ;
+        $ErrorActionPreference = 'Stop' ;
+        if (Get-Item -Path $Key -ErrorAction Ignore) {
+            $true | write-output ;
+        } ;
+    }
 
 #*------^ Test-RegistryKey.ps1 ^------
 
@@ -24631,7 +24732,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -24639,8 +24740,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU3n1FCRJc1gu4alykgCl5pz7T
-# NsWgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU01sYSrQVs3JVj0bN0+1+PxGD
+# Hi+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -24655,9 +24756,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT5POYV
-# 4td60CC7f4/VAuMdPe+4FTANBgkqhkiG9w0BAQEFAASBgGLrPTs7Cxaa1i+L4qyL
-# HRoP8PR0O4Zy2popTh8oZ8eNQKOOgVWknGkdbUXF2f1lrh3Vrywf+ZIQ0U2wQyHW
-# kuQM5eboIvQBIA/7OY9SKOF2jRRKgQoD94/NEETj2VL7zvfYIPEP5dvvLIbGHxQz
-# 6N97znqpFC3ch9icWEWtUc2S
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSLRmy7
+# EI89u7mg1KfgQmUI5Wt/0jANBgkqhkiG9w0BAQEFAASBgBevRg+4ODrZ8FCQ8wlQ
+# IMZ/xszvIcbFEVwu9kJPS727NrGDAZJO+DtBRasb3OVpsbO1uMRikXEwSRiM7Y2p
+# 1lgtx7pmgQ5J7kbbrFwEUCxRPtSqN/e7kXO/gHD5XkhaAGhegz2JJ5JkDImQpZSP
+# +tk6Zo/S57aLg2l9okGCZ436
 # SIG # End signature block
