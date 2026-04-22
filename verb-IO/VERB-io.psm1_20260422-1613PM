@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.3.0.0.0
+Version     : 18.4.2.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -6634,6 +6634,7 @@ function Expand-ArchiveFile {
     Twitter:	http://twitter.com/tostka
     Additional Credits:
     REVISIONS   :
+    * 1:38 PM 4/8/2026 fullypath Microsoft.PowerShell.Archive\Expand-Archive, pcx vers has -outputpath not -dest
     * 3:29 PM 1/16/2024 was getting errors overwriting existing under ps5.1: needs -force, so expanded -overwrite to issue -force under ps5.1 (along with prior pre ps5 use).
     * 4:23 PM 8/30/2022 simplified CATCH's; updated CBH; ren -Destination -> -DestinationPath (matches expand-archive, and compress-archivefile params)
     * 1:28 PM 8/29/2022 ren Expand-ZIPFile -> Expand-ArchiveFile (alias orig name); ren source parameter File -> Path; add code to use native expand-archive on psv5+ ; 
@@ -6754,7 +6755,8 @@ function Expand-ArchiveFile {
                     $smsg = "Expand-Archive w`n$(($pltEA|out-string).trim())" ; 
                     write-host $smsg ;
                     TRY{
-                        Expand-Archive @pltEA ; 
+                        # fully path it, pscx vers uses -output path, conflict causes errors
+                        Microsoft.PowerShell.Archive\Expand-Archive @pltEA ; 
                     }CATCH{
                         Write-Warning -Message $_.Exception.Message
                     } ; 
@@ -7300,6 +7302,7 @@ function get-colorcombo {
     Website:	http://www.toddomation.com
     Twitter:	@tostka, http://twitter.com/tostka
     REVISIONS   :
+    * 12:15 PM 4/2/2026 added demo to asseemble a block of standard diff bg combos 
     * 10:54 AM 3/22/2024: add: -splat (outputs a splatted combo write-host scriptblock) ; added combo max value test (was returning nothing when out of range); echo the actual combo # in use into the random and splat options
     * 8:53 AM 4/29/2022 add: Alias gclr; ValueFromPipeline (now supports pipeline input); updated CBH
     * 10:35 AM 2/21/2022 CBH example ps> adds 
@@ -7324,7 +7327,7 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     .OUTPUTS
     System.Collections.Hashtable
     .EXAMPLE
-    PS> $plt=get-colorcombo 70 ;
+    PS> $a = 70 ; $plt=get-colorcombo $a ;
     PS> write-host @plt "Combo $($a):$($plt.foregroundcolor):$($plt.backgroundcolor)" ;
     Pull and use get-colorcombo 72 in a write-host ;
     .EXAMPLE
@@ -7343,6 +7346,29 @@ Available stock powershell color names (for constructing combos): Black|DarkBlue
     PS> $plt=get-colorcombo -combo 69 ; 
     PS> set-consolecolors @plt ; 
     Use verb-IO:set-consolecolors() function to set colorcombo 69.
+    .EXAMPLE
+    PS> write-verbose "splitting colorcombo series on the backgroundcolor division points" ; 
+    PS> $cci = 0  ; 
+    PS> @('0','7','13','17','25','30','39','46','51','55','57','62')|%{
+    PS>     $thiscc = $_ ; 
+    PS>     $cci++ ; set-variable -name "wh$($cci)" -value (get-colorcombo $thiscc) ;     
+    PS> } ; 
+    PS> gv |?{$_.name -match 'wh\d'} | %{write-host -back $_.value['BackgroundColor'] -fore $_.value['ForegroundColor'] "`$$($_.Name):`t$($_.value['BackgroundColor']):$($_.value['ForegroundColor'])"}
+    
+        $wh1:   Black:Gray
+        $wh10:  Cyan:Blue
+        $wh11:  Red:Black
+        $wh12:  Magenta:Black
+        $wh2:   DarkGreen:Gray
+        $wh3:   White:DarkGray
+        $wh4:   DarkRed:Green
+        $wh5:   Gray:Black
+        $wh6:   DarkGray:Black
+        $wh7:   Blue:Gray
+        $wh8:   Green:Black
+        $wh9:   Yellow:DarkGray
+    
+    Generate a set of different background color write-host color combos, assigned to an incrementing set of wh## variables
     .LINK
     https://github.com/tostka/verb-IO
     #>
@@ -10963,8 +10989,10 @@ function get-Uptime {
     Website:	http://tinstoys.blogspot.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 9:58 AM 3/11/2026 psv2 isn't doing alt catch, spliced the evtlog  call under an if block in the catch ; 
+        retooled to cover WMI qry fails (high uptime/wmi svc issues?, fail through to use get-WinEvent to pull Event log startup event: 6005 The Event log service was started
     vers: 12:15 PM 2/3/2015 functional
-    Vers: 7:26 AM 2/3/2015 port to function
+    # 9:03 AM 2/3/2015 added aliases, permits piping the output of WMI query etc, using Get-WMIObject into a function and it would grab the __Server property of the object and use it in the pipeline of the function.; port to function
     Vers: 8:35 AM 9/16/2013 added timestamp to console for ref
     vers: 11:02 AM 8/19/2013 - works, with pipeline support, but I removed the computerlist param - pipe in a list if you want one
     vers: 9:19 AM 8/19/2013 - initial version
@@ -10994,12 +11022,9 @@ function get-Uptime {
     .EXAMPLE
     Get-ADComputer -filter * | Select @{label='computername';expression={$_.name}} | Get-Uptime
     .LINK
-     #>
-
-    # 9:03 AM 2/3/2015 added aliases, permits piping the output of WMI query etc, using Get-WMIObject into a function and it would grab the __Server property of the object and use it in the pipeline of the function.
-
+     #>    
     [CmdletBinding()]
-    param (
+    PARAM (
         [parameter(
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true,
@@ -11013,6 +11038,37 @@ function get-Uptime {
     BEGIN {
         $Info = @()
         $iProcd = 0;
+        #region FUNCTIONS_INTERNAL ; #*======v FUNCTIONS_INTERNAL v======
+        function get-uptimeEvent {
+            [CmdletBinding()]
+            PARAM (
+                [parameter(
+                    ValueFromPipeline = $true,
+                    ValueFromPipelineByPropertyName = $true,
+                    Position = 0)]
+                [Alias('__ServerName', 'Server', 'Computer', 'Name', 'IPAddress', 'CN')]
+                [string]$ComputerName = $env:COMPUTERNAME
+                ,
+                [parameter(Position = 1)]
+                [System.Management.Automation.PSCredential]$Credential
+            ) ;     
+            TRY{
+                [datetime]$boottime = Get-WinEvent -FilterHashtable @{logname = 'System'; id = 6005} -ComputerName $ComputerName -ERRORACTION STOP| sort timecreated | select -last 1 | select -expand timecreated
+;                if($tsuptime = New-TimeSpan -Start $boottime -End (get-date )){ 
+                    $tsUptime | write-output ;
+                }else{
+                    $smsg = "UNABLE TO RESOLVE UPTIME VIA BACKUP GET-WINEVENT CALL!" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent} 
+                    else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                }
+            } CATCH {$ErrTrapd=$Error[0] ;
+                write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+            } ;
+            
+        }
+        #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^======
     }  # BEG-E
     PROCESS {
         foreach ($Computer in $Computername) {
@@ -11022,11 +11078,44 @@ function get-Uptime {
                 $ErrorActionPreference = "Stop" ;
                 $OS = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $Computer #-ErrorAction stop
                 $oRet = (Get-Date) - $OS.ConvertToDateTime($OS.LastBootUpTime) #-ErrorAction stop
-            }
-            catch {
-                Write "$((get-date).ToString('HH:mm:ss')): Error Details: $($_)"
-                Continue
-            } # try/cat-E
+            } CATCH [System.Management.ManagementException]{
+                $smsg = "WMI QRY FAIL (POSSIBLE WMI SVC/UPTIME ISSUE?)" ; 
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent} 
+                else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                $smsg = "RETRYING via get-uptimeEvent (Get-WinEvent -FilterHashtable @{logname = 'System'; id = 6005) " ; 
+                if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+                else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                $oRet = get-uptimeEvent -ComputerName $Computer ; 
+            } CATCH {
+                # or just do idiotproof: Write-Warning -Message $_.Exception.Message ;
+                $ErrTrapd=$Error[0] ;
+                # psv3 ex10 boxes aren't picking up the alt catch above, do it manually:
+                if($($host.Version.Major -eq 2 -AND $ErrTrapd.Exception.GetType().FullName) -eq 'System.Management.ManagementException'){
+                    $smsg = "WMI QRY FAIL (POSSIBLE WMI SVC/UPTIME ISSUE?)" ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN -Indent} 
+                    else{ write-WARNING "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ; 
+                    $smsg = "RETRYING via get-uptimeEvent (Get-WinEvent -FilterHashtable @{logname = 'System'; id = 6005) " ; 
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } 
+                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    $oRet = get-uptimeEvent -ComputerName $Computer ; 
+                } else{ 
+                    $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+                    else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    $smsg = $ErrTrapd.Exception.Message ;
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+                    else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    #-=-record a STATUSWARN=-=-=-=-=-=-=
+                    $statusdelta = ";WARN"; # CHANGE|INCOMPLETE|ERROR|WARN|FAIL ;
+                    if(gv passstatus -scope Script -ea 0){$script:PassStatus += $statusdelta } ;
+                    if(gv -Name PassStatus_$($tenorg) -scope Script -ea 0){set-Variable -Name PassStatus_$($tenorg) -scope Script -Value ((get-Variable -Name PassStatus_$($tenorg)).value + $statusdelta)} ;
+                    #-=-=-=-=-=-=-=-=
+                    $smsg = "FULL ERROR TRAPPED (EXPLICIT CATCH BLOCK WOULD LOOK LIKE): } CATCH[$($ErrTrapd.Exception.GetType().FullName)]{" ;
+                    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level ERROR } #Error|Warn|Debug
+                    else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+                    CONTINUE #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
+                } ; 
+            } ; 
             if ($continue) {
                 # hashtable of the single system's properties
                 # asserted property sort order is on property name
@@ -11037,7 +11126,7 @@ function get-Uptime {
                     'Minutes'      = $oRet.Minutes;
                     'Seconds'      = $oRet.Seconds;
                     'Uptime'       = $oRet -f $oRet.Hours, $oRet.Minutes, $oRet.Seconds;
-                    'UptimeStr'    = ("$($Computer):$($oRet.Days)d:$($oRet.Hours)h:$($oRet.Minutes)m:$($oRet.Seconds)s")
+                    'UptimeStr'    = ("$($Computer.toupper()):$($oRet.Days)d:$($oRet.Hours)h:$($oRet.Minutes)m:$($oRet.Seconds)s")
                 } ;
                 $obj = New-Object -Type PSObject -Property $property
                 Write-Output $obj
@@ -24645,7 +24734,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -24653,8 +24742,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUDq+b56p9Wt640ZKxEasx1AIw
-# wlGgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUIU9gbV8PRTmoqQ2tQozHav3p
+# 1aigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -24669,9 +24758,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSacV6+
-# 8t2Y1jRRU5zrrIRurj6uaDANBgkqhkiG9w0BAQEFAASBgJVSuw18CdBNcHzGOq/K
-# D+Sb4k4QKkab/Kr5S1hg1ykLLl40qO6EcRr3y+svBl/27IMxgxzknSU2Ljevu+cH
-# vswrNZSLP9884C/A/hgy70Ff5oxvT9poCqMwCh57aSzg7DscGscgzGNBmEs7djs+
-# b4fsl+9I6LQG63q8aqkFxKLI
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRfO7oO
+# Q7ZzH/CQlD71geLh4sn1tDANBgkqhkiG9w0BAQEFAASBgBcY9dirSCp+Ev4Tr91X
+# A7uVIYOVbH18sY7h0fuhLDCIE7csydsTH6q9bYyS8JYxidWbXibjN+BEdroOpgKn
+# nR5HHAP8zkdOtKJMZbVu+xw6m/uUwE27YuFlMKm8hrbw5DIZYjvit8A1xySnqys8
+# JL8VU1bg7D7NDuVsLtFjRG7V
 # SIG # End signature block

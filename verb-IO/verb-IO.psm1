@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.4.2.0.0
+Version     : 18.4.3.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -7253,6 +7253,137 @@ Function get-AliasDefinition {
 }
 
 #*------^ get-AliasDefinition.ps1 ^------
+
+
+#*------v Get-ArchiveFileContents.ps1 v------
+function Get-ArchiveFileContents {
+    <#
+    .SYNOPSIS
+    Get-ArchiveFileContents.ps1 - Report on contents of a given archive file (wraps Psv5+ native cmdlets, and matching legacy .net calls).
+    .NOTES
+    Author: Taylor Gibb
+    Website:	https://www.howtogeek.com/tips/how-to-extract-zip-files-using-powershell/
+    Tweaked By: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    Additional Credits:
+    REVISIONS   :
+    * 8:27 AM 4/14/2026 init: segmented the output report from compress-ArchiveFile()
+    .DESCRIPTION
+    Get-ArchiveFileContents.ps1 - Report on contents of a given archive file (wraps Psv5+ native cmdlets, and matching legacy .net calls).
+    
+    Returns a summary object with the Path as a file system object, and the Contents 
+    Uses .net System.IO.Compression.FileSystem for legacy pre-PSv5 compression, and for all output reporting (as PSv5's native compress|expand-Archive commands don't
+    support dumping back reports of contents). 
+
+    .PARAMETER Path
+    Specifies the path or paths to the files that you want to add to the archive zipped file. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. [-Path c:\path-to\file.ext,c:\pathto\file2.ext]
+    .PARAMETER useDotNet
+    Switch to use .dotNet call (force pre-Psv5 legacy support) [-useDotNet]
+    .PARAMETER Raw
+    Output raw Contents, without Object (which normally contains Path & Contents properties)
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    Returns a PSCustomObject with the following properties:
+    - resolved Path as a System.IO.FileInfo object
+    - Contents as a System.Array object
+    .EXAMPLE
+    PS> $report = Get-ArchiveFileContents -path 'c:\tmp\20170411-0706AM.zip' ;
+    PS> $report.Contents| ft -a ;
+
+        FullName            Length LastWriteTime              
+        --------            ------ -------------              
+        20170411-0706AM.ps1    846 4/11/2017 7:08:12 AM -05:00
+        24SbP1B9.ics          1514 4/6/2015 11:55:06 AM -05:00
+
+    Report on contents of specified file
+    .EXAMPLE
+    PS> $report = 'c:\tmp\20170411-0706AM.ps1','c:\tmp\24SbP1B9.ics' | Get-ArchiveFileContents -verbose ;
+    Pipeline example: Report content of specified file
+    .EXAMPLE
+    PS> Get-ArchiveFileContents -Path C:\cab\ADMS-Portable.zip  -raw ; 
+
+            FullName                                                                           Length LastWriteTime
+            --------                                                                           ------ -------------
+            ActiveDirectory\ActiveDirectory.Format.ps1xml                                        5191 4/2/2020 11:56:52 AM -05:00
+            ...
+            
+    Demo -Raw output of contents without reporting object    
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    [Alias('Get-ZipFileContents','gZipFile')]
+    Param(
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = "Specifies the path or paths to the files that you want to report contents of. To specify multiple paths, and include files in multiple locations, use commas to separate the paths. [-Path c:\path-to\file.ext,c:\pathto\file2.ext]")]
+            [ValidateScript( { Test-Path $_ })]
+            [Alias('File')]
+            [string[]]$Path,
+        [Parameter(HelpMessage = "Switch to use .dotNet call (force pre-Psv5 legacy support) [-useDotNet]")]
+            [switch]$useDotNet,
+        [Parameter(HelpMessage = "Output raw Contents, without Object (which normally contains Path & Contents properties)[-Raw]")]
+            [switch]$Raw
+    ) ; 
+    BEGIN { 
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+
+        write-verbose "(ensure System.IO.Compression.FileSystem is loaded...)" ; 
+        TRY{[System.IO.Compression.ZipArchiveMode]| out-null} CATCH{Add-Type -AssemblyName System.IO.Compression} ; 
+        TRY{[IO.Compression.ZipFile] | out-null} CATCH{Add-Type -AssemblyName System.IO.Compression.FileSystem} ; 
+
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            #write-verbose "Data received from parameter input: '$($InputObject)'" ; 
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+    } ;  # BEGIN-E
+    PROCESS {
+        $Error.Clear() ; 
+                
+        if($host.version.major -lt 5 -or $useDotNet){
+            # check for non-compatible params
+            
+            TRY{
+                write-verbose "(Using .Net class [System.IO.Compression.FileSystem]...)" ; 
+                #Load the .NET 4.5 zip-assembly & the System.IO.Compression assembly too Note: Only necessary in *Windows PowerShell* (are automatically loaded on demand in PowerShell (Core) 7+.)
+                Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+
+                # Verify that types from both assemblies were loaded (with TRY, these will catch out).
+                [System.IO.Compression.ZipArchiveMode]| out-null; 
+                [IO.Compression.ZipFile] | out-null ; 
+            }CATCH{
+                Write-Warning -Message $_.Exception.Message ; 
+                BREAK ; 
+            } ; 
+        };         
+                
+        foreach ($item in $Path){            
+            write-verbose "(preclose any open archive)" ; 
+            if($ziparchive){$ziparchive.Dispose() } ;  
+            write-verbose "(poll contents of -DestinationPath:$($destinationpath)...)" ;
+            $contents = [System.IO.Compression.ZipFile]::OpenRead($item).Entries ; 
+            $oReport = @{
+                Path = $item | get-childitem ; 
+                Contents = $contents | select fullname,length,lastwritetime ; 
+            } ; 
+            write-verbose "(returning summary object to pipeline)" ; 
+            if($Raw){
+                write-verbose "-raw: returning raw contents to pipeline" ; 
+                New-Object PSObject -Property $oReport | select -expand Contents | write-output ; 
+            }else{
+                write-verbose "returning summary object to pipeline" ; 
+                New-Object PSObject -Property $oReport | write-output ; 
+            } ; 
+        } ;  # loop-E
+    }  # if-E PROC
+    END{
+        
+    } ; 
+}
+
+#*------^ Get-ArchiveFileContents.ps1 ^------
 
 
 #*------v Get-AverageItems.ps1 v------
@@ -20993,6 +21124,132 @@ function Show-MsgBox {
 #*------^ Show-MsgBox.ps1 ^------
 
 
+#*------v show-TrayTipTDO.ps1 v------
+function show-TrayTipTDO {
+    <#
+    .SYNOPSIS
+    show-TrayTipTDO() - Display popup System Tray Tooltip
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2020-
+    FileName    :
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell
+    AddedCredit : Pat Richard (pat@innervation.com)
+    AddedWebsite: http://www.ehloworld.com/1038
+    AddedTwitter:
+    REVISIONS
+    * 8:06 AM 4/10/2026 ren: show-TrayTip -> show-TrayTipTDO (conflict avoid); moved verb-desktop -> verb-io (where show-MsgBox and the read-[input] fcts are).
+    * 2:23 PM 3/10/2016 reworked the $TrayIcon validation, to permit either a valid path to an .ico, or a variable of Icon type (of the type pulled from shell32.dll by Extract-Icon()); debugged and functional in check-kpconflict.ps1 ; added some concepts from the src Pat used: Dr. Tobias Weltner, http://www.powertheshell.com/balloontip/ (Pat was in the comments asking questions on the subject) ; added some concepts from Pat Richard http://www.ehloworld.com/1038
+    * 11:19 AM 3/6/2016 - unknown original, updating with formatting, pshelp and updated params
+    .DESCRIPTION
+    show-TrayTipTDO() - Display popup System Tray Tooltip
+    .PARAMETER Type
+    Tip Icon type [Error|Info|Warning|None]
+    .PARAMETER Text
+    Tip Text to be displayed [string]
+    .PARAMETER title
+    Tip Title [string]
+    .PARAMETER ShowTime
+    Tip Display Time (secs, default:2)[int]
+    .PARAMETER TrayIcon
+    Specify variant Systray icon (defaults per type)
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    None. Returns no objects or output.
+    .EXAMPLE
+    show-TrayTipTDO -type "error" -text "$computer is still ONLINE; Check that reboot is initiated properly" -title "Computer is not rebooting"
+    Show TrayTip with default (powershell) Systray Icon, Error-type balloon icon, and balloon title & text specified, for 30 seconds
+    .EXAMPLE
+    show-TrayTipTDO -type "error" -title "CONFLICT!" -text "CONFLICTED KEEPASS DB FOUND!" -ShowTime 30 -TrayIcon $TrayIcon ;
+    Show TrayTip with custom Systray Icon, Error-type balloon icon, and balloon title & text specified, for 30 seconds
+    .EXAMPLE
+    show-TrayTipTDO -type info -text "PowerShell script has finished processing" -title "Completed"
+    Basic Example using parameter names (rest defaults)
+    .EXAMPLE
+    show-TrayTipTDO info "PowerShell script has finished processing" "Completed"
+    Basic Example using positional parameters
+    .EXAMPLE
+    if($script:TrayTip) { $script:TrayTip.Dispose() ; Remove-Variable -Scope script -Name TrayTip ; }
+    Cleanup code that should be used at script-end to cleanup the objects
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    [Alias('show-TrayTip')]
+    Param(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Tip Icon type [Error|Info|Warning|None]")][ValidateSet("Error","Info","Warning","None")]
+        [string]$Type
+        ,[Parameter(Position=1,Mandatory=$True,HelpMessage="Tip Text to be displayed [string]")][ValidateNotNullOrEmpty()]
+        [string]$Text
+        ,[Parameter(Position=2,Mandatory=$True,HelpMessage="Tip Title [string]")]
+        [string]$Title
+        ,[Parameter(HelpMessage="Tip Display Time (secs, default:2)[int]")][ValidateRange(1,30)]
+        [int]$ShowTime=2
+        ,[parameter(HelpMessage = "Specify variant Systray icon (defaults to Powershell)")]
+        $TrayIcon
+    )  ;
+    BEGIN {
+        if($TrayIcon){
+            if( (test-path $TrayIcon) -OR ($TrayIcon.gettype().name -eq 'Icon') ){ }
+            else {
+                write-warning "Invalid TrayIcon, resetting to Default Icon" ;
+                $TrayIcon =$null ;
+            } ;
+        } ;
+    } ;
+    PROCESS {
+        if(!($NoTray)){
+            #load Windows Forms and drawing assemblies
+            [reflection.assembly]::loadwithpartialname("System.Windows.Forms") | Out-Null ; # used for TrayTip tips
+            [reflection.assembly]::loadwithpartialname("System.Drawing") | Out-Null ; # used for icon extraction
+            #define an icon image pulled from PowerShell.exe
+            #$icon=[system.drawing.icon]::ExtractAssociatedIcon((join-path $pshome powershell.exe)) ;
+            # load the TrayTip
+            if ($script:TrayTip -eq $null) {  $script:TrayTip = New-Object System.Windows.Forms.NotifyIcon } ;
+            <# TrayIcon (BalloonTip): configurable property's:
+              # the systray icon to be displayed (extracted from the PS path here)
+              $path                    = Get-Process -id $pid | Select-Object -ExpandProperty Path ;
+              $TrayTip.Icon            = [System.Drawing.Icon]::ExtractAssociatedIcon($path) ;
+              # the following configure settings _within_ the balloon popup
+              $TrayTip.BalloonTipIcon  = $Icon ;
+              $TrayTip.BalloonTipText  = $Text ;
+              $TrayTip.BalloonTipTitle = $Title ;
+              # finally show the BalloonTip, with a specified timeout.
+              $TrayTip.Visible         = $true ;
+              $TrayTip.ShowBalloonTip($Timeout) ;
+            #>
+            if ($TrayIcon) { $TrayTip.Icon = $TrayIcon  }
+            else {
+                # use the extracted Powershell process icon
+                $Path = Get-Process -id $pid | Select-Object -ExpandProperty Path ;
+                $TrayTip.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($path) ;
+            }
+            $TrayTip.BalloonTipIcon  = $Type ;
+            $TrayTip.BalloonTipText  = $Text ;
+            $TrayTip.BalloonTipTitle = $Title ;
+            $TrayTip.Visible         = $true ;
+            # set timeout (in ms)
+            $TrayTip.ShowBalloonTip($ShowTime*1000) ;
+            write-verbose -verbose:$verbose "`$TrayTip:`n$(($TrayTip | fl * |out-string).trim())" ;
+        } ;# if-E $NoTray ;
+    } ;
+    END {
+        <# Cleanup code that should be used at script-end to cleanup the objects
+            if($script:TrayTip) { $script:TrayTip.Dispose() ; Remove-Variable -Scope script -Name TrayTip ; }
+        #>
+    } ;
+}
+
+#*------^ show-TrayTipTDO.ps1 ^------
+
+
 #*------v Start-SleepCountdown.ps1 v------
 function start-sleepcountdown {
     <#
@@ -24734,7 +24991,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -24742,8 +24999,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUIU9gbV8PRTmoqQ2tQozHav3p
-# 1aigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUcKix3ZJq0WQgCNnzLnxh/7G1
+# 0cegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -24758,9 +25015,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRfO7oO
-# Q7ZzH/CQlD71geLh4sn1tDANBgkqhkiG9w0BAQEFAASBgBcY9dirSCp+Ev4Tr91X
-# A7uVIYOVbH18sY7h0fuhLDCIE7csydsTH6q9bYyS8JYxidWbXibjN+BEdroOpgKn
-# nR5HHAP8zkdOtKJMZbVu+xw6m/uUwE27YuFlMKm8hrbw5DIZYjvit8A1xySnqys8
-# JL8VU1bg7D7NDuVsLtFjRG7V
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRVH2Wa
+# mTWiL+DM+j7sTHuEvAiJ3zANBgkqhkiG9w0BAQEFAASBgDy/1yhqChb3vQ8cFrht
+# cahV9LefZzOoCl1GgDY/Bcf1jNzjYnQ2omZxW5Wv2SzMIo9DRooHJjXNLgwkEWrn
+# 7QqK7t9c4STxD8MfwUndFYDzwilERZfQmqlgdtMy9bhiyI96fbOKWdt5mfage42y
+# 4y+mNoutqWjbWH539ZSwZHHE
 # SIG # End signature block
