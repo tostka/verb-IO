@@ -16,6 +16,7 @@ function set-AuthenticodeSignatureTDO {
     Github      : https://github.com/tostka
     Tags        : Powershell,Authenticode,Signature,CodeSigning,Developoment
     REVISIONS   :
+    * 11:41 AM 5/5/2026 added demo for signing module code
     * 8:57 AM 8/22/2024 Make it ones fully tooled up solution for all code signing; ren to proper verb set-AuthenticodeSignatureTDO() -> set-AuthenticodeSignatureTDO set orig as alias; added call to new Test-CertificateTDO; add test Authenticode prior to signing; 
     10:45 AM 10/14/2020 added cert hunting into cert:\LocalMachine\my -codesigning as well as currentuser
     7:56 AM 6/19/2018 added -whatif & -showdebug params
@@ -49,6 +50,19 @@ function set-AuthenticodeSignatureTDO {
     .EXAMPLE
     PS> get-childitem c:\usr\local\bin\*.ps1 | set-AuthenticodeSignatureTDO ; 
     Pipeline demo
+    .EXAMPLE
+    PS> $ModDirPath = "C:\sc\xopBuildLibrary" ; 
+    PS> $rgxfiles='\.(CAT|MSI|JAR,OCX|PS1|PSM1|PSD1|PS1XML|PSC1|MSP|CMD|BAT|VBS)$' ;
+    PS> $files = gci "$($ModDirPath)\*" -recur |?{$_.extension -match $rgxfiles} 
+    PS> verb-IO\set-AuthenticodeSignatureTDO -file $files.fullname ;    
+    Demo signing all suitable files in a dyn-include module. All files regarldess of location below module root.
+    .EXAMPLE
+    PS> $ModDirPath = "C:\sc\xopBuildLibrary" ; 
+    PS> $rgxfiles='\.(CAT|MSI|JAR,OCX|PS1|PSM1|PSD1|PS1XML|PSC1|MSP|CMD|BAT|VBS)$' ;
+    PS> $rgxIncludeDirs='\\(Public|Internal|Classes)\\' ;
+    PS> $files = gci "$($ModDirPath)\*" -recur |?{$_.extension -match $rgxfiles} | ?{$_.fullname -notmatch $rgxIncludeDirs} ;
+    PS> verb-IO\set-AuthenticodeSignatureTDO -file $files.fullname ;    
+    Demo signing all suitable files in a monolithic all-in-one module (postfilter excludes include dir files encapsulated in the signed main .psm1 file)
     #>
     [CmdletBinding()]
     [Alias('sign-file')]
