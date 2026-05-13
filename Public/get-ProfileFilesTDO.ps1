@@ -8,6 +8,7 @@ function get-ProfileFilesTDO {
     Website:	http://www.toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 1:08 PM 5/13/2026 added ise-prof.ps1 to $profileCorefiles
     * 2:08 PM 9/17/2024 fixed path expansion bug, created by subing in paramss for strings
     * 9:59 AM 9/16/2024 updated CBH, added CBH to _get-BackFileFiles.ps1; removed more rem'd cmds.
     * 2:08 PM 9/13/2024 parameterized range of $profilefile arrays(ProfileBaseFiles,ProfileDYNFiles,profileCorefiles,profileSVCfiles,profileADDLfiles,ProfileUIDFiles,backFillFileFilter,backFillFileExclude );
@@ -123,7 +124,7 @@ function get-ProfileFilesTDO {
             [string[]]$ProfileDYNFiles = @("tor-incl-infrastrings_$($env:USERNAME).ps1"),
         [Parameter(HelpMessage="Array of profile file names that are the included in every profile [-profileCorefiles 'profilex1.ps1']")]
             [ValidateNotNullOrEmpty()]
-            [string[]]$profileCorefiles = @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1') , 
+            [string[]]$profileCorefiles = @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1','ise-prof.ps1') , 
         [Parameter(HelpMessage="Array of profile file names that are the included in ServiceAccount profiles [-profileSVCfiles 'profileSvc.ps1']")]
             [ValidateNotNullOrEmpty()]
             [string[]]$profileSVCfiles = @('admin-prof.ps1','adminsid-incl-ServerCore.ps1','adminsid-incl-ServerApp.ps1'),

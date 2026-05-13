@@ -1,11 +1,11 @@
-﻿# VERB-io.psm1
+﻿# verb-io.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.4.3.0.0
+Version     : 18.5.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -10065,6 +10065,7 @@ function get-ProfileFilesTDO {
     Website:	http://www.toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 1:08 PM 5/13/2026 added ise-prof.ps1 to $profileCorefiles
     * 2:08 PM 9/17/2024 fixed path expansion bug, created by subing in paramss for strings
     * 9:59 AM 9/16/2024 updated CBH, added CBH to _get-BackFileFiles.ps1; removed more rem'd cmds.
     * 2:08 PM 9/13/2024 parameterized range of $profilefile arrays(ProfileBaseFiles,ProfileDYNFiles,profileCorefiles,profileSVCfiles,profileADDLfiles,ProfileUIDFiles,backFillFileFilter,backFillFileExclude );
@@ -10180,7 +10181,7 @@ function get-ProfileFilesTDO {
             [string[]]$ProfileDYNFiles = @("tor-incl-infrastrings_$($env:USERNAME).ps1"),
         [Parameter(HelpMessage="Array of profile file names that are the included in every profile [-profileCorefiles 'profilex1.ps1']")]
             [ValidateNotNullOrEmpty()]
-            [string[]]$profileCorefiles = @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1') , 
+            [string[]]$profileCorefiles = @('tsk-prof.ps1','tsksid-incl-ServerCore.ps1','tsksid-incl-ServerApp.ps1','ise-prof.ps1') , 
         [Parameter(HelpMessage="Array of profile file names that are the included in ServiceAccount profiles [-profileSVCfiles 'profileSvc.ps1']")]
             [ValidateNotNullOrEmpty()]
             [string[]]$profileSVCfiles = @('admin-prof.ps1','adminsid-incl-ServerCore.ps1','adminsid-incl-ServerApp.ps1'),
@@ -19547,6 +19548,7 @@ function set-AuthenticodeSignatureTDO {
     Github      : https://github.com/tostka
     Tags        : Powershell,Authenticode,Signature,CodeSigning,Developoment
     REVISIONS   :
+    * 11:41 AM 5/5/2026 added demo for signing module code
     * 8:57 AM 8/22/2024 Make it ones fully tooled up solution for all code signing; ren to proper verb set-AuthenticodeSignatureTDO() -> set-AuthenticodeSignatureTDO set orig as alias; added call to new Test-CertificateTDO; add test Authenticode prior to signing; 
     10:45 AM 10/14/2020 added cert hunting into cert:\LocalMachine\my -codesigning as well as currentuser
     7:56 AM 6/19/2018 added -whatif & -showdebug params
@@ -19580,6 +19582,19 @@ function set-AuthenticodeSignatureTDO {
     .EXAMPLE
     PS> get-childitem c:\usr\local\bin\*.ps1 | set-AuthenticodeSignatureTDO ; 
     Pipeline demo
+    .EXAMPLE
+    PS> $ModDirPath = "C:\sc\xopBuildLibrary" ; 
+    PS> $rgxfiles='\.(CAT|MSI|JAR,OCX|PS1|PSM1|PSD1|PS1XML|PSC1|MSP|CMD|BAT|VBS)$' ;
+    PS> $files = gci "$($ModDirPath)\*" -recur |?{$_.extension -match $rgxfiles} 
+    PS> verb-IO\set-AuthenticodeSignatureTDO -file $files.fullname ;    
+    Demo signing all suitable files in a dyn-include module. All files regarldess of location below module root.
+    .EXAMPLE
+    PS> $ModDirPath = "C:\sc\xopBuildLibrary" ; 
+    PS> $rgxfiles='\.(CAT|MSI|JAR,OCX|PS1|PSM1|PSD1|PS1XML|PSC1|MSP|CMD|BAT|VBS)$' ;
+    PS> $rgxIncludeDirs='\\(Public|Internal|Classes)\\' ;
+    PS> $files = gci "$($ModDirPath)\*" -recur |?{$_.extension -match $rgxfiles} | ?{$_.fullname -notmatch $rgxIncludeDirs} ;
+    PS> verb-IO\set-AuthenticodeSignatureTDO -file $files.fullname ;    
+    Demo signing all suitable files in a monolithic all-in-one module (postfilter excludes include dir files encapsulated in the signed main .psm1 file)
     #>
     [CmdletBinding()]
     [Alias('sign-file')]
