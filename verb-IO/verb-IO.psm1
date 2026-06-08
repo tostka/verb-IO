@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.5.0.0.0
+Version     : 18.5.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -10751,6 +10751,73 @@ function get-RegistryValue {
 }
 
 #*------^ get-RegistryValue.ps1 ^------
+
+
+#*------v get-RemainderTDO.ps1 v------
+function get-RemainderTDO {
+    <#
+    .SYNOPSIS
+    get-RemainderTDO() - Calculate the Remainder of Number/Divisor (e.g. Modulus/Mod)
+    .NOTES
+    Version     : 0.0.
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2026-
+    FileName    : get-RemainderTDO.ps1
+    License     : MIT License
+    Copyright   : (c) 2026 Todd Kadrie
+    Github      : https://github.com/tostka/verb-dev
+    Tags        : Powershell,Git,SourceControl,Diff,format
+    AddedCredit : 
+    AddedWebsite: 
+    AddedTwitter: URL
+    REVISIONS
+    * 5:38 PM 6/2/2026init
+    .DESCRIPTION
+    get-RemainderTDO() - Calculate the Remainder of Number/Divisor (e.g. return the Modulus/Mod)    
+    
+    Simple wrapper of the [math]::ieeeremainder( $number,$devisor) function
+    
+    Although the moduls operator '%' : ($number % $divisor) should work, I find the ieeeremainder() to be more dependable. 
+    Unfortunately it's an ugly/long command to contruct. 
+    So wrap it with get-reminder -number 20 -divisor 5, 
+    or even better use the gRmdr alias with positional params:
+    
+    if((gRmdr $xdots $dcLen) -eq 0){write-host -fore yellow "`n."}
+    
+    .PARAMETER number
+    The number to be divided by the divisor
+    .PARAMETER divisor
+    The number to divide the number by
+    .INPUTS
+    Does not accept pipeline input.
+    .OUTPUTS
+    returns the calculated remainder of the number divided by the divisor 
+    .EXAMPLE
+    PS> if((grmdr $xdots $dcLen) -eq 0){
+    PS>     write-host -fore yellow "`n."
+    PS> }elseif((grmdr $xdots $dcInterv) -eq 0){
+    PS>     write-host -fore yellow $xdots -nonewline
+    PS> }else{
+    PS>     write-host -nonewline -fore yellow "."
+    PS> } ;
+    Demo that enables git default pager interface (one page at a time, vs streamed)
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    [Alias('gRmdr')]
+    Param(
+        [Parameter(Position=0,Helpmessage="The number to be divided by the divisor")]
+            [int]$number,
+        [Parameter(Position=1,Helpmessage="The number to divide the number by")]
+            $divisor
+    )
+    [math]::ieeeremainder( $number,$divisor) | write-output  ; 
+}
+
+#*------^ get-RemainderTDO.ps1 ^------
 
 
 #*------v Get-ScheduledTaskLegacy.ps1 v------
@@ -22159,6 +22226,99 @@ function test-FileSysAutomaticVariables {
 #*------^ test-FileSysAutomaticVariables.ps1 ^------
 
 
+#*------v test-HashTDO.ps1 v------
+function test-HashTDO {
+    <#
+    .SYNOPSIS
+    test-HashTDO() - Test hash value on specified file
+    .NOTES
+    Author: Todd Kadrie
+    Website:	http://www.toddomation.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    * 9:08 AM 5/19/2026 init, lifted from poshcode md archive
+    .DESCRIPTION
+    test-HashTDO() - Test hash value on specified file
+    
+    .PARAMETER SourceProfileMachine
+    Source Name or IP address of the source Profile computer
+    .PARAMETER MinProfile
+    Switch that copies least admin-related files[-MinProfile]
+    .PARAMETER ProfileBaseFiles 
+    Array of profile file names that are the core essentials in every profile [-ProfileBaseFiles 'profile.ps1']
+    .PARAMETER ProfileDYNFiles 
+    Array of profile file with 'USERNAME' name substrings that are to be dynamically replaced w `$env:USERNAME in every profile [-ProfileDYNFiles 'profile_USERNAME.ps1']
+    .PARAMETER profileCorefiles 
+    Array of profile file names that are the included in every profile [-profileCorefiles 'profilex1.ps1']
+    .PARAMETER profileSVCfiles 
+    Array of profile file names that are the included in ServiceAccount profiles [-profileSVCfiles 'profileSvc.ps1']
+    .PARAMETER profileADDLfiles 
+    Array of profile file names that are the included in ServiceAccount profiles [-profileADDLfiles 'profileExtra.ps1']
+    .PARAMETER ProfileUIDFiles 
+    Array of profile file names that are the included in ServiceAccount profiles [-ProfileUIDFiles 'profileUID.ps1']
+    .PARAMETER inclBackFill
+    switch to buffer in backfill uwes\verb-xxx.ps1 module backups (source module .psm1 files renamed to .ps1)[-showDebug]
+    .PARAMETER backFillDir
+    Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
+    .PARAMETER backFillFileFilter 
+    Array of BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]
+    .PARAMETER backFillFileExclude 
+    BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']
+    Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
+    .PARAMETER ProfileSourcePath
+    Directory that holds source profile files (defaults to c`$\sc\powershell\PSProfileUID\, normally within a git source repo) [-ProfileSourcePath c:\pathto\]    
+    .PARAMETER doHashes
+    Switch to generate & return File hashes (via get-fileHash cmdlet)[-doHashes]
+    .PARAMETER showDebug
+    Show Debugging messages
+    .PARAMETER whatIf
+    Execute solely a test pass
+    .PARAMETER Credential
+    Credential object for use in accessing the computers.
+    .INPUTS
+    None. Doesn't accept pipeline input.
+    .OUTPUTS
+    System.Array returns array of matched file properties ('Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory')
+    .EXAMPLE
+    PS> if(Test-HashTDO -FileName c:\pathto\file.ext -ExpectedHash    
+    #>
+    [CmdletBinding(DefaultParameterSetName="NoExpectation")]
+    [Alias('test-Hash')]
+    PARAM (
+        [Parameter(Position=0,Mandatory=$true,HelpMessage="File to be tested")]
+            [string]$FileName,
+        [Parameter(Position=2,Mandatory=$true,ParameterSetName="ManualHash",HelpMessage="Expected Hash value to be tested against")]
+            [string]$ExpectedHash = $(if($HashFileName){  ((Get-Content $HashFileName) -match $FileName)[0].split(" ")[0]  }),
+        [Parameter(Position=1,Mandatory=$true,ParameterSetName="FromHashFile",HelpMessage="")]
+            [string]$HashFileName,
+        [Parameter(Position=1,Mandatory=$true,ParameterSetName="ManualHash",HelpMessage="")]
+            [string[]]$TypeOfHash = $(if($HashFileName){
+               [IO.Path]::GetExtension((Convert-Path $HashFileName)).Substring(1)
+            } else { "MD5","SHA1","SHA256","SHA384","SHA512","RIPEMD160" })
+    ) ;  
+    $ofs=""
+   $hashes = @{}
+   foreach($Type in $TypeOfHash) {
+      [string]$hash = [Security.Cryptography.HashAlgorithm]::Create(
+          $Type
+      ).ComputeHash( 
+          [IO.File]::ReadAllBytes( (Convert-Path $FileName) )
+      ) | ForEach { "{0:x2}" -f $_ }
+      $hashes.$Type = $hash
+   }
+   
+   if($ExpectedHash) {
+        ($hashes.Values -eq $hash).Count -ge 1
+   } else {
+       foreach($hash in $hashes.GetEnumerator()) {
+          "{0,-8}{1}" -f $hash.Name, $hash.Value
+       }        
+   }
+}
+
+#*------^ test-HashTDO.ps1 ^------
+
+
 #*------v test-IsLink.ps1 v------
 function test-IsLink{
     <#
@@ -25006,7 +25166,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,get-RemainderTDO,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-HashTDO,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -25014,8 +25174,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUVh394WCW4l9Hy/RR4V+TeiiR
-# i9CgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUo7fbr0Kkc7fSMmVE7vWlKfDS
+# /ZKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -25030,9 +25190,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRSaBLv
-# FudOq5cjIrZFLuGqlCT7TDANBgkqhkiG9w0BAQEFAASBgDH4mTsBAq+jCdFl8IaH
-# NfLCp5ThwTmTzFwO1qU+fq8/axjqCyjKo6DdTUvcoO53niAqbXhXB3aIK4McF73W
-# iCYlU/JYtXg/tOBRFsiiyA7bVHins4KqKvy31QBxa7MZwJirDh56qLDyfQW+NFCf
-# Ss724Wtkq0d5IIuIiFT0R1rs
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR8LQY8
+# Mae/qgCcPQzD+IKxeFZcfTANBgkqhkiG9w0BAQEFAASBgI1m26h61C+w3dBYtCon
+# ph1pBk/kEqIDxqmaor8kP99tdXHI4ZA2++fcvRcleKDbv5FtFMLjfqr/rKhV0yFT
+# fFgiGa3cnSQkU9FoxjNym8t5qq3TexZwD72XgsGO9bLhxygP98DMdIrD+U7pBkv2
+# uivvQLqht5kxlkhH5BSpZ7y3
 # SIG # End signature block
