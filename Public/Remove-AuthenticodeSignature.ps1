@@ -1,4 +1,6 @@
-﻿#*------v Function Remove-AuthenticodeSignature v------
+﻿# Remove-AuthenticodeSignature.ps1
+
+#*------v Function Remove-AuthenticodeSignature v------
 function Remove-AuthenticodeSignature {
     <#
     .SYNOPSIS
