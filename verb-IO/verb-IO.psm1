@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.6.0.0.0
+Version     : 18.7.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -23360,51 +23360,24 @@ function test-HashTDO {
     Website:	http://www.toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    * 1:42 PM 7/6/2026 fixed borked cbh specs, 
     * 9:08 AM 5/19/2026 init, lifted from poshcode md archive
     .DESCRIPTION
     test-HashTDO() - Test hash value on specified file
     
-    .PARAMETER SourceProfileMachine
-    Source Name or IP address of the source Profile computer
-    .PARAMETER MinProfile
-    Switch that copies least admin-related files[-MinProfile]
-    .PARAMETER ProfileBaseFiles 
-    Array of profile file names that are the core essentials in every profile [-ProfileBaseFiles 'profile.ps1']
-    .PARAMETER ProfileDYNFiles 
-    Array of profile file with 'USERNAME' name substrings that are to be dynamically replaced w `$env:USERNAME in every profile [-ProfileDYNFiles 'profile_USERNAME.ps1']
-    .PARAMETER profileCorefiles 
-    Array of profile file names that are the included in every profile [-profileCorefiles 'profilex1.ps1']
-    .PARAMETER profileSVCfiles 
-    Array of profile file names that are the included in ServiceAccount profiles [-profileSVCfiles 'profileSvc.ps1']
-    .PARAMETER profileADDLfiles 
-    Array of profile file names that are the included in ServiceAccount profiles [-profileADDLfiles 'profileExtra.ps1']
-    .PARAMETER ProfileUIDFiles 
-    Array of profile file names that are the included in ServiceAccount profiles [-ProfileUIDFiles 'profileUID.ps1']
-    .PARAMETER inclBackFill
-    switch to buffer in backfill uwes\verb-xxx.ps1 module backups (source module .psm1 files renamed to .ps1)[-showDebug]
-    .PARAMETER backFillDir
-    Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
-    .PARAMETER backFillFileFilter 
-    Array of BackFill Leaf File filters [-backFillFileFilter @('mymodA*.ps1','mymodB*.ps1')]
-    .PARAMETER backFillFileExclude 
-    BackFill Leaf File Exclude Post-filter [-backFillFileExclude '-pub\.ps1$']
-    Optional directory that holds backfill files (which are .ps1 named copies of installed module .psm1 files - function as loadable backups if the main module is missing/damaged; defaults to uwes) [-backFillDir c:\pathto\]
-    .PARAMETER ProfileSourcePath
-    Directory that holds source profile files (defaults to c`$\sc\powershell\PSProfileUID\, normally within a git source repo) [-ProfileSourcePath c:\pathto\]    
-    .PARAMETER doHashes
-    Switch to generate & return File hashes (via get-fileHash cmdlet)[-doHashes]
-    .PARAMETER showDebug
-    Show Debugging messages
-    .PARAMETER whatIf
-    Execute solely a test pass
-    .PARAMETER Credential
-    Credential object for use in accessing the computers.
+    .PARAMETER FileName
+    File to be tested
+    .PARAMETER ExpectedHash
+    Expected Hash value to be tested against
+    .PARAMETER HashFileName
+    FileName (from which to auto-derive TypeOfHash)
+    .PARAMETER TypeOfHash
     .INPUTS
     None. Doesn't accept pipeline input.
     .OUTPUTS
-    System.Array returns array of matched file properties ('Name','FullName','Extension','Length','LastWriteTime','LinkType','PSParentPath','PSPath','Directory')
+    None, console echo's hash value comparison
     .EXAMPLE
-    PS> if(Test-HashTDO -FileName c:\pathto\file.ext -ExpectedHash    
+    PS> if(Test-HashTDO -FileName c:\pathto\file.ext -ExpectedHash){$true}else{$false}    
     #>
     [CmdletBinding(DefaultParameterSetName="NoExpectation")]
     [Alias('test-Hash')]
@@ -23413,31 +23386,31 @@ function test-HashTDO {
             [string]$FileName,
         [Parameter(Position=2,Mandatory=$true,ParameterSetName="ManualHash",HelpMessage="Expected Hash value to be tested against")]
             [string]$ExpectedHash = $(if($HashFileName){  ((Get-Content $HashFileName) -match $FileName)[0].split(" ")[0]  }),
-        [Parameter(Position=1,Mandatory=$true,ParameterSetName="FromHashFile",HelpMessage="")]
+        [Parameter(Position=1,Mandatory=$true,ParameterSetName="FromHashFile",HelpMessage="FileName (from which to auto-derive TypeOfHash)")]
             [string]$HashFileName,
-        [Parameter(Position=1,Mandatory=$true,ParameterSetName="ManualHash",HelpMessage="")]
+        [Parameter(Position=1,Mandatory=$true,ParameterSetName="ManualHash",HelpMessage="Type of Hash to be calculated (MD5|SHA1|SHA256|SHA384|SHA512|RIPEMD160")]
             [string[]]$TypeOfHash = $(if($HashFileName){
                [IO.Path]::GetExtension((Convert-Path $HashFileName)).Substring(1)
             } else { "MD5","SHA1","SHA256","SHA384","SHA512","RIPEMD160" })
     ) ;  
     $ofs=""
-   $hashes = @{}
-   foreach($Type in $TypeOfHash) {
+    $hashes = @{}
+    foreach($Type in $TypeOfHash) {
       [string]$hash = [Security.Cryptography.HashAlgorithm]::Create(
           $Type
       ).ComputeHash( 
           [IO.File]::ReadAllBytes( (Convert-Path $FileName) )
       ) | ForEach { "{0:x2}" -f $_ }
       $hashes.$Type = $hash
-   }
-   
-   if($ExpectedHash) {
+    }
+
+    if($ExpectedHash) {
         ($hashes.Values -eq $hash).Count -ge 1
-   } else {
+    } else {
        foreach($hash in $hashes.GetEnumerator()) {
           "{0,-8}{1}" -f $hash.Name, $hash.Value
        }        
-   }
+    }
 }
 
 #*------^ test-HashTDO.ps1 ^------
@@ -26298,8 +26271,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUyU/5kAclkoAxga4GVQP0JWeg
-# Xk6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUwGsGjfvSE7AIdShaLtxU42iA
+# bUagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -26314,9 +26287,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQl4oRG
-# 8fV+00y3lbUxk9KxELFS5DANBgkqhkiG9w0BAQEFAASBgLkTJVubM7G0HeeBMo1e
-# ocMyyUS8S56/kS8ZJztq3ea4BMg9Sd4arFp4/s9bN+YbYL8YRUsx56KCNfpb8y2H
-# p6vHy7kyQh5lwdmnehbLvWYicKV6P8UeoAfGMiRo+N9InqUZzwqzC2IvFp0wbpFx
-# iZJd3U/ka2mxk/6cx+CdliG4
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQCF646
+# GF00OU2qgw4txfc6CjbH3jANBgkqhkiG9w0BAQEFAASBgBmQWLKmDtQ46puN4PwI
+# t7XdX7lySd3KMKVKL2OE/9ge4p/WvHxUxci+3EpnWmp4bfzTfah0n+UKFa0Wea4v
+# dfhMe6A/wVPYPhlJSH0ZJIPLcqO7h1IycRD66er1hl31tiM7CIIFL2DXMwl6L9It
+# 9yEguxjMRNtV3rMP1ke8nQcy
 # SIG # End signature block
