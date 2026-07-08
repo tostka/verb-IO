@@ -8,6 +8,7 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    # 9:18 AM 7/8/2026 update $mts, stop stripping boolean:$false items
     * 12:38 AM 3/2/2025 added support for Remove-InvalidFileNameCharsTDO, cleaning output filenames of garbage yt adds to titles etc
     * 8:09 PM 11/15/2023 recoded around vlc conversion bugs; moved output into $env:temp, then post-move back to target dir; also add retry: noticed on zero-len outfile, that rerunning sometimes properly processed the file.
     * 1:41 PM 7/26/2023 add: $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; flipped extension refs to using that combo to detect pre-transcode YT content
@@ -468,7 +469,7 @@ function convert-VideoToMp3 {
                         Verbose = $($PSBoundParameters['Verbose'] -eq $true)
                     } ;
                     #write-verbose "(Purge no value keys from splat)" ; 
-                    $mts = $pltRIFNC.GetEnumerator() |?{$_.value -eq $null} ; $mts |%{$pltRIFNC.remove($_.Name)} ; rv mts -ea 0 ; 
+                    $mts = $pltRIFNC.GetEnumerator() |?{ $_.value -isnot [boolean] -AND (($_.value -eq $null) -OR ($_.value -eq '') -OR ($_.value.length -eq 0))} ; $mts |%{$pltRIFNC.remove($_.Name)} ; rv mts -ea 0 ; 
                     $smsg = "Remove-InvalidFileNameCharsTDO w`n$(($pltRIFNC|out-string).trim())" ; 
                     write-verbose $smsg  ;                      
                     #$fixedFileName = Remove-InvalidFileNameCharsTDO -ReplaceBrackets -Name $tf.BaseName -Verbose:$($PSBoundParameters['Verbose'] -eq $true)
