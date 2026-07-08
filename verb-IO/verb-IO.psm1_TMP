@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.7.0.0.0
+Version     : 18.8.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -5593,6 +5593,7 @@ function convert-VideoToMp3 {
     Website:	http://toddomation.com
     Twitter:	http://twitter.com/tostka
     REVISIONS   :
+    # 9:18 AM 7/8/2026 update $mts, stop stripping boolean:$false items
     * 12:38 AM 3/2/2025 added support for Remove-InvalidFileNameCharsTDO, cleaning output filenames of garbage yt adds to titles etc
     * 8:09 PM 11/15/2023 recoded around vlc conversion bugs; moved output into $env:temp, then post-move back to target dir; also add retry: noticed on zero-len outfile, that rerunning sometimes properly processed the file.
     * 1:41 PM 7/26/2023 add: $rgxYTFormatExts = "(?i:^\.(MOV|MPG|MP4|AVI|WMV|FLV|WEBM|MKV|MPEG)$)" ; flipped extension refs to using that combo to detect pre-transcode YT content
@@ -6053,7 +6054,7 @@ function convert-VideoToMp3 {
                         Verbose = $($PSBoundParameters['Verbose'] -eq $true)
                     } ;
                     #write-verbose "(Purge no value keys from splat)" ; 
-                    $mts = $pltRIFNC.GetEnumerator() |?{$_.value -eq $null} ; $mts |%{$pltRIFNC.remove($_.Name)} ; rv mts -ea 0 ; 
+                    $mts = $pltRIFNC.GetEnumerator() |?{ $_.value -isnot [boolean] -AND (($_.value -eq $null) -OR ($_.value -eq '') -OR ($_.value.length -eq 0))} ; $mts |%{$pltRIFNC.remove($_.Name)} ; rv mts -ea 0 ; 
                     $smsg = "Remove-InvalidFileNameCharsTDO w`n$(($pltRIFNC|out-string).trim())" ; 
                     write-verbose $smsg  ;                      
                     #$fixedFileName = Remove-InvalidFileNameCharsTDO -ReplaceBrackets -Name $tf.BaseName -Verbose:$($PSBoundParameters['Verbose'] -eq $true)
@@ -19311,6 +19312,7 @@ if (-not(gi function:resolve-EnvironmentTDO -ea 0)) {
             AddedWebsite: 
             AddedTwitter: URL
             REVISION
+            * 9:27 AM 7/8/2026 cbh update, $mts filter fix
             * 11:20 AM 9/17/2025 removed write-my* calls: implemented support in vio\write-log() instead (avoids all this manual updating)
             * 2:39 PM 7/17/2025 removed commented code; updated CBH to restore removed details, and to provide demo outputs; added series of examples for common usage
             * 4:44 PM 5/23/2025 updated the splats to psv2/psv3 support (dyn build; prev was psv3 only)
@@ -19427,7 +19429,7 @@ if (-not(gi function:resolve-EnvironmentTDO -ea 0)) {
             PS>     verbose = [boolean]($PSBoundParameters['Verbose'] -eq $true) ; 
             PS> } ;
             PS> write-verbose "(Purge no value keys from splat)" ; 
-            PS> $mts = $pltRVEnv.GetEnumerator() |?{$_.value -eq $null} ; $mts |%{$pltRVEnv.remove($_.Name)} ; rv mts -ea 0 -whatif:$false -confirm:$false; 
+            PS> $mts = $pltRVEnv.GetEnumerator() |?{ $_.value -isnot [boolean] -AND (($_.value -eq $null) -OR ($_.value -eq '') -OR ($_.value.length -eq 0))} ; $mts |%{$pltRVEnv.remove($_.Name)} ; rv mts -ea 0 -whatif:$false -confirm:$false; 
             PS> $smsg = "resolve-EnvironmentTDO w`n$(($pltRVEnv|out-string).trim())" ; 
             PS> if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } else{ write-host -foregroundcolor green "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
             PS> if(get-command resolve-EnvironmentTDO -ea STOP){}ELSE{
