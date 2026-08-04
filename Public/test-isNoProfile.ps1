@@ -19,6 +19,7 @@ function test-isNoProfile {
     AddedCredit : REFERENCE
     AddedWebsite: URL
     AddedTwitter: URL
+    * 7:41 AM 8/3/2026 revised logic to fail back to get-wmiobject where get-ciminstance is unavail, added throws on fail.
     * 10:07 AM 4/29/2026 fixed bvorked help parsing: removed leading periods from all RDP file ext refs (confused parser on dotted help keywords) ; 
     * 12:59 PM 4/28/2026 init
     .DESCRIPTION
@@ -131,6 +132,9 @@ function test-isNoProfile {
     [CmdletBinding()]
     [Alias('tNoPro')]
     PARAM() ;     
-    [boolean]((Get-CimInstance Win32_Process -Filter "ProcessId=$PID").CommandLine -match '-NoProfile|-nop') | write-output  ; 
+    #[boolean]((Get-CimInstance Win32_Process -Filter "ProcessId=$PID").CommandLine -match '-NoProfile|-nop') | write-output  ; 
+    $fltr = "ProcessId=$PID" ;
+    if (get-command get-ciminstance -ea 0) {$prc = (Get-CimInstance Win32_Process -Filter $fltr)} elseif($prc = Get-WmiObject Win32_Process -Filter $fltr){}else{throw "No CIM & WMI lookups failed (corrupt?)"} ;
+    if($prc){[boolean]($prc.CommandLine -match '-NoProfile|-nop') | write-output}else{throw "Unable to isolate host process!"}  ;
 } ; 
 #endregion TEST_ISNOPROFILE ; #*------^ END test-isNoProfile ^------
