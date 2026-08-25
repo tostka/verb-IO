@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 18.8.0.0.0
+Version     : 19.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -16948,6 +16948,65 @@ Function rebuild-PSTitleBar {
 #*------^ rebuild-PSTitleBar.ps1 ^------
 
 
+#*------v Remove-Alias.ps1 v------
+function Remove-AliasTDO {    
+    <#
+    .SYNOPSIS
+    Remove-AliasTDO - Remove a configured alias.
+    .NOTES
+    Version     : 0.0.2
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2026-04-29
+    FileName    : set-RDPFileSignatureTDO.ps1
+    License     : MIT License
+    Copyright   : (c) 2026 Todd Kadrie
+    Github      : https://github.com/tostka/verb-XXX
+    Tags        : Powershell,Alias,Maintenance
+    AddedCredit : neilpa
+    AddedWebsite: https://github.com/neilpa/dotfiles/blob/master/powershell/profile.ps1
+    AddedTwitter: URL
+    * 10:15 AM 8/6/2026 add explicit -path param to remove-item, was throwing  "A parameter cannot be found that matches parameter name 'alias'."
+    * 9:38 AM 8/4/2026 it didn't't support pipeline, empty alias cause it to chase \ root alias: add AdvFunc & pipeline support 
+    .DESCRIPTION
+    Remove-AliasTDO - Remove a configured alias.
+    Microsoft.PowerShell.Utility has verb's for 'Export|Get|Import|New|Set', but no REMOVE
+    So build our own. Note: in most cases it's safer to use the native remove-item alias:xxx approach (in example) - doesen't rely on this function to be available.
+    To override some existing aliases with alias functions we have to remove them
+    adapted from: https://github.com/neilpa/dotfiles/blob/master/powershell/profile.ps1
+    .PARAMETER Name
+    Specifies the alias Name. You can use any alphanumeric characters in an alias, but the first character cannot be a number.
+    .INPUTS
+    Accepts piped input Path 
+    .OUTPUTS
+    None
+    .EXAMPLE
+    .EXAMPLE
+    PS> remove-item -path alias:MyAlias
+    Demo native removal using base features of Microsoft.Powershell.Utility mod
+    .EXAMPLE
+    PS> get-alias XX | %{remove-item -path alias:$_ -verbose }
+    Rough in logic of this function using just the using base features of Microsoft.Powershell.Utility mod
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    [Alias('remove-alias','ral')]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,HelpMessage="Specifies the alias Name. You can use any alphanumeric characters in an alias, but the first character cannot be a number.")]
+        [System.String]$Name
+    ) ; 
+    PROCESS{
+        foreach($item in $Name){
+            Remove-Item -path alias:$item -Force -ErrorAction SilentlyContinue 
+        } ; 
+    } ; 
+}
+
+#*------^ Remove-Alias.ps1 ^------
+
+
 #*------v Remove-AuthenticodeSignature.ps1 v------
 function Remove-AuthenticodeSignature {
     <#
@@ -18156,10 +18215,10 @@ function remove-UnneededFileVariants {
 
 
 #*------v repair-FileEncoding.ps1 v------
-function repair-FileEncoding {
+function repair-FileEncodingTDO {
     <#
     .SYNOPSIS
-    repair-FileEncoding.ps1 - Filter specified Path for risky high-ascii chars & Encoding conversion failure markers, replace each with a low-ascii equiv, (or dash for diamond questionmarks), and convert output file to UTF8
+    repair-FileEncodingTDO.ps1 - Filter specified Path for risky high-ascii chars & Encoding conversion failure markers, replace each with a low-ascii equiv, (or dash for diamond questionmarks), and convert output file to UTF8
     .NOTES
     Version     : 1.6.2
     Author      : Todd Kadrie
@@ -18174,6 +18233,8 @@ function repair-FileEncoding {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 7:48 AM 8/6/2026 flipped default C:\sc\powershell\ Path to interactive prompt: prompt for input path, or use default path. 
+    Also added alias repair-BinaryFileTDO (targeted at githubd's failure to properly parse out files with encoding shifts); ren repair-FileEncoding -> repair-FileEncodingTDO, add alias for old name
     * 10:11 AM 12/8/2022 pull *all* reqs; verb-logging is cross broken too; nested-limit triggering recursive req's verb-io
     * 4:37 PM 11/22/2022 moved into verb-io; fixed typo utf8 spec (utf-8), flip into an adv function;refactored, added broader try/catch, handling for both 
     file or dir path; simplified logic, does encoding repair always, always detects 
@@ -18185,7 +18246,7 @@ function repair-FileEncoding {
     * 3:00 PM 1/2/2020 got through live pass using ConvertToUTF8Only, initial review of chgs in ghd appears to be functional
     * 2:52 PM 1/2/2020 used a prior version of the replc spec successfully, now have written in the broad conversion, and debugged, but not run prod yet.
     .DESCRIPTION
-    repair-FileEncoding.ps1 - Filter specified Path for risky high-ascii chars & Encoding conversion failure markers, replace each with a low-ascii equiv, (or dash for diamond questionmarks), and convert output file to UTF8. Processess all matching ps1, psm1 & psd1 files in the tree.
+    repair-FileEncodingTDO.ps1 - Filter specified Path for risky high-ascii chars & Encoding conversion failure markers, replace each with a low-ascii equiv, (or dash for diamond questionmarks), and convert output file to UTF8. Processess all matching ps1, psm1 & psd1 files in the tree.
     doesn't like it when you copy in a revised file from another box from debugging, and the encoding has changed: Tends to describe the file as 'This binary file has changed'. 
     Fix requires flipping the encoding back. 
     Underlying GIT issue documented here:
@@ -18220,40 +18281,72 @@ function repair-FileEncoding {
     .PARAMETER Whatif
     Parameter to run a Test no-change pass [-Whatif switch]
     .EXAMPLE
-    PS> repair-FileEncoding.ps1 -replaceChars
+    PS> repair-FileEncodingTDO.ps1 -replaceChars
     In files in default path (C:\sc\powershell), in files Where-Object high-ascii chars are found, replace the chars with matching low-bit chars (whatif is autoforced true to ensure no accidental runs)
     .EXAMPLE
-    PS> repair-FileEncoding.ps1 -path C:\sc\verb-AAD -replacechars -whatif:$false ;
+    PS> repair-FileEncodingTDO.ps1 -path C:\sc\verb-AAD -replacechars -whatif:$false ;
     Exec-pass: problem char files, replacements, with explicit path and overridden whatif
     .EXAMPLE
     PS> gci c:\sc\ -recur| ?{$_.extension -match '\.ps((d|m)*)1' } | 
-    PS>     select -expand fullname | repair-FileEncoding -whatif ;
-    Recurse a sourcecode root, for ps-related files, expand the fullnames and run the set through repair-FileEncoding with whatif
+    PS>     select -expand fullname | repair-FileEncodingTDO -whatif ;
+    Recurse a sourcecode root, for ps-related files, expand the fullnames and run the set through repair-FileEncodingTDO with whatif
     .LINK
     https://github.com/tostka/verb-io
     #>
     # VALIDATORS: [ValidateNotNull()][ValidateNotNullOrEmpty()][ValidateLength(24,25)][ValidateLength(5)][ValidatePattern("some\sregex\sexpr")][ValidateSet("USEA","GBMK","AUSYD")][ValidateScript({Test-Path $_ -PathType 'Container'})][ValidateScript({Test-Path $_})][ValidateRange(21,65)][ValidateCount(1,3)]
     [CmdletBinding()]
-    [Alias('fix-encoding')]
+    [Alias('fix-encoding','repair-BinaryFileTDO','repair-FileEncoding')]
     PARAM(
         [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,HelpMessage="Path to a file or Directory to be checked for encoding or encoding-conversion damage [-Path C:\sc\powershell]")]
-        #[ValidateScript({Test-Path $_ -PathType 'Container'})]
-        [ValidateScript({Test-Path $_ })]
-        [string[]] $Path="C:\sc\powershell",
+            #[ValidateScript({Test-Path $_ -PathType 'Container'})]
+            [ValidateScript({Test-Path $_ })]
+            [string[]] $Path,
+            #"C:\sc\powershell",
         [Parameter(HelpMessage="Array of extensions to be included in checks of Containers (defaults to .ps1|.psm1|.psd1|.cbp) [-IncludeExtentions '.ps1','.psm1','.psd1']")]
-        [array]$IncludeExtentions = @('*.ps1','*.psm1','*.psd1','*.cbp'),
+            [array]$IncludeExtentions = @('*.ps1','*.psm1','*.psd1','*.cbp'),
         [Parameter(HelpMessage="Encoding to be coerced on targeted files (defaults to UTF8, supports:ASCII|BigEndianUnicode|BigEndianUTF32|Byte|Default|OEM|String|Unicode|UTF7|UTF8|UTF32)[-EncodingTarget ASCII]")]
-        [ValidateSet('ASCII','BigEndianUnicode','BigEndianUTF32','Byte','Default','OEM','String','Unicode','UTF7','UTF8','UTF32')]
-        [string]$EncodingTarget= 'UTF8',
+            [ValidateSet('ASCII','BigEndianUnicode','BigEndianUTF32','Byte','Default','OEM','String','Unicode','UTF7','UTF8','UTF32')]
+            [string]$EncodingTarget= 'UTF8',
         [Parameter(HelpMessage="Switch that specifies to also update files with high ascii chars: All matches are reqplaced with the equiv low-asci equivs[-ReplaceChars]")]
-        [switch] $ReplaceChars,
+            [switch] $ReplaceChars,
         [Parameter(HelpMessage="Debugging Flag [-showDebug]")]
-        [switch] $showDebug,
+            [switch] $showDebug,
         [Parameter(HelpMessage="Whatif Flag  [-whatIf]")]
-        [switch] $whatIf=$true
+            [switch] $whatIf=$true
     ) ;
     BEGIN{
+        #region LOCAL_CONSTANTS ; #*------v LOCAL_CONSTANTS v------
+        $PathDefault = "C:\sc\powershell" ; 
+        #endregion LOCAL_CONSTANTS ; #*------^ END LOCAL_CONSTANTS ^------
+        if(-not $Path){
+            # >$Options = @('&Red;Favorite color: Red','&Blue;Favorite color: Blue','&Yellow;Favorite color: Yellow')
+            $Options = @('&Prompt;Path choice: Prompt for',"&Run all $($PathDefault);Process$($PathDefault)")
+            $Answer = Read-InputChoiceTDO -options $Options -title 'Missing Path: Choice?' -Message 'Pick your Path processing choice' -DefaultItem 0 ; 
+            switch -regex ($Answer){
+                'Prompt'{
+                    if($Path = Read-Host "Please target -Path for processing:"){
+                        if(test-path -path $Path){}else{
+                            write-warning "invalid -Path:`n$($Path)! (aborting)" ; 
+                            return ; 
+                        }                        
+                    }else{
+                        write-warning "invalid -Path:`n$($Path)! (aborting)" ; 
+                        return ; 
+                    }
+                }
+                '^Run\sall\s' {
+                    $Path = $PathDefault ; 
+                }
+            } ; 
+        }
+        if($path.count -eq  1){
+            write-host "Single Path item: flipping default -whatif:$false" ; 
+            $whatif = $false ; 
+        } else {
+            write-verbose "Array Path, using default -whatif:$($true)" ; 
+        }
         #*======v SUB MAIN v======
+                
         #region INIT; # ------
         ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
         $Verbose = ($VerbosePreference -eq 'Continue') ;
@@ -18331,7 +18424,135 @@ function repair-FileEncoding {
             else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
         } ;
         #endregion START-LOG-HOLISTIC #*------^ END START-LOG-HOLISTIC ^------
+        
+      #region FUNCTIONS_INTERNAL ; #*======v FUNCTIONS_INTERNAL v======
 
+        #region READ_INPUTCHOICETDO ; #*------v Read-InputChoiceTDO v------
+        if(-not (gcm Read-InputChoiceTDO -ea 0)){
+            function Read-InputChoiceTDO {
+                <#
+                .SYNOPSIS
+                Read-InputChoiceTDO - Prompts the user with console-based option list and returns the item they specify. Directly emulates Powershell's native prompts.
+                .NOTES
+                Version     : 0.0.2
+                Author      : Todd Kadrie
+                Website     : http://www.toddomation.com
+                Twitter     : @tostka / http://twitter.com/tostka
+                CreatedDate : 2026-06-17
+                FileName    : Read-InputChoiceTDO.ps1
+                License     : (none asserted)
+                Copyright   : (none asserted)
+                Github      : https://github.com/tostka/verb-IO
+                Tags        : Powershell,Input,Prompt,Console
+                AddedCredit : Adam Bertram
+                AddedWebsite: https://4sysops.com/archives/author/adam-bertram/
+                AddedTwitter: URL        
+                REVISIONS   :
+                * 5:29 PM 6/17/2026 init vers
+                .DESCRIPTION
+                Read-InputChoiceTDO - Prompts the user with console-based option list and returns the item they specify. Directly emulates Powershell's native prompts.
+                
+                Inspired by Adam Bertram's blog post: 
+                
+                [Read-Host and the ChoiceDescription class – Prompt for user input in PowerShell – 4sysops - 4sysops.com/](https://4sysops.com/archives/read-host-and-the-choicedescription-class-prompt-for-user-input-in-powershell/)
+
+                Dynamically a custom selection menu using the .NET System.Management.Automation.Host.ChoiceDescription object.        
+
+                The default returned value is the 'Tag', with any ampersand's replaced. 
+                If an entry isn't a semi-colon-delimited list, an integer value is used as the Tag, and the specified string is used as both the HelpMessage and the return value
+
+                .PARAMETER Options
+                Array of Options: Each should be a semi-colon-delimited 'tag;HelpMessage' string: The Tag can have an Ampersand(&) accelerator key[-options @('&Red;Favorite color: Red','&Blue;Favorite color: Blue','&Yellow;Favorite color: Yellow')]
+                .PARAMETER Title
+                Title string to be displayed
+                .PARAMETER message
+                Message to be displayed[-Mesage 'Please select a destination path]
+                .PARAMETER defaultItem
+                INT default selection from -options[-DefaultItem 1]
+                .PARAMETER ReturnInteger
+                Optional switch to return the user-entered integer rather than the resolved entry from the Options list[-ReturnInteger]
+                .INPUTS
+                Does not accept piped input
+                .OUTPUTS
+                System.String
+                .EXAMPLE
+                PS> $Options = @('&Red;Favorite color: Red','&Blue;Favorite color: Blue','&Yellow;Favorite color: Yellow')
+                PS> $Answer = Read-InputChoiceTDO -options $Options -title 'Faviorite color' -Message 'Pick your favorite color' -DefaultItem 1 
+
+                    Faviorite color
+                    Pick your favorite color
+                    [R] Red  [B] Blue  [Y] Yellow  [?] Help (default is "Y"): r
+
+                PS> $Answer
+                        Red
+
+                Demo console option prompt, demonstrating answer if 1st item was chosen, under default behavior (which returns resolved Options entry)        
+                .EXAMPLE
+                PS> $Options = @('Red','Blue','Yellow') ; 
+                PS> $Answer = Read-InputChoiceTDO -options $Options -title 'Faviorite color' -Message 'Pick your favorite color' -DefaultItem 2
+
+                    Faviorite color
+                    Pick your favorite color
+                    [0] 0:Red  [1] 1:Blue  [2] 2:Yellow  [?] Help (default is "2"): 1
+
+                PS> $Answer
+
+                        Blue
+
+                Demo menu using simple string options, without tags, which autoconverts to integer number selections. 
+                .LINK
+                https://github.com/tostka/verb-IO
+                #>
+                [Alias('Read-InputChoice')]
+                [CmdletBinding()]
+                Param(
+                    [Parameter(Position=0,Mandatory=$True,HelpMessage="Array of Options: Each should be a semi-colon-delimited 'tag;HelpMessage' string: The Tag can have an Ampersand(&) accelerator key[-options @('&Red;Favorite color: Red','&Blue;Favorite color: Blue','&Yellow;Favorite color: Yellow')]")]
+                        [array]$Options,
+                    [Parameter(Position=1,HelpMessage="Title string to be displayed[-Title 'Favorite color']")]
+                        [Alias('WindowTitle')]
+                        [string]$Title,
+                    [Parameter(Position=1,HelpMessage="Message to be displayed[-Mesage 'Please pick your favorite color']")]            
+                        [string]$message,
+                    [Parameter(Position=2,HelpMessage="INT default selection from -options[-DefaultItem 1]")]
+                        [int]$defaultItem,
+                    [Parameter(HelpMessage="Optional switch to return the chosedn item ordinal integer rather than the resolved entry from the Options list[-ReturnInteger]")]
+                        [switch]$ReturnInteger
+                ) ;
+                BEGIN{
+                    $i = 0
+                    $mnuOpts = @() ; 
+                    $mnuValues = @() ; 
+                    foreach($Opt in $options){
+                        if($Opt.contains(';')){
+                            $mnuTag,$mnuHelpMsg = $Opt.split(';')
+                            $mnuValues += @($MnuTag -replace '&','')
+                        }else{
+                            $mnuTag = "&$($i):$($Opt)" ; 
+                            $mnuHelpMsg = $Opt
+                            $mnuValues += @($mnuHelpMsg)
+                        } ;                 
+                        $mnuOpts += New-Object System.Management.Automation.Host.ChoiceDescription $mnuTag, $mnuHelpMsg ; 
+                        $i++ ; 
+                    } ; 
+                    $mnuOptions = [System.Management.Automation.Host.ChoiceDescription[]]($mnuOpts)
+                }
+                PROCESS{
+                    $menuSelect = $host.ui.PromptForChoice($title, $message, $mnuOptions, $defaultItem)
+                } ;  # PROC-E
+                END{
+                    
+                    if($ReturnInteger){
+                        $menuSelect | write-output
+                    }else{
+                        $mnuValues[$menuSelect] | write-output
+                    } ;
+                }  # END-E
+            } ;
+        }
+        #endregion READ_INPUTCHOICETDO ; #*------^ END Read-InputChoiceTDO ^------
+        
+        #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^======
+        
         #region BANNER ; #*------v BANNER v------
         $sBnr="#*======v $(${CmdletName}): v======" ;
         $smsg = $sBnr ;
@@ -23596,6 +23817,147 @@ function test-IsLink{
 #*------^ test-IsLink.ps1 ^------
 
 
+#*------v test-isNoProfile.ps1 v------
+function test-isNoProfile {
+    <#
+    .SYNOPSIS
+    test-isNoProfile - test current Powershell (or ISE et al) Profile was loaded with -NoProfile
+    .NOTES
+    Version     : 0.0.
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2026-04-29
+    FileName    : set-RDPFileSignatureTDO.ps1
+    License     : MIT License
+    Copyright   : (c) 2026 Todd Kadrie
+    Github      : https://github.com/tostka/verb-XXX
+    Tags        : Powershell
+    AddedCredit : REFERENCE
+    AddedWebsite: URL
+    AddedTwitter: URL
+    * 7:41 AM 8/3/2026 revised logic to fail back to get-wmiobject where get-ciminstance is unavail, added throws on fail.
+    * 10:07 AM 4/29/2026 fixed bvorked help parsing: removed leading periods from all RDP file ext refs (confused parser on dotted help keywords) ; 
+    * 12:59 PM 4/28/2026 init
+    .DESCRIPTION
+    test-isNoProfile - test current Powershell (or ISE et al) Profile was loaded with -NoProfile
+    
+    
+        #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        Copilot
+
+        If you're trying to determine whether a PowerShell session was started with -NoProfile, there isn't a built-in variable like $NoProfile that reliably tells you after the fact.
+
+        Option 1: Check the PowerShell process command line
+
+        From within the current session:
+
+        ```powershell
+        $pid | ForEach-Object {
+         (Get-CimInstance Win32_Process -Filter "ProcessId=$_").CommandLine
+        }
+        ```
+
+        You can then test for it:
+
+        ```powershell
+        PowerShell
+        $cmdLine = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID").CommandLine ; 
+        $StartedWithNoProfile = $cmdLine -match '(?i)(?:^|\s)-NoProfile(?:\s|$)' ; 
+        $StartedWithNoProfile ; 
+        ```
+
+        Option 2: Detect from another process (EDR/SIEM hunting)
+
+        PowerShell launched with -NoProfile usually appears in process creation telemetry:
+
+        Windows Event 4688
+
+        Look for:
+
+        powershell.exe -NoProfile
+        or
+        pwsh.exe -NoProfile
+
+        Defender XDR KQL
+        KQL
+        DeviceProcessEvents
+
+        | where FileName in~ ("powershell.exe", "pwsh.exe")
+
+        | where ProcessCommandLine has "-NoProfile"
+
+        | project Timestamp, DeviceName, FileName, ProcessCommandLine
+
+        Sentinel / Log Analytics
+        KQL
+        SecurityEvent
+
+        | where EventID == 4688
+
+        | where CommandLine has "-NoProfile"
+
+        Option 3: Infer from profile execution
+
+        If you're trying to know within a running session whether profiles were skipped, you can set a marker in your profile:
+
+        Profile:
+
+        ```powershell
+        $Global:ProfileLoaded = $true
+        ```
+        Session check:
+        ```powershell
+        if ($Global:ProfileLoaded) {
+         "Profile loaded"
+        }
+        else {
+         "Profile not loaded (possibly started with -NoProfile)"
+        }
+        ```
+
+        This isn't foolproof (the profile could fail or be edited), but it's a useful administrative technique.
+
+        Detection rule example
+        ```powershell
+        $cmdLine = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID").CommandLine
+        if ($cmdLine -match '(?i)-NoProfile') {
+         Write-Host "PowerShell started with -NoProfile"
+        }else{
+         Write-Host "PowerShell started without -NoProfile"
+        }
+        ```
+
+        For security monitoring, the most reliable method is inspecting the process command line in process creation logs (4688, Sysmon Event ID 1, Defender XDR DeviceProcessEvents, etc.).
+
+        #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    
+    .INPUTS
+    Accepts piped input Path 
+    .OUTPUTS
+    System.boolean
+    .EXAMPLE
+    PS> if (test-isNoProfile) {Write-Host "Started with -NoProfile"}
+    PS> else{
+    PS>     write-warning "powershell/powershell_ise -NoProfile`nlaunch may be required to ensure ipmo's run in proper order! (and `$isDesktop errors aren't spamming error stack)" ; 
+    PS>     return ; 
+    PS> } ; 
+    Test, report results, return ("exit") if not -NoProfile
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    [Alias('tNoPro')]
+    PARAM() ;     
+    #[boolean]((Get-CimInstance Win32_Process -Filter "ProcessId=$PID").CommandLine -match '-NoProfile|-nop') | write-output  ; 
+    $fltr = "ProcessId=$PID" ;
+    if (get-command get-ciminstance -ea 0) {$prc = (Get-CimInstance Win32_Process -Filter $fltr)} elseif($prc = Get-WmiObject Win32_Process -Filter $fltr){}else{throw "No CIM & WMI lookups failed (corrupt?)"} ;
+    if($prc){[boolean]($prc.CommandLine -match '-NoProfile|-nop') | write-output}else{throw "Unable to isolate host process!"}  ;
+}
+
+#*------^ test-isNoProfile.ps1 ^------
+
+
 #*------v test-IsUncPath.ps1 v------
 function test-IsUncPath {
     <#
@@ -26265,7 +26627,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,Out-WpfGridTDO,New-RunspaceCleanupJob,_refresh,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,get-RemainderTDO,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,New-RunspaceCleanupJobTDO,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-InputChoiceTDO,Read-InputConsoleChoiceTDO,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-LinesTrailingSpaces,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncoding,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-HashTDO,test-IsLink,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,Out-WpfGridTDO,New-RunspaceCleanupJob,_refresh,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,get-RemainderTDO,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,New-RunspaceCleanupJobTDO,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-InputChoiceTDO,Read-InputConsoleChoiceTDO,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AliasTDO,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-LinesTrailingSpaces,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncodingTDO,Read-InputChoiceTDO,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-HashTDO,test-IsLink,test-isNoProfile,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -26273,8 +26635,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUVThXrzGJ+TVbzW6JGlHI7Qv/
-# Xo2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUI8Q3UvHe1BFFQkAxqWB9urKG
+# ck6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -26289,9 +26651,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSKos3d
-# kc6/d4GAl9ZcHBbsIXdkJzANBgkqhkiG9w0BAQEFAASBgKzE+3WvWEAJNg5Metbt
-# RGudVYAZbZtfTV+ZFbdwkWIAhznaY28v8A4O9iNRnQPziraYX6tG6W24NyuIQnv/
-# itNL9XzrTwBg6nXrKYiUZx+O0umm2p6FuIhmSlkpm2z2/avD8RifvJU/k8JhSYGp
-# g84CkwiGQEBQ8Gcw3XTuEvR8
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQwAm+l
+# NLRCY1mQno6X5Qr709kuIDANBgkqhkiG9w0BAQEFAASBgBWVQI/7Kzn5TZaIkZcB
+# Zx2Ph0JgdiZMvk4zkXAoMJ6wa1WUBq51w+8tpE2cjBN3zHuWPHkI2X9S+P9r3SRf
+# PUBd5ueh6qnC0Y0tEunRPVnJPBaJ0V5AAkplnA5jnONtGtWvpfvc8TXeAfojOY5Y
+# TRQJDUjGByFJVctp/q4vu8Cg
 # SIG # End signature block
