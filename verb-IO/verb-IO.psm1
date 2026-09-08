@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 19.0.0.0.0
+Version     : 19.3.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -3855,6 +3855,8 @@ function Convert-NumbertoWords {
     AddedWebsite: http://www.toddomation.com
     AddedTwitter: @tostka / http://twitter.com/tostka
     REVISIONS
+    * 12:02 PM 9/8/2026 added code to handle decimals (_convert-DecimalDigitToWord), and better internal function to force solid comma-assertion (_convert-DecimalDigitToWord); 
+        revised some logic handling
     * 11:01 AM 1/9/2023 _convert-3DigitNumberToWords():TSK: fixed bug: wasn't pretesting number places, to ensure enough digits to support 10s & hundreds.
         add: CBH example, and _-prefixed internal func; flip output from string of both comma & text to object w both as props, trim() text output (has trailing space)
     * 5:06 PM 1/6/2023 TSK fixed a bug - it didn't properly accomdate '000' sets - which aren't pronounced, but are part of bumping the setting up a level; 
@@ -3891,136 +3893,225 @@ function Convert-NumbertoWords {
         [parameter(Mandatory=$true, Position=0,ValueFromPipeline = $True,HelpMessage="Number to be represented as a spoken sentance[-Numnber 123456")]
         $number
     ) ; 
-    $verbose = ($VerbosePreference -eq "Continue") ;
-
-    #$ErrorActionPreference = "SilentlyContinue"
-    $numbercommas = [string]::Format('{0:N0}',$number)
-    $numbergroups = $numbercommas -split ',' ; # (e.g. split into 'thousands, millions' groups)
+    BEGIN{
+        $verbose = ($VerbosePreference -eq "Continue") ;
+        #$ErrorActionPreference = "SilentlyContinue"
     
-    #*======v FUNCTIONS v======
+        #*======v INTERNAL_FUNCTIONS v======
 
-    #*------v Function _convert-3DigitNumberToWords v------
-    Function _convert-3DigitNumberToWords {
-        <# .NOTES
-            REVISIONS
-            * 11:01 AM 1/9/2023 _convert-3DigitNumberToWords():TSK: fixed bug: wasn't pretesting number places, to ensure enough digits to support 10s & hundreds.
-        #> 
-        Param([int]$number)
-        $wordarray = @{
-            1 = 'one';
-            2 = 'two';
-            3 = 'three';
-            4 = 'four';
-            5 = 'five';
-            6 = 'six';
-            7 = 'seven';
-            8 = 'eight';
-            9 = 'nine';
-            10 = 'ten';
-            11 = 'eleven';
-            12 = 'twelve';
-            13 = 'thirteen';
-            14 = 'fourteen';
-            15 = 'fifteen';
-            16 = 'sixteen';
-            17 = 'seventeen';
-            18 = 'eighteen';
-            19 = 'nineteen';
-            20 = 'twenty';
-            30 = 'thirty';
-            40 = 'forty';
-            50 = 'fifty';
-            60 = 'sixty';
-            70 = 'seventy';
-            80 = 'eighty';
-            90 = 'ninety';
-        } ; 
+        #*------v Function _convert-3DigitNumberToWords v------
+        Function _convert-3DigitNumberToWords {
+            <# .NOTES
+                REVISIONS
+                * 11:01 AM 1/9/2023 _convert-3DigitNumberToWords():TSK: fixed bug: wasn't pretesting number places, to ensure enough digits to support 10s & hundreds.
+            #> 
+            Param(
+                [Parameter(Mandatory=$True,HelpMessage="Numbers group to be converted to words[-digits '587']")]
+                    [int]$digits
+            )
+            $wordarray = @{
+                1 = 'one';
+                2 = 'two';
+                3 = 'three';
+                4 = 'four';
+                5 = 'five';
+                6 = 'six';
+                7 = 'seven';
+                8 = 'eight';
+                9 = 'nine';
+                10 = 'ten';
+                11 = 'eleven';
+                12 = 'twelve';
+                13 = 'thirteen';
+                14 = 'fourteen';
+                15 = 'fifteen';
+                16 = 'sixteen';
+                17 = 'seventeen';
+                18 = 'eighteen';
+                19 = 'nineteen';
+                20 = 'twenty';
+                30 = 'thirty';
+                40 = 'forty';
+                50 = 'fifty';
+                60 = 'sixty';
+                70 = 'seventy';
+                80 = 'eighty';
+                90 = 'ninety';
+            } ; 
         
-        if ($number -le 19){
-            $word = $wordarray.$($number) ; 
-        } ; 
+            if ($digits -le 19){
+                $word = $wordarray.$($digits) ; 
+            } ; 
             
-        $Ones = $number.ToString().ToCharArray()[-1].ToString().ToInt32($null) ; 
-        # pre-test char count before taking -gt 1:
-        if(($number.ToString().ToCharArray().count -gt 1)){
-            $Tens = $number.ToString().ToCharArray()[-2].ToString().ToInt32($null) ; 
-        } ; 
-        if(($number.ToString().ToCharArray().count -gt 2)){
-            $Hundreds = $number.ToString().ToCharArray()[-3].ToString().ToInt32($null) ; 
-        } ;
-        $OnesTens = (-join ($number.ToString().ToCharArray()[-2..-1])).ToInt32($null) ; 
+            $Ones = $digits.ToString().ToCharArray()[-1].ToString().ToInt32($null) ; 
+            # pre-test char count before taking -gt 1:
+            if(($digits.ToString().ToCharArray().count -gt 1)){
+                $Tens = $digits.ToString().ToCharArray()[-2].ToString().ToInt32($null) ; 
+            } ; 
+            if(($digits.ToString().ToCharArray().count -gt 2)){
+                $Hundreds = $digits.ToString().ToCharArray()[-3].ToString().ToInt32($null) ; 
+            } ;
+            $OnesTens = (-join ($digits.ToString().ToCharArray()[-2..-1])).ToInt32($null) ; 
 
-        if ($Hundreds -ge 1) {
-            $HundredsWord = "$($wordarray.($hundreds)) hundred" ; 
+            if ($Hundreds -ge 1) {
+                $HundredsWord = "$($wordarray.($hundreds)) hundred" ; 
+            } ; 
+            if ($OnesTens -le 19) {
+                $OneTensWord = $wordarray.($OnesTens) ; 
+            } ; 
+            if ($Tens -ge 2 ) {
+                $Tensword = $wordarray.($Tens * 10) ; 
+                $Onesword = $wordarray.($Ones)  ; 
+                if ($onestens % 10 -eq 0){$OneTensWord = $Tensword}
+                else {$OneTensWord = $Tensword + '-' + $Onesword} ; 
+            } ; 
+
+            $finalwordarray = @($hundredsword,$OneTensword) ; 
+            $finalwordarray = $finalwordarray | where-Object {$_} ; 
+            $finalwordarray -join " " | write-output ; 
+        }
+        #*------^ END Function __convert-3DigitNumberToWord ^------
+        
+        #region _CONVERT_DECIMALDIGITTOWORD ; #*------v _convert-DecimalDigitToWord v------
+        Function _convert-DecimalDigitToWord {
+            <# .NOTES
+                REVISIONS
+                * 11:01 AM 1/9/2023 _convert-DecimalDigitToWord():TSK: fixed bug: wasn't pretesting number places, to ensure enough digits to support 10s & hundreds.
+            #> 
+            Param(
+                [Parameter(Mandatory=$True,HelpMessage="Numbers group to be converted to words[-digits '587']")]
+                    [ValidateRange(0,9)]
+                    [int]$digit
+            )
+            write-verbose "Converting -digit: $($digit) to word..." ; 
+            $wordarray = @{
+                0 = 'zero' ; 
+                1 = 'one';
+                2 = 'two';
+                3 = 'three';
+                4 = 'four';
+                5 = 'five';
+                6 = 'six';
+                7 = 'seven';
+                8 = 'eight';
+                9 = 'nine';                
+            } ; 
+            TRY{
+                $word = $wordarray.$($digit) ; 
+                $word | write-output ; 
+            }CATCH{
+                THROW "$($digit) isn't an integer between 0 and 9!" ;
+            }
+        }        
+        #endregion _CONVERT_DECIMALDIGITTOWORD ; #*------^ END _convert-DecimalDigitToWord ^------
+
+        #region _FORMAT_NUMBERWITHCOMMAS ; #*------v _format-NumberWithCommas v------
+        function _format-NumberWithCommas {
+            param(
+                [Parameter(Mandatory)]
+                    [object]$Value
+            )            
+            if ($Value -is [int] -OR $Value -is [long] -OR $Value -is [double] -OR $Value -is [decimal]) {
+                return $Value.ToString('N0') ; 
+            } ; 
+            if ($Value -is [string]) {
+                # To use a .NET TryParse method in PowerShell, you must pass the second argument by reference using the [ref] type accelerator. 
+                # Because PowerShell maps both C# ref and out keywords to [ref], you must initialize the variable before passing it. 
+                # 1. Initialize the output variable first
+                $n = 0
+                # 2. Call TryParse and cast the output variable with [ref]
+                #if ([int]::TryParse("15", [ref]$n)) {
+                if ([long]::TryParse($Value, [ref]$n)){
+                    return $n.ToString('N0')
+                }
+                if ([double]::TryParse($Value, [ref]$n)){
+                    #return $n.ToString('N2')
+                    # above asserts explit 2 decimal places, and 'N' does 1. use the -f function to assesrt variable number of decimal places
+                    # dyn the # of dec places
+                    $decplaces = ($n -split '\.')[1].length                    
+                    return ("{0:N$($decplaces)}" -f $n ); 
+                }
+            }
+            throw "Value '$Value' is not a valid integer."
+        }
+        #endregion _FORMAT_NUMBERWITHCOMMAS ; #*------^ END _format-NumberWithCommas ^------
+
+        #*======^ END INTERNAL_FUNCTIONS ^======
+    } ;  # BEG-E
+    PROCESS{
+        #*======v SUB MAIN v======
+        # relies on comma-places to split into groups: this should be doing the place-comma assertion, but fails, so we use the full _format-NumberWithCommas to do the job
+        #$numbercommas = [string]::Format('{0:N0}',$number)
+        if($number -match '^\d{1,3}(,\d{3})*$'){
+            write-verbose "$($number) validates as comma-delimited" ; 
+        }else{
+            write-verbose "Number lacks place commas: asserting..." ; 
+            $numbercommas = _format-NumberWithCommas -Value $number -verbose:($VerbosePreference -eq "Continue") ;
+        }
+        if($number -match '\.'){
+            $numberint,$numberdecimals = ($numbercommas -split '\.') ; 
         } ; 
-        if ($OnesTens -le 19) {
-            $OneTensWord = $wordarray.($OnesTens) ; 
-        } ; 
-        if ($Tens -ge 2 ) {
-            $Tensword = $wordarray.($Tens * 10) ; 
-            $Onesword = $wordarray.($Ones)  ; 
-            if ($onestens % 10 -eq 0){$OneTensWord = $Tensword}
-            else {$OneTensWord = $Tensword + '-' + $Onesword} ; 
+        if($numberint){
+            $numbergroups = $numberint -split ',' ; # (e.g. split into 'thousands, millions' groups)
+        }else{
+            $numbergroups = $numbercommas -split ',' ; # (e.g. split into 'thousands, millions' groups)
+        }
+        $groupwordarray = foreach ($numbergroup in $numbergroups) {
+            if($numbergroup -eq '000'){
+                write-verbose "c3dntw uses [int] numbers, 000 isn't an integer (other than 0, but comes in as a string)..." ; 
+                # drop a marker in to ensure gorup bump occurs at the right place
+                '000'
+            } else { 
+                _convert-3DigitNumberToWords -digits $numbergroup ; 
+            } ; 
         } ; 
 
-        $finalwordarray = @($hundredsword,$OneTensword) ; 
-        $finalwordarray = $finalwordarray | where-Object {$_} ; 
-        $finalwordarray -join " " ; 
-    }
-    #*------^ END Function _convert-3DigitNumberToWords ^------
-    #*======^ END FUNCTIONS ^======
-
-    #*======v SUB MAIN v======
-    $groupwordarray = foreach ($numbergroup in $numbergroups) {
-        if($numbergroup -eq '000'){
-            write-verbose "c3dntw uses [int] numbers, 000 isn't an integer (other than 0, but comes in as a string)..." ; 
-            # drop a marker in to ensure gorup bump occurs at the right place
-            '000'
-        } else { 
-            _convert-3DigitNumberToWords -number $numbergroup ; 
+        $thouwordhash = @{
+            1 = '' ;
+            2 = 'thousand' ;
+            3 = 'million' ;
+            4 = 'billion' ;
+            5 = 'trillion' ;
+            6 = 'quadrillion' ;
+            7 = 'quintillion' ;
+            8 = 'sextillion' ;
+            9 = 'septillion' ;
+            10 = 'octillion'    ;        
         } ; 
-    } ; 
 
-    $thouwordhash = @{
-        1 = '' ;
-        2 = 'thousand' ;
-        3 = 'million' ;
-        4 = 'billion' ;
-        5 = 'trillion' ;
-        6 = 'quadrillion' ;
-        7 = 'quintillion' ;
-        8 = 'sextillion' ;
-        9 = 'septillion' ;
-        10 = 'octillion'    ;        
-    } ; 
+        [array]::reverse($groupwordarray) ; 
 
-    [array]::reverse($groupwordarray) ; 
-
-    $i = 0 ; 
-    $modifiedgroups = foreach($group in $groupwordarray){
-        $i++ ; 
-        if ($group -eq '000'){
-             write-verbose 'suppress zeros, not pronounced, bump position' ; 
-        }elseif ($group){ 
-            Write-Output "$group $($thouwordhash.$i)" 
+        $i = 0 ; 
+        $modifiedgroups = foreach($group in $groupwordarray){
+            $i++ ; 
+            if ($group -eq '000'){
+                 write-verbose 'suppress zeros, not pronounced, bump position' ; 
+            }elseif ($group){ 
+                Write-Output "$group $($thouwordhash.$i)" 
+            } ; 
         } ; 
-    } ; 
     
-    [array]::reverse($modifiedgroups) ; 
-    
-    <# 
-    if($VerbosePreference -eq "Continue"){
-        $numbercommas ; 
-    } ; 
-    $modifiedgroups -join ' ' ; 
-    #>
-    #emit an object with both, not a string ; 
-    New-Object PSObject -Property @{
-        Number = $numbercommas ;
-        Text = ($modifiedgroups -join ' ').Trim() ; 
-    } | write-output ; 
+        [array]::reverse($modifiedgroups) ; 
+        
+        if($numberdecimals){
+            # run the decimals through conversion one char at a tim
+            #$numberdecimals.ToCharArray()
+            $decwordarray = @() ; 
+            $decwordarray += 'point'
+            foreach ($decimal in $numberdecimals.ToCharArray()) {
+                write-verbose "converting $($decimal) to word" ; 
+                $decwordarray += _convert-DecimalDigitToWord -digit $decimal.tostring() ;                 
+            } ; 
+            $modifiedgroups =  $(@($modifiedgroups);@($decwordarray)) ;
+        } 
+        #emit an object with both, not a string ; 
+        New-Object PSObject -Property @{
+            Number = $numbercommas ;
+            Text = ($modifiedgroups -join ' ').Trim() ; 
+        } | write-output ; 
 
-    #*======^ END SUB MAIN ^======
+        #*======^ END SUB MAIN ^======
+    } ;  # PROC-E
 }
 
 #*------^ Convert-NumbertoWords.ps1 ^------
@@ -4044,6 +4135,7 @@ function Convert-Iso8601ToTraceDate {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 8:29 AM 9/8/2026 added explicit w-o to the trailing psco
     * 10:34 AM 2/12/2026 added Position 0 to InputObject, added Parse-UtcBracketedTimestamp() helper func, to parse non-ISO UTC Bracketed Timestamps (as are returned by SER searches); init
     .DESCRIPTION
     Convert-TimeIso8601ToTraceDate.ps1 - Converts a timestamp to a UTC [DateTime] suitable for Get-MessageTraceV2 -StartDate/-EndDate
@@ -4260,11 +4352,270 @@ function Convert-Iso8601ToTraceDate {
             StartDateUtc = $startUtc
             EndDateUtc   = $endUtc
             Warnings     = $warnings.ToArray()
-        }
+        } | write-output ; 
     } # PROC-E
 }
 
 #*------^ Convert-TimeIso8601ToTraceDate.ps1 ^------
+
+
+#*------v Convert-TimeToIso8601DateString.ps1 v------
+function Convert-TimeToIso8601DateString {
+    <#
+    .SYNOPSIS
+    Convert-TimeToIso8601DateString - Converts a datetime or timestamp to a ISO 8601 UTC culture-invariant & _sortable_ string format suitable for ExchangeOnlineManagement and ExchangeManagementShell -filter parameter specifications ('2026-08-17T00:00:00Z')
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2026-09-08
+    License     : MIT License
+    Copyright   : (c) 2019 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    REVISIONS
+    * 8:52 AM 9/8/2026 added Position 0 to InputObject, added Parse-UtcBracketedTimestamp() helper func, to parse non-ISO UTC Bracketed Timestamps (as are returned by SER searches); init
+    .DESCRIPTION
+    Convert-TimeToIso8601DateString - Converts a datetime or timestamp to a ISO 8601 UTC culture-invariant & _sortable_ string format suitable for ExchangeOnlineManagement and ExchangeManagementShell -filter parameter specifications ('2026-08-17T00:00:00Z')
+
+    Accepts a datetime string or datetime object. 
+    * also has helper function to convert non-ISO UtcBracketedTimestamp, '2026-02-09 09:04:35 [UTC-0600]'
+
+    get-Mailbox OPATH -filter expects timestamp specifications. Providing ISO 8601 formatted UTC is safest sortable option (per CPT).
+    
+    Use of a -filter in in format...
+        -filter '07/21/2026 00:00:00' and  '08/17/2026 00:00:00'
+    ...frequently does not return accurate matches (e.g. any at all, when known matches exist). 
+    Use of ISO 8601 date timestamps is reportedly the most accurate option to avoid search misses.
+        
+    .PARAMETER InputObject
+        The timestamp to convert. Can be:
+          * ISO 8601 string: e.g. '2026-02-09T09:04:35.848870-06:00' or '2026-02-09T15:04:35Z'
+          * a non-ISO UtcBracketedTimestamp, '2026-02-09 09:04:35 [UTC-0600]' (has helper function to convert)
+          * a non-culture-invariant time string: '07/21/2026 00:00:00' (assumed Local/Unspecified — will be treated as Local unless you set -KindUtc)
+          * [DateTime] (assumed Local/Unspecified — will be treated as Local unless you set -KindUtc)
+        .PARAMETER Duration
+        Optional [TimeSpan] to produce an EndDate: StartDate + Duration (default 1 hour).
+
+        .PARAMETER KindUtc
+        If InputObject is [DateTime] with Kind=Unspecified, treat it as UTC instead of Local.
+    .INPUTS
+    [system.string]
+    [datetime]
+    .OUTPUTS
+        PSCustomObject with:          
+          StartDateUtc8601Timestamp : StartDateUtc converted to string.
+          EndDateUtc8601Timestamp   : EndDateUtc converted to string.
+          Duration                  : Duration Timespan used to calculate EndDate (displays converted .tostring())
+          Warnings                  : {}
+
+    .EXAMPLE
+    PS> $timestamp = Convert-TimeToIso8601DateString -InputObject '07/21/2026 00:00:00' -verbose 
+    PS> $timestamp
+
+        StartDateUtc8601Timestamp EndDateUtc8601Timestamp Duration Warnings
+        ------------------------- ----------------------- -------- --------
+        2026-07-21T05:00:00Z      2026-07-21T06:00:00Z    01:00:00 {}      
+
+    Call specifying a non-ISO format string.    
+    .EXAMPLE
+    PS> $timestamp = Convert-TimeToIso8601DateString -InputObject '2026-07-21T00:00:00Z' 
+    PS> $timestamp
+
+        StartDateUtc8601Timestamp EndDateUtc8601Timestamp Duration Warnings
+        ------------------------- ----------------------- -------- --------
+        2026-07-21T00:00:00Z      2026-07-21T01:00:00Z    01:00:00 {}        
+
+    Call specifying an ISO 8601 format string (no real conversion: returns the same string).   
+    .EXAMPLE
+    PS> $timestamp = Convert-TimeToIso8601DateString -InputObject '2026-02-09 09:04:35 [UTC-0600]'  
+    PS> $timestamp
+
+        StartDateUtc8601Timestamp EndDateUtc8601Timestamp Duration Warnings
+        ------------------------- ----------------------- -------- --------
+        2026-02-09T15:04:35Z      2026-02-09T16:04:35Z    01:00:00 {}           
+
+    Call specifying a non-ISO UtcBracketedTimestamp.   
+    .LINK
+    https://github.com/tostka/verb-io
+    #>    
+    [CmdletBinding()]
+    #[Alias('Convert-SERDateToEXO','cvD8Ser2Exo')]
+    PARAM(
+        [Parameter(Mandatory=$true,Position = 0,ValueFromPipeline,HelpMessage="The timestamp to convert: ISO 8601 string, [DateTimeOffset], or [DateTime] (assumed Local/Unspecified — will be treated as Local unless you set -KindUtc)")]
+            [Alias('Time','Timestamp','Date')]
+            [object]$InputObject,
+        [Parameter(HelpMessage="Optional [TimeSpan] to produce an EndDate: StartDate + Duration (default 1 hour)")]
+            [TimeSpan]$Duration = (New-TimeSpan -Hours 1),
+        [Parameter(HelpMessage="If InputObject is [DateTime] with Kind=Unspecified, treat it as UTC instead of Local.")]
+            [switch]$KindUtc
+    )
+    BEGIN{    
+        #region FUNCTIONS_LOCAL ; #*======v FUNCTIONS_LOCAL v======
+        
+        #region PARSE_UTCBRACKETEDTIMESTAMP ; #*------v Parse-UtcBracketedTimestamp v------
+        function Parse-UtcBracketedTimestamp {
+            <#
+            .SYNOPSIS
+            Parses "yyyy-MM-dd HH:mm:ss[.fffffff] [UTC±HHMM]" into a [DateTimeOffset], plus UTC/Local [DateTime].
+
+            .DESCRIPTION
+            Expects a timestamp like:
+                2026-02-09 09:04:35 [UTC-0600]
+                2026-02-09 09:04:35.848870 [UTC+0100]
+            Returns a PSCustomObject with:
+                Original       : original string
+                DateTimeOffset : parsed [DateTimeOffset] (preserves offset)
+                Utc            : [DateTime] UTC
+                Local          : [DateTime] local
+                Offset         : [TimeSpan] (the declared offset)
+            Throws if parsing fails.
+            .OUTPUT
+            PSCustomObject with:
+                Original       : original string
+                DateTimeOffset : parsed [DateTimeOffset] (preserves offset)
+                Utc            : [DateTime] UTC
+                Local          : [DateTime] local
+                Offset         : [TimeSpan] (the declared offset)
+            Throws if parsing fails.
+            .PARAMETER InputString
+            The timestamp to convert
+            .EXAMPLE
+            
+            #>
+            [CmdletBinding()]
+            PARAM(
+                [Parameter(Mandatory, ValueFromPipeline,HelpMessage="The timestamp to convert")]
+                [string]$InputString
+            )
+            PROCESS {
+                # 1) Regex: capture date/time and the ±HHMM parts
+                $m = [regex]::Match(
+                    $InputString,
+                    '^\s*(?<dt>\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?)\s*\[\s*UTC(?<sign>[+-])(?<hh>\d{2})(?<mm>\d{2})\s*\]\s*$'
+                )
+
+                if (-not $m.Success) {
+                    throw "Input doesn't match expected format: 'yyyy-MM-dd HH:mm:ss[.fffffff] [UTC±HHMM]'"
+                }
+
+                $dtPart = $m.Groups['dt'].Value
+                $sign   = $m.Groups['sign'].Value
+                $hh     = $m.Groups['hh'].Value
+                $mm     = $m.Groups['mm'].Value
+
+                # 2) Normalize offset to ISO8601 style: ±HH:MM
+                $offset = "{0}{1}:{2}" -f $sign, $hh, $mm
+
+                # 3) Compose ISO8601-compatible string and parse
+                #    Note: space between date & time is fine as long as we use a matching format string.
+                $iso = "$dtPart$offset"
+
+                # Try with fractional seconds, then without
+                $dto = $null
+                $styles = @(
+                    'yyyy-MM-dd HH:mm:ss.fffffffK',
+                    'yyyy-MM-dd HH:mm:ssK'
+                )
+                foreach ($fmt in $styles) {
+                    try {
+                        $dto = [datetimeoffset]::ParseExact($iso, $fmt, $null)
+                        break
+                    } catch { }
+                }
+                if (-not $dto) {
+                    throw "Unable to parse normalized ISO timestamp: $iso"
+                }
+
+                [pscustomobject]@{
+                    Original       = $InputString
+                    DateTimeOffset = $dto
+                    Utc            = $dto.UtcDateTime
+                    Local          = $dto.LocalDateTime
+                    Offset         = $dto.Offset
+                }
+            }  # PROC-E
+        } ; 
+        #endregion PARSE_UTCBRACKETEDTIMESTAMP ; #*------^ END Parse-UtcBracketedTimestamp ^------
+
+        #endregion FUNCTIONS_LOCAL ; #*======^ END FUNCTIONS_LOCAL  ^======
+
+        $rgxUTCOffsetTimeFormat = '\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s\[UTC[+-]\d{4}]' ; 
+        $warnings = New-Object System.Collections.Generic.List[string] ; 
+        $nowUtc = [DateTime]::UtcNow ; 
+    }  # BEG-E
+    PROCESS {
+        if($InputObject -match $rgxUTCOffsetTimeFormat){
+            write-verbose "UtcBracketedTimestamp (SER track) format detected, converting to proper ISO.DateTimeOffset..." ; 
+            $InputObject = (Parse-UtcBracketedTimestamp -InputString $InputObject).DateTimeOffset ;  
+        } ; 
+        # Normalize into DateTimeOffset first (preserves any explicit offset from strings)
+        $dto = $null
+        switch ($InputObject.GetType().FullName) {
+            'System.DateTimeOffset' {
+                $dto = [DateTimeOffset]$InputObject
+            }
+            'System.DateTime' {
+                $dt = [DateTime]$InputObject
+                if ($dt.Kind -eq [DateTimeKind]::Utc -or $KindUtc) {
+                    $dto = [DateTimeOffset]::new($dt, [TimeSpan]::Zero)
+                } elseif ($dt.Kind -eq [DateTimeKind]::Local) {
+                    $dto = [DateTimeOffset]::new($dt)
+                } else {
+                    # Unspecified -> assume Local unless -KindUtc was provided
+                    if ($KindUtc) {
+                        $dto = [DateTimeOffset]::new([DateTime]::SpecifyKind($dt, [DateTimeKind]::Utc), [TimeSpan]::Zero)
+                    } else {
+                        $local = [DateTime]::SpecifyKind($dt, [DateTimeKind]::Local)
+                        $dto = [DateTimeOffset]::new($local)
+                        $warnings.Add("Input DateTime.Kind was Unspecified; treated as Local.")
+                    }
+                }
+            }
+            default {
+                # Treat as string -> parse as DateTimeOffset to honor offsets in ISO 8601
+                $s = [string]$InputObject
+                try {
+                    # Prefer strict ISO 8601 if possible, fall back to flexible parse
+                    try {
+                        $dto = [DateTimeOffset]::ParseExact($s, 'o', $null) # round-trip "o"
+                    } catch {
+                        $dto = [DateTimeOffset]::Parse($s)
+                    }
+                } catch {
+                    throw "Unable to parse input '$s' as a timestamp."
+                }
+            }
+        }
+        # Produce UTC DateTime(s)
+        $startUtc = $dto.UtcDateTime
+        $endUtc = $startUtc.Add($Duration)
+        # Validate 10-day per-query guidance
+        <#if (($endUtc - $startUtc).TotalDays -gt 10.0) {
+            $warnings.Add("The requested window exceeds 10 days. Get-MessageTraceV2 only returns up to 10 days per query; narrow the range or split queries.")
+        }
+        # Validate ~90-day retention (best-effort warning)
+        if (($nowUtc - $startUtc).TotalDays -gt 90.0) {
+            $warnings.Add("StartDate is older than ~90 days; Message Trace data likely unavailable.")
+        }
+        #>
+        <#
+        [pscustomobject]@{
+            StartDateUtc = $startUtc
+            EndDateUtc   = $endUtc
+            Warnings     = $warnings.ToArray()
+        }
+        #>
+        [pscustomobject]@{
+            StartDateUtc8601Timestamp = $startUtc.ToString("yyyy-MM-ddTHH:mm:ssZ")  ;            
+            EndDateUtc8601Timestamp   = $endUtc.ToString("yyyy-MM-ddTHH:mm:ssZ") ; 
+            Duration = $Duration ; 
+            Warnings     = $warnings.ToArray() ; 
+        } | write-output ;
+    } # PROC-E
+}
+
+#*------^ Convert-TimeToIso8601DateString.ps1 ^------
 
 
 #*------v ConvertTo-HashIndexed.ps1 v------
@@ -7825,6 +8176,76 @@ function Format-Json {
 }
 
 #*------^ Format-Json.ps1 ^------
+
+
+#*------v format-NumberWithCommas.ps1 v------
+function format-NumberWithCommas {
+    <#
+    .SYNOPSIS
+    Convert-TimeToIso8601DateString - Converts an [int], [long], [double] or [decimal] value to a string with appropriate hundreds/thousands/millions etc comma-places 
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2026-09-08
+    License     : MIT License
+    Copyright   : (c) 2019 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    REVISIONS
+    * 12:12 PM 9/8/2026 ported internal function from vio\Convertj-NumbertoWords()
+    .DESCRIPTION
+    Convert-TimeToIso8601DateString - Converts an [int], [long], [double] or [decimal] value to a string with appropriate hundreds/thousands/millions etc comma-places 
+    
+    .PARAMETER Value
+        Value to convert to place-marker string
+    .INPUTS
+    [int]
+    [long]
+    [double]
+    [decimal]    
+    .OUTPUTS
+    [system.string] with asserted comma places markers.
+
+    .EXAMPLE
+    PS> $numbercommas = _format-NumberWithCommas -Value '100587.283' -verbose:($VerbosePreference -eq "Continue") ;
+    PS> $numbercommas
+
+        '100,587.283'
+        
+    demo    
+    .LINK
+    https://github.com/tostka/verb-io
+    #>    
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Value to convert to place-marker string[-Value '100587.283']")]
+            [object]$Value
+    )            
+    if ($Value -is [int] -OR $Value -is [long] -OR $Value -is [double] -OR $Value -is [decimal]) {
+        return $Value.ToString('N0') ; 
+    } ; 
+    if ($Value -is [string]) {
+        # To use a .NET TryParse method in PowerShell, you must pass the second argument by reference using the [ref] type accelerator. 
+        # Because PowerShell maps both C# ref and out keywords to [ref], you must initialize the variable before passing it. 
+        # 1. Initialize the output variable first
+        $n = 0
+        # 2. Call TryParse and cast the output variable with [ref]
+        #if ([int]::TryParse("15", [ref]$n)) {
+        if ([long]::TryParse($Value, [ref]$n)){
+            return $n.ToString('N0')
+        }
+        if ([double]::TryParse($Value, [ref]$n)){
+            #return $n.ToString('N2')
+            # above asserts explit 2 decimal places, and 'N' does 1. use the -f function to assesrt variable number of decimal places
+            # dyn the # of dec places
+            $decplaces = ($n -split '\.')[1].length                    
+            return ("{0:N$($decplaces)}" -f $n ); 
+        }
+    }
+    throw "Value '$Value' is not a valid integer."
+}
+
+#*------^ format-NumberWithCommas.ps1 ^------
 
 
 #*------v get-AliasDefinition.ps1 v------
@@ -11955,156 +12376,6 @@ function get-Uptime {
 }
 
 #*------^ get-Uptime.ps1 ^------
-
-
-#*------v import-OpenNotepads.ps1 v------
-function import-OpenNotepads {
-    <#
-    .SYNOPSIS
-     import-OpenNotepads - Import & open a previously-exported list of  Notepad* variant (notepad2/3 curr) sessions
-    .NOTES
-    Version     : 1.0.0.
-    Author      : Todd Kadrie
-    Website     : http://www.toddomation.com
-    Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2025-07-02
-    FileName    : import-OpenNotepads.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
-    Tags        : Powershell,ISE,development,debugging
-    REVISIONS
-    * 10:08 AM 2/5/2026 retooled uniq logic & splatting, suppress dupes
-    * 2:21 PM 7/2/2025 works init
-    .DESCRIPTION
-    import-OpenNotepads - Import & open a previously-exported list of  Notepad* variant (notepad2/3 curr) sessions
-    .PARAMETER File
-    Path to an exported .psxml file reflecting previously opened Notepad* variant windows & documents, to be reopened.
-    .PARAMETER Tag
-    Variant to specify targeting a Tag (filename suffix - portion after the std 'NotePdSavedSession-' of filename, wo .psxml extension, which by default is a timestamp, if no export -Tag was specified)[-tag 'label']
-    .EXAMPLE
-    PS> import-opennotepads -File 'C:\Users\kadrits\OneDrive - The Toro Company\Documents\WindowsPowershell\Scripts\data\NotePdSavedSession-20250702-1120AM.psXML' -verbose
-    Demo using a full path specification to the target import file
-    .EXAMPLE
-    PS> import-opennotepads -Tag '20250702-1120AM'   -verbose
-    Demo targeting an exported file based on the trailing Tag suffix
-    .LINK
-    Github      : https://github.com/tostka
-    #>
-    [CmdletBinding()]
-    [Alias('ipNpOpen')]
-
-    #[ValidateScript({Test-Path $_})]
-    PARAM(
-        [Parameter(Mandatory = $False, Position = 0, ValueFromPipeline = $True, HelpMessage = 'File paths[-path c:\pathto\file.ext]')]
-            [Alias('PsPath')]
-            #[ValidateScript({Test-Path $_ -PathType 'Container'})]
-            #[System.IO.DirectoryInfo[]]$File,
-            [ValidateScript({ Test-Path $_ })]
-            [system.io.fileinfo[]]$File,
-            #[string[]]$File
-        [Parameter(Position=0,HelpMessage="Variant to specify targeting a Tag (filename suffix - portion after the std 'NotePdSavedSession-' of filename, wo .psxml extension, which by default is a timestamp, if no export -Tag was specified)[-tag 'label']")]
-            [string]$Tag,
-        [Parameter(HelpMessage="Whatif Flag  [-whatIf]")]
-            [switch] $whatIf
-    ) ;
-    BEGIN {
-        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
-        $verbose = $($VerbosePreference -eq "Continue") ;
-        $prPS = 'Name', 'Id', 'Path', 'Description', 'MainWindowHandle', 'MainWindowTitle', 'ProcessName', 'StartTime', 'ExitCode', 'HasExited', 'ExitTime' ;
-        $CUScripts = "$([Environment]::GetFolderPath('MyDocuments'))\WindowsPowershell\Scripts" ;
-        # CREATE new WindowsPowershell\Scripts\data folder if nonexist, use it to park data .xml & jsons etc for script processing/output (should prob shift the ise export/import code to use it)
-        $npExpDir = join-path -path $CUScripts -ChildPath 'data' ;
-        if (-not(test-path $npExpDir)) {
-            mkdir $npExpDir -verbose ;
-        }
-
-        if ($Tag) {
-            $txmlf = join-path -path $npExpDir -ChildPath "NotePdSavedSession-$($Tag).psXML" ;
-        } elseif($File) {
-            if ($File -match '\\|\/'){
-                write-verbose "File appears to be fully pathed (has /\ chars)"
-                $txmlf = $File ;
-            } ;
-            }else{
-                write-verbose "unpathed -File, building target default path"
-                $txmlf = join-path -path $npExpDir -ChildPath $File ;
-            }
-
-    } ;
-    PROCESS {
-        # for debugging, -Script permits targeting another script *not* being currently debugged
-        <#
-        Name             : notepad2
-        Id               : 26564
-        Path             : C:\Program Files\TortoiseGit\bin\notepad2.exe
-        Description      : Notepad 2e x64
-        MainWindowHandle : 529900
-        MainWindowTitle  : 26169.txt - Notepad 2e x64
-        ProcessName      : notepad2
-        StartTime        : 1/21/2026 8:30:21 AM
-        ExitCode         :
-        HasExited        : False
-        ExitTime         :
-        FilePath         : C:\usr\work\incid\26169.txt
-        Resolved         : True
-        NPAppPath        : C:\Program Files\TortoiseGit\bin\notepad2.exe
-        #>
-
-            if($txmlf){
-                write-host "*Importing exported file:$($txmlf) and setting specified files for open file`n$($tScript)" ;
-                
-                # set apps & files in found .xml file
-                $ipFiles = Import-Clixml -path $txmlf ;
-                $NPAppPath = $ipfiles.NPAppPath | group | sort count | select -first 1 | select -expand name ; 
-                $UnqFilePaths = $ipfiles.filepath |select -unique | sort ; 
-                # patch over empty existing file (file w no specs, happens)
-                if($ipFiles){
-
-
-                    if($whatif){
-                        #foreach($ipFile in $ipFiles){
-                        foreach($uFile in $UnqFilePaths){
-                            write-host "-whatif:set-PSBreakpoint -script $($setPs1) -line $($ipFile.line)"
-                        } ;
-                    } else {
-                        #foreach($ipFile in $ipFiles){
-                        foreach($uFile in $UnqFilePaths){
-                            #$null = set-PSBreakpoint -script $setPs1 -line $ipFile.line ;
-                            # $process = start-process ping.exe -windowstyle Hidden -ArgumentList "-n 1 -w 127.0.0.1" -PassThru –Wait ;
-                            # $process.ExitCode
-                            $pltSaPS = [ordered]@{
-                                FilePath = $NPAppPath ; #null ;
-                                ArgumentList = $null ;
-                                PassThru = $true
-                            } ;
-                            #if($ipFile.Path){$pltSaPS.FilePath = $ipFile.Path }else{throw "missing FilePath!"} 
-                            #if($ipFile.FilePath){$pltSaPS.ArgumentList = $ipFile.FilePath }else{throw "missing notepad app Path!"}
-                            $pltSaPS.ArgumentList = $uFile #}else{throw "missing notepad app Path!"
-                            $smsg = "start-process w`n$(($pltSaPS|out-string).trim())" ; 
-                            write-verbose $smsg ; 
-                            TRY{
-                                $process = start-process @pltSaPS ;
-                            } CATCH {
-                                $ErrTrapd=$Error[0] ;
-                                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
-                                write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
-                            } ;
-                            write-verbose  "$($pltSaPS.Path ) $($pltSaPS.FilePath): $(($process.ExitCode|out-string).trim())" ;
-                        } ;
-                    } ;
-                    $smsg = "$(($ipFile|measure).count) Files restored per $($txmlf)`n$(($ipFiles|sort line|ft -a Path,FilePath|out-string).trim())" ;
-                    if($whatif){$smsg = "-whatif:$($smsg)" }
-                    write-host $smsg ;
-                } else {
-                    write-warning "EMPTY/Spec .xml file for reopening" ;
-                }
-             } else { write-warning "Missing .xml exported file for open file $($tScript)" } ;
-
-    } # PROC-E
-}
-
-#*------^ import-OpenNotepads.ps1 ^------
 
 
 #*------v Invoke-DriveChkDskTDO.ps1 v------
@@ -26627,7 +26898,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,Out-WpfGridTDO,New-RunspaceCleanupJob,_refresh,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,get-RemainderTDO,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,import-OpenNotepads,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,New-RunspaceCleanupJobTDO,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-InputChoiceTDO,Read-InputConsoleChoiceTDO,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AliasTDO,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-LinesTrailingSpaces,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncodingTDO,Read-InputChoiceTDO,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-HashTDO,test-IsLink,test-isNoProfile,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,_convert-DecimalDigitToWord,_format-NumberWithCommas,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,Convert-TimeToIso8601DateString,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,Out-WpfGridTDO,New-RunspaceCleanupJob,_refresh,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,format-NumberWithCommas,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,get-RemainderTDO,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,New-RunspaceCleanupJobTDO,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-InputChoiceTDO,Read-InputConsoleChoiceTDO,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AliasTDO,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-LinesTrailingSpaces,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncodingTDO,Read-InputChoiceTDO,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-HashTDO,test-IsLink,test-isNoProfile,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -26635,8 +26906,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUI8Q3UvHe1BFFQkAxqWB9urKG
-# ck6gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUVEpJ4+8i9epNrkjJ9Ptjxnb3
+# fKSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -26651,9 +26922,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQwAm+l
-# NLRCY1mQno6X5Qr709kuIDANBgkqhkiG9w0BAQEFAASBgBWVQI/7Kzn5TZaIkZcB
-# Zx2Ph0JgdiZMvk4zkXAoMJ6wa1WUBq51w+8tpE2cjBN3zHuWPHkI2X9S+P9r3SRf
-# PUBd5ueh6qnC0Y0tEunRPVnJPBaJ0V5AAkplnA5jnONtGtWvpfvc8TXeAfojOY5Y
-# TRQJDUjGByFJVctp/q4vu8Cg
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR9ClS8
+# c9cW0MPHhfZRJiIA/nnB/DANBgkqhkiG9w0BAQEFAASBgHTBu74v/5MFqM0XtD27
+# 21KtYpYKOfh/3WEvdEgA9ArLyNmzik71QQQG0VZ2usxtO+LS7CuOz+W/mXpubjh1
+# 2qwFyEooIPLU5G+wkEvXWqBgXGfeyj4rK1/dJI0cjeaiQ41g78aVZFylj87T7ozT
+# 4dV8uPjPWBudHX0M66FPZRcA
 # SIG # End signature block
