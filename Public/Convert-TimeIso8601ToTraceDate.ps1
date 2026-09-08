@@ -18,6 +18,7 @@ function Convert-Iso8601ToTraceDate {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 8:29 AM 9/8/2026 added explicit w-o to the trailing psco
     * 10:34 AM 2/12/2026 added Position 0 to InputObject, added Parse-UtcBracketedTimestamp() helper func, to parse non-ISO UTC Bracketed Timestamps (as are returned by SER searches); init
     .DESCRIPTION
     Convert-TimeIso8601ToTraceDate.ps1 - Converts a timestamp to a UTC [DateTime] suitable for Get-MessageTraceV2 -StartDate/-EndDate
@@ -234,7 +235,7 @@ function Convert-Iso8601ToTraceDate {
             StartDateUtc = $startUtc
             EndDateUtc   = $endUtc
             Warnings     = $warnings.ToArray()
-        }
+        } | write-output ; 
     } # PROC-E
 }
 #endregion CONVERT_TIMEISO8601TOTRACEDATE ; #*------^ END Convert-TimeIso8601ToTraceDate ^------
