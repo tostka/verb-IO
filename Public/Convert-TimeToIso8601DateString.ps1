@@ -4,28 +4,26 @@
 function Convert-TimeToIso8601DateString {
     <#
     .SYNOPSIS
-    Convert-TimeToIso8601DateString - Converts a datetime to a ISO 8601 UTC culture-invariant & _sortable_ string format suitable for ExchangeOnlineManagement and ExchangeManagementShell -filter parameter specifications ('2026-08-17T00:00:00Z')
+    Convert-TimeToIso8601DateString - Converts a datetime or timestamp to a ISO 8601 UTC culture-invariant & _sortable_ string format suitable for ExchangeOnlineManagement and ExchangeManagementShell -filter parameter specifications ('2026-08-17T00:00:00Z')
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2019-02-06
+    CreatedDate : 2026-09-08
     License     : MIT License
     Copyright   : (c) 2019 Todd Kadrie
     Github      : https://github.com/tostka/verb-io
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
     REVISIONS
-    * 10:34 AM 2/12/2026 added Position 0 to InputObject, added Parse-UtcBracketedTimestamp() helper func, to parse non-ISO UTC Bracketed Timestamps (as are returned by SER searches); init
+    * 8:52 AM 9/8/2026 added Position 0 to InputObject, added Parse-UtcBracketedTimestamp() helper func, to parse non-ISO UTC Bracketed Timestamps (as are returned by SER searches); init
     .DESCRIPTION
-    Convert-TimeToIso8601DateString - Converts a datetime to a ISO 8601 UTC culture-invariant & _sortable_ format suitable for ExchangeOnlineManagement and ExchangeManagementShell -filter parameter specifications ('2026-08-17T00:00:00Z')
+    Convert-TimeToIso8601DateString - Converts a datetime or timestamp to a ISO 8601 UTC culture-invariant & _sortable_ string format suitable for ExchangeOnlineManagement and ExchangeManagementShell -filter parameter specifications ('2026-08-17T00:00:00Z')
 
     Accepts a datetime string or datetime object. 
     * also has helper function to convert non-ISO UtcBracketedTimestamp, '2026-02-09 09:04:35 [UTC-0600]'
 
-    get-Mailbox -filter expects [DateTime] parameters. Providing ISO 8601 formatted UTC is safest sortable option (per CPT).
+    get-Mailbox OPATH -filter expects timestamp specifications. Providing ISO 8601 formatted UTC is safest sortable option (per CPT).
+    
     Use of a -filter in in format...
         -filter '07/21/2026 00:00:00' and  '08/17/2026 00:00:00'
     ...frequently does not return accurate matches (e.g. any at all, when known matches exist). 
@@ -34,14 +32,17 @@ function Convert-TimeToIso8601DateString {
     .PARAMETER InputObject
         The timestamp to convert. Can be:
           * ISO 8601 string: e.g. '2026-02-09T09:04:35.848870-06:00' or '2026-02-09T15:04:35Z'
+          * a non-ISO UtcBracketedTimestamp, '2026-02-09 09:04:35 [UTC-0600]' (has helper function to convert)
+          * a non-culture-invariant time string: '07/21/2026 00:00:00' (assumed Local/Unspecified — will be treated as Local unless you set -KindUtc)
           * [DateTime] (assumed Local/Unspecified — will be treated as Local unless you set -KindUtc)
-          * also has helper function to convert non-ISO UtcBracketedTimestamp, '2026-02-09 09:04:35 [UTC-0600]'
         .PARAMETER Duration
         Optional [TimeSpan] to produce an EndDate: StartDate + Duration (default 1 hour).
 
         .PARAMETER KindUtc
         If InputObject is [DateTime] with Kind=Unspecified, treat it as UTC instead of Local.
-
+    .INPUTS
+    [system.string]
+    [datetime]
     .OUTPUTS
         PSCustomObject with:          
           StartDateUtc8601Timestamp : StartDateUtc converted to string.
@@ -58,10 +59,27 @@ function Convert-TimeToIso8601DateString {
         2026-07-21T05:00:00Z      2026-07-21T06:00:00Z    01:00:00 {}      
 
     Call specifying a non-ISO format string.    
+    .EXAMPLE
+    PS> $timestamp = Convert-TimeToIso8601DateString -InputObject '2026-07-21T00:00:00Z' 
+    PS> $timestamp
+
+        StartDateUtc8601Timestamp EndDateUtc8601Timestamp Duration Warnings
+        ------------------------- ----------------------- -------- --------
+        2026-07-21T00:00:00Z      2026-07-21T01:00:00Z    01:00:00 {}        
+
+    Call specifying an ISO 8601 format string (no real conversion: returns the same string).   
+    .EXAMPLE
+    PS> $timestamp = Convert-TimeToIso8601DateString -InputObject '2026-02-09 09:04:35 [UTC-0600]'  
+    PS> $timestamp
+
+        StartDateUtc8601Timestamp EndDateUtc8601Timestamp Duration Warnings
+        ------------------------- ----------------------- -------- --------
+        2026-02-09T15:04:35Z      2026-02-09T16:04:35Z    01:00:00 {}           
+
+    Call specifying a non-ISO UtcBracketedTimestamp.   
     .LINK
     https://github.com/tostka/verb-io
-    #>
-    #[Parameter(Mandatory=$false,ValueFromPipeline,ValueFromPipelineByPropertyName,HelpMessage="MGraph Application AppID guid to be resolved")]
+    #>    
     [CmdletBinding()]
     #[Alias('Convert-SERDateToEXO','cvD8Ser2Exo')]
     PARAM(
