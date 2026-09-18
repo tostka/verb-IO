@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 19.3.0.0.0
+Version     : 20.0.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -12376,6 +12376,88 @@ function get-Uptime {
 }
 
 #*------^ get-Uptime.ps1 ^------
+
+
+#*------v import-csvFixEncoding.ps1 v------
+function Import-CsvFixEncoding {
+	<#
+	.SYNOPSIS
+	Import-CsvFixEncoding - Wrapper around Import-Csv that coerces -Encoding to 'Unicode'.
+	.NOTES
+	Version     : 0.1.0
+	Author      : Todd Kadrie
+	Website     : http://www.toddomation.com
+	Twitter     : @tostka / http://twitter.com/tostka
+	CreatedDate : 2026-09-16
+	FileName    : import-csvFixEncoding.ps1
+	License     : MIT License
+	Copyright   : (c) 2026 Todd Kadrie
+	Github      : https://github.com/tostka/verb-io
+	Tags        : Powershell,CSV,Encoding
+	REVISIONS
+	* 9/16/2026 posh1.0 debut
+	.DESCRIPTION
+	Import-CsvFixEncoding is a pass-through wrapper for the built-in Import-Csv
+	cmdlet. It accepts Import-Csv's standard supported parameters and forwards
+	them via $PSBoundParameters, but always forces -Encoding to 'Unicode'
+	(overriding any -Encoding value the caller may have passed), to work around
+	source files that were exported as UTF-16/Unicode and misread when
+	imported with Import-Csv's default encoding detection.
+	.PARAMETER Path
+	Path to one or more input CSV files (supports wildcards).
+	.PARAMETER LiteralPath
+	Literal path to one or more input CSV files (no wildcard expansion).
+	.PARAMETER Delimiter
+	Delimiter that separates the property values in the CSV file.
+	.PARAMETER UseCulture
+	Use the delimiter for the current culture.
+	.PARAMETER Header
+	Alternate column headers for the imported CSV.
+	.PARAMETER TypeName
+	Custom type name to apply to the imported objects.
+	.INPUTS
+	None
+	.OUTPUTS
+	System.Management.Automation.PSCustomObject
+	.EXAMPLE
+	PS> Import-CsvFixEncoding -Path 'C:\data\export.csv'
+
+	Imports export.csv, always reading it as Unicode (UTF-16) regardless of its
+	actual byte-order-mark, to correct misdetected encoding.
+	.LINK
+	https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/import-csv
+    .LINK
+    https://github.com/tostka/verb-io
+	#>
+	[CmdletBinding()]
+	PARAM(
+		[Parameter(Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName, HelpMessage = 'Path to one or more input CSV files (supports wildcards)')]
+			[ValidateNotNullOrEmpty()]
+			[string[]]$Path,
+		[Parameter(ValueFromPipelineByPropertyName, HelpMessage = 'Literal path to one or more input CSV files (no wildcard expansion)')]
+			[Alias('PSPath')]
+			[ValidateNotNullOrEmpty()]
+			[string[]]$LiteralPath,
+		[Parameter(Position = 1, HelpMessage = 'Delimiter that separates the property values in the CSV file')]
+			[ValidateNotNull()]
+			[char]$Delimiter,
+		[Parameter(HelpMessage = 'Use the delimiter for the current culture')]
+			[switch]$UseCulture,
+		[Parameter(HelpMessage = 'Alternate column headers for the imported CSV')]
+			[string[]]$Header,
+		[Parameter(HelpMessage = 'Custom type name to apply to the imported objects')]
+			[string]$TypeName
+	)
+	PROCESS {
+		# Copy caller's bound params (Path/LiteralPath/Delimiter/UseCulture/Header/TypeName/common params),
+		# then coerce/force Encoding to Unicode regardless of what (if anything) was supplied.
+		$ImportCsvParams = @{} + $PSBoundParameters ;
+		$ImportCsvParams['Encoding'] = 'Unicode' ;
+		Import-Csv @ImportCsvParams ;
+	} ; # PROCESS-END
+}
+
+#*------^ import-csvFixEncoding.ps1 ^------
 
 
 #*------v Invoke-DriveChkDskTDO.ps1 v------
@@ -26898,7 +26980,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,_convert-DecimalDigitToWord,_format-NumberWithCommas,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,Convert-TimeToIso8601DateString,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,Out-WpfGridTDO,New-RunspaceCleanupJob,_refresh,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,format-NumberWithCommas,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,get-RemainderTDO,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,New-RunspaceCleanupJobTDO,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-InputChoiceTDO,Read-InputConsoleChoiceTDO,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AliasTDO,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-LinesTrailingSpaces,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncodingTDO,Read-InputChoiceTDO,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-HashTDO,test-IsLink,test-isNoProfile,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,_convert-DecimalDigitToWord,_format-NumberWithCommas,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,Convert-TimeToIso8601DateString,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,Out-WpfGridTDO,New-RunspaceCleanupJob,_refresh,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,format-NumberWithCommas,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,get-RemainderTDO,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,Import-CsvFixEncoding,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,New-RunspaceCleanupJobTDO,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-InputChoiceTDO,Read-InputConsoleChoiceTDO,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AliasTDO,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-LinesTrailingSpaces,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncodingTDO,Read-InputChoiceTDO,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-HashTDO,test-IsLink,test-isNoProfile,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
@@ -26906,8 +26988,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUVEpJ4+8i9epNrkjJ9Ptjxnb3
-# fKSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUJq3VA1r4mljqSPWR6R6KQUsm
+# oUygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -26922,9 +27004,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR9ClS8
-# c9cW0MPHhfZRJiIA/nnB/DANBgkqhkiG9w0BAQEFAASBgHTBu74v/5MFqM0XtD27
-# 21KtYpYKOfh/3WEvdEgA9ArLyNmzik71QQQG0VZ2usxtO+LS7CuOz+W/mXpubjh1
-# 2qwFyEooIPLU5G+wkEvXWqBgXGfeyj4rK1/dJI0cjeaiQ41g78aVZFylj87T7ozT
-# 4dV8uPjPWBudHX0M66FPZRcA
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR4Rp9m
+# ZyPpijHMOcm9LbNJ2D7N6zANBgkqhkiG9w0BAQEFAASBgLKAD0890S7QiYhw+jf1
+# +2PCR6pxXl1RBFKIdgv1mmD+Fqx/T5jsY5dANIxpYsqh2xnJ/Ghh2Ch9VOkw7xxr
+# pFkzcKSNfAe5F3sLdmZg1EUFgwcRZa4V7H0xn5jZKrkbUMkWc1dgMd1vPyqOFnRR
+# oLnaU3PFfyTQ5NK0bQe0QZzZ
 # SIG # End signature block
