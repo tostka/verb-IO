@@ -23,8 +23,10 @@ function test-IsUncPath {
     test-IsUncPath.ps1 - Checks specified path is in UNC format
     use -isTscPath to test for functional Termserv/RDP paths (\\tsclient\c\path)
     Includes alias: test-IsTscPath, which forces -isTSCPath:`$true
-    .PARAMETER  Path
+    .PARAMETER Path
     Full Path to be tested [-Path '\\host\c$\dir\file.txt']
+    .PARAMETER isTSCPath
+    Switch to test for Tsclient path (\\tsclient\D\ - tests system.uri Host field)
     .EXAMPLE
     PS> test-IsUncPath -Path "L:\somepath\file.txt" ;  ; 
     Tests a path for UNC
