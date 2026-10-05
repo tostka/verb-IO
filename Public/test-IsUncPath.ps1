@@ -26,7 +26,7 @@ function test-IsUncPath {
     .PARAMETER Path
     Full Path to be tested [-Path '\\host\c$\dir\file.txt']
     .PARAMETER isTSCPath
-    Switch to test for Tsclient path (\\tsclient\D\ - tests system.uri Host field)
+    Switch to test for Tsclient path compliance (\\tsclient\D\ - tests system.uri Host field)
     .EXAMPLE
     PS> test-IsUncPath -Path "L:\somepath\file.txt" ;  ; 
     Tests a path for UNC
