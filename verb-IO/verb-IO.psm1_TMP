@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 20.0.0.0.0
+Version     : 20.1.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -398,7 +398,7 @@ function Authenticate-File {
     Author: Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
+    CreatedDate : 20.1.04-17
     FileName    : 
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -2908,7 +2908,7 @@ if($host.version.major -gt 2){
         Author      : iRon
         Website     : https://github.com/iRon7/ConvertFrom-SourceTable/
         Twitter     : 
-        CreatedDate : 2020-03-27
+        CreatedDate : 20.1.03-27
         FileName    : ConvertFrom-SourceTable
         License     : https://github.com/iRon7/ConvertFrom-SourceTable/LICENSE.txt
         Copyright   : (Not specified)
@@ -2927,7 +2927,7 @@ if($host.version.major -gt 2){
         For now if it out anytime psv2 is in play. Nope, parser can't parse the content, so it won't even properly skip the function
         Psv2 appears unable to parse some aspect of this.
         * 10:35 AM 2/21/2022 CBH example ps> adds
-        0.3.11 2020-03-27 Added -Omit parameter (Each omitted character will be replaced with a space)
+        0.3.11 20.1.03-27 Added -Omit parameter (Each omitted character will be replaced with a space)
         .DESCRIPTION
         ConvertFrom-SourceTable - Converts a fixed column table to objects.
         The ConvertFrom-SourceTable cmdlet creates objects from a fixed column
@@ -8436,7 +8436,7 @@ function Get-AverageItems {
     Version     : 1.0.0
     Author      : Raoul Supercopter
     Website     :	https://stackoverflow.com/users/57123/raoul-supercopter
-    CreatedDate : 2020-01-03
+    CreatedDate : 20.1.01-03
     FileName    : 
     License     : (none specified)
     Copyright   : (none specified)
@@ -8818,7 +8818,7 @@ function Get-CombinationTDO {
     Author      : Doug Finke (dfinke)
     Website     : https://github.com/dfinke
     Twitter     : @dfinke / http://twitter.com/dfinke
-    CreatedDate : 2020-04-30
+    CreatedDate : 20.1.04-30
     FileName    : Get-CombinationTDO.ps1
     License     : (none asserted)
     Copyright   : (none asserted)
@@ -9212,7 +9212,7 @@ function Get-CountItems {
     Version     : 1.0.0
     Author      : Raoul Supercopter
     Website     :	https://stackoverflow.com/users/57123/raoul-supercopter
-    CreatedDate : 2020-01-03
+    CreatedDate : 20.1.01-03
     FileName    : 
     License     : (none specified)
     Copyright   : (none specified)
@@ -9320,7 +9320,7 @@ function Get-FileEncoding {
     Demo recursing source tree, and coercing non-UTF8 PS1's to UTF8.
     .LINK
     https://github.com/tostka/verb-io
-    http://franckrichard.blogspot.com/2010/08/powershell-get-encoding-file-type.html
+    http://franckrichard.blogspot.com/20.1.08/powershell-get-encoding-file-type.html
     https://gist.github.com/jpoehls/2406504
     http://goo.gl/XQNeuc
     http://poshcode.org/5724
@@ -9404,7 +9404,7 @@ function Get-FileEncodingExtended {
     Get-ChildItem  *.ps1 | select FullName, @{n='Encoding';e={Get-FileEncodingExtended $_.FullName}} | where {$_.Encoding -ne 'ASCII'} | foreach {(get-content $_.FullName) | set-content $_.FullName -Encoding ASCII} ;
     Same as previous example but fixes encoding using set-content ;
     .LINK
-    http://franckrichard.blogspot.com/2010/08/powershell-get-encoding-file-type.html
+    http://franckrichard.blogspot.com/20.1.08/powershell-get-encoding-file-type.html
     .LINK
     https://gist.github.com/jpoehls/2406504
     .LINK
@@ -10887,7 +10887,7 @@ function Get-PermutationTDO {
     Author      : Doug Finke (dfinke)
     Website     : https://github.com/dfinke
     Twitter     : @dfinke / http://twitter.com/dfinke
-    CreatedDate : 2020-04-30
+    CreatedDate : 20.1.04-30
     FileName    : Get-PermutationTDO.ps1
     License     : (none asserted)
     Copyright   : (none asserted)
@@ -11071,7 +11071,7 @@ function Get-ProductItems {
     Version     : 1.0.0
     Author      : Raoul Supercopter
     Website     :	https://stackoverflow.com/users/57123/raoul-supercopter
-    CreatedDate : 2020-01-03
+    CreatedDate : 20.1.01-03
     FileName    : 
     License     : (none specified)
     Copyright   : (none specified)
@@ -11734,7 +11734,7 @@ function get-RegistryValue {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2020-05-01
+    CreatedDate : 20.1.05-01
     FileName    : get-RegistryValue.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -11969,7 +11969,7 @@ function Get-SumItems {
     Version     : 1.0.0
     Author      : Raoul Supercopter
     Website     :	https://stackoverflow.com/users/57123/raoul-supercopter
-    CreatedDate : 2020-01-03
+    CreatedDate : 20.1.01-03
     FileName    : 
     License     : (none specified)
     Copyright   : (none specified)
@@ -12008,7 +12008,7 @@ function get-TaskReport {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20201014-0826AM
+    CreatedDate : 20.1.014-0826AM
     FileName    : get-TaskReport.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -12609,7 +12609,7 @@ Function Invoke-Flasher {
     Author      : Jeff Hicks
     Website     :	http://jdhitsolutions.com/blog/2014/08/look-at-me
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
+    CreatedDate : 20.1.04-17
     FileName    : Invoke-Flasher.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -14927,7 +14927,7 @@ function play-beep {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
+    CreatedDate : 20.1.04-17
     FileName    : 
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -15415,7 +15415,7 @@ Function Read-Host2 {
     .NOTES
     Author      : Jeff Hicks
     Website     :	http://jdhitsolutions.com/blog/2014/08/more-flashing-fun
-    CreatedDate : 2020-04-17
+    CreatedDate : 20.1.04-17
     FileName    : Read-Host2.ps1
     REVISIONS   :
     Version     : 0.9 August 18, 2014
@@ -17370,7 +17370,7 @@ function Remove-AuthenticodeSignature {
     Author: Todd Kadrie
     Website     :	https://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
+    CreatedDate : 20.1.04-17
     FileName    : Remove-AuthenticodeSignature.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -19471,7 +19471,7 @@ Function reset-ConsoleColors {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-03-03
+    CreatedDate : 20.1.03-03
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
     Copyright   : 
@@ -21308,7 +21308,7 @@ function set-AuthenticodeSignatureTDO {
     Author: Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
+    CreatedDate : 20.1.04-17
     FileName    : set-AuthenticodeSignatureTDO.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -22616,7 +22616,7 @@ function Set-RegistryValue {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2020-05-01
+    CreatedDate : 20.1.05-01
     FileName    : Set-RegistryValue.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -24170,6 +24170,88 @@ function test-IsLink{
 #*------^ test-IsLink.ps1 ^------
 
 
+#*------v test-isLocalPath.ps1 v------
+function test-isLocalPath {
+    <#
+    .SYNOPSIS
+    test-isLocalPath.ps1 - Checks specified path is in Windows Local Path format (d:\dir\file.ext)
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-04-21
+    FileName    : test-isLocalPath.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Filesystem
+    REVISIONS
+    * 9:32 AM 10/2/2026 init
+    .DESCRIPTION
+    test-isLocalPath.ps1 - Checks specified path is in Windows Local Path format (d:\dir\file.ext)
+    Simple inversion of verb-io\test-isUncPath, same [system.uri] testing mechanism, just tests that isUnc -eq `$false v `$true
+    Chose to implement as a standalone function, rather than yet another param on test-isUncpath(), because it's a more fundemental test than the UNC-variant test that \\tsclient\ path testing reflects
+    .PARAMETER  Path
+    Full Path to be tested [-Path '\\host\c$\dir\file.txt']
+    .EXAMPLE
+    PS> test-isLocalPath -Path "L:\somepath\file.txt" ;  ; 
+    Tests a path for UNC
+    .EXAMPLE
+    PS> test-isLocalPath 'c:\tmp\tmp.txt' -Verbose
+    Tests a local path    
+    .LINK
+    https://github.com/tostka/verb-IO
+    #>
+    [OutputType('bool')]
+    #[Alias('test-IsTscPath')]
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Mandatory,Position=0,ValueFromPipeline=$true,Helpmessage = "Full Path to be tested [-Path 'c:\dir\file.txt']")]
+            [ValidateNotNullOrEmpty()]
+            [string]$Path        
+    ) ;
+    BEGIN {
+        #$rMyInvocation = $MyInvocation ; # populated only for scripts, function, and script blocks.
+        #If ($MyInvocation.Line -eq 'test-IsTscPath') {
+        <#if($rMyInvocation.InvocationName -like '*test-IsTscPath'){
+            write-verbose 'Alias:test-IsTscPath was used (setting -isTscPath:`$true).' ;
+            $isTSCPath = $true ; 
+        } ;
+        #>
+        if ($PSCmdlet.MyInvocation.ExpectingInput) {
+            write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
+        } else {
+            #write-verbose "Data received from parameter input: '$($InputObject)'" ; 
+            write-verbose "(non-pipeline - param - input)" ; 
+        } ; 
+    } ;  
+    PROCESS {
+        $Error.Clear() ; 
+        foreach($item in $path) {
+            TRY{
+                $PathInfo=[System.Uri]$item ; 
+            } CATCH {
+                $ErrTrapd=$Error[0] ;
+                write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                return ; 
+            } ;
+            if($PathInfo.IsUnc){ 
+                write-verbose "$Path is UNC Path..." ;
+                $false | write-output ;
+            } else { 
+                write-verbose "$Path is Local Path..." ;
+                $true | write-output ;
+            } ; 
+        } ; 
+    } ;  
+}
+
+#*------^ test-isLocalPath.ps1 ^------
+
+
 #*------v test-isNoProfile.ps1 v------
 function test-isNoProfile {
     <#
@@ -24328,25 +24410,48 @@ function test-IsUncPath {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Filesystem
     REVISIONS
+    * 9:39 AM 10/2/2026 added -isTSCPath param, to test host value & alias:test-IsTscPath (which forces -isTscPath:$true)
     * 10:28 AM 4/21/2022 init
     .DESCRIPTION
     test-IsUncPath.ps1 - Checks specified path is in UNC format
-    .PARAMETER  Path
-    Full registPath to be tested [-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending']
+    use -isTscPath to test for functional Termserv/RDP paths (\\tsclient\c\path)
+    Includes alias: test-IsTscPath, which forces -isTSCPath:`$true
+    .PARAMETER Path
+    Full Path to be tested [-Path '\\host\c$\dir\file.txt']
+    .PARAMETER isTSCPath
+    Switch to test for Tsclient path (\\tsclient\D\ - tests system.uri Host field)
     .EXAMPLE
-    test-IsUncPath -Path "L:\somepath\file.txt" ;  ; 
-    Tests one of the Pending Reboot keys
+    PS> test-IsUncPath -Path "L:\somepath\file.txt" ;  ; 
+    Tests a path for UNC
+    .EXAMPLE
+    PS> test-isuncpath \\$env:computername\c$\tmp\tmp.txt -Verbose
+    Tests a unc path
+    .EXAMPLE
+    PS> test-isuncpath \\tsclient\c\tmp\tmp.txt -isTscPath -Verbose
+    Uses -isTscPath to test a tsclient path
+    .EXAMPLE
+    PS> test-IsTscPath \\tsclient\c\tmp\tmp.txt -Verbose
+    Uses alias 'test-IsTscPath' to test a tsclient path
     .LINK
     https://github.com/tostka/verb-IO
     #>
     [OutputType('bool')]
+    [Alias('test-IsTscPath')]
     [CmdletBinding()]
     PARAM(
-        [Parameter(Mandatory,Position=0,ValueFromPipeline=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$Path
+        [Parameter(Mandatory,Position=0,ValueFromPipeline=$true,Helpmessage = "Full Path to be tested [-Path '\\host\c$\dir\file.txt']")]
+            [ValidateNotNullOrEmpty()]
+            [string]$Path,
+        [Parameter(Helpmessage = "Switch to test for Tsclient path (\\tsclient\D\ - tests system.uri Host field)")]            
+            [switch]$isTSCPath
     ) ;
     BEGIN {
+        $rMyInvocation = $MyInvocation ; # populated only for scripts, function, and script blocks.
+        #If ($MyInvocation.Line -eq 'test-IsTscPath') {
+        if($rMyInvocation.InvocationName -like '*test-IsTscPath'){
+            write-verbose 'Alias:test-IsTscPath was used (setting -isTscPath:`$true).' ;
+            $isTSCPath = $true ; 
+        } ;
         if ($PSCmdlet.MyInvocation.ExpectingInput) {
             write-verbose "Data received from pipeline input: '$($InputObject)'" ; 
         } else {
@@ -24357,10 +24462,33 @@ function test-IsUncPath {
     PROCESS {
         $Error.Clear() ; 
         foreach($item in $path) {
-            $PathInfo=[System.Uri]$item ; 
+            TRY{
+                $PathInfo=[System.Uri]$item ; 
+            } CATCH {
+                $ErrTrapd=$Error[0] ;
+                write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                return ; 
+            } ;        
             if($PathInfo.IsUnc){ 
                 write-verbose "$Path is UNC Path..." ;
-                $true | write-output ;
+                if($isTSCPath){
+                    if($PathInfo.Host -eq 'tsclient'){
+                        write-verbose "Path.Host -eq 'tsclient'" ; 
+                        if($PathInfo.PathAndQuery -match '/[A-Za-z]/'){
+                            write-verbose "Path.PathAndQuery -match '/[A-Za-z]/' (non-dollar-sign drive specification)" ; 
+                            $true | write-output ;
+                        } else { 
+                            write-verbose "Path.PathAndQuery -match '/[A-Za-z]/' (non-dollar-sign drive specification)" ; 
+                            $false | write-output ;
+                        }
+                    }else{
+                        $false | write-output ;
+                    }
+                }else{
+                    $true | write-output ;
+                } ; 
             } else { 
                 write-verbose "$Path is Local Path..." ;
                 $false | write-output ;
@@ -25510,7 +25638,7 @@ function Test-RegistryKey {
         AddedCredit : Adam Bertram
         AddedWebsite:	https://adamtheautomator.com/pending-reboot-registry-windows/
         AddedTwitter:	@adambertram
-        CreatedDate : 20201014-0826AM
+        CreatedDate : 20.1.014-0826AM
         FileName    : Test-RegistryKey.ps1
         License     : MIT License
         Copyright   : (c) 2020 Todd Kadrie
@@ -25560,7 +25688,7 @@ function Test-RegistryValue {
     AddedCredit : Adam Bertram
     AddedWebsite:	https://adamtheautomator.com/pending-reboot-registry-windows/
     AddedTwitter:	@adambertram
-    CreatedDate : 20201014-0826AM
+    CreatedDate : 20.1.014-0826AM
     FileName    : Test-RegistryValue.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -25613,7 +25741,7 @@ function Test-RegistryValueNotNull {
     AddedCredit : Adam Bertram
     AddedWebsite:	https://adamtheautomator.com/pending-reboot-registry-windows/
     AddedTwitter:	@adambertram
-    CreatedDate : 20201014-0826AM
+    CreatedDate : 20.1.014-0826AM
     FileName    : Test-RegistryValueNotNull.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -26914,7 +27042,7 @@ function Write-ProgressHelper {
     Author      : Adam Bertram
     Website     :	https://adamtheautomator.com/building-progress-bar-powershell-scripts/
     Twitter     :	
-    CreatedDate : 2020-08-10
+    CreatedDate : 20.1.08-10
     FileName    : Write-ProgressHelper
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -26980,7 +27108,7 @@ function Write-ProgressHelper {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,_convert-DecimalDigitToWord,_format-NumberWithCommas,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,Convert-TimeToIso8601DateString,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,Out-WpfGridTDO,New-RunspaceCleanupJob,_refresh,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,format-NumberWithCommas,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,get-RemainderTDO,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,Import-CsvFixEncoding,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,New-RunspaceCleanupJobTDO,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-InputChoiceTDO,Read-InputConsoleChoiceTDO,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AliasTDO,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-LinesTrailingSpaces,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncodingTDO,Read-InputChoiceTDO,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-HashTDO,test-IsLink,test-isNoProfile,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
+Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTitleBar,Authenticate-File,backup-FileTDO,block-fileTDO,clear-HostIndent,Close-IfAlreadyRunning,Compare-ObjectsSideBySide,Compare-ObjectsSideBySide3,Compare-ObjectsSideBySide4,Compress-ArchiveFile,convert-BinaryToDecimalStorageUnits,convert-ColorHexCodeToWindowsMediaColorsName,Convert-CustomObjectToXml,convert-DehydratedBytesToGB,convert-DehydratedBytesToMB,Convert-FileEncoding,ConvertFrom-CanonicalOU,ConvertFrom-CanonicalUser,ConvertFrom-CmdList,ConvertFrom-DN,ConvertFrom-IniFile,convertFrom-JsonSmart,convertFrom-MarkdownTable,ConvertFrom-SourceTable,Null,True,False,_debug-Column,_mask,_slice,_typeName,_errorRecord,ConvertFrom-UncPath,convert-HelpToMarkdown,_encodePartOfHtml,_getCode,_getRemark,Convert-NumbertoWords,_convert-3DigitNumberToWords,_convert-DecimalDigitToWord,_format-NumberWithCommas,Convert-Iso8601ToTraceDate,Parse-UtcBracketedTimestamp,Convert-TimeToIso8601DateString,Parse-UtcBracketedTimestamp,ConvertTo-HashIndexed,convertTo-MarkdownTable,convertTo-Object,ConvertTo-SRT,ConvertTo-UncPath,Out-WpfGridTDO,New-RunspaceCleanupJob,_refresh,convert-VideoToMp3,Remove-InvalidFileNameCharsTDO,Remove-Chars,copy-Profile,copy-ProfileTDO,Count-Object,Create-ScheduledTaskLegacy,dump-Shortcuts,Echo-Finish,Echo-ScriptEnd,Echo-Start,Expand-ArchiveFile,Expand-ISOFileTDO,extract-Icon,Find-LockedFileProcess,Format-Json,format-NumberWithCommas,get-AliasDefinition,Get-ArchiveFileContents,Get-AverageItems,get-colorcombo,get-ColorNames,Get-CombinationTDO,Combination,Combination,ToString,Choose,Successor,Element,LargestV,ApplyTo2,ApplyTo,get-ConsoleText,Get-CountItems,Get-FileEncoding,Get-FileEncodingExtended,get-filesignature,Get-FileType,Get-FileVersionTDO,get-FolderEmpty,Get-FolderSize,Convert-FileSize,Get-FolderSize2,Get-FsoShortName,Get-FsoShortPath,Get-FsoTypeObj,get-HostIndent,Get-KnownFolderTDO,get-LocalDiskFreeSpaceTDO,get-LoremName,get-OSFullVersionTDO,Get-PermutationTDO,Permutation,Permutation,Successor,Factorial,ApplyTo,ToString,Get-ProductItems,get-ProfileFilesTDO,_get-BackFileFiles,get-PSBaselineAutoVariablesTDO,get-RegistryValue,get-RemainderTDO,Get-ScheduledTaskLegacy,Get-Shortcut,Get-SumItems,get-TaskReport,Get-Time,Get-TimeStamp,get-TimeStampNow,get-Uptime,get-uptimeEvent,Import-CsvFixEncoding,Invoke-DriveChkDskTDO,Invoke-Flasher,Invoke-Pause,Invoke-Pause2,Invoke-ProcessTDO,Invoke-ScriptBlock,invoke-SoundCue,Invoke-TakeownFileTDO,Invoke-TakeownFolderTDO,Invoke-TakeownRegistryTDO,Mount-MyPSDrives,mount-UnavailableMappedDrives,move-FileOnReboot,New-RandomFilename,New-RunspaceCleanupJobTDO,new-Shortcut,New-TemporaryFileTyped,out-Clipboard,Out-Excel,Out-Excel-Events,Output-XMLRendered,parse-PSTitleBar,play-beep,pop-HostIndent,Pop-LocationFirst,prompt-Continue,push-HostIndent,Read-FolderBrowserDialog,Read-Host2,Read-InputBoxChoice,Read-InputBoxChoiceHostUI,Read-InputBoxDialog,Read-InputChoiceTDO,Read-InputConsoleChoiceTDO,Read-MessageBoxDialog,read-MultiLineInputDialogAdvanced,read-MultiLineInputDialogAdvanced,Read-OpenFileDialog,Read-PasswordInputBoxDialog,rebuild-PSTitleBar,Remove-AliasTDO,Remove-AuthenticodeSignature,Remove-DirectoryWatch,Remove-InvalidFileNameCharsTDO,Remove-Chars,Remove-InvalidVariableNameChars,remove-ItemRetry,Remove-JsonComments,Remove-LinesTrailingSpaces,Remove-PSTitleBar,Remove-ScheduledTaskLegacy,remove-UnneededFileVariants,repair-FileEncodingTDO,Read-InputChoiceTDO,repair-FileEncodingMixed,Repair-VolumeTDO,replace-PSTitleBarText,reset-ConsoleColors,reset-HostIndent,Resize-ImageTDO,resolve-EnvironmentTDO,restore-FileTDO,Round-NumberTDO,Run-ScheduledTaskLegacy,Save-ConsoleOutputToClipBoard,search-Excel,select-first,Select-last,Select-StringAll,set-AuthenticodeSignatureTDO,test-CertificateTDO,_getstatus_,set-ConsoleColors,Set-ContentFixEncoding,set-FileAssociation,set-HostIndent,set-ItemReadOnlyTDO,set-PSTitleBar,Set-RegistryValue,Set-Shortcut,Shorten-Path,Show-MsgBox,show-TrayTipTDO,start-sleepcountdown,Stop-BackgroundJobsTDO,stop-driveburn,Test-FileBlockedStatusTDO,test-FileLock,test-FileSysAutomaticVariables,test-HashTDO,test-IsLink,test-isLocalPath,test-isNoProfile,test-IsUncPath,test-LineEndings,test-MediaFile,test-MissingMediaSummary,test-ModulesAvailable,Test-PendingRebootTDO,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,test-PSTitleBar,Test-RegistryKey,Test-RegistryValue,Test-RegistryValueNotNull,Touch-File,trim-FileList,unless,write-hostCallOutTDO,write-hostColorMatch,write-HostIndent,Write-ProgressHelper -Alias *
 
 
 
