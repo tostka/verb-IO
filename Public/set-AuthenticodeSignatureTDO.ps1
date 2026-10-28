@@ -75,8 +75,10 @@ function set-AuthenticodeSignatureTDO {
     # alt: the simplest option:
     # $cert = @(get-childitem cert:\currentuser\my -codesigning)[0] ; Set-AuthenticodeSignature -filepath c:\usr\work\ps\scripts\authenticate-profile.ps1 -Certificate $cert
     BEGIN {
+        TRY {Add-Type -AssemblyName System.Security -ErrorAction Stop} CATCH {write-verbose "Add-Type already loaded (error suppress)"} ; 
+        #region FUNCTIONS_INTERNAL ; #*======v FUNCTIONS_INTERNAL v======
         if(-not(get-command Test-CertificateTDO)){
-            #*------v Function test-CertificateTDO v------
+            #region TEST_CERTIFICATETDO ; #*------v test-CertificateTDO v------
             function test-CertificateTDO {
                 <#
                 .SYNOPSIS
@@ -302,8 +304,340 @@ function set-AuthenticodeSignatureTDO {
                 } ;  # PROC-E
                 END {} ; 
             } ; 
-            #*------^ END Function test-CertificateTDO ^------
-        } ;         
+            #endregion TEST_CERTIFICATETDO ; #*------^ END test-CertificateTDO ^------                                    
+        } ;        
+       
+        
+        #region SIGN_XMLTDO ; #*------v sign-xmlTDO v------
+        function sign-xmlTDO {
+            <#
+            .SYNOPSIS
+            sign-xmlTDO.ps1 - Sign XML documents with PowerShell
+            .NOTES
+            Version     : 0.0.
+            Author      : Todd Kadrie
+            Website     : http://www.toddomation.com
+            Twitter     : @tostka / http://twitter.com/tostka
+            CreatedDate : 2026-
+            FileName    : sign-xmlTDO.ps1
+            License     : MIT License
+            Copyright   : (non-asserted)
+            Github      : https://github.com/tostka/verb-XXX
+            Tags        : Powershell
+            AddedCredit : Mathias R. Jessen ('IISResetMe')
+            AddedWebsite: https://gist.github.com/IISResetMe/e0c20ce4fdbab7e19a75255e9d4787d1
+            AddedTwitter: URL
+            REVISIONS
+            * 8:10 AM 10/15/2026  claude fixes:File parameterset: fixed $Cert -> $certificate (was reading an
+              undefined var, relying on scope-leakage from caller); added KeyInfo/X509Data embedding
+              to File parameterset (matches Xml parameterset), so file-signed xml can self-verify too ;
+            ren Sign-XML -> sign-xmlTDO
+            4:38 PM 10/12/2026 claude updates/fixes; adapted;
+                - expanded file support via code snippet offered by Gemini srch (no source ref) ; adding to my verb-io\Set-AuthenticocdeSignatureTDO()
+                - added parametersets to drive file v xml signing option
+            - circa 2019 RJ gist posted code
+            .DESCRIPTION
+            sign-xmlTDO.ps1 - Sign XML documents with PowerShell
+
+            Copilot-revferred code from the Mathias R. Jessen ('IISResetMe')/gist on github
+            .PARAMETER xml
+            Xml to be signed[-Xml `$xmlObj]
+            .PARAMETER XmlPath
+            Path to XML file to be signed (renames original as an _unsigned.xml variant)[-XmlPath c:\pathto\file.xml]
+            Signature embeds a KeyInfo/X509Data clause for the signing cert, same as the -xml parameterset,
+            so the resulting signed file can be self-verified (no -Certificate required at verify time).
+            .PARAMETER certificate
+            Signing Certificate object to be used[-Certificate `$certobj]
+            .INPUTS
+            None. Does not accepted piped input.(.NET types, can add description)
+            .OUTPUTS
+            Returns signed
+            System.String path to signed file (if -xmlPath was used), or signed [xml] object (if -xml was used)
+            .EXAMPLE
+            PS> write-verbose "Obtain signing certificate"
+            PS> $cert = @(get-childitem cert:\currentuser\my -codesigning -ea 0 )[0] ;
+            PS> write-verbose "Sign specified existing .xml file" ;
+            PS> $signedfile = sign-xmlTDO -XmlPath 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec.xml' -certificate $cert -verbose ;
+            PS> ([xml](gc 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec_signed.xml')).objs.outerxml ;
+
+                <Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04"><S>PS_Trusted_Root_Cert.cer</S><S>AaaaAaaaAA.pfx</S><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Al
+                gorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enve
+                loped-signature" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>ggDD8skFKEwPNNOs2WD9JsS/MBw=</DigestValue></Reference></SignedInfo><SignatureValue>KmmgyMFOicT4FRSKDqMyAJkbkgC9n
+                GLL72CWllumbL6MyxNNX9Rs3EVYE1B4+DB6grqpTjkEYvZwyp0vULuwMS8hAlm0Y6ftkoo4gLllVInVU4CNcYX9h4VSEJvEwIyrAdrSKUIlc9z6pnblxUKSHqbzLTNA8G2X979nfMpv6g0=</SignatureValue></Signature></Objs>
+
+            Demo signing an existing .xml file with discovered sign cert, and then echo updated file to console.
+            .EXAMPLE
+            PS> $cert = @(get-childitem cert:\currentuser\my -codesigning -ea 0 )[0] ;
+            PS> $xml = sign-xmlTDO -xml ([xml](gc 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec.xml')) -certificate $cert -verbose ;
+            PS> $xml.Objs
+
+                Version xmlns                                           S                                          Signature
+                ------- -----                                           -                                          ---------
+                1.1.0.1 http://schemas.microsoft.com/powershell/2004/04 {AA_Aaaaaaa_Aaaa_Aaaa.cer, AaaaAaaaAA.pfx} Signature
+
+            PS> $xml.Objs.s ;
+
+                AA_Aaaaaaa_Aaaa_Aaaa.cer
+                AaaaAaaaAA.pfx
+
+            Demo signing an xml code object, with discovered sign cert, and then echo updated xml object to console, and the .s property of the initial xml to console.
+
+            .LINK
+            https://github.com/tostka/verb-IO
+            #>
+            [CmdletBinding(DefaultParameterSetName='File')]
+            Param(
+                #[Parameter(Mandatory=$True,HelpMessage="Xml to be signed[-Xml `$xmlObj]")]
+                [Parameter(ParameterSetName='Xml',Mandatory=$true,HelpMessage="Xml to be signed[-Xml `$xmlObj]")]
+                    [xml]$xml,
+                [Parameter(ParameterSetName='File',Mandatory = $true,Position = 0,ValueFromPipeline = $True,HelpMessage = 'Path to XML file to be signed (generates a _signe.xml variant)[-XmlPath c:\pathto\file.xml]')]
+                    [AllowNull()]
+                    [AllowEmptyCollection()]
+                    [ValidateScript({Test-Path $_})]
+                    [system.io.fileinfo[]]$XmlPath,
+                [Parameter(Mandatory=$True,HelpMessage="Signing Certificate object to be used[-Certificate `$certobj]")]
+                    [System.Security.Cryptography.X509Certificates.X509Certificate2]$certificate
+            ) ;
+            TRY {Add-Type -AssemblyName System.Security -ErrorAction Stop} CATCH {write-verbose "Add-Type already loaded (error suppress)"} ;
+            [System.Security.Cryptography.xml.SignedXml]$signedXml = $NULL
+            if ($PSCmdlet.ParameterSetName -eq 'File') {
+                TRY{
+                    #$SignedXmlPath = $XmlPath.fullname -replace '\.xml','_signed.xml'  -replace '\.psxml','_signed.psxml' ;
+                    $UnSignedXmlPath = $XmlPath.fullname -replace '\.xml','_unsigned.xml'  -replace '\.psxml','_unsigned.psxml' ;
+                    # Extract the private key for signing
+                    $PrivateKey = $certificate.PrivateKey
+                    # Load the XML Document
+                    $XmlDoc = New-Object System.Xml.XmlDocument
+                    $XmlDoc.PreserveWhitespace = $true  # Crucial for maintaining XML structure integrity
+                    $XmlDoc.Load($XmlPath)
+                    write-verbose "Renaming the original file:`n" ;
+                    $pltRnFile = @{
+                        path = $Xmlpath.FullName ;
+                        NewName = $UnSignedXmlPath ;
+                        Force = $true ;
+                        ErrorAction = 'STOP'
+                        Verbose = $($VerbosePreference -eq 'Continue') ;
+                    } ;
+                    if(test-path $pltRnFile.newname -PathType Leaf){
+                        write-host -foregroundcolor yellow "conflicting backup file: renaming as BU:" ;
+                        get-childitem -path $pltRnFile.newname  | %{
+                            $thisrn = $_ ;
+                            rename-item -path $thisrn.fullname -NewName $($thisrn.name -replace $thisrn.extension,"$($thisRn.extension)_BU") -verbose -force  ;
+                        } ;
+                    } ;
+                    write-host -foregroundcolor yellow "rename-item w`n$(($pltRnFile|out-string).trim())" ;
+                    rename-item @pltRnFile
+                    # Initialize the SignedXml object
+                    $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
+                    $SignedXml.SigningKey = $PrivateKey
+                    # Embed the signing cert's public key/X509Data in KeyInfo, so the signed file can
+                    # self-verify (matches the 'Xml' parameterset's behavior; no -Certificate needed at
+                    # Test-XmlSignatureTDO time, though one can still be passed to force verification
+                    # against a specific trusted cert instead of whatever's embedded in the file)
+                    $keyInfo = New-Object System.Security.Cryptography.Xml.KeyInfo
+                    $keyInfo.AddClause((New-Object System.Security.Cryptography.Xml.KeyInfoX509Data -ArgumentList $certificate))
+                    $SignedXml.KeyInfo = $keyInfo
+                    # Create a Reference to sign the entire document
+                    $Reference = New-Object System.Security.Cryptography.Xml.Reference
+                    $Reference.Uri = "" # An empty string indicates the entire document
+                    # Add an enveloped transform so the signature isn't broken when added to the XML
+                    $Transform = New-Object System.Security.Cryptography.Xml.XmlDsigEnvelopedSignatureTransform
+                    $Reference.AddTransform($Transform)
+                    $SignedXml.AddReference($Reference)
+                    # Compute the digital signature
+                    $SignedXml.ComputeSignature()
+                    # Get the XML representation of the signature and append it to the document root
+                    $XmlSignature = $SignedXml.GetXml()
+                    $XmlDoc.DocumentElement.AppendChild($XmlDoc.ImportNode($XmlSignature, $true)) | Out-Null
+                    # Save the newly signed XML document
+                    #$XmlDoc.Save($SignedXmlPath)
+                    $XmlDoc.Save($XmlPath.fullname)
+                    #write-host -foregroundcolor yellow "Created revised signed variant file:`n$($SignedXmlPath)`n(returned updated file path to pipeline)" ;
+                    $smsg = "Signed xml written to source file name:" ;
+                    $smsg += "`n$($XmlPath)" ;
+                    $smsg += "`nOriginal file backed up to:`n$($UnSignedXmlPath )" ;
+                    write-host -foregroundcolor yellow $smsg ;
+                    $XmlPath.fullname | write-output  ;
+                } CATCH {$ErrTrapd=$Error[0] ;
+                    write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+                    $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                    write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                } ;
+            }elseif ($PSCmdlet.ParameterSetName -eq 'Xml') {
+                TRY{
+                    $signedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $xml
+                    $signedXml.SigningKey = $certificate.PrivateKey
+                    $keyInfo = New-Object System.Security.Cryptography.Xml.KeyInfo
+                    $keyInfo.AddClause((New-Object System.Security.Cryptography.Xml.KeyInfoX509Data -ArgumentList $certificate))
+                    $signedXml.KeyInfo = $keyInfo
+
+                    $Reference = New-Object System.Security.Cryptography.Xml.Reference
+                    $Reference.Uri = ""
+
+                    $env = New-Object System.Security.Cryptography.Xml.XmlDsigEnvelopedSignatureTransform
+
+                    $Reference.AddTransform($env);
+                    $signedXml.AddReference($Reference)
+                    $signedXml.ComputeSignature()
+
+                    [System.Xml.XmlElement]$xmlSignature = $signedXml.GetXml()
+                    #Add signature to end of xml file
+                    [void]$xml.DocumentElement.AppendChild($xml.ImportNode($xmlSignature, $true))
+
+                    if ($xml.FirstChild -is [system.xml.XmlDeclaration]) {
+                        [void]$xml.RemoveChild($xml.FirstChild) ;
+                    }
+                    $xml | write-output  ;
+                    write-host -foregroundcolor yellow "(returned signed updated xml to pipeline)" ;
+                    } CATCH {$ErrTrapd=$Error[0] ;
+                    write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+                    $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                    write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                } ;
+            }else{
+                write-warning "Unresolved parameter set!" ;
+            }
+
+        } ;
+        #endregion SIGN_XMLTDO ; #*------^ END sign-xmlTDO ^------
+
+        #region TEST_XMLSIGNATURETDO ; #*------v Test-XmlSignatureTDO v------
+        function Test-XmlSignatureTDO {
+            <#
+            .SYNOPSIS
+            Test-XmlSignatureTDO.ps1 - Verify the digital signature on an XML document signed via sign-xmlTDO
+            .NOTES
+            Version     : 0.0.
+            Author      : Todd Kadrie
+            Website     : http://www.toddomation.com
+            Twitter     : @tostka / http://twitter.com/tostka
+            CreatedDate : 2026-
+            FileName    : Test-XmlSignatureTDO.ps1
+            License     : MIT License
+            Copyright   : (non-asserted)
+            Github      : https://github.com/tostka/verb-XXX
+            Tags        : Powershell
+            REVISIONS
+            * 8:10 AM 10/15/2026 claude fixes:sign-xmlTDO's File parameterset now embeds KeyInfo/X509Data too (was
+              SigningKey-only), so both parametersets self-verify; -Certificate is now optional in both
+              cases - updated docs below accordingly ;
+              ren Verify-XmlSignature -> Test-XmlSignatureTDO
+            4:38 PM 10/12/2026 claude updates/fixes; initial build, paired to sign-xmlTDO() in same module
+            .DESCRIPTION
+            Test-XmlSignatureTDO.ps1 - Verify the digital signature on an XML document signed via sign-xmlTDO
+
+            Both of sign-xmlTDO's parametersets ('File' and 'Xml') embed a KeyInfoX509Data clause (the
+            signing cert's public key) into the resulting <Signature> block, so either variant can
+            self-verify here with no -Certificate needed; CheckSignature() pulls the public key out of
+            the embedded KeyInfo. You can still pass -Certificate to force verification against a
+            specific trusted cert instead of whatever's embedded in the file/xml.
+            .PARAMETER xml
+            Previously-signed Xml to be verified[-Xml `$xmlObj]
+            .PARAMETER XmlPath
+            Path to previously-signed XML file to be verified[-XmlPath c:\pathto\file.xml]
+            .PARAMETER certificate
+            (optional) Certificate to verify signature against (public key alone is sufficient)[-Certificate `$certobj]
+            Optional for xml signed via either of sign-xmlTDO's parametersets, since both now embed
+            KeyInfo/X509Data; omit to self-verify, or pass a specific cert to verify against that instead
+            of whatever's embedded in the file/xml.
+            .PARAMETER ValidateCertificateChain
+            Switch: in addition to the cryptographic signature match, also validate the -Certificate's
+            chain of trust (revocation/trusted root etc)[-ValidateCertificateChain]
+            Only applies when -Certificate is specified; defaults off (signature-only check), as self-signed
+            or otherwise untrusted-chain code-signing certs are a common/expected use case here.
+            .INPUTS
+            None. Does not accepted piped input.(.NET types, can add description)
+            .OUTPUTS
+            System.Boolean
+            Returns $true if the signature is valid, $false if invalid.
+            .EXAMPLE
+            PS> $valid = Test-XmlSignatureTDO -XmlPath 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec.xml' -verbose ;
+            PS> $valid ;
+
+            Demo self-verifying a file-signed xml (embedded KeyInfo/X509Data) with no -Certificate specified.
+            .EXAMPLE
+            PS> $xml = [xml](gc 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec.xml') ;
+            PS> $valid = Test-XmlSignatureTDO -xml $xml -verbose ;
+            PS> $valid ;
+
+            Demo self-verifying an xml-object-signed xml (embedded KeyInfo/X509Data) with no -Certificate specified.
+            .LINK
+            https://github.com/tostka/verb-XXX
+            .LINK
+            https://github.com/tostka/powershellbb/
+            #>
+            [CmdletBinding(DefaultParameterSetName='File')]
+            Param(
+                [Parameter(ParameterSetName='Xml',Mandatory=$true,HelpMessage="Previously-signed Xml to be verified[-Xml `$xmlObj]")]
+                    [xml]$xml,
+                [Parameter(ParameterSetName='File',Mandatory=$true,Position=0,ValueFromPipeline=$True,HelpMessage='Path to previously-signed XML file to be verified[-XmlPath c:\pathto\file.xml]')]
+                    [AllowNull()]
+                    [AllowEmptyCollection()]
+                    [ValidateScript({Test-Path $_})]
+                    [system.io.fileinfo[]]$XmlPath,
+                [Parameter(Mandatory=$false,HelpMessage="(optional) Certificate to verify signature against[-Certificate `$certobj]")]
+                    [System.Security.Cryptography.X509Certificates.X509Certificate2]$certificate,
+                [Parameter(Mandatory=$false,HelpMessage="Switch: also validate -Certificate's chain of trust[-ValidateCertificateChain]")]
+                    [switch]$ValidateCertificateChain
+            ) ;
+            TRY {Add-Type -AssemblyName System.Security -ErrorAction Stop} CATCH {write-verbose "Add-Type already loaded (error suppress)"} ;
+
+            [boolean]$isValid = $false ;
+            TRY {
+                # --- resolve the XmlDocument to check, from whichever parameterset was used ---
+                if ($PSCmdlet.ParameterSetName -eq 'File') {
+                    write-verbose "Loading XmlDocument from:`n$($XmlPath.FullName)" ;
+                    $XmlDoc = New-Object System.Xml.XmlDocument
+                    $XmlDoc.PreserveWhitespace = $true  # match sign-xmlTDO's load behavior, so c14n digest lines up
+                    $XmlDoc.Load($XmlPath.FullName)
+                } else {
+                    # 'Xml' parameterset: caller already supplied a loaded [xml] doc
+                    $XmlDoc = $xml
+                }
+
+                # --- locate the ds:Signature node appended by sign-xmlTDO ---
+                $SignatureNodes = $XmlDoc.GetElementsByTagName('Signature','http://www.w3.org/2000/09/xmldsig#') ;
+                if (-not $SignatureNodes -or $SignatureNodes.Count -eq 0) {
+                    Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                } ;
+                if ($SignatureNodes.Count -gt 1) {
+                    write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
+                } ;
+
+                # --- load it into a SignedXml for verification ---
+                $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
+                $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
+
+                if ($certificate) {
+                    # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
+                    # (ie by default skip chain/trust/revocation checks - just confirm the math; many
+                    # code-signing certs here are self-signed and would otherwise always fail chain validation)
+                    $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
+                    write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
+                    $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                } else {
+                    # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
+                    write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
+                    $isValid = $SignedXml.CheckSignature()
+                } ;
+
+                if ($isValid) {
+                    write-host -foregroundcolor green "Signature VALID" ;
+                } else {
+                    write-host -foregroundcolor red "Signature INVALID" ;
+                } ;
+                $isValid | write-output ;
+            } CATCH {$ErrTrapd=$Error[0] ;
+                write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                $false | write-output ;
+            } ;
+        }
+        #endregion TEST_XMLSIGNATURETDO ; #*------^ END Test-XmlSignatureTDO ^------
+
+        #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^====== 
+
         $error.clear() ;
         TRY {
             if($cert = @(get-childitem cert:\currentuser\my -codesigning -ea 0 )[0]){
@@ -352,11 +686,22 @@ function set-AuthenticodeSignatureTDO {
             #$continue = $true
             $oRet = $null ; 
             TRY {
-                if (-not ((Get-AuthenticodeSignature -FilePath $f.fullname).status -eq 'Valid') ){
-                    $oRet = Set-AuthenticodeSignature -filepath $f -Certificate $cert -whatif:$($whatif) ;
+                if($file.Extension -match '\.(xml|psxml'){
+                    write-host ".xml file detected: Not supported by set|get-AuthenticodeSignature, requires different signature approach: using verb-io\sign-xmlTDO() & Test-XmlSignatureTDO" ; 
+                    if (-not ((Test-XmlSignatureTDO -XmlPath $f.fullname).status -eq 'Valid') ){
+                        #$oRet = Set-AuthenticodeSignature -filepath $f -Certificate $cert -whatif:$($whatif) ;
+                        # $signedfile = sign-xmlTDO -XmlPath 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec.xml' -certificate $cert -verbose ;
+                        $oRet = sign-xmlTDO -XmlPath $f -Certificate $cert -whatif:$($whatif) ;
+                    }else{
+                        write-host "($($f.fullname) has a valid existing AuthenticodeSignature, skipping)" ; 
+                    } ; 
                 }else{
-                    write-host "($($f.fullname) has a valid existing AuthenticodeSignature, skipping)" ; 
-                } ; 
+                    if (-not ((Get-AuthenticodeSignature -FilePath $f.fullname).status -eq 'Valid') ){
+                        $oRet = Set-AuthenticodeSignature -filepath $f -Certificate $cert -whatif:$($whatif) ;
+                    }else{
+                        write-host "($($f.fullname) has a valid existing AuthenticodeSignature, skipping)" ; 
+                    } ; 
+                }
             }CATCH {
                 Write "$((get-date).ToString('HH:mm:ss')): Error Details: $($_)"
             } # try/cat-E
