@@ -69,6 +69,14 @@ function show-FolderTreeTDO {
     PS> $return = show-FolderTreeTDO -depth 1 -path c:\cab\ -Files -filemark 'F' ; 
     PS> $return ; 
 
+        ├── sysconfig
+        ├── W11
+        ├── winmerge-2.16.58.2-exe
+        ├── WinMergePortable(portable apps)
+        ├── ADMS-Portable.zip [F]
+        ...
+        └── WinMergePortable_2.16.56.2.paf.exe [F]
+
     Demo use of the -FileMark & -Files param to clearly mark and differentiate Files from folders in the output.
     #>
     [CmdletBinding()]
