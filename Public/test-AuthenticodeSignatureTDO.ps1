@@ -17,6 +17,7 @@ function test-AuthenticodeSignatureTDO {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Authenticode,Signature,CodeSigning,Developoment
     REVISIONS   :
+    * 1:24 PM 11/5/2026 reworked fail logic to skip throw (which can't be properly caught for handling)
     * 12:55 PM 11/4/2026 fixed typo in rgx match
     * 9:05 AM 10/15/2026 init
     .PARAMETER file
@@ -171,36 +172,38 @@ function test-AuthenticodeSignatureTDO {
                     # --- locate the ds:Signature node appended by sign-xmlTDO ---
                     $SignatureNodes = $XmlDoc.GetElementsByTagName('Signature','http://www.w3.org/2000/09/xmldsig#') ;
                     if (-not $SignatureNodes -or $SignatureNodes.Count -eq 0) {
-                        Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                        #Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
                         write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
-                    } ;
-                    if ($SignatureNodes.Count -gt 1) {
-                        write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
-                    } ;
-
-                    # --- load it into a SignedXml for verification ---
-                    $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
-                    $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
-
-                    if ($certificate) {
-                        # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
-                        # (ie by default skip chain/trust/revocation checks - just confirm the math; many
-                        # code-signing certs here are self-signed and would otherwise always fail chain validation)
-                        $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
-                        write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
-                        $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                        $false | write-output ;
                     } else {
-                        # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
-                        write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
-                        $isValid = $SignedXml.CheckSignature()
-                    } ;
+                        if ($SignatureNodes.Count -gt 1) {
+                            write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
+                        } ;
 
-                    if ($isValid) {
-                        write-host -foregroundcolor green "Signature VALID" ;
-                    } else {
-                        write-host -foregroundcolor red "Signature INVALID" ;
-                    } ;
-                    $isValid | write-output ;
+                        # --- load it into a SignedXml for verification ---
+                        $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
+                        $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
+
+                        if ($certificate) {
+                            # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
+                            # (ie by default skip chain/trust/revocation checks - just confirm the math; many
+                            # code-signing certs here are self-signed and would otherwise always fail chain validation)
+                            $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
+                            write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
+                            $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                        } else {
+                            # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
+                            write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
+                            $isValid = $SignedXml.CheckSignature()
+                        } ;
+
+                        if ($isValid) {
+                            write-host -foregroundcolor green "Signature VALID" ;
+                        } else {
+                            write-host -foregroundcolor red "Signature INVALID" ;
+                        } ;
+                        $isValid | write-output ;
+                    } ; 
                 } CATCH [System.Management.Automation.RuntimeException] {
                     $ErrTrapd=$Error[0] ;
                     if($ErrTrapd.Exception -match 'No\s<Signature>\selement\s\(http://www\.w3\.org/2000/09/xmldsig#\snamespace\)\sfound\sin\sspecified\sxml\s-\snothing\sto\sverify'){
@@ -220,7 +223,7 @@ function test-AuthenticodeSignatureTDO {
         }
         #endregion TEST_XMLSIGNATURETDO ; #*------^ END Test-XmlSignatureTDO ^------
 
-        #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^====== 
+        #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^======
 
         $error.clear() ;
         TRY {
@@ -253,7 +256,7 @@ function test-AuthenticodeSignatureTDO {
         } CATCH {
             Write-Warning "$(get-date -format 'HH:mm:ss'): Failed processing $($_.Exception.ItemName). `nError Message: $($_.Exception.Message)`nError Details: $($_)" ;
             Exit #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
-        } ; 
+        } ;
 
         # check if using Pipeline input or explicit params:
         if ($rPSCmdlet.MyInvocation.ExpectingInput) {
