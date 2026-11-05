@@ -1,11 +1,11 @@
-﻿# verb-io.psm1
+﻿# verb-IO.psm1
 
 
 <#
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 20.2.0.0.0
+Version     : 20.3.0.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -54,7 +54,7 @@ function Add-ContentFixEncoding {
     Author: Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-05-03
+    CreatedDate : 20.3.05-03
     FileName    : Add-ContentFixEncoding.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -1894,7 +1894,7 @@ Function convert-ColorHexCodeToWindowsMediaColorsName {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.04-19
+    CreatedDate : 2021-04-19
     FileName    : convert-ColorHexCodeToWindowsMediaColorsName.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -2094,7 +2094,7 @@ Function convert-DehydratedBytesToGB {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.04-19
+    CreatedDate : 2021-04-19
     FileName    : convert-DehydratedBytesToGB.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -2184,7 +2184,7 @@ Function convert-DehydratedBytesToMB {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.04-19
+    CreatedDate : 2021-04-19
     FileName    : convert-DehydratedBytesToMB.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -2816,7 +2816,7 @@ Function convertFrom-MarkdownTable {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.06-21
+    CreatedDate : 2021-06-21
     FileName    : convertFrom-MarkdownTable.ps1
     License     : MIT License
     Copyright   : (c) 2024 Todd Kadrie
@@ -3461,7 +3461,7 @@ Function ConvertFrom-UncPath {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-07-26
+    CreatedDate : 20.3.07-26
     FileName    : ConvertFrom-UncPath.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -3601,7 +3601,7 @@ Function convert-HelpToMarkdown {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.09-14
+    CreatedDate : 2021-09-14
     FileName    : convert-HelpToMarkdown.ps1
     License     : MIT License
     Copyright   : Copyright (c) 2014 Akira Sugiura
@@ -4722,7 +4722,7 @@ Function convertTo-MarkdownTable {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.01-20
+    CreatedDate : 2021-01-20
     FileName    : convertTo-MarkdownTable.ps1
     License     : (none specified, original source github site deleted)
     Copyright   : (none specified, original source github site deleted)
@@ -5170,7 +5170,7 @@ Function ConvertTo-UncPath {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-07-26
+    CreatedDate : 20.3.07-26
     FileName    : ConvertTo-UncPath.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -6395,7 +6395,7 @@ function convert-VideoToMp3 {
                 Note: due to command line parsing, at times, especially within single and double quote blocks, a backslash may have to be
                 escaped by using a double backslash so that a filename would be D:\\path\\to\\file.mpg)
                 Dbling \'s in all path objects used in params going into vlc.exe args and see if it fixes the issues transcodeing:
-                C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20.2.001-MieT8cNeXJA).mp3
+                C:\vidtmp\OST\Steps of the Rover\Gun Thing (The Proposition) - Nick Cave, Warren Ellis-(UL20111001-MieT8cNeXJA).mp3
                 ... which comes out as an mp3 with no extension.
                 #>
                 if($fixFileNames){
@@ -6463,7 +6463,7 @@ function convert-VideoToMp3 {
                         for i in *.mp4; do ffmpeg -i "$i" -q:a 0 -map a "$(basename "${i/.mp4}").mp3"; done;
                         http://donnieknows.com/blog/mp4-video-mp3-file-using-ffmpeg-ubuntu-910-karmic-koala
                         Encoding VBR (Variable Bit Rate) mp3 audio - https://trac.ffmpeg.org/wiki/Encode/MP3
-                        FFmpeg, encode mp3 - http://svnpenn.github.io/2012/08/ffmpeg-encode-mp3
+                        FFmpeg, encode mp3 - http://svnpenn.github.io/20.3.08/ffmpeg-encode-mp3
 
                         To encode a high quality MP3 from an AVI best using -q:a for variable bit rate.
                         ffmpeg -i sample.avi -q:a 0 -map a sample.mp3
@@ -7201,7 +7201,7 @@ function Count-Object {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.04-13
+    CreatedDate : 2021-04-13
     FileName    : Count-Object.ps1
     License     : (none asserted)
     Copyright   : (none asserted)
@@ -7887,7 +7887,7 @@ Function extract-Icon {
     REVISIONS
     * 8:17 AM 2/28/2020 updated CBH, made AdvFunc, added verbose
     * 10:03 AM 3/10/2016: MyAccount: retooled ; substantially expanded. Added      It also will either hand back an Icon-type variable, or if you spec an OutputIconfFileName, it writes the extracted icon file out and returns the $OutputIconFileName to confirm success.
-    * 1.1 2012.03.8 posted version
+    * 1.1 20.3.03.8 posted version
     .DESCRIPTION
     extract-Icon.ps1 - Exports an ico from a given source to a given destination (file, if OutputIconFilename specified, to pipeline, if not)
     Grab the shell32.dll's 238'th iconinto a pointer that can be reassigned to a Traytip:
@@ -8258,7 +8258,7 @@ Function get-AliasDefinition {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-04-29
+    CreatedDate : 20.3.04-29
     FileName    : get-AliasDefinition.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -9111,7 +9111,7 @@ Function get-ConsoleText {
     AddedWebsite:	https://github.com/AutomatedLab/AutomatedLab.Common/blob/develop/AutomatedLab.Common/Common/Public/Get-ConsoleText.ps1
     AddedGithub : https://github.com/AutomatedLab/AutomatedLab
     AddedTwitter:	@raimundandree,@nyanhp
-    CreatedDate : 2022-02-02
+    CreatedDate : 20.3.02-02
     FileName    : get-ConsoleText.ps1
     License     : https://github.com/AutomatedLab/AutomatedLab/blob/develop/LICENSE
     Copyright   : Copyright (c) 2022 Raimund Andrée, Jan-Hendrik Peters
@@ -9845,7 +9845,7 @@ Function get-FolderEmpty {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.06-21
+    CreatedDate : 2021-06-21
     FileName    : get-FolderEmpty.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -9919,9 +9919,9 @@ function Get-FolderSize {
     Author: Rich Kusak
     Versions:
     9:19 AM 9/2/2015 updated help
-    Created: 2012-04-05
+    Created: 20.3.04-05
     2:53 PM 11/7/2014 tsk tweaked, to add SizeRaw, and pull spaces from property names
-    Version: 1.0.0 2012-04-11 23:33
+    Version: 1.0.0 20.3.04-11 23:33
     .DESCRIPTION
     The Get-FolderSize function gets the size of a folder, any subfolders, and displays the number of files in each.
     .PARAMETER Folder
@@ -9956,7 +9956,7 @@ function Get-FolderSize {
     .OUTPUTS
     PSObject
     .LINK
-    http://blogs.technet.com/b/heyscriptingguy/archive/2012/04/05/the-2012-scripting-games-advanced-event-4-determine-folder-space.aspx
+    http://blogs.technet.com/b/heyscriptingguy/archive/20.3.04/05/the-2012-scripting-games-advanced-event-4-determine-folder-space.aspx
     #>
 
     [CmdletBinding()]
@@ -13098,7 +13098,7 @@ function invoke-SoundCue{
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2022-03-04
+    CreatedDate : 20.3.03-04
     FileName    : invoke-SoundCue.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -14096,7 +14096,7 @@ function New-RandomFilename{
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-07-18
+    CreatedDate : 20.3.07-18
     FileName    : New-RandomFilename.ps1
     License     : (none asserted)
     Copyright   : (none asserted)
@@ -14127,7 +14127,7 @@ function New-RandomFilename{
     PS> $fn = New-RandomFilename -Extension 'html'
     Create a new randomfilename with html ext
     .EXAMPLE
-    PS> .Invoke-BypassPaywall 'https://www.theatlantic.com/ideas/archive/2022/07/russian-invasion-ukraine-democracy-changes/661451'
+    PS> .Invoke-BypassPaywall 'https://www.theatlantic.com/ideas/archive/20.3.07/russian-invasion-ukraine-democracy-changes/661451'
     theatlantic.com demo
     .LINK
     https://github.com/tostka/verb-IO
@@ -14308,7 +14308,7 @@ function new-Shortcut {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.04-13
+    CreatedDate : 2021-04-13
     FileName    : new-Shortcut.ps1
     License     : (none asserted)
     Copyright   : (none asserted)
@@ -14838,7 +14838,7 @@ Function parse-PSTitleBar {
     AddedWebsite:	
     AddedTwitter:	
     Twitter     :	
-    CreatedDate : 20.2.07-23
+    CreatedDate : 2021-07-23
     FileName    : parse-PSTitleBar.ps1
     License     : MIT License
     Copyright   : (c) 2021 Todd Kadrie
@@ -15091,7 +15091,7 @@ function Pop-LocationFirst {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-05-06
+    CreatedDate : 20.3.05-06
     FileName    : Pop-LocationFirst.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -17224,7 +17224,7 @@ Function rebuild-PSTitleBar {
     AddedWebsite:	
     AddedTwitter:	
     Twitter     :	
-    CreatedDate : 20.2.07-22
+    CreatedDate : 2021-07-22
     FileName    : rebuild-PSTitleBar.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -17836,7 +17836,7 @@ Function Remove-InvalidVariableNameChars {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-07-26
+    CreatedDate : 20.3.07-26
     FileName    : Remove-InvalidVariableNameChars.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -18058,7 +18058,7 @@ Function Remove-JsonComments{
     AddedTwitter:	URL
     REVISIONS
     * 1:37 PM 10/5/2021 added CBH, and minor formatting. 
-    * Sep 20 20.2.02:25 PM PaulH's posted version
+    * Sep 20 2021 02:25 PM PaulH's posted version
     .DESCRIPTION
     Remove-JsonComments.ps1 - Removes \\Comments from JSON, to permit ConvertFrom-JSON in ps5.1, to properly process json (PsCv7 ConvertFrom-JSON handles comments wo issues).
     Comments will prevent ConvertFrom-Json from working properly in PowerShell 5.1.  I like to use this simple function to fix my JSON for me. 
@@ -19402,7 +19402,7 @@ Function replace-PSTitleBarText {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.04-19
+    CreatedDate : 2021-04-19
     FileName    : replace-PSTitleBarText.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -21005,7 +21005,7 @@ function select-first {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.04-13
+    CreatedDate : 2021-04-13
     FileName    : select-first.ps1
     License     : (none asserted)
     Copyright   : (none asserted)
@@ -21054,7 +21054,7 @@ function Select-last {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.04-13
+    CreatedDate : 2021-04-13
     FileName    : Select-last.ps1
     License     : (none asserted)
     Copyright   : (none asserted)
@@ -21312,7 +21312,7 @@ function set-AuthenticodeSignatureTDO {
     FileName    : set-AuthenticodeSignatureTDO.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
+    Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Authenticode,Signature,CodeSigning,Developoment
     REVISIONS   :
     * 11:41 AM 5/5/2026 added demo for signing module code
@@ -21695,7 +21695,9 @@ function set-AuthenticodeSignatureTDO {
                     [ValidateScript({Test-Path $_})]
                     [system.io.fileinfo[]]$XmlPath,
                 [Parameter(Mandatory=$True,HelpMessage="Signing Certificate object to be used[-Certificate `$certobj]")]
-                    [System.Security.Cryptography.X509Certificates.X509Certificate2]$certificate
+                    [System.Security.Cryptography.X509Certificates.X509Certificate2]$certificate,
+                [Parameter(HelpMessage = "Whatif Flag  [-whatIf]")]
+                    [switch] $whatIf
             ) ;
             TRY {Add-Type -AssemblyName System.Security -ErrorAction Stop} CATCH {write-verbose "Add-Type already loaded (error suppress)"} ;
             [System.Security.Cryptography.xml.SignedXml]$signedXml = $NULL
@@ -21716,12 +21718,17 @@ function set-AuthenticodeSignatureTDO {
                         Force = $true ;
                         ErrorAction = 'STOP'
                         Verbose = $($VerbosePreference -eq 'Continue') ;
+                        whatif = $($whatif) ; 
                     } ;
                     if(test-path $pltRnFile.newname -PathType Leaf){
                         write-host -foregroundcolor yellow "conflicting backup file: renaming as BU:" ;
                         get-childitem -path $pltRnFile.newname  | %{
-                            $thisrn = $_ ;
-                            rename-item -path $thisrn.fullname -NewName $($thisrn.name -replace $thisrn.extension,"$($thisRn.extension)_BU") -verbose -force  ;
+                            $thisrn = $_ ;                            
+                            if($cnflct = get-childitem $($thisrn.fullname -replace $thisrn.extension,"$($thisRn.extension)_BU") -ea 0){
+                                write-host -foregroundcolor yellow "pre-existing conflicting _BU file found: Removing to permit new backup" ; 
+                                $cnflct | remove-item -force -verbose -WhatIf:$($whatif) ; 
+                            }
+                            rename-item -path $thisrn.fullname -NewName $($thisrn.name -replace $thisrn.extension,"$($thisRn.extension)_BU") -verbose -force -whatif:$($whatif) ;
                         } ;
                     } ;
                     write-host -foregroundcolor yellow "rename-item w`n$(($pltRnFile|out-string).trim())" ;
@@ -21749,8 +21756,12 @@ function set-AuthenticodeSignatureTDO {
                     $XmlSignature = $SignedXml.GetXml()
                     $XmlDoc.DocumentElement.AppendChild($XmlDoc.ImportNode($XmlSignature, $true)) | Out-Null
                     # Save the newly signed XML document
-                    #$XmlDoc.Save($SignedXmlPath)
-                    $XmlDoc.Save($XmlPath.fullname)
+                    if(-not $whatif){
+                        #$XmlDoc.Save($SignedXmlPath)
+                        $XmlDoc.Save($XmlPath.fullname)
+                    }else{
+                        write-host -foregroundcolor yellow "-whatif:skipping update to xml doc" ; 
+                    }
                     #write-host -foregroundcolor yellow "Created revised signed variant file:`n$($SignedXmlPath)`n(returned updated file path to pipeline)" ;
                     $smsg = "Signed xml written to source file name:" ;
                     $smsg += "`n$($XmlPath)" ;
@@ -21801,137 +21812,150 @@ function set-AuthenticodeSignatureTDO {
         #endregion SIGN_XMLTDO ; #*------^ END sign-xmlTDO ^------
 
         #region TEST_XMLSIGNATURETDO ; #*------v Test-XmlSignatureTDO v------
-        function Test-XmlSignatureTDO {
-            <#
-            .SYNOPSIS
-            Test-XmlSignatureTDO.ps1 - Verify the digital signature on an XML document signed via sign-xmlTDO
-            .NOTES
-            Version     : 0.0.
-            Author      : Todd Kadrie
-            Website     : http://www.toddomation.com
-            Twitter     : @tostka / http://twitter.com/tostka
-            CreatedDate : 2026-
-            FileName    : Test-XmlSignatureTDO.ps1
-            License     : MIT License
-            Copyright   : (non-asserted)
-            Github      : https://github.com/tostka/verb-XXX
-            Tags        : Powershell
-            REVISIONS
-            * 8:10 AM 10/15/2026 claude fixes:sign-xmlTDO's File parameterset now embeds KeyInfo/X509Data too (was
-              SigningKey-only), so both parametersets self-verify; -Certificate is now optional in both
-              cases - updated docs below accordingly ;
-              ren Verify-XmlSignature -> Test-XmlSignatureTDO
-            4:38 PM 10/12/2026 claude updates/fixes; initial build, paired to sign-xmlTDO() in same module
-            .DESCRIPTION
-            Test-XmlSignatureTDO.ps1 - Verify the digital signature on an XML document signed via sign-xmlTDO
+        if(-not(get-command Test-XmlSignatureTDO -ea 0)){
+            function Test-XmlSignatureTDO {
+                <#                                                                                                                                                                                                                                                <#
+                .SYNOPSIS
+                Test-XmlSignatureTDO.ps1 - Verify the digital signature on an XML document signed via sign-xmlTDO
+                .NOTES
+                Version     : 0.0.
+                Author      : Todd Kadrie
+                Website     : http://www.toddomation.com
+                Twitter     : @tostka / http://twitter.com/tostka
+                CreatedDate : 2026-
+                FileName    : Test-XmlSignatureTDO.ps1
+                License     : MIT License
+                Copyright   : (non-asserted)
+                Github      : https://github.com/tostka/verb-XXX
+                Tags        : Powershell
+                REVISIONS
+                * 3:08 PM 11/4/2026 rev'd to trap non-signed and return $false, vs throw error
+                * 8:10 AM 10/15/2026 claude fixes:sign-xmlTDO's File parameterset now embeds KeyInfo/X509Data too (was
+                  SigningKey-only), so both parametersets self-verify; -Certificate is now optional in both
+                  cases - updated docs below accordingly ;
+                  ren Verify-XmlSignature -> Test-XmlSignatureTDO
+                4:38 PM 10/12/2026 claude updates/fixes; initial build, paired to sign-xmlTDO() in same module
+                .DESCRIPTION
+                Test-XmlSignatureTDO.ps1 - Verify the digital signature on an XML document signed via sign-xmlTDO
 
-            Both of sign-xmlTDO's parametersets ('File' and 'Xml') embed a KeyInfoX509Data clause (the
-            signing cert's public key) into the resulting <Signature> block, so either variant can
-            self-verify here with no -Certificate needed; CheckSignature() pulls the public key out of
-            the embedded KeyInfo. You can still pass -Certificate to force verification against a
-            specific trusted cert instead of whatever's embedded in the file/xml.
-            .PARAMETER xml
-            Previously-signed Xml to be verified[-Xml `$xmlObj]
-            .PARAMETER XmlPath
-            Path to previously-signed XML file to be verified[-XmlPath c:\pathto\file.xml]
-            .PARAMETER certificate
-            (optional) Certificate to verify signature against (public key alone is sufficient)[-Certificate `$certobj]
-            Optional for xml signed via either of sign-xmlTDO's parametersets, since both now embed
-            KeyInfo/X509Data; omit to self-verify, or pass a specific cert to verify against that instead
-            of whatever's embedded in the file/xml.
-            .PARAMETER ValidateCertificateChain
-            Switch: in addition to the cryptographic signature match, also validate the -Certificate's
-            chain of trust (revocation/trusted root etc)[-ValidateCertificateChain]
-            Only applies when -Certificate is specified; defaults off (signature-only check), as self-signed
-            or otherwise untrusted-chain code-signing certs are a common/expected use case here.
-            .INPUTS
-            None. Does not accepted piped input.(.NET types, can add description)
-            .OUTPUTS
-            System.Boolean
-            Returns $true if the signature is valid, $false if invalid.
-            .EXAMPLE
-            PS> $valid = Test-XmlSignatureTDO -XmlPath 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec.xml' -verbose ;
-            PS> $valid ;
+                Both of sign-xmlTDO's parametersets ('File' and 'Xml') embed a KeyInfoX509Data clause (the
+                signing cert's public key) into the resulting <Signature> block, so either variant can
+                self-verify here with no -Certificate needed; CheckSignature() pulls the public key out of
+                the embedded KeyInfo. You can still pass -Certificate to force verification against a
+                specific trusted cert instead of whatever's embedded in the file/xml.
+                .PARAMETER xml
+                Previously-signed Xml to be verified[-Xml `$xmlObj]
+                .PARAMETER XmlPath
+                Path to previously-signed XML file to be verified[-XmlPath c:\pathto\file.xml]
+                .PARAMETER certificate
+                (optional) Certificate to verify signature against (public key alone is sufficient)[-Certificate `$certobj]
+                Optional for xml signed via either of sign-xmlTDO's parametersets, since both now embed
+                KeyInfo/X509Data; omit to self-verify, or pass a specific cert to verify against that instead
+                of whatever's embedded in the file/xml.
+                .PARAMETER ValidateCertificateChain
+                Switch: in addition to the cryptographic signature match, also validate the -Certificate's
+                chain of trust (revocation/trusted root etc)[-ValidateCertificateChain]
+                Only applies when -Certificate is specified; defaults off (signature-only check), as self-signed
+                or otherwise untrusted-chain code-signing certs are a common/expected use case here.
+                .INPUTS
+                None. Does not accepted piped input.(.NET types, can add description)
+                .OUTPUTS
+                System.Boolean
+                Returns $true if the signature is valid, $false if invalid.
+                .EXAMPLE
+                PS> $valid = Test-XmlSignatureTDO -XmlPath 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec.xml' -verbose ;
+                PS> $valid ;
 
-            Demo self-verifying a file-signed xml (embedded KeyInfo/X509Data) with no -Certificate specified.
-            .EXAMPLE
-            PS> $xml = [xml](gc 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec.xml') ;
-            PS> $valid = Test-XmlSignatureTDO -xml $xml -verbose ;
-            PS> $valid ;
+                Demo self-verifying a file-signed xml (embedded KeyInfo/X509Data) with no -Certificate specified.
+                .EXAMPLE
+                PS> $xml = [xml](gc 'C:\sc\powershell\PSScripts\build\cert\certsigningfiles-spec.xml') ;
+                PS> $valid = Test-XmlSignatureTDO -xml $xml -verbose ;
+                PS> $valid ;
 
-            Demo self-verifying an xml-object-signed xml (embedded KeyInfo/X509Data) with no -Certificate specified.
-            .LINK
-            https://github.com/tostka/verb-XXX
-            .LINK
-            https://github.com/tostka/powershellbb/
-            #>
-            [CmdletBinding(DefaultParameterSetName='File')]
-            Param(
-                [Parameter(ParameterSetName='Xml',Mandatory=$true,HelpMessage="Previously-signed Xml to be verified[-Xml `$xmlObj]")]
-                    [xml]$xml,
-                [Parameter(ParameterSetName='File',Mandatory=$true,Position=0,ValueFromPipeline=$True,HelpMessage='Path to previously-signed XML file to be verified[-XmlPath c:\pathto\file.xml]')]
-                    [AllowNull()]
-                    [AllowEmptyCollection()]
-                    [ValidateScript({Test-Path $_})]
-                    [system.io.fileinfo[]]$XmlPath,
-                [Parameter(Mandatory=$false,HelpMessage="(optional) Certificate to verify signature against[-Certificate `$certobj]")]
-                    [System.Security.Cryptography.X509Certificates.X509Certificate2]$certificate,
-                [Parameter(Mandatory=$false,HelpMessage="Switch: also validate -Certificate's chain of trust[-ValidateCertificateChain]")]
-                    [switch]$ValidateCertificateChain
-            ) ;
-            TRY {Add-Type -AssemblyName System.Security -ErrorAction Stop} CATCH {write-verbose "Add-Type already loaded (error suppress)"} ;
+                Demo self-verifying an xml-object-signed xml (embedded KeyInfo/X509Data) with no -Certificate specified.
+                .LINK
+                https://github.com/tostka/verb-XXX
+                .LINK
+                https://github.com/tostka/powershellbb/
+                #>
+                [CmdletBinding(DefaultParameterSetName='File')]
+                Param(
+                    [Parameter(ParameterSetName='Xml',Mandatory=$true,HelpMessage="Previously-signed Xml to be verified[-Xml `$xmlObj]")]
+                        [xml]$xml,
+                    [Parameter(ParameterSetName='File',Mandatory=$true,Position=0,ValueFromPipeline=$True,HelpMessage='Path to previously-signed XML file to be verified[-XmlPath c:\pathto\file.xml]')]
+                        [AllowNull()]
+                        [AllowEmptyCollection()]
+                        [ValidateScript({Test-Path $_})]
+                        [system.io.fileinfo[]]$XmlPath,
+                    [Parameter(Mandatory=$false,HelpMessage="(optional) Certificate to verify signature against[-Certificate `$certobj]")]
+                        [System.Security.Cryptography.X509Certificates.X509Certificate2]$certificate,
+                    [Parameter(Mandatory=$false,HelpMessage="Switch: also validate -Certificate's chain of trust[-ValidateCertificateChain]")]
+                        [switch]$ValidateCertificateChain
+                ) ;
+                TRY {Add-Type -AssemblyName System.Security -ErrorAction Stop} CATCH {write-verbose "Add-Type already loaded (error suppress)"} ;
 
-            [boolean]$isValid = $false ;
-            TRY {
-                # --- resolve the XmlDocument to check, from whichever parameterset was used ---
-                if ($PSCmdlet.ParameterSetName -eq 'File') {
-                    write-verbose "Loading XmlDocument from:`n$($XmlPath.FullName)" ;
-                    $XmlDoc = New-Object System.Xml.XmlDocument
-                    $XmlDoc.PreserveWhitespace = $true  # match sign-xmlTDO's load behavior, so c14n digest lines up
-                    $XmlDoc.Load($XmlPath.FullName)
-                } else {
-                    # 'Xml' parameterset: caller already supplied a loaded [xml] doc
-                    $XmlDoc = $xml
-                }
+                [boolean]$isValid = $false ;
+                TRY {
+                    # --- resolve the XmlDocument to check, from whichever parameterset was used ---
+                    if ($PSCmdlet.ParameterSetName -eq 'File') {
+                        write-verbose "Loading XmlDocument from:`n$($XmlPath.FullName)" ;
+                        $XmlDoc = New-Object System.Xml.XmlDocument
+                        $XmlDoc.PreserveWhitespace = $true  # match sign-xmlTDO's load behavior, so c14n digest lines up
+                        $XmlDoc.Load($XmlPath.FullName)
+                    } else {
+                        # 'Xml' parameterset: caller already supplied a loaded [xml] doc
+                        $XmlDoc = $xml
+                    }
 
-                # --- locate the ds:Signature node appended by sign-xmlTDO ---
-                $SignatureNodes = $XmlDoc.GetElementsByTagName('Signature','http://www.w3.org/2000/09/xmldsig#') ;
-                if (-not $SignatureNodes -or $SignatureNodes.Count -eq 0) {
-                    Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                    # --- locate the ds:Signature node appended by sign-xmlTDO ---
+                    $SignatureNodes = $XmlDoc.GetElementsByTagName('Signature','http://www.w3.org/2000/09/xmldsig#') ;
+                    if (-not $SignatureNodes -or $SignatureNodes.Count -eq 0) {
+                        Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                        write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                    } ;
+                    if ($SignatureNodes.Count -gt 1) {
+                        write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
+                    } ;
+
+                    # --- load it into a SignedXml for verification ---
+                    $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
+                    $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
+
+                    if ($certificate) {
+                        # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
+                        # (ie by default skip chain/trust/revocation checks - just confirm the math; many
+                        # code-signing certs here are self-signed and would otherwise always fail chain validation)
+                        $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
+                        write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
+                        $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                    } else {
+                        # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
+                        write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
+                        $isValid = $SignedXml.CheckSignature()
+                    } ;
+
+                    if ($isValid) {
+                        write-host -foregroundcolor green "Signature VALID" ;
+                    } else {
+                        write-host -foregroundcolor red "Signature INVALID" ;
+                    } ;
+                    $isValid | write-output ;
+                } CATCH [System.Management.Automation.RuntimeException] {
+                    $ErrTrapd=$Error[0] ;
+                    if($ErrTrapd.Exception -match 'No\s<Signature>\selement\s\(http://www\.w3\.org/2000/09/xmldsig#\snamespace\)\sfound\sin\sspecified\sxml\s-\snothing\sto\sverify'){
+                        write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ; 
+                        $false | write-output ;
+                    }else{
+                        throw $ErrTrapd
+                    }
+                } CATCH {
+                    $ErrTrapd=$Error[0] ;
+                    write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
+                    $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+                    write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
+                    $false | write-output ;
                 } ;
-                if ($SignatureNodes.Count -gt 1) {
-                    write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
-                } ;
-
-                # --- load it into a SignedXml for verification ---
-                $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
-                $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
-
-                if ($certificate) {
-                    # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
-                    # (ie by default skip chain/trust/revocation checks - just confirm the math; many
-                    # code-signing certs here are self-signed and would otherwise always fail chain validation)
-                    $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
-                    write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
-                    $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
-                } else {
-                    # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
-                    write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
-                    $isValid = $SignedXml.CheckSignature()
-                } ;
-
-                if ($isValid) {
-                    write-host -foregroundcolor green "Signature VALID" ;
-                } else {
-                    write-host -foregroundcolor red "Signature INVALID" ;
-                } ;
-                $isValid | write-output ;
-            } CATCH {$ErrTrapd=$Error[0] ;
-                write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
-                $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
-                write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
-                $false | write-output ;
-            } ;
+            }
         }
         #endregion TEST_XMLSIGNATURETDO ; #*------^ END Test-XmlSignatureTDO ^------
 
@@ -21985,7 +22009,8 @@ function set-AuthenticodeSignatureTDO {
             #$continue = $true
             $oRet = $null ; 
             TRY {
-                if($file.Extension -match '\.(xml|psxml'){
+                #if($file.Extension -match '\.(xml|psxml'){
+                if($f.Extension -match '\.(xml|psxml)'){
                     write-host ".xml file detected: Not supported by set|get-AuthenticodeSignature, requires different signature approach: using verb-io\sign-xmlTDO() & Test-XmlSignatureTDO" ; 
                     if (-not ((Test-XmlSignatureTDO -XmlPath $f.fullname).status -eq 'Valid') ){
                         #$oRet = Set-AuthenticodeSignature -filepath $f -Certificate $cert -whatif:$($whatif) ;
@@ -22026,7 +22051,7 @@ Function set-ConsoleColors {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.01-20
+    CreatedDate : 2021-01-20
     FileName    : set-ConsoleColors.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -22311,7 +22336,7 @@ function Set-ContentFixEncoding {
     Author: Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-05-03
+    CreatedDate : 20.3.05-03
     FileName    : Set-ContentFixEncoding.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -22885,7 +22910,7 @@ Function set-PSTitleBar {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.2.04-19
+    CreatedDate : 2021-04-19
     FileName    : set-PSTitleBar.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
@@ -23994,6 +24019,7 @@ function test-AuthenticodeSignatureTDO {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Authenticode,Signature,CodeSigning,Developoment
     REVISIONS   :
+    * 12:55 PM 11/4/2026 fixed typo in rgx match
     * 9:05 AM 10/15/2026 init
     .PARAMETER file
     file name(s) to appl authenticode signature into.
@@ -24051,7 +24077,7 @@ function test-AuthenticodeSignatureTDO {
         #region TEST_XMLSIGNATURETDO ; #*------v Test-XmlSignatureTDO v------
         if(-not(get-command Test-XmlSignatureTDO -ea 0)){
             function Test-XmlSignatureTDO {
-                <#
+                <#                                                                                                                                                                                                                                                <#
                 .SYNOPSIS
                 Test-XmlSignatureTDO.ps1 - Verify the digital signature on an XML document signed via sign-xmlTDO
                 .NOTES
@@ -24063,9 +24089,10 @@ function test-AuthenticodeSignatureTDO {
                 FileName    : Test-XmlSignatureTDO.ps1
                 License     : MIT License
                 Copyright   : (non-asserted)
-                Github      : https://github.com/tostka/verb-XXX
+                Github      : https://github.com/tostka/verb-io
                 Tags        : Powershell
                 REVISIONS
+                * 3:08 PM 11/4/2026 rev'd to trap non-signed and return $false, vs throw error
                 * 8:10 AM 10/15/2026 claude fixes:sign-xmlTDO's File parameterset now embeds KeyInfo/X509Data too (was
                   SigningKey-only), so both parametersets self-verify; -Certificate is now optional in both
                   cases - updated docs below accordingly ;
@@ -24147,6 +24174,7 @@ function test-AuthenticodeSignatureTDO {
                     $SignatureNodes = $XmlDoc.GetElementsByTagName('Signature','http://www.w3.org/2000/09/xmldsig#') ;
                     if (-not $SignatureNodes -or $SignatureNodes.Count -eq 0) {
                         Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                        write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
                     } ;
                     if ($SignatureNodes.Count -gt 1) {
                         write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
@@ -24175,14 +24203,23 @@ function test-AuthenticodeSignatureTDO {
                         write-host -foregroundcolor red "Signature INVALID" ;
                     } ;
                     $isValid | write-output ;
-                } CATCH {$ErrTrapd=$Error[0] ;
+                } CATCH [System.Management.Automation.RuntimeException] {
+                    $ErrTrapd=$Error[0] ;
+                    if($ErrTrapd.Exception -match 'No\s<Signature>\selement\s\(http://www\.w3\.org/2000/09/xmldsig#\snamespace\)\sfound\sin\sspecified\sxml\s-\snothing\sto\sverify'){
+                        write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ; 
+                        $false | write-output ;
+                    }else{
+                        throw $ErrTrapd
+                    }
+                } CATCH {
+                    $ErrTrapd=$Error[0] ;
                     write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
                     $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
                     write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
                     $false | write-output ;
                 } ;
             }
-        } ; 
+        }
         #endregion TEST_XMLSIGNATURETDO ; #*------^ END Test-XmlSignatureTDO ^------
 
         #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^====== 
@@ -24237,20 +24274,22 @@ function test-AuthenticodeSignatureTDO {
             #$continue = $true
             $oRet = $null ; 
             TRY {
-                if($file.Extension -match '\.(xml|psxml'){
+                #if($file.Extension -match '\.(xml|psxml'){
+                if($f.Extension -match '\.(xml|psxml)'){
                     write-host ".xml file detected: Not supported by get-AuthenticodeSignature, requires different signature approach: using verb-io\Test-XmlSignatureTDO" ; 
-                    if (-not ((Test-XmlSignatureTDO -XmlPath $f.fullname).status -eq 'Valid') ){
+                    #if (-not (($tRet = Test-XmlSignatureTDO -XmlPath $f.fullname).status -eq 'Valid') ){
+                    if (-not (Test-XmlSignatureTDO -XmlPath $f.fullname) ){
                         #$oRet = sign-xmlTDO -XmlPath $f -Certificate $certificate -whatif:$($whatif) ;
                         $false | write-output 
                     }else{
-                        write-host "($($f.fullname) has a valid existing AuthenticodeSignature, skipping)" ; 
+                        write-verbose "($($f.fullname) has a valid existing AuthenticodeSignature)" ; 
                         $true | write-output  ; 
                     } ; 
                 }else{
                     if (-not ((Get-AuthenticodeSignature -FilePath $f.fullname).status -eq 'Valid') ){
                         $false | write-output ; 
                     }else{
-                        write-host "($($f.fullname) has a valid existing AuthenticodeSignature, skipping)" ; 
+                        write-verbose "($($f.fullname) has a valid existing AuthenticodeSignature)" ; 
                         $true | write-output ; 
                     } ; 
                 }
@@ -24933,7 +24972,7 @@ function test-isLocalPath {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-04-21
+    CreatedDate : 20.3.04-21
     FileName    : test-isLocalPath.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -25156,7 +25195,7 @@ function test-IsUncPath {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-04-21
+    CreatedDate : 20.3.04-21
     FileName    : test-IsUncPath.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -25262,7 +25301,7 @@ function test-LineEndings {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2022-09-08
+    CreatedDate : 20.3.09-08
     FileName    : test-LineEndings.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -25716,7 +25755,7 @@ Function test-MissingMediaSummary {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2022-03-07
+    CreatedDate : 20.3.03-07
     FileName    : test-MissingMediaSummary.ps1
     License     : MIT License
     Copyright   : (c) 2021 Todd Kadrie
@@ -27865,3 +27904,29 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 
 
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkKC7+e/mZA3kSuT//WFVCG6e
+# 8+igggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBROdrAs
+# CZW9PE82g75QYY3q71bRMTANBgkqhkiG9w0BAQEFAASBgLEAOLX4UmT90IMfKuaL
+# Fj8T+hqReNbVmGE6gIQrnPXyGYTXiWxbtkm2GgdazJ9xJk9PEJd6AccKGsKtTWqu
+# 91Q8uRdEtlMUVy7zHRduCYPX5txajTmarw4Rh6Mi2Q6IrWiCT5PJe6Fo/uxnMBhh
+# mr/YQiwXYm28iqpSV/yP2xXd
+# SIG # End signature block

@@ -1,6 +1,6 @@
 ﻿# test-AuthenticodeSignatureTDO.ps1
  
-#*------v Function test-AuthenticodeSignatureTDO v------
+#*------v test-AuthenticodeSignatureTDO.ps1 v------
 function test-AuthenticodeSignatureTDO {
     <#
     .SYNOPSIS
@@ -17,6 +17,7 @@ function test-AuthenticodeSignatureTDO {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Authenticode,Signature,CodeSigning,Developoment
     REVISIONS   :
+    * 12:55 PM 11/4/2026 fixed typo in rgx match
     * 9:05 AM 10/15/2026 init
     .PARAMETER file
     file name(s) to appl authenticode signature into.
@@ -74,7 +75,7 @@ function test-AuthenticodeSignatureTDO {
         #region TEST_XMLSIGNATURETDO ; #*------v Test-XmlSignatureTDO v------
         if(-not(get-command Test-XmlSignatureTDO -ea 0)){
             function Test-XmlSignatureTDO {
-                <#
+                <#                                                                                                                                                                                                                                                <#
                 .SYNOPSIS
                 Test-XmlSignatureTDO.ps1 - Verify the digital signature on an XML document signed via sign-xmlTDO
                 .NOTES
@@ -86,9 +87,10 @@ function test-AuthenticodeSignatureTDO {
                 FileName    : Test-XmlSignatureTDO.ps1
                 License     : MIT License
                 Copyright   : (non-asserted)
-                Github      : https://github.com/tostka/verb-XXX
+                Github      : https://github.com/tostka/verb-io
                 Tags        : Powershell
                 REVISIONS
+                * 3:08 PM 11/4/2026 rev'd to trap non-signed and return $false, vs throw error
                 * 8:10 AM 10/15/2026 claude fixes:sign-xmlTDO's File parameterset now embeds KeyInfo/X509Data too (was
                   SigningKey-only), so both parametersets self-verify; -Certificate is now optional in both
                   cases - updated docs below accordingly ;
@@ -170,6 +172,7 @@ function test-AuthenticodeSignatureTDO {
                     $SignatureNodes = $XmlDoc.GetElementsByTagName('Signature','http://www.w3.org/2000/09/xmldsig#') ;
                     if (-not $SignatureNodes -or $SignatureNodes.Count -eq 0) {
                         Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                        write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
                     } ;
                     if ($SignatureNodes.Count -gt 1) {
                         write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
@@ -198,14 +201,23 @@ function test-AuthenticodeSignatureTDO {
                         write-host -foregroundcolor red "Signature INVALID" ;
                     } ;
                     $isValid | write-output ;
-                } CATCH {$ErrTrapd=$Error[0] ;
+                } CATCH [System.Management.Automation.RuntimeException] {
+                    $ErrTrapd=$Error[0] ;
+                    if($ErrTrapd.Exception -match 'No\s<Signature>\selement\s\(http://www\.w3\.org/2000/09/xmldsig#\snamespace\)\sfound\sin\sspecified\sxml\s-\snothing\sto\sverify'){
+                        write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ; 
+                        $false | write-output ;
+                    }else{
+                        throw $ErrTrapd
+                    }
+                } CATCH {
+                    $ErrTrapd=$Error[0] ;
                     write-host -foregroundcolor gray "TargetCatch:} CATCH [$($ErrTrapd.Exception.GetType().FullName)] {"  ;
                     $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
                     write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" ;
                     $false | write-output ;
                 } ;
             }
-        } ; 
+        }
         #endregion TEST_XMLSIGNATURETDO ; #*------^ END Test-XmlSignatureTDO ^------
 
         #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^====== 
@@ -260,20 +272,22 @@ function test-AuthenticodeSignatureTDO {
             #$continue = $true
             $oRet = $null ; 
             TRY {
-                if($file.Extension -match '\.(xml|psxml'){
+                #if($file.Extension -match '\.(xml|psxml'){
+                if($f.Extension -match '\.(xml|psxml)'){
                     write-host ".xml file detected: Not supported by get-AuthenticodeSignature, requires different signature approach: using verb-io\Test-XmlSignatureTDO" ; 
-                    if (-not ((Test-XmlSignatureTDO -XmlPath $f.fullname).status -eq 'Valid') ){
+                    #if (-not (($tRet = Test-XmlSignatureTDO -XmlPath $f.fullname).status -eq 'Valid') ){
+                    if (-not (Test-XmlSignatureTDO -XmlPath $f.fullname) ){
                         #$oRet = sign-xmlTDO -XmlPath $f -Certificate $certificate -whatif:$($whatif) ;
                         $false | write-output 
                     }else{
-                        write-host "($($f.fullname) has a valid existing AuthenticodeSignature, skipping)" ; 
+                        write-verbose "($($f.fullname) has a valid existing AuthenticodeSignature)" ; 
                         $true | write-output  ; 
                     } ; 
                 }else{
                     if (-not ((Get-AuthenticodeSignature -FilePath $f.fullname).status -eq 'Valid') ){
                         $false | write-output ; 
                     }else{
-                        write-host "($($f.fullname) has a valid existing AuthenticodeSignature, skipping)" ; 
+                        write-verbose "($($f.fullname) has a valid existing AuthenticodeSignature)" ; 
                         $true | write-output ; 
                     } ; 
                 }
@@ -285,4 +299,5 @@ function test-AuthenticodeSignatureTDO {
             } ;           
         } # loop-E
     } # Proc-E
-} #*------^ END Function test-AuthenticodeSignatureTDO ^------
+}
+#*------^ test-AuthenticodeSignatureTDO.ps1 ^------
