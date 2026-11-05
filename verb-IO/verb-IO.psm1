@@ -5,7 +5,7 @@
 .SYNOPSIS
 verb-IO - Powershell Input/Output generic functions module
 .NOTES
-Version     : 20.3.0.0.0
+Version     : 20.3.1.0.0
 Author      : Todd Kadrie
 Website     :	https://www.toddomation.com
 Twitter     :	@tostka
@@ -54,7 +54,7 @@ function Add-ContentFixEncoding {
     Author: Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.05-03
+    CreatedDate : 2022-05-03
     FileName    : Add-ContentFixEncoding.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -773,7 +773,7 @@ function clear-HostIndent {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-01-12
+    CreatedDate : 20.3.11-12
     FileName    : clear-HostIndent.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -3461,7 +3461,7 @@ Function ConvertFrom-UncPath {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.07-26
+    CreatedDate : 2022-07-26
     FileName    : ConvertFrom-UncPath.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -3845,7 +3845,7 @@ function Convert-NumbertoWords {
     Author      : smithcbp
     Website     : https://github.com/smithcbp
     Twitter     : 
-    CreatedDate : 2023-01-06
+    CreatedDate : 20.3.11-06
     FileName    : Convert-NumbertoWords
     License     : (none asserted)
     Copyright   : (none asserted)
@@ -5170,7 +5170,7 @@ Function ConvertTo-UncPath {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.07-26
+    CreatedDate : 2022-07-26
     FileName    : ConvertTo-UncPath.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -6463,7 +6463,7 @@ function convert-VideoToMp3 {
                         for i in *.mp4; do ffmpeg -i "$i" -q:a 0 -map a "$(basename "${i/.mp4}").mp3"; done;
                         http://donnieknows.com/blog/mp4-video-mp3-file-using-ffmpeg-ubuntu-910-karmic-koala
                         Encoding VBR (Variable Bit Rate) mp3 audio - https://trac.ffmpeg.org/wiki/Encode/MP3
-                        FFmpeg, encode mp3 - http://svnpenn.github.io/20.3.08/ffmpeg-encode-mp3
+                        FFmpeg, encode mp3 - http://svnpenn.github.io/2012/08/ffmpeg-encode-mp3
 
                         To encode a high quality MP3 from an AVI best using -q:a for variable bit rate.
                         ffmpeg -i sample.avi -q:a 0 -map a sample.mp3
@@ -7329,7 +7329,7 @@ function dump-Shortcuts {
     * 10:35 AM 2/21/2022 CBH example ps> adds 
     * 10:21 AM 3/11/2020 recoded again, renamed Summarize-Shortcuts -> dump-Shortcuts, added -xml/-csv/-json export, quicklaunch param, and verbose support, -Path defaults to desktop 
     8:29 AM 4/28/2016 rewrote and expanded, based on MattG's orig concept
-    2013-02-13 18:38:52 MattG posted version
+    20.3.12-13 18:38:52 MattG posted version
     .DESCRIPTION
     .PARAMETER Path
     Path [c:\path-to\]
@@ -7887,7 +7887,7 @@ Function extract-Icon {
     REVISIONS
     * 8:17 AM 2/28/2020 updated CBH, made AdvFunc, added verbose
     * 10:03 AM 3/10/2016: MyAccount: retooled ; substantially expanded. Added      It also will either hand back an Icon-type variable, or if you spec an OutputIconfFileName, it writes the extracted icon file out and returns the $OutputIconFileName to confirm success.
-    * 1.1 20.3.03.8 posted version
+    * 1.1 2012.03.8 posted version
     .DESCRIPTION
     extract-Icon.ps1 - Exports an ico from a given source to a given destination (file, if OutputIconFilename specified, to pipeline, if not)
     Grab the shell32.dll's 238'th iconinto a pointer that can be reassigned to a Traytip:
@@ -8258,7 +8258,7 @@ Function get-AliasDefinition {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.04-29
+    CreatedDate : 2022-04-29
     FileName    : get-AliasDefinition.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -8626,7 +8626,7 @@ function get-ColorNames {
 	Author      : Todd Kadrie
 	Website     : http://www.toddomation.com
 	Twitter     : @tostka / http://twitter.com/tostka
-	CreatedDate : 2023-01-30
+	CreatedDate : 20.3.11-30
 	FileName    : get-ColorNames.ps1
 	License     : MIT License
 	Copyright   : (c) 2023 Todd Kadrie
@@ -9111,7 +9111,7 @@ Function get-ConsoleText {
     AddedWebsite:	https://github.com/AutomatedLab/AutomatedLab.Common/blob/develop/AutomatedLab.Common/Common/Public/Get-ConsoleText.ps1
     AddedGithub : https://github.com/AutomatedLab/AutomatedLab
     AddedTwitter:	@raimundandree,@nyanhp
-    CreatedDate : 20.3.02-02
+    CreatedDate : 2022-02-02
     FileName    : get-ConsoleText.ps1
     License     : https://github.com/AutomatedLab/AutomatedLab/blob/develop/LICENSE
     Copyright   : Copyright (c) 2022 Raimund Andrée, Jan-Hendrik Peters
@@ -9919,9 +9919,9 @@ function Get-FolderSize {
     Author: Rich Kusak
     Versions:
     9:19 AM 9/2/2015 updated help
-    Created: 20.3.04-05
+    Created: 2012-04-05
     2:53 PM 11/7/2014 tsk tweaked, to add SizeRaw, and pull spaces from property names
-    Version: 1.0.0 20.3.04-11 23:33
+    Version: 1.0.0 2012-04-11 23:33
     .DESCRIPTION
     The Get-FolderSize function gets the size of a folder, any subfolders, and displays the number of files in each.
     .PARAMETER Folder
@@ -9956,7 +9956,7 @@ function Get-FolderSize {
     .OUTPUTS
     PSObject
     .LINK
-    http://blogs.technet.com/b/heyscriptingguy/archive/20.3.04/05/the-2012-scripting-games-advanced-event-4-determine-folder-space.aspx
+    http://blogs.technet.com/b/heyscriptingguy/archive/2012/04/05/the-2012-scripting-games-advanced-event-4-determine-folder-space.aspx
     #>
 
     [CmdletBinding()]
@@ -10120,7 +10120,7 @@ Function Get-FsoShortName {
     PS> $blah | get-fsoshortname ;
     Resolve path specification(s) into ShortNames
     .LINK
-    https://blogs.technet.microsoft.com/heyscriptingguy/2013/08/01/use-powershell-to-display-short-file-and-folder-names/
+    https://blogs.technet.microsoft.com/heyscriptingguy/20.3.18/01/use-powershell-to-display-short-file-and-folder-names/
     #>
     BEGIN { $fso = New-Object -ComObject Scripting.FileSystemObject } ;
     PROCESS {
@@ -10172,7 +10172,7 @@ Function Get-FsoShortPath {
     $blah | get-fsoshortname ;
     Resolve path specification(s) into ShortPaths
     .LINK
-    https://blogs.technet.microsoft.com/heyscriptingguy/2013/08/01/use-powershell-to-display-short-file-and-folder-names/
+    https://blogs.technet.microsoft.com/heyscriptingguy/20.3.18/01/use-powershell-to-display-short-file-and-folder-names/
     *---^ END Comment-based Help  ^--- #>
         BEGIN { $fso = New-Object -ComObject Scripting.FileSystemObject } ;
         PROCESS {
@@ -10261,7 +10261,7 @@ function get-HostIndent {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-01-12
+    CreatedDate : 20.3.11-12
     FileName    : get-HostIndent.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -13098,7 +13098,7 @@ function invoke-SoundCue{
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.03-04
+    CreatedDate : 2022-03-04
     FileName    : invoke-SoundCue.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -14096,7 +14096,7 @@ function New-RandomFilename{
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.07-18
+    CreatedDate : 2022-07-18
     FileName    : New-RandomFilename.ps1
     License     : (none asserted)
     Copyright   : (none asserted)
@@ -14127,7 +14127,7 @@ function New-RandomFilename{
     PS> $fn = New-RandomFilename -Extension 'html'
     Create a new randomfilename with html ext
     .EXAMPLE
-    PS> .Invoke-BypassPaywall 'https://www.theatlantic.com/ideas/archive/20.3.07/russian-invasion-ukraine-democracy-changes/661451'
+    PS> .Invoke-BypassPaywall 'https://www.theatlantic.com/ideas/archive/2022/07/russian-invasion-ukraine-democracy-changes/661451'
     theatlantic.com demo
     .LINK
     https://github.com/tostka/verb-IO
@@ -14957,7 +14957,7 @@ function pop-HostIndent {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-01-12
+    CreatedDate : 20.3.11-12
     FileName    : pop-HostIndent.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -15091,7 +15091,7 @@ function Pop-LocationFirst {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.05-06
+    CreatedDate : 2022-05-06
     FileName    : Pop-LocationFirst.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -15226,7 +15226,7 @@ function push-HostIndent {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-01-12
+    CreatedDate : 20.3.11-12
     FileName    : push-HostIndent.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -17836,7 +17836,7 @@ Function Remove-InvalidVariableNameChars {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.07-26
+    CreatedDate : 2022-07-26
     FileName    : Remove-InvalidVariableNameChars.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -19540,7 +19540,7 @@ function reset-HostIndent {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-01-12
+    CreatedDate : 20.3.11-12
     FileName    : reset-HostIndent.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -20851,7 +20851,7 @@ function search-Excel{
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-06-16
+    CreatedDate : 20.3.16-16
     FileName    : search-Excel.ps1
     License     : MIT License
     Copyright   : (c) 2023 Todd Kadrie
@@ -21638,7 +21638,7 @@ function set-AuthenticodeSignatureTDO {
             .DESCRIPTION
             sign-xmlTDO.ps1 - Sign XML documents with PowerShell
 
-            Copilot-revferred code from the Mathias R. Jessen ('IISResetMe')/gist on github
+            Copilot-referred code from the Mathias R. Jessen ('IISResetMe')/gist on github
             .PARAMETER xml
             Xml to be signed[-Xml `$xmlObj]
             .PARAMETER XmlPath
@@ -21826,7 +21826,7 @@ function set-AuthenticodeSignatureTDO {
                 FileName    : Test-XmlSignatureTDO.ps1
                 License     : MIT License
                 Copyright   : (non-asserted)
-                Github      : https://github.com/tostka/verb-XXX
+                Github      : https://github.com/tostka/verb-io
                 Tags        : Powershell
                 REVISIONS
                 * 3:08 PM 11/4/2026 rev'd to trap non-signed and return $false, vs throw error
@@ -21910,36 +21910,38 @@ function set-AuthenticodeSignatureTDO {
                     # --- locate the ds:Signature node appended by sign-xmlTDO ---
                     $SignatureNodes = $XmlDoc.GetElementsByTagName('Signature','http://www.w3.org/2000/09/xmldsig#') ;
                     if (-not $SignatureNodes -or $SignatureNodes.Count -eq 0) {
-                        Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                        #Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
                         write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
-                    } ;
-                    if ($SignatureNodes.Count -gt 1) {
-                        write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
-                    } ;
-
-                    # --- load it into a SignedXml for verification ---
-                    $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
-                    $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
-
-                    if ($certificate) {
-                        # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
-                        # (ie by default skip chain/trust/revocation checks - just confirm the math; many
-                        # code-signing certs here are self-signed and would otherwise always fail chain validation)
-                        $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
-                        write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
-                        $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                        $false | write-output ;
                     } else {
-                        # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
-                        write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
-                        $isValid = $SignedXml.CheckSignature()
-                    } ;
+                        if ($SignatureNodes.Count -gt 1) {
+                            write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
+                        } ;
 
-                    if ($isValid) {
-                        write-host -foregroundcolor green "Signature VALID" ;
-                    } else {
-                        write-host -foregroundcolor red "Signature INVALID" ;
-                    } ;
-                    $isValid | write-output ;
+                        # --- load it into a SignedXml for verification ---
+                        $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
+                        $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
+
+                        if ($certificate) {
+                            # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
+                            # (ie by default skip chain/trust/revocation checks - just confirm the math; many
+                            # code-signing certs here are self-signed and would otherwise always fail chain validation)
+                            $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
+                            write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
+                            $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                        } else {
+                            # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
+                            write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
+                            $isValid = $SignedXml.CheckSignature()
+                        } ;
+
+                        if ($isValid) {
+                            write-host -foregroundcolor green "Signature VALID" ;
+                        } else {
+                            write-host -foregroundcolor red "Signature INVALID" ;
+                        } ;
+                        $isValid | write-output ;
+                    } ; 
                 } CATCH [System.Management.Automation.RuntimeException] {
                     $ErrTrapd=$Error[0] ;
                     if($ErrTrapd.Exception -match 'No\s<Signature>\selement\s\(http://www\.w3\.org/2000/09/xmldsig#\snamespace\)\sfound\sin\sspecified\sxml\s-\snothing\sto\sverify'){
@@ -22336,7 +22338,7 @@ function Set-ContentFixEncoding {
     Author: Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.05-03
+    CreatedDate : 2022-05-03
     FileName    : Set-ContentFixEncoding.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -22585,7 +22587,7 @@ function set-HostIndent {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-01-12
+    CreatedDate : 20.3.11-12
     FileName    : set-HostIndent.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -24019,6 +24021,7 @@ function test-AuthenticodeSignatureTDO {
     Github      : https://github.com/tostka/verb-io
     Tags        : Powershell,Authenticode,Signature,CodeSigning,Developoment
     REVISIONS   :
+    * 1:24 PM 11/5/2026 reworked fail logic to skip throw (which can't be properly caught for handling)
     * 12:55 PM 11/4/2026 fixed typo in rgx match
     * 9:05 AM 10/15/2026 init
     .PARAMETER file
@@ -24173,36 +24176,38 @@ function test-AuthenticodeSignatureTDO {
                     # --- locate the ds:Signature node appended by sign-xmlTDO ---
                     $SignatureNodes = $XmlDoc.GetElementsByTagName('Signature','http://www.w3.org/2000/09/xmldsig#') ;
                     if (-not $SignatureNodes -or $SignatureNodes.Count -eq 0) {
-                        Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                        #Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
                         write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
-                    } ;
-                    if ($SignatureNodes.Count -gt 1) {
-                        write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
-                    } ;
-
-                    # --- load it into a SignedXml for verification ---
-                    $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
-                    $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
-
-                    if ($certificate) {
-                        # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
-                        # (ie by default skip chain/trust/revocation checks - just confirm the math; many
-                        # code-signing certs here are self-signed and would otherwise always fail chain validation)
-                        $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
-                        write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
-                        $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                        $false | write-output ;
                     } else {
-                        # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
-                        write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
-                        $isValid = $SignedXml.CheckSignature()
-                    } ;
+                        if ($SignatureNodes.Count -gt 1) {
+                            write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
+                        } ;
 
-                    if ($isValid) {
-                        write-host -foregroundcolor green "Signature VALID" ;
-                    } else {
-                        write-host -foregroundcolor red "Signature INVALID" ;
-                    } ;
-                    $isValid | write-output ;
+                        # --- load it into a SignedXml for verification ---
+                        $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
+                        $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
+
+                        if ($certificate) {
+                            # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
+                            # (ie by default skip chain/trust/revocation checks - just confirm the math; many
+                            # code-signing certs here are self-signed and would otherwise always fail chain validation)
+                            $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
+                            write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
+                            $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                        } else {
+                            # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
+                            write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
+                            $isValid = $SignedXml.CheckSignature()
+                        } ;
+
+                        if ($isValid) {
+                            write-host -foregroundcolor green "Signature VALID" ;
+                        } else {
+                            write-host -foregroundcolor red "Signature INVALID" ;
+                        } ;
+                        $isValid | write-output ;
+                    } ; 
                 } CATCH [System.Management.Automation.RuntimeException] {
                     $ErrTrapd=$Error[0] ;
                     if($ErrTrapd.Exception -match 'No\s<Signature>\selement\s\(http://www\.w3\.org/2000/09/xmldsig#\snamespace\)\sfound\sin\sspecified\sxml\s-\snothing\sto\sverify'){
@@ -24222,7 +24227,7 @@ function test-AuthenticodeSignatureTDO {
         }
         #endregion TEST_XMLSIGNATURETDO ; #*------^ END Test-XmlSignatureTDO ^------
 
-        #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^====== 
+        #endregion FUNCTIONS_INTERNAL ; #*======^ END FUNCTIONS_INTERNAL ^======
 
         $error.clear() ;
         TRY {
@@ -24255,7 +24260,7 @@ function test-AuthenticodeSignatureTDO {
         } CATCH {
             Write-Warning "$(get-date -format 'HH:mm:ss'): Failed processing $($_.Exception.ItemName). `nError Message: $($_.Exception.Message)`nError Details: $($_)" ;
             Exit #Opts: STOP(debug)|EXIT(close)|CONTINUE(move on in loop cycle)|BREAK(exit loop iteration)|THROW $_/'CustomMsg'(end script with Err output)
-        } ; 
+        } ;
 
         # check if using Pipeline input or explicit params:
         if ($rPSCmdlet.MyInvocation.ExpectingInput) {
@@ -24794,7 +24799,7 @@ function test-IsLink{
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-06-16
+    CreatedDate : 20.3.16-16
     FileName    : test-IsLink.ps1
     License     : MIT License
     Copyright   : (c) 2023 Todd Kadrie
@@ -24972,7 +24977,7 @@ function test-isLocalPath {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.04-21
+    CreatedDate : 2022-04-21
     FileName    : test-isLocalPath.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -25195,7 +25200,7 @@ function test-IsUncPath {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.04-21
+    CreatedDate : 2022-04-21
     FileName    : test-IsUncPath.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -25301,7 +25306,7 @@ function test-LineEndings {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.09-08
+    CreatedDate : 2022-09-08
     FileName    : test-LineEndings.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -25755,7 +25760,7 @@ Function test-MissingMediaSummary {
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 20.3.03-07
+    CreatedDate : 2022-03-07
     FileName    : test-MissingMediaSummary.ps1
     License     : MIT License
     Copyright   : (c) 2021 Todd Kadrie
@@ -26714,7 +26719,7 @@ function unless {
     unless() - Parameter validation friendly fail msgs func
     .NOTES
     Author: Karl Prosser
-    Website:	https://powershell.org/wp/2013/05/21/validatescript-for-beginners/
+    Website:	https://powershell.org/wp/20.3.15/21/validatescript-for-beginners/
 
     REVISIONS   :
     * 10:35 AM 2/21/2022 CBH example ps> adds 
@@ -26747,7 +26752,7 @@ function unless {
       ) ;
       Using the unless function call, with the validation expression, and a pre-specified friendly failure message.
     .LINK
-    https://powershell.org/wp/2013/05/21/validatescript-for-beginners/
+    https://powershell.org/wp/20.3.15/21/validatescript-for-beginners/
     #>
 
     [cmdletbinding()]
@@ -26773,7 +26778,7 @@ function write-hostCallOutTDO {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-01-12
+    CreatedDate : 20.3.11-12
     FileName    : write-hostCallOutTDO.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -27556,7 +27561,7 @@ function write-HostIndent {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-01-12
+    CreatedDate : 20.3.11-12
     FileName    : write-HostIndent.ps1
     License     : MIT License
     Copyright   : (c) 2022 Todd Kadrie
@@ -27908,8 +27913,8 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkKC7+e/mZA3kSuT//WFVCG6e
-# 8+igggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQULcSK+JQwaNi6sz8L0k+bxBSk
+# 6xugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -27924,9 +27929,9 @@ Export-ModuleMember -Function Add-ContentFixEncoding,Add-DirectoryWatch,Add-PSTi
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBROdrAs
-# CZW9PE82g75QYY3q71bRMTANBgkqhkiG9w0BAQEFAASBgLEAOLX4UmT90IMfKuaL
-# Fj8T+hqReNbVmGE6gIQrnPXyGYTXiWxbtkm2GgdazJ9xJk9PEJd6AccKGsKtTWqu
-# 91Q8uRdEtlMUVy7zHRduCYPX5txajTmarw4Rh6Mi2Q6IrWiCT5PJe6Fo/uxnMBhh
-# mr/YQiwXYm28iqpSV/yP2xXd
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQXsbp8
+# Zs5hD3MPBJh1KTvzy65kMjANBgkqhkiG9w0BAQEFAASBgEqhl2Go/+pgP8uOnEv7
+# rjqC+2QWnnSMKC93fvLMU/BAJVznqH1P42mg9nF3XbOEmgUeO2mYw6tssjzncTaa
+# OPSg2bBO+4VJbAlKU6trm1bDVA4rgsO+QOa8yQlp6cUAdQoUDXqtw2hZ+Gnz9BbW
+# 0OuyGmmQk6erx5sQDiP78wIL
 # SIG # End signature block
