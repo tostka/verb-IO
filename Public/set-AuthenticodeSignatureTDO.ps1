@@ -339,7 +339,7 @@ function set-AuthenticodeSignatureTDO {
             .DESCRIPTION
             sign-xmlTDO.ps1 - Sign XML documents with PowerShell
 
-            Copilot-revferred code from the Mathias R. Jessen ('IISResetMe')/gist on github
+            Copilot-referred code from the Mathias R. Jessen ('IISResetMe')/gist on github
             .PARAMETER xml
             Xml to be signed[-Xml `$xmlObj]
             .PARAMETER XmlPath
@@ -527,7 +527,7 @@ function set-AuthenticodeSignatureTDO {
                 FileName    : Test-XmlSignatureTDO.ps1
                 License     : MIT License
                 Copyright   : (non-asserted)
-                Github      : https://github.com/tostka/verb-XXX
+                Github      : https://github.com/tostka/verb-io
                 Tags        : Powershell
                 REVISIONS
                 * 3:08 PM 11/4/2026 rev'd to trap non-signed and return $false, vs throw error
@@ -611,36 +611,38 @@ function set-AuthenticodeSignatureTDO {
                     # --- locate the ds:Signature node appended by sign-xmlTDO ---
                     $SignatureNodes = $XmlDoc.GetElementsByTagName('Signature','http://www.w3.org/2000/09/xmldsig#') ;
                     if (-not $SignatureNodes -or $SignatureNodes.Count -eq 0) {
-                        Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
+                        #Throw "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
                         write-verbose "No <Signature> element (http://www.w3.org/2000/09/xmldsig# namespace) found in specified xml - nothing to verify" ;
-                    } ;
-                    if ($SignatureNodes.Count -gt 1) {
-                        write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
-                    } ;
-
-                    # --- load it into a SignedXml for verification ---
-                    $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
-                    $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
-
-                    if ($certificate) {
-                        # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
-                        # (ie by default skip chain/trust/revocation checks - just confirm the math; many
-                        # code-signing certs here are self-signed and would otherwise always fail chain validation)
-                        $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
-                        write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
-                        $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                        $false | write-output ;
                     } else {
-                        # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
-                        write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
-                        $isValid = $SignedXml.CheckSignature()
-                    } ;
+                        if ($SignatureNodes.Count -gt 1) {
+                            write-warning "Multiple <Signature> elements found ($($SignatureNodes.Count)); verifying only the first" ;
+                        } ;
 
-                    if ($isValid) {
-                        write-host -foregroundcolor green "Signature VALID" ;
-                    } else {
-                        write-host -foregroundcolor red "Signature INVALID" ;
-                    } ;
-                    $isValid | write-output ;
+                        # --- load it into a SignedXml for verification ---
+                        $SignedXml = New-Object System.Security.Cryptography.Xml.SignedXml -ArgumentList $XmlDoc
+                        $SignedXml.LoadXml([System.Xml.XmlElement]$SignatureNodes[0])
+
+                        if ($certificate) {
+                            # explicit cert supplied: verifySignatureOnly = -not $ValidateCertificateChain
+                            # (ie by default skip chain/trust/revocation checks - just confirm the math; many
+                            # code-signing certs here are self-signed and would otherwise always fail chain validation)
+                            $VerifySignatureOnly = -not $ValidateCertificateChain.IsPresent ;
+                            write-verbose "Verifying signature against supplied -Certificate (Thumbprint:$($certificate.Thumbprint)); VerifySignatureOnly:$($VerifySignatureOnly)" ;
+                            $isValid = $SignedXml.CheckSignature($certificate, $VerifySignatureOnly)
+                        } else {
+                            # no cert supplied: rely on embedded KeyInfo (eg the 'Xml' parameterset's KeyInfoX509Data)
+                            write-verbose "No -Certificate supplied; verifying against embedded KeyInfo (if any)" ;
+                            $isValid = $SignedXml.CheckSignature()
+                        } ;
+
+                        if ($isValid) {
+                            write-host -foregroundcolor green "Signature VALID" ;
+                        } else {
+                            write-host -foregroundcolor red "Signature INVALID" ;
+                        } ;
+                        $isValid | write-output ;
+                    } ; 
                 } CATCH [System.Management.Automation.RuntimeException] {
                     $ErrTrapd=$Error[0] ;
                     if($ErrTrapd.Exception -match 'No\s<Signature>\selement\s\(http://www\.w3\.org/2000/09/xmldsig#\snamespace\)\sfound\sin\sspecified\sxml\s-\snothing\sto\sverify'){
